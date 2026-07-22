@@ -1,1 +1,179 @@
-{"sections":{"main":{"type":"main-page","blocks":{"heading":{"type":"text","name":"Title","settings":{"text":"<h1>{{ closest.page.title }}<\/h1>","width":"100%","max_width":"normal","alignment":"left","type_preset":"h2","font":"var(--font-body--family)","font_size":"1rem","line_height":"normal","letter_spacing":"normal","case":"none","wrap":"pretty","color":"var(--color-foreground)","background":false,"background_color":"#00000026","corner_radius":0,"padding-block-start":0,"padding-block-end":0,"padding-inline-start":0,"padding-inline-end":0},"blocks":{}},"page-content":{"type":"page-content","settings":{},"blocks":{}}},"block_order":["heading","page-content"],"disabled":true,"settings":{"content_direction":"column","gap":32,"color_scheme":"","padding-block-start":40,"padding-block-end":80}}},"order":["main"]}
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "main-page",
+      "blocks": {
+        "heading": {
+          "type": "text",
+          "name": "Title",
+          "settings": {
+            "text": "<h1>{{ closest.page.title }}</h1>",
+            "width": "100%",
+            "max_width": "normal",
+            "alignment": "left",
+            "type_preset": "h2",
+            "font": "var(--font-body--family)",
+            "font_size": "1rem",
+            "line_height": "normal",
+            "letter_spacing": "normal",
+            "case": "none",
+            "wrap": "pretty",
+            "color": "var(--color-foreground)",
+            "background": false,
+            "background_color": "#00000026",
+            "corner_radius": 0,
+            "padding-block-start": 0,
+            "padding-block-end": 0,
+            "padding-inline-start": 0,
+            "padding-inline-end": 0
+          },
+          "blocks": {}
+        },
+        "page-content": {
+          "type": "page-content",
+          "settings": {},
+          "blocks": {}
+        }
+      },
+      "block_order": [
+        "heading",
+        "page-content"
+      ],
+      "disabled": true,
+      "settings": {
+        "content_direction": "column",
+        "gap": 32,
+        "color_scheme": "",
+        "padding-block-start": 40,
+        "padding-block-end": 80
+      }
+    },
+    "vanquish_analytics_gXMDYp": {
+      "type": "vanquish-analytics",
+      "name": "Admin Dashboard",
+      "settings": {
+        "dashboard_title": "VANQUISH HUB",
+        "auto_refresh": false,
+        "refresh_interval": 20,
+        "master_password": "master",
+        "company_email": "DEVICI.STUDIOS@OUTLOOK.COM",
+        "emailjs_service": "",
+        "emailjs_template": "",
+        "emailjs_pubkey": "",
+        "user_1_name": "SPEX",
+        "user_1_role": "Creative Director",
+        "user_1_password": "noodle",
+        "user_1_can_overview": true,
+        "user_1_can_collections": true,
+        "user_1_can_performance": true,
+        "user_1_can_suggestions": true,
+        "user_1_can_team": true,
+        "user_2_name": "STYLES",
+        "user_2_role": "Spokesman",
+        "user_2_password": "styles001",
+        "user_2_can_overview": false,
+        "user_2_can_collections": true,
+        "user_2_can_performance": true,
+        "user_2_can_suggestions": true,
+        "user_2_can_team": true,
+        "user_3_name": "JAI",
+        "user_3_role": "Anonymous",
+        "user_3_password": "jai002",
+        "user_3_can_overview": false,
+        "user_3_can_collections": true,
+        "user_3_can_performance": true,
+        "user_3_can_suggestions": true,
+        "user_3_can_team": true,
+        "user_4_name": "Orianna",
+        "user_4_role": "Anonymous",
+        "user_4_password": "ori003",
+        "user_4_can_overview": false,
+        "user_4_can_collections": true,
+        "user_4_can_performance": true,
+        "user_4_can_suggestions": true,
+        "user_4_can_team": true,
+        "user_5_name": "OTC",
+        "user_5_role": "SPOKESMAN",
+        "user_5_password": "otc004",
+        "user_5_can_overview": false,
+        "user_5_can_collections": true,
+        "user_5_can_performance": true,
+        "user_5_can_suggestions": true,
+        "user_5_can_team": true,
+        "user_6_name": "",
+        "user_6_role": "Collaborator",
+        "user_6_password": "",
+        "user_6_can_overview": true,
+        "user_6_can_collections": true,
+        "user_6_can_performance": false,
+        "user_6_can_suggestions": true,
+        "user_6_can_team": false,
+        "user_7_name": "",
+        "user_7_role": "Collaborator",
+        "user_7_password": "",
+        "user_7_can_overview": true,
+        "user_7_can_collections": true,
+        "user_7_can_performance": false,
+        "user_7_can_suggestions": true,
+        "user_7_can_team": false,
+        "user_8_name": "",
+        "user_8_role": "Collaborator",
+        "user_8_password": "",
+        "user_8_can_overview": true,
+        "user_8_can_collections": true,
+        "user_8_can_performance": false,
+        "user_8_can_suggestions": true,
+        "user_8_can_team": false,
+        "user_9_name": "",
+        "user_9_role": "Collaborator",
+        "user_9_password": "",
+        "user_9_can_overview": true,
+        "user_9_can_collections": true,
+        "user_9_can_performance": false,
+        "user_9_can_suggestions": true,
+        "user_9_can_team": false,
+        "user_10_name": "",
+        "user_10_role": "Collaborator",
+        "user_10_password": "",
+        "user_10_can_overview": true,
+        "user_10_can_collections": true,
+        "user_10_can_performance": false,
+        "user_10_can_suggestions": true,
+        "user_10_can_team": false,
+        "col_password_0": "",
+        "col_password_1": "",
+        "col_password_2": "",
+        "col_password_3": "",
+        "col_password_4": "",
+        "col_password_5": "",
+        "col_password_6": "",
+        "col_password_7": "",
+        "col_password_8": "",
+        "col_password_9": "",
+        "col_password_10": "",
+        "col_password_11": "",
+        "col_password_12": "",
+        "col_password_13": "",
+        "col_password_14": "",
+        "col_password_15": "",
+        "col_password_16": "",
+        "col_password_17": "",
+        "col_password_18": "",
+        "col_password_19": ""
+      }
+    }
+  },
+  "order": [
+    "main",
+    "vanquish_analytics_gXMDYp"
+  ]
+}
