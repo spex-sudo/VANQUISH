@@ -1,0 +1,830 @@
+{%- comment -%}
+  PAGE TRANSITION
+  ───────────────
+  Install: add {% section 'page-transition' %} as the
+  first line inside <body> in layout/theme.liquid
+{%- endcomment -%}
+{%- assign sid = section.id -%}
+
+{%- assign is_glass = false -%}
+{%- if section.settings.overlay_style == 'glass' -%}
+  {%- assign is_glass = true -%}
+  {%- assign bg_alpha   = section.settings.bg_opacity | divided_by: 100.0 -%}
+  {%- assign glass_bg   = section.settings.bg | color_modify: 'alpha', bg_alpha -%}
+  {%- assign glass_edge = section.settings.bg | color_modify: 'alpha', 0.3 -%}
+{%- endif -%}
+
+{%- assign font_stack = '' -%}
+{%- case section.settings.loading_font -%}
+  {%- when 'mono' -%}
+    {%- assign font_stack = "'ui-monospace','SFMono-Regular','Menlo','Consolas','Liberation Mono',monospace" -%}
+  {%- when 'serif' -%}
+    {%- assign font_stack = "'ui-serif','Georgia','Cambria','Times New Roman',serif" -%}
+  {%- when 'rounded' -%}
+    {%- assign font_stack = "'ui-rounded','system-ui',sans-serif" -%}
+  {%- when 'theme' -%}
+    {%- assign font_stack = "var(--font-heading-family,var(--font-body-family,sans-serif))" -%}
+  {%- else -%}
+    {%- assign font_stack = "'ui-sans-serif','system-ui',sans-serif" -%}
+{%- endcase -%}
+
+<style>
+/* ─── Base overlay ─────────────────────────────────────── */
+#pt-{{ sid }} {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  overflow: hidden;
+  pointer-events: all;
+  background: transparent;
+}
+
+{%- if is_glass -%}
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  #pt-{{ sid }} {
+    background: {{ glass_bg }};
+    -webkit-backdrop-filter: blur({{ section.settings.blur_amount }}px) saturate(180%);
+            backdrop-filter: blur({{ section.settings.blur_amount }}px) saturate(180%);
+    box-shadow: inset 0 0 0 1px {{ glass_edge }};
+    -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+    will-change: opacity;
+  }
+}
+{%- endif -%}
+
+/* ─── Slides ───────────────────────────────────────────── */
+.pt-slide-{{ sid }} {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  background: transparent;
+}
+.pt-slide-{{ sid }}.on { opacity: 1; }
+.pt-slide-{{ sid }} img { display: block; }
+
+/* ─── Loading bar ──────────────────────────────────────── */
+#pt-bar-{{ sid }} {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  z-index: 2;
+  overflow: hidden;
+  opacity: 1;
+  transition: opacity 0.4s ease;
+}
+#pt-bar-fill-{{ sid }} {
+  height: 100%;
+  width: 0%;
+  background: {{ section.settings.bar_color }};
+  transition: width 0.1s linear;
+}
+
+/* ─── Loading text ─────────────────────────────────────── */
+#pt-text-{{ sid }} {
+  position: absolute;
+  z-index: 3;
+  font-family: {{ font_stack }};
+  font-size: {{ section.settings.loading_font_size }}px;
+  font-weight: {{ section.settings.loading_font_weight }};
+  color: {{ section.settings.loading_text_color }};
+  letter-spacing: calc({{ section.settings.loading_letter_spacing }} * 0.01em);
+  text-transform: {{ section.settings.loading_text_transform }};
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  user-select: none;
+  pointer-events: none;
+
+  {%- case section.settings.text_position -%}
+    {%- when 'top-left' -%}
+      top: {{ section.settings.text_offset_y }}px;
+      left: {{ section.settings.text_offset_x }}px;
+    {%- when 'top-center' -%}
+      top: {{ section.settings.text_offset_y }}px;
+      left: 50%;
+      transform: translateX(-50%);
+    {%- when 'top-right' -%}
+      top: {{ section.settings.text_offset_y }}px;
+      right: {{ section.settings.text_offset_x }}px;
+    {%- when 'center-left' -%}
+      top: 50%;
+      left: {{ section.settings.text_offset_x }}px;
+      transform: translateY(-50%);
+    {%- when 'center' -%}
+      top: calc(50% + {{ section.settings.text_offset_y }}px);
+      left: 50%;
+      transform: translate(-50%, -50%);
+    {%- when 'center-right' -%}
+      top: 50%;
+      right: {{ section.settings.text_offset_x }}px;
+      transform: translateY(-50%);
+    {%- when 'bottom-left' -%}
+      bottom: {{ section.settings.text_offset_y }}px;
+      left: {{ section.settings.text_offset_x }}px;
+    {%- when 'bottom-center' -%}
+      bottom: {{ section.settings.text_offset_y }}px;
+      left: 50%;
+      transform: translateX(-50%);
+    {%- when 'bottom-right' -%}
+      bottom: {{ section.settings.text_offset_y }}px;
+      right: {{ section.settings.text_offset_x }}px;
+  {%- endcase -%}
+}
+
+#pt-text-{{ sid }} .pt-dots-{{ sid }} {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.05em;
+}
+#pt-text-{{ sid }} .pt-dots-{{ sid }} span {
+  display: inline-block;
+  animation: pt-dot-{{ sid }} 1.2s ease-in-out infinite;
+  opacity: 0;
+}
+#pt-text-{{ sid }} .pt-dots-{{ sid }} span:nth-child(1) { animation-delay: 0s;   }
+#pt-text-{{ sid }} .pt-dots-{{ sid }} span:nth-child(2) { animation-delay: 0.2s; }
+#pt-text-{{ sid }} .pt-dots-{{ sid }} span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes pt-dot-{{ sid }} {
+  0%, 60%, 100% { opacity: 0; transform: translateY(0);      }
+  30%            { opacity: 1; transform: translateY(-0.2em); }
+}
+
+/* ─── Blinds reveal overlay ────────────────────────────── */
+#pt-grid-{{ sid }} {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: none;
+  pointer-events: none;
+}
+
+.pt-cell-{{ sid }} {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  background: {{ section.settings.grid_color }};
+  transform-origin: bottom center;
+  transform: scaleY(1);
+  will-change: transform;
+}
+</style>
+
+<div id="pt-{{ sid }}">
+  {%- for block in section.blocks -%}
+    {%- if block.settings.image != blank -%}
+      {%- assign img = block.settings.image -%}
+      {%- assign img_h = 1800 | divided_by: img.aspect_ratio | ceil -%}
+      {%- capture img_srcset -%}
+        {{ img | image_url: width: 480 }} 480w,
+        {{ img | image_url: width: 800 }} 800w,
+        {{ img | image_url: width: 1200 }} 1200w,
+        {{ img | image_url: width: 1600 }} 1600w,
+        {{ img | image_url: width: 1800 }} 1800w
+      {%- endcapture -%}
+      {%- assign img_fallback = img | image_url: width: 1800 -%}
+      <div class="pt-slide-{{ sid }}"
+        {% if block.settings.bg != blank %}style="background:{{ block.settings.bg }};"{% endif %}
+        {{ block.shopify_attributes }}>
+        <img
+          {%- if forloop.first %}
+          src="{{ img_fallback }}"
+          srcset="{{ img_srcset }}"
+          fetchpriority="high"
+          {%- else %}
+          data-src="{{ img_fallback }}"
+          data-srcset="{{ img_srcset }}"
+          loading="lazy"
+          fetchpriority="low"
+          {%- endif %}
+          sizes="100vw"
+          decoding="async"
+          width="1800"
+          height="{{ img_h }}"
+          alt=""
+          style="
+            {%- if block.settings.fit == 'cover' or block.settings.fit == 'default' and section.settings.default_fit == 'cover' -%}
+              width:100%;height:100%;object-fit:cover;
+            {%- elsif block.settings.fit == 'contain' or block.settings.fit == 'default' and section.settings.default_fit == 'contain' -%}
+              max-width:100%;max-height:100%;object-fit:contain;
+            {%- elsif block.settings.fit == 'natural' or block.settings.fit == 'default' and section.settings.default_fit == 'natural' -%}
+              max-width:100%;height:auto;
+            {%- elsif block.settings.fit == 'custom' -%}
+              width:{{ block.settings.custom_w }}%;height:auto;
+            {%- else -%}
+              width:100%;height:100%;object-fit:cover;
+            {%- endif -%}
+          ">
+      </div>
+    {%- endif -%}
+  {%- endfor -%}
+
+  <div id="pt-text-{{ sid }}">
+    {{ section.settings.loading_text }}<span class="pt-dots-{{ sid }}"><span>.</span><span>.</span><span>.</span></span>
+  </div>
+
+  <div id="pt-bar-{{ sid }}">
+    <div id="pt-bar-fill-{{ sid }}"></div>
+  </div>
+</div>
+
+<div id="pt-grid-{{ sid }}"></div>
+
+<script>
+(function(){
+  var SID     = '{{ sid }}';
+  var overlay = document.getElementById('pt-' + SID);
+  var grid    = document.getElementById('pt-grid-' + SID);
+  var slides  = overlay
+    ? Array.prototype.slice.call(overlay.querySelectorAll('.pt-slide-' + SID))
+    : [];
+
+  if (!overlay) { if (grid) grid.style.display = 'none'; return; }
+  if (slides.length === 0) {
+    Array.prototype.slice.call(overlay.querySelectorAll('.pt-slide-' + SID + ', #pt-bar-' + SID)).forEach(function(el){ el.style.display = 'none'; });
+  }
+
+  var fps          = {{ section.settings.fps }};
+  var MIN          = {{ section.settings.min_ms }};
+  var FADE         = {{ section.settings.fade_out }};
+  var GCOLS        = {{ section.settings.grid_cols }};
+  var GSTAGGER     = {{ section.settings.grid_stagger }};
+  var GDUR         = {{ section.settings.grid_cell_dur }};
+  var GRID_ENABLED = {{ section.settings.enable_grid_reveal }};
+
+  var multiSlide = slides.length > 1;
+
+  var cur   = 0;
+  var start = performance.now();
+  var lastAdvance = 0;
+  var gone  = false;
+
+  var bar     = document.getElementById('pt-bar-' + SID);
+  var barFill = document.getElementById('pt-bar-fill-' + SID);
+
+  if (slides.length > 0) slides[0].classList.add('on');
+
+  /* ── Progressive image loading ─────────────────────────
+     Only the first slide ships with a real src (it needs
+     to paint immediately). Every other slide holds its
+     URL in data-src/data-srcset and only fetches when it
+     is actually about to be shown, one slide ahead of the
+     current one, so we never compete with critical page
+     resources for bandwidth on first load.
+  ─────────────────────────────────────────────────────── */
+  function loadSlideImage(i) {
+    var slide = slides[i];
+    if (!slide) return;
+    var img = slide.querySelector('img[data-src]');
+    if (!img) return;
+    if (img.dataset.srcset) { img.srcset = img.dataset.srcset; img.removeAttribute('data-srcset'); }
+    img.src = img.dataset.src;
+    img.removeAttribute('data-src');
+  }
+
+  function preload(i) {
+    var idleFn = window.requestIdleCallback || function(fn) { setTimeout(fn, 1); };
+    idleFn(function() { loadSlideImage(i % slides.length); });
+  }
+
+  if (multiSlide) preload(1);
+
+  var loadedAt = null;
+  function onLoad() { loadedAt = performance.now(); }
+  if (document.readyState === 'complete') onLoad();
+  else window.addEventListener('load', onLoad, { once: true });
+
+  var barPct   = 0;
+  var barDone  = false;
+  var barStart = performance.now();
+  var BAR_FAST = 0.3;
+
+  function setBar(pct) {
+    if (barFill) barFill.style.width = Math.min(pct, 100).toFixed(1) + '%';
+  }
+
+  function updateBar(ts) {
+    if (barDone) return;
+    if (loadedAt === null) {
+      var elapsed   = ts - barStart;
+      var phase1End = MIN * BAR_FAST;
+      if (elapsed < phase1End) {
+        barPct = 70 * (elapsed / Math.max(phase1End, 1));
+      } else {
+        barPct = Math.min(88, 70 + (elapsed - phase1End) * 0.008);
+      }
+    } else {
+      barPct = Math.min(100, barPct + 5);
+      if (barPct >= 100) {
+        setBar(100);
+        barDone = true;
+        setTimeout(function() { if (bar) bar.style.opacity = '0'; }, 60);
+        return;
+      }
+    }
+    setBar(barPct);
+  }
+
+  /* ── Slow connection message ─────────────────────────── */
+  var slowTimer = setTimeout(function() {
+    var textEl = document.getElementById('pt-text-' + SID);
+    if (textEl && !gone) {
+      textEl.innerHTML = '{{ section.settings.slow_text | escape }}<span class="pt-dots-' + SID + '"><span>.</span><span>.</span><span>.</span></span>';
+    }
+  }, {{ section.settings.slow_ms }});
+
+  function advance() {
+    if (!multiSlide) return;
+    slides[cur].classList.remove('on');
+    cur = (cur + 1) % slides.length;
+    slides[cur].classList.add('on');
+    preload(cur + 1);
+  }
+
+  /* ── Blinds reveal ──────────────────────────────────────
+     GCOLS vertical slats descend via scaleY(0) from top,
+     staggered left-to-right.
+  ─────────────────────────────────────────────────────── */
+  function doGridReveal(onComplete) {
+    var vw      = window.innerWidth;
+    var vh      = window.innerHeight;
+    var gap     = 2;
+    var slat_h  = (vh - gap * (GCOLS - 1)) / GCOLS;
+
+    var frag = document.createDocumentFragment();
+    for (var i = 0; i < GCOLS; i++) {
+      var cell = document.createElement('div');
+      cell.className    = 'pt-cell-' + SID;
+      cell.style.left   = '0';
+      cell.style.width  = vw + 'px';
+      cell.style.top    = (i * (slat_h + gap)) + 'px';
+      cell.style.height = slat_h + 'px';
+      frag.appendChild(cell);
+    }
+    grid.innerHTML = '';
+    grid.appendChild(frag);
+    grid.style.display = 'block';
+
+    var slats    = Array.prototype.slice.call(grid.querySelectorAll('.pt-cell-' + SID));
+    var maxDelay = GSTAGGER * (GCOLS - 1);
+
+    /* Force one layout read before writing transforms so all
+       slats start their transition on the same frame. */
+    void grid.offsetHeight;
+
+    slats.forEach(function(slat, i) {
+      setTimeout(function() {
+        slat.style.transition = 'transform ' + GDUR + 'ms cubic-bezier(0.4,0,0.2,1)';
+        slat.style.transform  = 'scaleY(0)';
+      }, GSTAGGER * i);
+    });
+
+    setTimeout(function() {
+      grid.style.display = 'none';
+      if (onComplete) onComplete();
+    }, maxDelay + GDUR + 50);
+  }
+
+  function dismiss() {
+    if (gone) return;
+    gone = true;
+    clearTimeout(slowTimer);
+
+    overlay.style.transition = 'opacity ' + FADE + 'ms ease';
+    overlay.style.opacity    = '0';
+    setTimeout(function() {
+      if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+    }, FADE);
+
+    if (GRID_ENABLED) {
+      doGridReveal(function() {
+        if (grid.parentNode) grid.parentNode.removeChild(grid);
+      });
+    } else {
+      if (grid.parentNode) grid.parentNode.removeChild(grid);
+    }
+  }
+
+  /* Single rAF loop drives both the slide cycler and the
+     progress bar, instead of two competing callbacks. */
+  function frame(ts) {
+    if (gone) return;
+    updateBar(ts);
+    if (multiSlide && ts - lastAdvance >= 1000 / fps) { advance(); lastAdvance = ts; }
+    if (loadedAt !== null && (ts - start) >= MIN) { dismiss(); return; }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  /* ── On-click departure ───────────────────────────────── */
+  document.addEventListener('click', function(e) {
+    var a = e.target.closest('a');
+    if (!a) return;
+    var href = a.getAttribute('href') || '';
+    if (!href || href.startsWith('#') || href.startsWith('javascript') || a.target === '_blank' || a.hasAttribute('download')) return;
+    try { if (new URL(a.href).origin !== location.origin) return; } catch(x) { return; }
+    if (a.pathname === location.pathname && a.search === location.search) return;
+
+    e.preventDefault();
+    var dest = a.href;
+
+    gone                     = false;
+    loadedAt                 = null;
+    overlay.style.transition = '';
+    overlay.style.opacity    = '1';
+
+    barDone  = false;
+    barPct   = 0;
+    setBar(0);
+    if (bar) bar.style.opacity = '1';
+    barStart = performance.now();
+
+    window.addEventListener('load', onLoad, { once: true });
+
+    start       = performance.now();
+    lastAdvance = 0;
+    requestAnimationFrame(frame);
+
+    /* FIX: preventDefault() above cancels the browser's native navigation,
+       but nothing ever actually navigated to `dest` afterward — the whole
+       transition animation played (or tried to) and then went nowhere,
+       which is why clicking any internal link did nothing. Deferred one
+       frame so the overlay's opacity:1 actually gets painted before the
+       page unloads for the real navigation. */
+    requestAnimationFrame(function() {
+      window.location.href = dest;
+    });
+
+  }, { capture: true });
+
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Page Transition",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Add a Liquid `section` tag referencing 'page-transition' as the first line inside <body> in layout/theme.liquid."
+    },
+    {
+      "type": "header",
+      "content": "Overlay"
+    },
+    {
+      "type": "select",
+      "id": "overlay_style",
+      "label": "Overlay style",
+      "options": [
+        { "value": "solid", "label": "Solid colour" },
+        { "value": "glass", "label": "Glassmorphism (frosted glass)" }
+      ],
+      "default": "solid",
+      "info": "Glassmorphism blurs the page content behind the overlay. Falls back to semi-opaque solid on unsupported browsers."
+    },
+    {
+      "type": "color",
+      "id": "bg",
+      "label": "Background colour",
+      "default": "#0a0a0a"
+    },
+    {
+      "type": "range",
+      "id": "bg_opacity",
+      "label": "Glass tint opacity",
+      "min": 5,
+      "max": 80,
+      "step": 5,
+      "unit": "%",
+      "default": 20,
+      "info": "Glassmorphism mode only."
+    },
+    {
+      "type": "range",
+      "id": "blur_amount",
+      "label": "Blur intensity",
+      "min": 2,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 16,
+      "info": "Glassmorphism mode only."
+    },
+    {
+      "type": "color",
+      "id": "bar_color",
+      "label": "Loading bar colour",
+      "default": "#c9a84c",
+      "info": "1px progress line at the bottom of the overlay."
+    },
+    {
+      "type": "header",
+      "content": "Timing"
+    },
+    {
+      "type": "range",
+      "id": "fps",
+      "label": "Slide cycling speed (fps)",
+      "min": 2,
+      "max": 24,
+      "step": 1,
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "min_ms",
+      "label": "Minimum display time",
+      "min": 0,
+      "max": 3000,
+      "step": 100,
+      "unit": "ms",
+      "default": 300,
+      "info": "Overlay stays up at least this long, and until the page has fully loaded — whichever is later."
+    },
+    {
+      "type": "range",
+      "id": "fade_out",
+      "label": "Overlay fade out",
+      "min": 0,
+      "max": 800,
+      "step": 50,
+      "unit": "ms",
+      "default": 200
+    },
+    {
+      "type": "header",
+      "content": "Loading text"
+    },
+    {
+      "type": "text",
+      "id": "loading_text",
+      "label": "Loading label",
+      "default": "Loading",
+      "info": "Three animated dots are appended automatically."
+    },
+    {
+      "type": "select",
+      "id": "text_position",
+      "label": "Position",
+      "options": [
+        { "value": "top-left",      "label": "Top left"      },
+        { "value": "top-center",    "label": "Top centre"    },
+        { "value": "top-right",     "label": "Top right"     },
+        { "value": "center-left",   "label": "Middle left"   },
+        { "value": "center",        "label": "Centre"        },
+        { "value": "center-right",  "label": "Middle right"  },
+        { "value": "bottom-left",   "label": "Bottom left"   },
+        { "value": "bottom-center", "label": "Bottom centre" },
+        { "value": "bottom-right",  "label": "Bottom right"  }
+      ],
+      "default": "bottom-center"
+    },
+    {
+      "type": "range",
+      "id": "text_offset_x",
+      "label": "Horizontal offset",
+      "min": 8,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "text_offset_y",
+      "label": "Vertical offset",
+      "min": 8,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "select",
+      "id": "loading_font",
+      "label": "Font style",
+      "options": [
+        { "value": "sans",    "label": "System sans-serif (default)" },
+        { "value": "mono",    "label": "System monospace"            },
+        { "value": "serif",   "label": "System serif"                },
+        { "value": "rounded", "label": "System rounded (iOS/macOS)"  },
+        { "value": "theme",   "label": "Inherit theme heading font"  }
+      ],
+      "default": "sans",
+      "info": "Uses zero-latency system fonts — no extra network request."
+    },
+    {
+      "type": "range",
+      "id": "loading_font_size",
+      "label": "Font size",
+      "min": 10,
+      "max": 48,
+      "step": 1,
+      "unit": "px",
+      "default": 13
+    },
+    {
+      "type": "select",
+      "id": "loading_font_weight",
+      "label": "Font weight",
+      "options": [
+        { "value": "300", "label": "Light"    },
+        { "value": "400", "label": "Regular"  },
+        { "value": "500", "label": "Medium"   },
+        { "value": "600", "label": "Semibold" },
+        { "value": "700", "label": "Bold"     }
+      ],
+      "default": "400"
+    },
+    {
+      "type": "select",
+      "id": "loading_text_transform",
+      "label": "Text case",
+      "options": [
+        { "value": "none",       "label": "As typed"   },
+        { "value": "lowercase",  "label": "lowercase"  },
+        { "value": "uppercase",  "label": "UPPERCASE"  },
+        { "value": "capitalize", "label": "Capitalise" }
+      ],
+      "default": "lowercase"
+    },
+    {
+      "type": "range",
+      "id": "loading_letter_spacing",
+      "label": "Letter spacing",
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "unit": "‰",
+      "default": 8,
+      "info": "Divided by 100 to get em. E.g. 8 = 0.08em."
+    },
+    {
+      "type": "color",
+      "id": "loading_text_color",
+      "label": "Text colour",
+      "default": "#ffffff"
+    },
+    {
+      "type": "text",
+      "id": "slow_text",
+      "label": "Slow connection message",
+      "default": "slow connection, fix your internet",
+      "info": "Replaces the loading label after the slow connection threshold."
+    },
+    {
+      "type": "range",
+      "id": "slow_ms",
+      "label": "Slow connection threshold",
+      "min": 1000,
+      "max": 9000,
+      "step": 500,
+      "unit": "ms",
+      "default": 3000,
+      "info": "How long before the loading text changes to the slow connection message."
+    },
+    {
+      "type": "header",
+      "content": "Blinds exit transition"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_grid_reveal",
+      "label": "Enable blinds reveal",
+      "default": true,
+      "info": "Uncheck for plain fade."
+    },
+    {
+      "type": "range",
+      "id": "grid_cols",
+      "label": "Slat count",
+      "min": 1,
+      "max": 20,
+      "step": 1,
+      "default": 9
+    },
+    {
+      "type": "range",
+      "id": "grid_stagger",
+      "label": "Slat stagger delay",
+      "min": 10,
+      "max": 120,
+      "step": 5,
+      "unit": "ms",
+      "default": 45
+    },
+    {
+      "type": "range",
+      "id": "grid_cell_dur",
+      "label": "Slat descend duration",
+      "min": 100,
+      "max": 600,
+      "step": 25,
+      "unit": "ms",
+      "default": 300
+    },
+    {
+      "type": "color",
+      "id": "grid_color",
+      "label": "Slat colour",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "Images"
+    },
+    {
+      "type": "select",
+      "id": "default_fit",
+      "label": "Default image fit",
+      "options": [
+        { "value": "cover",   "label": "Cover (fill screen)" },
+        { "value": "contain", "label": "Contain (letterbox)" },
+        { "value": "natural", "label": "Natural size"        }
+      ],
+      "default": "contain"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "image",
+      "name": "Image",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Image" },
+        {
+          "type": "select",
+          "id": "fit",
+          "label": "Image fit",
+          "options": [
+            { "value": "default", "label": "Use section default" },
+            { "value": "cover",   "label": "Cover (fill screen)" },
+            { "value": "contain", "label": "Contain (letterbox)" },
+            { "value": "natural", "label": "Natural size"        },
+            { "value": "custom",  "label": "Custom width %"      }
+          ],
+          "default": "default"
+        },
+        {
+          "type": "range",
+          "id": "custom_w",
+          "label": "Custom width",
+          "min": 10,
+          "max": 100,
+          "step": 5,
+          "unit": "%",
+          "default": 60,
+          "info": "Only used when fit is set to Custom width %."
+        },
+        {
+          "type": "color",
+          "id": "bg",
+          "label": "Slide background",
+          "info": "Overrides the section background for this image only."
+        }
+      ]
+    }
+  ],
+  "max_blocks": 20,
+  "presets": [
+    {
+      "name": "Page Transition",
+      "settings": {
+        "bg":                     "#0a0a0a",
+        "overlay_style":          "solid",
+        "bg_opacity":             20,
+        "blur_amount":            16,
+        "bar_color":              "#c9a84c",
+        "fps":                    12,
+        "min_ms":                 300,
+        "fade_out":               200,
+        "default_fit":            "contain",
+        "loading_text":           "Loading",
+        "text_position":          "bottom-center",
+        "text_offset_x":          32,
+        "text_offset_y":          40,
+        "loading_font":           "sans",
+        "loading_font_size":      13,
+        "loading_font_weight":    "400",
+        "loading_text_transform": "lowercase",
+        "loading_letter_spacing": 8,
+        "loading_text_color":     "#ffffff",
+        "slow_text":              "slow connection, fix your internet",
+        "slow_ms":                3000,
+        "enable_grid_reveal":     true,
+        "grid_cols":              9,
+        "grid_stagger":           45,
+        "grid_cell_dur":          300,
+        "grid_color":             "#ffffff"
+      }
+    }
+  ]
+}
+{% endschema %}

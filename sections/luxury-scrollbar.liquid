@@ -1,0 +1,1045 @@
+{%- comment -%}
+  SOVEREIGN SCROLL  ·  sections/scroll-sovereign.liquid
+  Continuous rAF loop · No transform on root · Body-appended waypoints
+  Works on ALL devices, ALL themes, ALL scroll types
+{%- endcomment -%}
+{%- liquid
+  assign sid  = section.id
+  assign s    = section.settings
+  assign side = s.bar_side
+  assign ar   = s.accent_color | color_extract: 'red'
+  assign ag   = s.accent_color | color_extract: 'green'
+  assign ab   = s.accent_color | color_extract: 'blue'
+  assign tr   = s.track_color  | color_extract: 'red'
+  assign tg   = s.track_color  | color_extract: 'green'
+  assign tb   = s.track_color  | color_extract: 'blue'
+  assign wr   = s.wp_bg | color_extract: 'red'
+  assign wg   = s.wp_bg | color_extract: 'green'
+  assign wb   = s.wp_bg | color_extract: 'blue'
+-%}
+
+{{ s.wp_font | font_face: font_display: 'swap' }}
+
+<style>
+/* ══════════════════════════════════════════════════════
+   SOVEREIGN SCROLL
+   ══════════════════════════════════════════════════════ */
+
+/* Variables scoped to root */
+#sv-{{ sid }} {
+  --a:    rgba({{ ar }},{{ ag }},{{ ab }},1);
+  --a6:   rgba({{ ar }},{{ ag }},{{ ab }},0.6);
+  --a3:   rgba({{ ar }},{{ ag }},{{ ab }},0.3);
+  --a1:   rgba({{ ar }},{{ ag }},{{ ab }},0.1);
+  --t3:   rgba({{ tr }},{{ tg }},{{ tb }},0.30);
+  --t15:  rgba({{ tr }},{{ tg }},{{ tb }},0.15);
+  --tw:   {{ s.thumb_width }}px;
+  --th:   {{ s.thumb_height }}px;
+  --trw:  {{ s.track_width }}px;
+  --r:    {{ s.thumb_radius }}px;
+  --spd:  {{ s.anim_speed }}ms;
+}
+
+/* Hide native scrollbar */
+{% if s.hide_native %}
+html::-webkit-scrollbar { display: none; }
+html { scrollbar-width: none; -ms-overflow-style: none; }
+{% endif %}
+
+/* ── ROOT — NO transform, opacity-only animation ── */
+#sv-{{ sid }} {
+  position: fixed;
+  top: 0;
+  {% if side == 'right' %}right: {{ s.edge_offset }}px;{% else %}left: {{ s.edge_offset }}px;{% endif %}
+  /* Touch-zone padding — visual width stays narrow */
+  padding: 0 16px;
+  {% if side == 'right' %}margin-right: -16px;{% else %}margin-left: -16px;{% endif %}
+  width: calc({{ s.thumb_width }}px + 32px);
+  height: 100%;
+  height: 100svh;
+  z-index: {{ s.z_index }};
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* ONLY opacity — NEVER transform on root (breaks fixed children + scroll events) */
+  opacity: 0;
+  {% if s.entry_anim != 'none' %}
+  animation: sv-show-{{ sid }} {{ s.entry_delay | plus: 800 }}ms ease {{ s.entry_delay }}ms both;
+  {% endif %}
+}
+
+@keyframes sv-show-{{ sid }} {
+  from { opacity: 0; }
+  to   { opacity: {{ s.idle_opacity | divided_by: 100.0 }}; }
+}
+
+#sv-{{ sid }}.sv-scrolling { opacity: 1 !important; }
+{% if s.auto_hide %}
+#sv-{{ sid }}.sv-idle { opacity: {{ s.idle_opacity | divided_by: 200.0 }} !important; }
+{% endif %}
+
+/* ── CAPS ── */
+.sv-cap-{{ sid }} {
+  flex-shrink: 0;
+  width: {{ s.thumb_width | at_least: 6 }}px;
+  height: {{ s.thumb_width | at_least: 6 }}px;
+  margin: {{ s.edge_offset }}px 0;
+  opacity: 0.5;
+  overflow: visible;
+}
+.sv-cap-{{ sid }} line {
+  stroke: var(--a);
+  stroke-width: 1px;
+  stroke-linecap: square;
+}
+{% if s.cap_style == 'pulse' %}
+.sv-cap-{{ sid }} {
+  animation: sv-cap-{{ sid }} {{ s.cap_pulse_ms }}ms ease-in-out infinite;
+}
+.sv-cap-{{ sid }}:last-child { animation-delay: {{ s.cap_pulse_ms | divided_by: 2 }}ms; }
+@keyframes sv-cap-{{ sid }} {
+  0%,100% { opacity:0.35; transform:scale(1); }
+  50%     { opacity:0.9;  transform:scale(1.3); }
+}
+{% endif %}
+
+/* ── TRACK ── */
+#sv-track-{{ sid }} {
+  flex: 1;
+  width: var(--trw);
+  position: relative;
+  margin: 0;
+  pointer-events: auto;
+  cursor: pointer;
+  {% if s.track_style == 'solid' %}
+  background: linear-gradient(to bottom,
+    transparent 0%, var(--t3) 4%, var(--t3) 96%, transparent 100%);
+  {% elsif s.track_style == 'dashed' %}
+  background: repeating-linear-gradient(
+    to bottom, var(--t3) 0, var(--t3) 4px, transparent 4px, transparent 10px);
+  {% else %}
+  background: linear-gradient(to bottom,
+    transparent 0%, var(--t15) 4%, var(--t3) 20%,
+    var(--t3) 80%, var(--t15) 96%, transparent 100%);
+  {% endif %}
+}
+
+/* ── FILL ── */
+#sv-fill-{{ sid }} {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 0%;
+  pointer-events: none;
+  {% if s.fill_style == 'solid' %}
+  background: var(--a);
+  {% elsif s.fill_style == 'glow' %}
+  background: linear-gradient(to bottom, transparent, var(--a6) 40%, var(--a));
+  box-shadow: 0 0 6px var(--a3);
+  {% else %}
+  background: linear-gradient(to bottom, transparent, var(--a3) 30%, var(--a6));
+  {% endif %}
+}
+
+/* ── TICKS ── */
+.sv-tick-{{ sid }} {
+  position: absolute;
+  {% if side == 'right' %}left: calc(var(--trw) / -2 - 3px);{% else %}right: calc(var(--trw) / -2 - 3px);{% endif %}
+  width: 5px; height: 1px;
+  background: var(--t3);
+  transform: translateY(-50%);
+  transition: width 0.2s, background 0.2s;
+  pointer-events: none;
+}
+.sv-tick-{{ sid }}.near { width: 9px; background: var(--a6); }
+{% if s.show_tick_labels %}
+.sv-tick-text-{{ sid }} {
+  position: absolute;
+  {% if side == 'right' %}right: 12px;{% else %}left: 12px;{% endif %}
+  top: 50%; transform: translateY(-50%);
+  font-family: {{ s.ui_font }};
+  font-size: 7px; letter-spacing: 0.28em;
+  text-transform: uppercase; color: var(--a);
+  white-space: nowrap; opacity: 0;
+  transition: opacity 0.25s; pointer-events: none;
+}
+.sv-tick-{{ sid }}.near .sv-tick-text-{{ sid }} { opacity: 0.7; }
+{% endif %}
+
+/* ── THUMB ── */
+#sv-thumb-{{ sid }} {
+  position: absolute;
+  /* Left offset centres thumb on the track line */
+  left: calc(var(--trw) / 2);
+  top: 0;
+  width: var(--tw);
+  height: var(--th);
+  /* X-centering via margin, not transform — so JS only needs to set translateY */
+  margin-left: calc(var(--tw) / -2);
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none; -webkit-user-select: none;
+  /* No will-change here — let browser decide */
+}
+#sv-thumb-{{ sid }}:active { cursor: grabbing; }
+
+.sv-tbody-{{ sid }} {
+  position: absolute; inset: 0;
+  border-radius: var(--r);
+  {% if s.thumb_style == 'minimal' %}
+  background: var(--a);
+  {% elsif s.thumb_style == 'glass' %}
+  background: linear-gradient(160deg,
+    rgba(255,255,255,0.25) 0%,
+    rgba({{ ar }},{{ ag }},{{ ab }},0.60) 50%,
+    rgba({{ ar }},{{ ag }},{{ ab }},0.85) 100%);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  border: 1px solid rgba(255,255,255,0.30);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.45),
+    0 4px 14px rgba({{ ar }},{{ ag }},{{ ab }},{{ s.glow_intensity | divided_by: 100.0 }});
+  {% else %}
+  /* editorial */
+  background: linear-gradient(to right,
+    rgba({{ ar }},{{ ag }},{{ ab }},0.6),
+    rgba({{ ar }},{{ ag }},{{ ab }},1) 50%,
+    rgba({{ ar }},{{ ag }},{{ ab }},0.6));
+  box-shadow:
+    0 0 8px rgba({{ ar }},{{ ag }},{{ ab }},{{ s.glow_intensity | divided_by: 100.0 }}),
+    inset 0 1px 0 rgba(255,255,255,0.22);
+  {% endif %}
+  transition: transform var(--spd) ease;
+}
+{% if s.hover_expand %}
+#sv-thumb-{{ sid }}:hover .sv-tbody-{{ sid }} { transform: scaleX(1.5); }
+{% endif %}
+
+/* ── COUNTER ── */
+#sv-pct-{{ sid }} {
+  position: absolute;
+  {% if side == 'right' %}right: calc(var(--tw) / 2 + {{ s.counter_gap }}px);
+  {% else %}left: calc(var(--tw) / 2 + {{ s.counter_gap }}px);{% endif %}
+  top: 50%;
+  transform: translateY(-50%) rotate(-90deg);
+  font-family: {{ s.ui_font }};
+  font-size: {{ s.counter_size }}px;
+  font-weight: {{ s.counter_weight }};
+  letter-spacing: {{ s.counter_tracking | divided_by: 100.0 }}em;
+  color: var(--a);
+  white-space: nowrap; pointer-events: none;
+  opacity: {{ s.counter_opacity | divided_by: 100.0 }};
+}
+{% unless s.show_counter %}#sv-pct-{{ sid }} { display: none; }{% endunless %}
+
+/* ── VELOCITY TRAIL ── */
+#sv-trail-{{ sid }} {
+  position: absolute;
+  left: 0; width: 100%;
+  top: 0; height: 0;
+  pointer-events: none; opacity: 0;
+  background: linear-gradient(to top, transparent, var(--a3));
+  transition: opacity 0.2s;
+}
+#sv-trail-{{ sid }}.on { opacity: 1; }
+
+/* ── LABEL ── */
+{% if s.show_label %}
+#sv-label-{{ sid }} {
+  position: fixed;
+  {% if side == 'right' %}
+  right: calc({{ s.edge_offset }}px + {{ s.thumb_width }}px + {{ s.label_gap }}px);
+  {% else %}
+  left: calc({{ s.edge_offset }}px + {{ s.thumb_width }}px + {{ s.label_gap }}px);
+  {% endif %}
+  top: {{ s.edge_offset }}px;
+  font-family: {{ s.ui_font }};
+  font-size: {{ s.label_size }}px;
+  letter-spacing: {{ s.label_tracking | divided_by: 100.0 }}em;
+  text-transform: uppercase;
+  color: var(--a);
+  opacity: {{ s.label_opacity | divided_by: 100.0 }};
+  pointer-events: none;
+  z-index: {{ s.z_index }};
+  writing-mode: vertical-rl;
+  transform: {% if side == 'right' %}rotate(180deg){% else %}none{% endif %};
+}
+{% endif %}
+
+/* ── AURA ── */
+{% if s.show_aura %}
+#sv-aura-{{ sid }} {
+  position: fixed;
+  {% if side == 'right' %}right: -50px;{% else %}left: -50px;{% endif %}
+  top: 0; width: 140px; height: 280px;
+  border-radius: 50%; pointer-events: none;
+  z-index: calc({{ s.z_index }} - 1);
+  background: radial-gradient(ellipse 50% 75% at 50% 50%,
+    rgba({{ ar }},{{ ag }},{{ ab }},{{ s.aura_intensity | divided_by: 100.0 }}) 0%,
+    transparent 70%);
+  filter: blur(18px);
+  opacity: 0;
+  transition: opacity 0.6s;
+}
+#sv-aura-{{ sid }}.on { opacity: 1; }
+{% endif %}
+
+/* ══════════════════════════════════════════════════════
+   WAYPOINT CARDS  ·  Glass cards appended to <body>
+   position:fixed on a <body>-level element = always works
+   ══════════════════════════════════════════════════════ */
+.sv-wpc-{{ sid }} {
+  /* Fixed to viewport — parent is <body>, no transforms above */
+  position: fixed;
+  {% if side == 'right' %}
+  right: calc({{ s.edge_offset }}px + {{ s.thumb_width }}px + {{ s.wp_offset }}px);
+  {% else %}
+  left: calc({{ s.edge_offset }}px + {{ s.thumb_width }}px + {{ s.wp_offset }}px);
+  {% endif %}
+  /* top set by JS each frame; translateY(-50%) centres on thumb */
+  transform: translateY(-50%);
+  z-index: {{ s.z_index | plus: 20 }};
+  pointer-events: none;
+
+  /* Hidden state */
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity {{ s.wp_duration }}ms cubic-bezier(0.25,0.46,0.45,0.94),
+    visibility 0ms linear {{ s.wp_duration }}ms;
+}
+.sv-wpc-{{ sid }}.sv-on {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity {{ s.wp_duration }}ms cubic-bezier(0.25,0.46,0.45,0.94),
+    visibility 0ms linear 0ms;
+}
+
+/* Inner shell — slide animation independent of outer wrapper */
+.sv-wps-{{ sid }} {
+  padding: {{ s.wp_pad_v }}px {{ s.wp_pad_h }}px;
+  max-width: min({{ s.wp_max_width }}px, 42vw);
+  position: relative;
+
+  /* Glassmorphism */
+  background: rgba({{ wr }},{{ wg }},{{ wb }},{{ s.wp_bg_opacity | divided_by: 100.0 }});
+  backdrop-filter: blur({{ s.wp_blur }}px) saturate({{ s.wp_saturation }}%);
+  -webkit-backdrop-filter: blur({{ s.wp_blur }}px) saturate({{ s.wp_saturation }}%);
+  border-radius: {{ s.wp_radius }}px;
+  border: 1px solid rgba(255,255,255,{{ s.wp_border_opacity | divided_by: 100.0 }});
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,{{ s.wp_border_opacity | divided_by: 160.0 | round: 3 }}),
+    inset 0 -1px 0 rgba(0,0,0,0.04),
+    0 {{ s.wp_shadow_y }}px {{ s.wp_shadow_blur }}px rgba(0,0,0,{{ s.wp_shadow_opacity | divided_by: 100.0 }}),
+    0 2px 4px rgba(0,0,0,0.06);
+
+  /* Slide-in on shell only */
+  {% if s.wp_anim == 'slide' %}
+  transform: {% if side == 'right' %}translateX(10px){% else %}translateX(-10px){% endif %};
+  transition: transform {{ s.wp_duration }}ms cubic-bezier(0.25,0.46,0.45,0.94);
+  {% elsif s.wp_anim == 'drift' %}
+  transform: translateY(-8px);
+  transition: transform {{ s.wp_duration }}ms ease;
+  {% else %}
+  transform: none; transition: none;
+  {% endif %}
+}
+.sv-wpc-{{ sid }}.sv-on .sv-wps-{{ sid }} { transform: none; }
+
+{% if s.wp_connector %}
+.sv-wps-{{ sid }}::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  {% if side == 'right' %}
+  right: -{{ s.wp_offset | minus: 4 | at_least: 2 }}px;
+  width: {{ s.wp_offset | minus: 6 | at_least: 2 }}px;
+  {% else %}
+  left: -{{ s.wp_offset | minus: 4 | at_least: 2 }}px;
+  width: {{ s.wp_offset | minus: 6 | at_least: 2 }}px;
+  {% endif %}
+  height: 1px;
+  background: linear-gradient(
+    {% if side == 'right' %}to right{% else %}to left{% endif %},
+    transparent, rgba({{ ar }},{{ ag }},{{ ab }},0.35));
+}
+{% endif %}
+
+/* Card content */
+.sv-wpe-{{ sid }} {
+  font-family: {{ s.ui_font }};
+  font-size: {{ s.wp_eye_size }}px;
+  font-weight: 400;
+  letter-spacing: {{ s.wp_eye_tracking | divided_by: 100.0 }}em;
+  text-transform: uppercase;
+  color: rgba({{ ar }},{{ ag }},{{ ab }},0.80);
+  margin: 0 0 {{ s.wp_eye_gap }}px;
+  line-height: 1;
+}
+{% if s.wp_rule_width > 0 %}
+.sv-wpr-{{ sid }} {
+  width: {{ s.wp_rule_width }}px; height: 1px;
+  background: rgba({{ ar }},{{ ag }},{{ ab }},0.25);
+  margin-bottom: {{ s.wp_eye_gap }}px;
+}
+{% endif %}
+.sv-wph-{{ sid }} {
+  font-family: {{ s.wp_font.family }}, {{ s.wp_font.fallback_families }};
+  font-size: {{ s.wp_hl_size }}px;
+  font-weight: {{ s.wp_hl_weight }};
+  letter-spacing: {{ s.wp_hl_tracking | divided_by: 100.0 }}em;
+  text-transform: {{ s.wp_hl_case }};
+  color: {{ s.wp_hl_color }};
+  line-height: {{ s.wp_hl_leading | divided_by: 100.0 }};
+  margin: 0;
+  word-break: break-word;
+}
+.sv-wpb-{{ sid }} {
+  font-family: {{ s.wp_font.family }}, {{ s.wp_font.fallback_families }};
+  font-size: {{ s.wp_body_size }}px;
+  font-weight: 300;
+  color: {{ s.wp_body_color }};
+  line-height: 1.55;
+  margin-top: {{ s.wp_body_gap }}px;
+  opacity: 0.8;
+}
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  #sv-{{ sid }} { padding: 0 18px; {% if side == 'right' %}margin-right: -18px;{% else %}margin-left: -18px;{% endif %} }
+  .sv-wpc-{{ sid }} {
+    {% if side == 'right' %}
+    right: calc({{ s.edge_offset }}px + {{ s.thumb_width }}px + {{ s.wp_offset | times: 0.65 | round }}px);
+    {% else %}
+    left: calc({{ s.edge_offset }}px + {{ s.thumb_width }}px + {{ s.wp_offset | times: 0.65 | round }}px);
+    {% endif %}
+  }
+  .sv-wps-{{ sid }} { max-width: min({{ s.wp_max_width | times: 0.7 | round }}px, 46vw); padding: {{ s.wp_pad_v | times: 0.8 | round }}px {{ s.wp_pad_h | times: 0.8 | round }}px; }
+  .sv-wph-{{ sid }} { font-size: {{ s.wp_hl_size | times: 0.85 | round }}px; }
+  {% if s.show_label %}#sv-label-{{ sid }} { display: none; }{% endif %}
+}
+@media (max-width: 390px) {
+  .sv-wps-{{ sid }} { max-width: min({{ s.wp_max_width | times: 0.58 | round }}px, 50vw); }
+}
+</style>
+
+{% if s.show_aura %}<div id="sv-aura-{{ sid }}" aria-hidden="true"></div>{% endif %}
+
+<nav id="sv-{{ sid }}" aria-label="Page scroll indicator" role="navigation">
+  <svg class="sv-cap-{{ sid }}" viewBox="0 0 10 10" aria-hidden="true">
+    {% if s.cap_style == 'diamond' or s.cap_style == 'pulse' %}
+      <line x1="5" y1="0" x2="10" y2="5"/><line x1="10" y1="5" x2="5" y2="10"/>
+      <line x1="5" y1="10" x2="0" y2="5"/><line x1="0" y1="5" x2="5" y2="0"/>
+    {% elsif s.cap_style == 'cross' %}
+      <line x1="0" y1="5" x2="10" y2="5"/><line x1="5" y1="0" x2="5" y2="10"/>
+    {% else %}
+      <line x1="0" y1="5" x2="10" y2="5"/>
+    {% endif %}
+  </svg>
+
+  <div id="sv-track-{{ sid }}" role="scrollbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+    <div id="sv-fill-{{ sid }}"  aria-hidden="true"></div>
+    <div id="sv-trail-{{ sid }}" aria-hidden="true"></div>
+    <div id="sv-thumb-{{ sid }}" aria-hidden="true">
+      <div class="sv-tbody-{{ sid }}"></div>
+      <div id="sv-pct-{{ sid }}">000</div>
+    </div>
+  </div>
+
+  <svg class="sv-cap-{{ sid }}" viewBox="0 0 10 10" aria-hidden="true">
+    {% if s.cap_style == 'diamond' or s.cap_style == 'pulse' %}
+      <line x1="5" y1="0" x2="10" y2="5"/><line x1="10" y1="5" x2="5" y2="10"/>
+      <line x1="5" y1="10" x2="0" y2="5"/><line x1="0" y1="5" x2="5" y2="0"/>
+    {% elsif s.cap_style == 'cross' %}
+      <line x1="0" y1="5" x2="10" y2="5"/><line x1="5" y1="0" x2="5" y2="10"/>
+    {% else %}
+      <line x1="0" y1="5" x2="10" y2="5"/>
+    {% endif %}
+  </svg>
+</nav>
+
+{% if s.show_label %}
+  <div id="sv-label-{{ sid }}" aria-hidden="true">{{ s.label | default: 'SV-01' }}</div>
+{% endif %}
+
+{%- comment -%} Waypoint data — parsed by JS, real DOM built in <body> {%- endcomment -%}
+<script type="application/json" id="sv-data-{{ sid }}">[
+  {%- for block in section.blocks -%}
+    {%- if block.type == 'waypoint' -%}
+      {"id":{{ block.id | json }},"pos":{{ block.settings.position }},"range":{{ block.settings.range }},"eyebrow":{{ block.settings.eyebrow | default: '' | json }},"headline":{{ block.settings.headline | default: '' | json }},"body":{{ block.settings.body | default: '' | json }}}{% unless forloop.last %},{% endunless %}
+    {%- endif -%}
+  {%- endfor -%}
+]</script>
+
+<script>
+(function () {
+'use strict';
+
+/* ── Grab elements ── */
+var SID    = '{{ sid }}';
+var SIDE   = '{{ side }}';
+var TH     = {{ s.thumb_height }};
+var PROX   = {{ s.tick_prox }};
+var SELS   = {{ s.tick_selectors | json }};
+var SHOW_T = {{ s.show_tick_labels | json }};
+var SHOW_A = {{ s.show_aura | json }};
+var AUTOH  = {{ s.auto_hide | json }};
+var IDLEMS = {{ s.idle_ms }};
+var WP_PCT = {{ s.wp_show_pct | json }};
+
+var root  = document.getElementById('sv-'       + SID);
+var track = document.getElementById('sv-track-' + SID);
+var fill  = document.getElementById('sv-fill-'  + SID);
+var thumb = document.getElementById('sv-thumb-' + SID);
+var pctEl = document.getElementById('sv-pct-'   + SID);
+var trail = document.getElementById('sv-trail-' + SID);
+var aura  = SHOW_A ? document.getElementById('sv-aura-' + SID) : null;
+
+if (!root || !track || !thumb) return;
+
+/* ── State ── */
+var ticks  = [];
+var waypts = [];
+var lastD  = -1;
+var lastY  = -1;
+var trailT = null;
+var idleT  = null;
+var isDrag = false;
+var dY0    = 0;
+var dS0    = 0;
+var scrolling = false;
+var scrollT   = null;
+
+/* ══════════════════════════════════════════════════════
+   CORE HELPERS
+   ══════════════════════════════════════════════════════ */
+function docH() {
+  return Math.max(
+    document.body.scrollHeight,
+    document.documentElement.scrollHeight
+  ) - window.innerHeight;
+}
+
+function sPct() {
+  var h = docH();
+  if (h <= 0) return 0;
+  return Math.min(1, Math.max(0, window.pageYOffset / h));
+}
+
+function fmt(n) {
+  var v = String(Math.round(n));
+  while (v.length < 3) v = '0' + v;
+  return v;
+}
+
+/* ══════════════════════════════════════════════════════
+   BUILD WAYPOINTS — appended to <body>
+   Completely outside any Shopify section wrapper.
+   position:fixed on a direct <body> child = always works.
+   ══════════════════════════════════════════════════════ */
+function buildWaypoints() {
+  var el = document.getElementById('sv-data-' + SID);
+  if (!el) return;
+  var data;
+  try { data = JSON.parse(el.textContent || '[]'); } catch (e) { return; }
+
+  data.forEach(function (wp) {
+    var card = document.createElement('div');
+    card.className = 'sv-wpc-' + SID;
+
+    var shell = document.createElement('div');
+    shell.className = 'sv-wps-' + SID;
+
+    if (wp.eyebrow) {
+      var eye = document.createElement('p');
+      eye.className = 'sv-wpe-' + SID;
+      eye.textContent = wp.eyebrow;
+      shell.appendChild(eye);
+      {% if s.wp_rule_width > 0 %}
+      var rule = document.createElement('div');
+      rule.className = 'sv-wpr-' + SID;
+      shell.appendChild(rule);
+      {% endif %}
+    }
+
+    if (wp.headline) {
+      var hl = document.createElement('p');
+      hl.className = 'sv-wph-' + SID;
+      hl.textContent = wp.headline;
+      shell.appendChild(hl);
+    }
+
+    if (wp.body) {
+      var bd = document.createElement('p');
+      bd.className = 'sv-wpb-' + SID;
+      bd.textContent = wp.body;
+      shell.appendChild(bd);
+    }
+
+    var pctSpan = null;
+    if (WP_PCT) {
+      pctSpan = document.createElement('span');
+      pctSpan.style.cssText = 'display:block;font-size:8px;letter-spacing:.3em;margin-top:5px;opacity:.5;color:rgba({{ ar }},{{ ag }},{{ ab }},1)';
+      pctSpan.textContent = '—';
+      shell.appendChild(pctSpan);
+    }
+
+    card.appendChild(shell);
+    /* KEY: append to document.body, NOT inside section */
+    document.body.appendChild(card);
+
+    waypts.push({ node: card, pos: wp.pos, range: wp.range, on: false, pctSpan: pctSpan });
+  });
+}
+
+/* ══════════════════════════════════════════════════════
+   BUILD TICKS
+   ══════════════════════════════════════════════════════ */
+function buildTicks() {
+  if (!SELS) return;
+  var nodes;
+  try { nodes = document.querySelectorAll(SELS.replace(/\s*,\s*/g, ',')); } catch (e) { return; }
+  Array.prototype.slice.call(nodes, 0, 30).forEach(function (el) {
+    var tick = document.createElement('div');
+    tick.className = 'sv-tick-' + SID;
+    if (SHOW_T) {
+      var lbl = (el.getAttribute('data-sv-label')
+        || (el.querySelector('h1,h2,h3') ? el.querySelector('h1,h2,h3').textContent.trim().slice(0,22) : '')
+        || el.textContent.trim().slice(0,22)).replace(/\s+/g,' ').trim();
+      if (lbl) {
+        var sp = document.createElement('span');
+        sp.className = 'sv-tick-text-' + SID;
+        sp.textContent = lbl;
+        tick.appendChild(sp);
+      }
+    }
+    track.appendChild(tick);
+    ticks.push({ node: tick, el: el, pct: 0 });
+  });
+  placeTicks();
+}
+
+function placeTicks() {
+  var total = docH() + window.innerHeight;
+  ticks.forEach(function (t) {
+    var r = t.el.getBoundingClientRect();
+    t.pct = total > 0 ? ((r.top + window.pageYOffset) / total) * 100 : 0;
+    t.node.style.top = t.pct + '%';
+  });
+}
+
+/* ══════════════════════════════════════════════════════
+   CONTINUOUS RAF LOOP
+   Reads scroll position every frame — never misses a frame,
+   never depends on scroll events for position accuracy.
+   This is why it works on iOS momentum scroll, trackpads,
+   keyboard navigation, and programmatic scrolling.
+   ══════════════════════════════════════════════════════ */
+var prevScrollY = -1;
+var trailTimer  = null;
+
+function loop() {
+  var p       = sPct();
+  var trackH  = track.offsetHeight;
+  var yMax    = Math.max(0, trackH - TH);
+  var tY      = p * yMax;
+  var scrollY = window.pageYOffset;
+
+  /* ── Thumb: translateY only (X centering is via margin-left in CSS) ── */
+  thumb.style.transform = 'translateY(' + tY.toFixed(1) + 'px)';
+
+  /* ── Fill ── */
+  fill.style.height = (p * 100).toFixed(2) + '%';
+
+  /* ── Counter ── */
+  var d = Math.round(p * 100);
+  if (d !== lastD) {
+    if (pctEl) pctEl.textContent = fmt(d);
+    track.setAttribute('aria-valuenow', d);
+    lastD = d;
+  }
+
+  /* ── Detect scroll movement for active state + trail ── */
+  if (scrollY !== prevScrollY) {
+    var vel = Math.abs(scrollY - prevScrollY);
+    prevScrollY = scrollY;
+
+    root.classList.add('sv-scrolling');
+    if (aura) aura.classList.add('on');
+
+    /* Velocity trail */
+    if (vel > 1 && !isDrag) {
+      var th2 = Math.min(vel * 20, 100);
+      trail.style.height    = th2 + 'px';
+      trail.style.top       = Math.max(0, tY - th2) + 'px';
+      trail.classList.add('on');
+      clearTimeout(trailTimer);
+      trailTimer = setTimeout(function () { trail.classList.remove('on'); }, 200);
+    }
+
+    /* Auto-hide reset */
+    if (AUTOH) {
+      clearTimeout(idleT);
+      root.classList.remove('sv-idle');
+      idleT = setTimeout(function () {
+        root.classList.remove('sv-scrolling');
+        root.classList.add('sv-idle');
+      }, IDLEMS);
+    }
+  }
+
+  /* ── Ticks ── */
+  if (trackH > 0) {
+    var proxPct = (PROX / trackH) * 100;
+    ticks.forEach(function (t) {
+      t.node.classList.toggle('near', Math.abs(t.pct - p * 100) < proxPct);
+    });
+  }
+
+  /* ── Waypoints ── */
+  if (waypts.length) {
+    var tRect  = track.getBoundingClientRect();
+    var thumbCY = tRect.top + tY + TH / 2;
+    var pctNow  = p * 100;
+
+    waypts.forEach(function (wp) {
+      /* Set top every frame so card follows thumb seamlessly */
+      wp.node.style.top = thumbCY.toFixed(1) + 'px';
+
+      if (wp.pctSpan) wp.pctSpan.textContent = fmt(pctNow) + '%';
+
+      var inRange = Math.abs(pctNow - wp.pos) <= wp.range;
+      if (inRange !== wp.on) {
+        wp.on = inRange;
+        wp.node.classList.toggle('sv-on', inRange);
+      }
+    });
+  }
+
+  requestAnimationFrame(loop);
+}
+
+/* ══════════════════════════════════════════════════════
+   CLICK TRACK TO JUMP
+   ══════════════════════════════════════════════════════ */
+track.addEventListener('click', function (e) {
+  if (isDrag) return;
+  var r = track.getBoundingClientRect();
+  var p = Math.max(0, Math.min(1, (e.clientY - r.top) / r.height));
+  window.scrollTo({ top: p * docH(), behavior: 'smooth' });
+});
+
+/* ══════════════════════════════════════════════════════
+   DRAG — mouse + touch
+   ══════════════════════════════════════════════════════ */
+function startDrag(cY) {
+  isDrag = true;
+  dY0    = cY;
+  dS0    = window.pageYOffset;
+  document.body.style.userSelect   = 'none';
+  document.body.style.webkitUserSelect = 'none';
+}
+function moveDrag(cY) {
+  if (!isDrag) return;
+  var delta  = cY - dY0;
+  var scroll = dS0 + (delta / Math.max(1, track.offsetHeight)) * docH();
+  window.scrollTo(0, scroll);
+}
+function endDrag() {
+  if (!isDrag) return;
+  isDrag = false;
+  document.body.style.userSelect   = '';
+  document.body.style.webkitUserSelect = '';
+}
+
+thumb.addEventListener('mousedown', function (e) {
+  startDrag(e.clientY);
+  e.preventDefault();
+  e.stopPropagation();
+});
+document.addEventListener('mousemove',  function (e) { moveDrag(e.clientY); });
+document.addEventListener('mouseup',    endDrag);
+
+thumb.addEventListener('touchstart', function (e) {
+  startDrag(e.touches[0].clientY);
+  e.preventDefault();
+}, { passive: false });
+document.addEventListener('touchmove', function (e) {
+  if (isDrag) { moveDrag(e.touches[0].clientY); e.preventDefault(); }
+}, { passive: false });
+document.addEventListener('touchend',   endDrag, { passive: true });
+document.addEventListener('touchcancel', endDrag, { passive: true });
+
+/* ══════════════════════════════════════════════════════
+   RESIZE
+   ══════════════════════════════════════════════════════ */
+var rT;
+window.addEventListener('resize', function () {
+  clearTimeout(rT);
+  rT = setTimeout(placeTicks, 200);
+}, { passive: true });
+
+/* ══════════════════════════════════════════════════════
+   INIT — start rAF loop AFTER first paint
+   Using nested rAF ensures layout is complete before
+   we read any dimensions.
+   ══════════════════════════════════════════════════════ */
+function start() {
+  buildWaypoints();
+  buildTicks();
+  /* Nested rAF: first frame paints, second frame has valid dimensions */
+  requestAnimationFrame(function () {
+    requestAnimationFrame(loop);
+  });
+}
+
+/* Wait for DOM, then wait for fonts/images */
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', start);
+} else {
+  start();
+}
+/* Re-place ticks after full load (images affect page height) */
+window.addEventListener('load', function () {
+  placeTicks();
+}, { passive: true });
+
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Sovereign Scroll",
+  "tag": "div",
+  "class": "sv-system",
+  "blocks": [
+    {
+      "type": "waypoint",
+      "name": "Scroll Waypoint",
+      "settings": [
+        { "type": "header", "content": "Trigger" },
+        { "type": "range", "id": "position", "label": "Scroll Position",
+          "min": 0, "max": 100, "step": 1, "unit": "%", "default": 25,
+          "info": "% down the page where this card appears." },
+        { "type": "range", "id": "range", "label": "Active Zone",
+          "min": 1, "max": 20, "step": 1, "unit": "%", "default": 6 },
+        { "type": "header", "content": "Content" },
+        { "type": "text", "id": "eyebrow",  "label": "Eyebrow",
+          "info": "Small label e.g. '§ 01'" },
+        { "type": "text", "id": "headline", "label": "Headline", "default": "The Collection" },
+        { "type": "text", "id": "body",     "label": "Body Text" }
+      ]
+    }
+  ],
+  "settings": [
+    { "type": "header", "content": "━━ Track" },
+    { "type": "color", "id": "accent_color", "label": "Accent Color",   "default": "#c9a84c" },
+    { "type": "color", "id": "track_color",  "label": "Track Color",    "default": "#888888" },
+    { "type": "select", "id": "bar_side", "label": "Side",
+      "options": [{ "value": "right", "label": "Right" },{ "value": "left", "label": "Left" }],
+      "default": "right" },
+    { "type": "range", "id": "track_width",  "label": "Track Line Width",
+      "min": 1, "max": 4, "step": 1, "unit": "px", "default": 1 },
+    { "type": "select", "id": "track_style", "label": "Track Style",
+      "options": [
+        { "value": "gradient", "label": "Gradient" },
+        { "value": "solid",    "label": "Solid" },
+        { "value": "dashed",   "label": "Dashed" }
+      ], "default": "gradient" },
+    { "type": "select", "id": "fill_style", "label": "Fill Style",
+      "options": [
+        { "value": "fade",  "label": "Fade" },
+        { "value": "solid", "label": "Solid" },
+        { "value": "glow",  "label": "Glow" }
+      ], "default": "fade" },
+    { "type": "range", "id": "edge_offset", "label": "Edge Offset",
+      "min": 0, "max": 40, "step": 4, "unit": "px", "default": 16 },
+    { "type": "header", "content": "━━ Thumb" },
+    { "type": "select", "id": "thumb_style", "label": "Thumb Style",
+      "options": [
+        { "value": "editorial", "label": "Editorial bar" },
+        { "value": "glass",     "label": "Glass pill" },
+        { "value": "minimal",   "label": "Flat solid" }
+      ], "default": "editorial" },
+    { "type": "range", "id": "thumb_width",  "label": "Thumb Width",
+      "min": 2, "max": 16, "step": 1, "unit": "px", "default": 4 },
+    { "type": "range", "id": "thumb_height", "label": "Thumb Height",
+      "min": 16, "max": 80, "step": 4, "unit": "px", "default": 40 },
+    { "type": "range", "id": "thumb_radius", "label": "Thumb Radius",
+      "min": 0, "max": 20, "step": 1, "unit": "px", "default": 2 },
+    { "type": "range", "id": "glow_intensity", "label": "Thumb Glow",
+      "min": 0, "max": 60, "step": 5, "default": 25 },
+    { "type": "checkbox", "id": "hover_expand", "label": "Expand on hover", "default": true },
+    { "type": "header", "content": "━━ Caps" },
+    { "type": "select", "id": "cap_style", "label": "Cap Style",
+      "options": [
+        { "value": "dash",    "label": "Dash" },
+        { "value": "diamond", "label": "Diamond" },
+        { "value": "pulse",   "label": "Diamond pulse" },
+        { "value": "cross",   "label": "Cross" }
+      ], "default": "dash" },
+    { "type": "range", "id": "cap_pulse_ms", "label": "Pulse Speed",
+      "min": 2000, "max": 8000, "step": 500, "unit": "ms", "default": 4000 },
+    { "type": "header", "content": "━━ Counter" },
+    { "type": "checkbox", "id": "show_counter",    "label": "Show counter", "default": true },
+    { "type": "range",    "id": "counter_size",    "label": "Size",
+      "min": 7, "max": 14, "step": 1, "unit": "px", "default": 9 },
+    { "type": "select",   "id": "counter_weight",  "label": "Weight",
+      "options": [
+        { "value": "300", "label": "Light" },
+        { "value": "400", "label": "Regular" },
+        { "value": "700", "label": "Bold" }
+      ], "default": "700" },
+    { "type": "range", "id": "counter_tracking", "label": "Letter Spacing",
+      "min": 0, "max": 50, "step": 5, "default": 20, "info": "÷100 = em" },
+    { "type": "range", "id": "counter_opacity",  "label": "Opacity",
+      "min": 10, "max": 100, "step": 10, "default": 80 },
+    { "type": "range", "id": "counter_gap", "label": "Counter Gap",
+      "min": 4, "max": 24, "step": 2, "unit": "px", "default": 8 },
+    { "type": "header", "content": "━━ Section Ticks" },
+    { "type": "text", "id": "tick_selectors", "label": "CSS Selectors",
+      "default": "h2, section" },
+    { "type": "range", "id": "tick_prox", "label": "Label Trigger Distance",
+      "min": 10, "max": 60, "step": 5, "unit": "px", "default": 25 },
+    { "type": "checkbox", "id": "show_tick_labels", "label": "Show tick labels", "default": false },
+    { "type": "header", "content": "━━ Aura" },
+    { "type": "checkbox", "id": "show_aura",      "label": "Edge glow",      "default": false },
+    { "type": "range",    "id": "aura_intensity", "label": "Aura Intensity",
+      "min": 5, "max": 30, "step": 5, "default": 15 },
+    { "type": "header", "content": "━━ Label" },
+    { "type": "checkbox", "id": "show_label",     "label": "Corner label", "default": false },
+    { "type": "text",     "id": "label",           "label": "Label Text",  "default": "SV-01" },
+    { "type": "range",    "id": "label_size",      "label": "Label Size",
+      "min": 6, "max": 12, "step": 1, "unit": "px", "default": 7 },
+    { "type": "range",    "id": "label_tracking",  "label": "Label Tracking",
+      "min": 10, "max": 60, "step": 5, "default": 35, "info": "÷100 = em" },
+    { "type": "range",    "id": "label_opacity",   "label": "Label Opacity",
+      "min": 10, "max": 80, "step": 10, "default": 40 },
+    { "type": "range",    "id": "label_gap",       "label": "Label Gap",
+      "min": 4, "max": 24, "step": 4, "unit": "px", "default": 8 },
+    { "type": "header", "content": "━━ Waypoint Cards" },
+    { "type": "select", "id": "wp_anim", "label": "Card Animation",
+      "options": [
+        { "value": "slide", "label": "Slide" },
+        { "value": "fade",  "label": "Fade" },
+        { "value": "drift", "label": "Drift up" }
+      ], "default": "slide" },
+    { "type": "range", "id": "wp_duration",  "label": "Duration",
+      "min": 150, "max": 700, "step": 50, "unit": "ms", "default": 350 },
+    { "type": "range", "id": "wp_offset",    "label": "Distance from Bar",
+      "min": 8, "max": 60, "step": 4, "unit": "px", "default": 20 },
+    { "type": "range", "id": "wp_max_width", "label": "Max Width",
+      "min": 100, "max": 320, "step": 10, "unit": "px", "default": 200 },
+    { "type": "range", "id": "wp_pad_v",     "label": "Vertical Padding",
+      "min": 6, "max": 28, "step": 2, "unit": "px", "default": 14 },
+    { "type": "range", "id": "wp_pad_h",     "label": "Horizontal Padding",
+      "min": 8, "max": 32, "step": 2, "unit": "px", "default": 16 },
+    { "type": "range", "id": "wp_radius",    "label": "Corner Radius",
+      "min": 0, "max": 20, "step": 1, "unit": "px", "default": 4 },
+    { "type": "color", "id": "wp_bg",           "label": "Glass BG Color",   "default": "#ffffff" },
+    { "type": "range", "id": "wp_bg_opacity",   "label": "Glass BG Opacity",
+      "min": 0, "max": 100, "step": 5, "default": 70 },
+    { "type": "range", "id": "wp_blur",         "label": "Blur",
+      "min": 0, "max": 40, "step": 4, "unit": "px", "default": 20 },
+    { "type": "range", "id": "wp_saturation",   "label": "Saturation",
+      "min": 100, "max": 200, "step": 10, "default": 160 },
+    { "type": "range", "id": "wp_border_opacity","label": "Border Opacity",
+      "min": 0, "max": 100, "step": 5, "default": 45 },
+    { "type": "range", "id": "wp_shadow_y",     "label": "Shadow Y",
+      "min": 0, "max": 40, "step": 2, "unit": "px", "default": 12 },
+    { "type": "range", "id": "wp_shadow_blur",  "label": "Shadow Blur",
+      "min": 0, "max": 60, "step": 4, "unit": "px", "default": 28 },
+    { "type": "range", "id": "wp_shadow_opacity","label": "Shadow Opacity",
+      "min": 0, "max": 40, "step": 2, "default": 10 },
+    { "type": "checkbox", "id": "wp_connector", "label": "Connector line",   "default": false },
+    { "type": "checkbox", "id": "wp_show_pct",  "label": "Show % in card",   "default": false },
+    { "type": "header", "content": "━━ Card Typography" },
+    { "type": "font_picker", "id": "wp_font",   "label": "Card Font",   "default": "sans-serif" },
+    { "type": "range", "id": "wp_eye_size",     "label": "Eyebrow Size",
+      "min": 6, "max": 12, "step": 1, "unit": "px", "default": 8 },
+    { "type": "range", "id": "wp_eye_tracking", "label": "Eyebrow Tracking",
+      "min": 10, "max": 60, "step": 5, "default": 30, "info": "÷100 = em" },
+    { "type": "range", "id": "wp_eye_gap",      "label": "Gap After Eyebrow",
+      "min": 2, "max": 14, "step": 1, "unit": "px", "default": 7 },
+    { "type": "range", "id": "wp_rule_width",   "label": "Rule Width",
+      "min": 0, "max": 40, "step": 2, "unit": "px", "default": 20, "info": "0 = none" },
+    { "type": "range", "id": "wp_hl_size",      "label": "Headline Size",
+      "min": 10, "max": 28, "step": 1, "unit": "px", "default": 14 },
+    { "type": "select", "id": "wp_hl_weight",   "label": "Headline Weight",
+      "options": [
+        { "value": "300", "label": "Light" },
+        { "value": "400", "label": "Regular" },
+        { "value": "500", "label": "Medium" },
+        { "value": "700", "label": "Bold" }
+      ], "default": "400" },
+    { "type": "range", "id": "wp_hl_tracking",  "label": "Headline Tracking",
+      "min": 0, "max": 30, "step": 1, "default": 5, "info": "÷100 = em" },
+    { "type": "select", "id": "wp_hl_case",     "label": "Headline Case",
+      "options": [
+        { "value": "none",       "label": "As typed" },
+        { "value": "uppercase",  "label": "UPPERCASE" },
+        { "value": "capitalize", "label": "Title Case" }
+      ], "default": "uppercase" },
+    { "type": "range", "id": "wp_hl_leading",   "label": "Line Height",
+      "min": 100, "max": 160, "step": 5, "default": 120, "info": "÷100" },
+    { "type": "color", "id": "wp_hl_color",     "label": "Headline Color",  "default": "#0a0a0a" },
+    { "type": "range", "id": "wp_body_size",    "label": "Body Size",
+      "min": 9, "max": 16, "step": 1, "unit": "px", "default": 11 },
+    { "type": "color", "id": "wp_body_color",   "label": "Body Color",      "default": "#333333" },
+    { "type": "range", "id": "wp_body_gap",     "label": "Gap Before Body",
+      "min": 2, "max": 16, "step": 1, "unit": "px", "default": 6 },
+    { "type": "header", "content": "━━ UI Font" },
+    { "type": "text",  "id": "ui_font", "label": "Counter / Tick Font Stack",
+      "default": "'Courier New', Courier, monospace" },
+    { "type": "header", "content": "━━ Behaviour" },
+    { "type": "range",    "id": "idle_opacity", "label": "Idle Opacity",
+      "min": 0, "max": 100, "step": 5, "default": 45 },
+    { "type": "range",    "id": "anim_speed",   "label": "Hover Transition Speed",
+      "min": 100, "max": 600, "step": 50, "unit": "ms", "default": 250 },
+    { "type": "checkbox", "id": "auto_hide",    "label": "Fade after inactivity", "default": false },
+    { "type": "range",    "id": "idle_ms",      "label": "Inactivity Timeout",
+      "min": 1000, "max": 8000, "step": 500, "unit": "ms", "default": 3000 },
+    { "type": "select",   "id": "entry_anim",   "label": "Entry Animation",
+      "options": [
+        { "value": "fade", "label": "Fade in" },
+        { "value": "none", "label": "None" }
+      ], "default": "fade" },
+    { "type": "range",    "id": "entry_delay",  "label": "Entry Delay",
+      "min": 0, "max": 2000, "step": 100, "unit": "ms", "default": 400 },
+    { "type": "range",    "id": "z_index",      "label": "Z-Index",
+      "min": 100, "max": 9000, "step": 100, "default": 9000 },
+    { "type": "checkbox", "id": "hide_native",  "label": "Hide browser scrollbar", "default": true }
+  ],
+  "presets": [
+    {
+      "name": "Sovereign Scroll",
+      "settings": {
+        "accent_color": "#c9a84c", "track_color": "#999999",
+        "bar_side": "right", "track_width": 1,
+        "thumb_style": "editorial", "thumb_width": 4, "thumb_height": 40,
+        "thumb_radius": 2, "glow_intensity": 25, "cap_style": "dash",
+        "fill_style": "fade", "show_counter": true,
+        "counter_size": 9, "counter_weight": "700",
+        "counter_tracking": 20, "counter_opacity": 80,
+        "idle_opacity": 45, "entry_anim": "fade", "entry_delay": 400,
+        "hide_native": true, "wp_anim": "slide", "wp_duration": 350,
+        "wp_max_width": 200, "wp_bg": "#ffffff", "wp_bg_opacity": 70,
+        "wp_blur": 20, "wp_saturation": 160, "wp_border_opacity": 45,
+        "wp_radius": 4, "wp_shadow_opacity": 10,
+        "wp_hl_size": 14, "wp_hl_weight": "400",
+        "wp_hl_case": "uppercase", "wp_hl_tracking": 5, "wp_hl_leading": 120,
+        "wp_hl_color": "#0a0a0a", "z_index": 9000
+      },
+      "blocks": [
+        { "type": "waypoint", "settings": { "position": 25, "range": 6, "eyebrow": "§ 01", "headline": "New Arrivals" } },
+        { "type": "waypoint", "settings": { "position": 55, "range": 6, "eyebrow": "§ 02", "headline": "The Edit" } },
+        { "type": "waypoint", "settings": { "position": 85, "range": 6, "eyebrow": "§ 03", "headline": "Closing" } }
+      ]
+    }
+  ]
+}
+{% endschema %}
+

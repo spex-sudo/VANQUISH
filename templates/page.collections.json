@@ -1,0 +1,247 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "main-page",
+      "blocks": {
+        "heading": {
+          "type": "text",
+          "name": "Title",
+          "settings": {
+            "text": "<h1><strong>VAULT</strong></h1>",
+            "width": "fit-content",
+            "max_width": "normal",
+            "alignment": "left",
+            "type_preset": "h2",
+            "font": "var(--font-body--family)",
+            "font_size": "1rem",
+            "line_height": "normal",
+            "letter_spacing": "normal",
+            "case": "none",
+            "wrap": "pretty",
+            "color": "var(--color-foreground)",
+            "background": true,
+            "background_color": "#00000026",
+            "corner_radius": 0,
+            "padding-block-start": 0,
+            "padding-block-end": 0,
+            "padding-inline-start": 0,
+            "padding-inline-end": 0
+          },
+          "blocks": {}
+        },
+        "page-content": {
+          "type": "page-content",
+          "settings": {},
+          "blocks": {}
+        }
+      },
+      "block_order": [
+        "heading",
+        "page-content"
+      ],
+      "disabled": true,
+      "settings": {
+        "content_direction": "column",
+        "gap": 32,
+        "color_scheme": "",
+        "padding-block-start": 40,
+        "padding-block-end": 80
+      }
+    },
+    "luxury_collectiongrid_dnyDnY": {
+      "type": "luxury-collectiongrid",
+      "blocks": {
+        "collection_YWA7Jp": {
+          "type": "collection",
+          "settings": {
+            "collection": "apparell",
+            "status_text": "RE-STOCKING",
+            "status_color": "#3781d4",
+            "custom_image": "shopify://shop_images/b9949b91d60740f6af1cf2e09f46cb4c-Max-Origin.webp",
+            "cta_label": "Enter",
+            "price_from": "",
+            "badge_text": "SOLD OUT",
+            "badge_bg": "#000000",
+            "badge_text_color": "#ff4d4d",
+            "lock_collection": false,
+            "lock_label": "ACCESS RESTRICTED",
+            "lock_cta_label": "Request Access",
+            "unlocked_cta_label": "Shop Now",
+            "lock_color": "#888888",
+            "lock_unlock_at": ""
+          }
+        },
+        "collection_Q7mgyt": {
+          "type": "collection",
+          "settings": {
+            "collection": "maze",
+            "status_text": "under development",
+            "status_color": "#d47137",
+            "custom_image": "shopify://shop_images/DEVICI_STUDIOS.jpg",
+            "cta_label": "Enter",
+            "price_from": "",
+            "badge_text": "",
+            "badge_bg": "#000000",
+            "badge_text_color": "#ff4d4d",
+            "lock_collection": true,
+            "lock_label": "ACCESS RESTRICTED",
+            "lock_cta_label": "Request Access",
+            "unlocked_cta_label": "Shop Now",
+            "lock_color": "#888888",
+            "lock_unlock_at": "2027-6-1"
+          }
+        },
+        "collection_jEKgeT": {
+          "type": "collection",
+          "settings": {
+            "collection": "industrial-assets",
+            "status_text": "LOCKED",
+            "status_color": "#d43737",
+            "custom_image": "shopify://shop_images/VANQUISH7-industrial-assests.jpg",
+            "video_url": "shopify://files/videos/Video_1_4952c6fe-c39e-4b9e-964e-6c7d437140bd.mov",
+            "cta_label": "Enter",
+            "price_from": "",
+            "badge_text": "",
+            "badge_bg": "#000000",
+            "badge_text_color": "#ff4d4d",
+            "lock_collection": true,
+            "lock_label": "PRIVATE B2B ACCESS",
+            "lock_cta_label": "Early Access",
+            "unlocked_cta_label": "ENTER",
+            "lock_color": "#888888",
+            "lock_unlock_at": "2027-5-28"
+          }
+        },
+        "collection_JN9tcC": {
+          "type": "collection",
+          "settings": {
+            "collection": "amelia",
+            "status_text": "Under Development",
+            "status_color": "#d47137",
+            "custom_image": "shopify://shop_images/f9766fbf40af41b981bc57a978930717-Max-Origin.webp",
+            "cta_label": "Enter",
+            "price_from": "",
+            "badge_text": "",
+            "badge_bg": "#000000",
+            "badge_text_color": "#ff4d4d",
+            "lock_collection": true,
+            "lock_label": "ACCESS RESTRICTED",
+            "lock_cta_label": "Request Access",
+            "unlocked_cta_label": "Shop Now",
+            "lock_color": "#888888",
+            "lock_unlock_at": "2027-12-1"
+          }
+        }
+      },
+      "block_order": [
+        "collection_YWA7Jp",
+        "collection_Q7mgyt",
+        "collection_jEKgeT",
+        "collection_JN9tcC"
+      ],
+      "name": "Sovereign Orbit Apex",
+      "settings": {
+        "eyebrow": "",
+        "heading": "",
+        "tagline": "",
+        "header_gap": 0,
+        "bg_color": "#000000",
+        "accent_color": "#ffffff",
+        "aspect_ratio": "3/4",
+        "padding_v": 0,
+        "title_font": "tomorrow_n9",
+        "title_size": 33,
+        "enable_blur": true,
+        "show_ring": false,
+        "show_hud": false,
+        "show_scanlines": false,
+        "show_noise": false,
+        "show_counter": true,
+        "show_meta": false,
+        "show_dots": true,
+        "enable_nudge": false,
+        "card_radius": 16,
+        "card_width_desktop": 59,
+        "card_width_mobile": 80,
+        "card_gap": 30,
+        "inactive_scale": "0.8",
+        "enable_autoscroll": false,
+        "autoscroll_interval": 3,
+        "price_prefix": "From",
+        "unit_singular": "piece",
+        "unit_plural": "pieces",
+        "countdown_day_label": "days",
+        "countdown_hour_label": "hrs",
+        "countdown_minute_label": "min",
+        "countdown_second_label": "sec",
+        "sr_showing_label": "Showing",
+        "sr_of_label": "of",
+        "committed_badge": "YOU’RE ON THE LIST",
+        "modal_bg": "#ffffff",
+        "modal_fg": "#000000",
+        "modal_accent": "#ece6fd",
+        "modal_radius": 24,
+        "modal_step1_title": "Request Access",
+        "modal_step1_sub": "Reserve your spot. We'll email when it opens.",
+        "modal_name_label": "First name",
+        "modal_email_label": "Email",
+        "modal_biz_label": "I'm a buisness owner",
+        "modal_cta_submit": "Reserve Access",
+        "modal_privacy_note": "We'll never share your email. Unsubscribe anytime.",
+        "countdown_enabled": true,
+        "unlock_hours": 20,
+        "business_tag": "business_partner",
+        "admin_notify_url": "",
+        "enable_schema": true
+      }
+    },
+    "luxury_revolvermarquee_Jimjze": {
+      "type": "luxury-revolvermarquee",
+      "name": "Vapor Meridian",
+      "settings": {
+        "font": "system_ui_n4",
+        "panel_source": "manual",
+        "panel_collection": "apparell",
+        "auto_limit": 24,
+        "hero_height": 420,
+        "hero_bg": "#0a0a0a",
+        "hero_layout": "grid",
+        "split_pct": 52,
+        "promo_bg": "#0a0a0a",
+        "promo_bg_image": "shopify://shop_images/IMG_0728.png",
+        "promo_fg": "#ffffff",
+        "promo_eyebrow": "Make them envy you",
+        "promo_headline": "Up To 50% Off",
+        "headline_size": 68,
+        "promo_sub": "Selected Styles",
+        "btn_bg": "#6a02fb",
+        "btn_fg": "#0a0a0a",
+        "hero_cta_label": "Shop Now",
+        "hero_cta_url": "shopify://collections/apparell",
+        "card_bg": "#f5f5f5",
+        "card_radius": 16,
+        "cards_visible": 5,
+        "cards_visible_mobile": 3,
+        "card_ratio": 110,
+        "autoplay_delay": 3,
+        "show_dots": true,
+        "dot_color": "#0a0a0a",
+        "show_card_label": true
+      }
+    }
+  },
+  "order": [
+    "main",
+    "luxury_collectiongrid_dnyDnY",
+    "luxury_revolvermarquee_Jimjze"
+  ]
+}

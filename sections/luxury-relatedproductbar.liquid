@@ -1,0 +1,751 @@
+{%- comment -%} sections/related-products-atelier.liquid {%- endcomment -%}
+
+{%- liquid
+  assign sid  = section.id
+  assign hf   = section.settings.heading_font
+  assign bf   = section.settings.body_font
+  assign limit = section.settings.card_count | default: 8
+-%}
+
+<style>
+{{ hf | font_face: font_display: 'swap' }}
+{{ bf | font_face: font_display: 'swap' }}
+</style>
+
+<style>
+/* ── Reset ── */
+#rpa{{ sid }},
+#rpa{{ sid }} *,
+#rpa{{ sid }} *::before,
+#rpa{{ sid }} *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Root tokens — identical derivation to product section ── */
+#rpa{{ sid }} {
+  --bg:   {{ section.settings.bg_color }};
+  --ink:  {{ section.settings.text_color }};
+  --sub:  {{ section.settings.text_color | color_mix: section.settings.bg_color, 45 }};
+  --dim:  {{ section.settings.text_color | color_mix: section.settings.bg_color, 22 }};
+  --line: {{ section.settings.text_color | color_mix: section.settings.bg_color, 10 }};
+  --fh:   {{ hf.family | default: "'Barlow Condensed'" }}, {{ hf.fallback_families | default: 'Helvetica Neue' }}, sans-serif;
+  --fb:   {{ bf.family | default: 'Barlow' }}, {{ bf.fallback_families | default: 'Helvetica' }}, sans-serif;
+  --pad:  {{ section.settings.section_padding }}px;
+  --gap:  {{ section.settings.card_gap }}px;
+
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--fb);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+/* ── Section header ── */
+.rpa-header{{ sid }} {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: {{ section.settings.section_padding | divided_by: 2 }}px var(--pad) 0;
+  margin-bottom: {{ section.settings.card_gap | times: 1.5 | round }}px;
+}
+
+.rpa-title{{ sid }} {
+  font-family: var(--fh);
+  font-size: {{ section.settings.title_size }}px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  color: var(--ink);
+}
+
+/* Thin rule that extends from the title */
+.rpa-rule{{ sid }} {
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+  margin: 0 20px;
+  align-self: center;
+}
+
+/* Arrow nav */
+.rpa-nav{{ sid }} {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.rpa-arrow{{ sid }} {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--line);
+  background: transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sub);
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+  flex-shrink: 0;
+}
+.rpa-arrow{{ sid }}:hover {
+  border-color: var(--sub);
+  color: var(--ink);
+  background: var(--line);
+}
+.rpa-arrow{{ sid }}:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+.rpa-arrow{{ sid }} svg {
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
+}
+
+/* ── Scroll strip ── */
+.rpa-strip-wrap{{ sid }} {
+  position: relative;
+  /* Edge fade — matches the vignette spirit of the product carousel */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    black calc(var(--pad) * 0.6),
+    black calc(100% - var(--pad) * 0.6),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    black calc(var(--pad) * 0.6),
+    black calc(100% - var(--pad) * 0.6),
+    transparent 100%
+  );
+}
+
+.rpa-strip{{ sid }} {
+  display: flex;
+  gap: var(--gap);
+  padding: {{ section.settings.card_gap | times: 0.5 | round }}px var(--pad)
+           {{ section.settings.section_padding | divided_by: 2 }}px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  cursor: grab;
+  will-change: scroll-position;
+}
+.rpa-strip{{ sid }}::-webkit-scrollbar { display: none; }
+.rpa-strip{{ sid }}.dragging { cursor: grabbing; scroll-snap-type: none; }
+
+/* ── Card ── */
+.rpa-card{{ sid }} {
+  flex-shrink: 0;
+  width: {{ section.settings.card_width }}px;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  /* Stagger reveal on load */
+  opacity: 0;
+  transform: translateY(12px);
+  transition:
+    opacity  0.5s ease,
+    transform 0.5s ease;
+}
+.rpa-card{{ sid }}.rpa-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Card image wrap ── */
+.rpa-img-wrap{{ sid }} {
+  position: relative;
+  width: 100%;
+  aspect-ratio: {{ section.settings.card_ratio }};
+  overflow: hidden;
+  background: var(--line);
+}
+
+.rpa-img{{ sid }} {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.rpa-card{{ sid }}:hover .rpa-img{{ sid }} {
+  transform: scale(1.04);
+}
+
+/* Overlay: slides up from bottom on hover */
+.rpa-overlay{{ sid }} {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    {{ section.settings.bg_color | color_modify: 'alpha', 0.82 }} 0%,
+    {{ section.settings.bg_color | color_modify: 'alpha', 0.0 }} 55%
+  );
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 16px 14px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity   0.32s ease,
+    transform 0.32s ease;
+  pointer-events: none;
+}
+
+.rpa-card{{ sid }}:hover .rpa-overlay{{ sid }} {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* Quick view button inside overlay */
+.rpa-qv{{ sid }} {
+  display: inline-block;
+  width: 100%;
+  text-align: center;
+  padding: 9px 14px;
+  background: var(--ink);
+  color: var(--bg);
+  font-family: var(--fh);
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-radius: {{ section.settings.btn_radius }}px;
+  line-height: 1;
+  transition: opacity 0.15s;
+  border: none;
+  cursor: pointer;
+}
+.rpa-qv{{ sid }}:hover { opacity: 0.82; }
+
+/* ── Card info ── */
+.rpa-info{{ sid }} {
+  padding: 12px 2px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Vendor */
+.rpa-vendor{{ sid }} {
+  font-size: 7px;
+  font-weight: 300;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--dim);
+  font-family: var(--fb);
+  line-height: 1;
+}
+
+/* Product name */
+.rpa-name{{ sid }} {
+  font-family: var(--fh);
+  font-size: {{ section.settings.card_name_size }}px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  line-height: 0.97;
+  color: var(--ink);
+  text-decoration: none;
+  display: block;
+  /* Clamp to 2 lines */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  transition: color 0.2s;
+}
+.rpa-name{{ sid }}:hover { color: var(--sub); }
+
+/* Price row */
+.rpa-price-row{{ sid }} {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin-top: 2px;
+}
+
+.rpa-price{{ sid }} {
+  font-family: var(--fh);
+  font-size: {{ section.settings.card_name_size | times: 0.72 | round }}px;
+  font-weight: 700;
+  color: var(--sub);
+  letter-spacing: 0.04em;
+}
+
+.rpa-compare{{ sid }} {
+  font-family: var(--fb);
+  font-size: {{ section.settings.card_name_size | times: 0.58 | round }}px;
+  font-weight: 300;
+  color: var(--dim);
+  text-decoration: line-through;
+  letter-spacing: 0.04em;
+}
+
+/* Sale badge */
+.rpa-badge{{ sid }} {
+  font-family: var(--fb);
+  font-size: 6.5px;
+  font-weight: 300;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--bg);
+  background: var(--ink);
+  padding: 2px 5px;
+  border-radius: 1px;
+  line-height: 1.4;
+  align-self: center;
+}
+
+/* Colour swatches */
+.rpa-swatches{{ sid }} {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.rpa-swatch{{ sid }} {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+.rpa-swatch{{ sid }}:hover { transform: scale(1.25); }
+
+/* ── Empty / loading state ── */
+.rpa-empty{{ sid }} {
+  padding: var(--pad);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dim);
+  font-family: var(--fb);
+}
+
+/* ── Mobile ── */
+@media (max-width: 640px) {
+  .rpa-title{{ sid }} {
+    font-size: {{ section.settings.title_size | times: 0.72 | round }}px;
+  }
+  .rpa-strip{{ sid }} {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+  .rpa-header{{ sid }} {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+  .rpa-card{{ sid }} {
+    width: {{ section.settings.card_width | times: 0.7 | round }}px;
+  }
+}
+</style>
+
+<section id="rpa{{ sid }}" data-product-id="{{ product.id }}">
+
+  <div class="rpa-header{{ sid }}">
+    <h2 class="rpa-title{{ sid }}">{{ section.settings.title }}</h2>
+    <div class="rpa-rule{{ sid }}"></div>
+    <div class="rpa-nav{{ sid }}">
+      <button class="rpa-arrow{{ sid }}" id="rpa-prev{{ sid }}" aria-label="Scroll left" disabled>
+        <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6,2 3,5 6,8"/>
+        </svg>
+      </button>
+      <button class="rpa-arrow{{ sid }}" id="rpa-next{{ sid }}" aria-label="Scroll right">
+        <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="4,2 7,5 4,8"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="rpa-strip-wrap{{ sid }}">
+    <div class="rpa-strip{{ sid }}" id="rpa-strip{{ sid }}" role="list">
+      <div class="rpa-empty{{ sid }}" id="rpa-loading{{ sid }}">Loading…</div>
+    </div>
+  </div>
+
+</section>
+
+<script>
+(function () {
+  'use strict';
+
+  var sid       = '{{ sid }}';
+  var productId = {{ product.id }};
+  var limit     = {{ limit }};
+  var showVendor   = {{ section.settings.show_vendor | json }};
+  var showSwatches = {{ section.settings.show_swatches | json }};
+  var btnRadius    = {{ section.settings.btn_radius }};
+  var btnText      = '{{ section.settings.btn_text | escape }}';
+  var bgColor      = '{{ section.settings.bg_color | escape }}';
+
+  var strip    = document.getElementById('rpa-strip'   + sid);
+  var loading  = document.getElementById('rpa-loading' + sid);
+  var btnPrev  = document.getElementById('rpa-prev'    + sid);
+  var btnNext  = document.getElementById('rpa-next'    + sid);
+
+  if (!strip) return;
+
+  /* ── FORMAT MONEY ─────────────────────────────────── */
+  function money(cents) {
+    var currencyCode = (window.Shopify && window.Shopify.currency && window.Shopify.currency.active)
+      ? window.Shopify.currency.active
+      : 'USD';
+    try {
+      return new Intl.NumberFormat(undefined, {
+        style:    'currency',
+        currency: currencyCode,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(cents / 100);
+    } catch(e) {
+      return '$' + (cents / 100).toFixed(2);
+    }
+  }
+
+  /* ── BUILD CARD HTML ──────────────────────────────── */
+  function buildCard(p) {
+    var img = p.featured_image
+      ? p.featured_image + '&width=600'
+      : (p.images && p.images[0] ? p.images[0].src + '&width=600' : '');
+
+    var priceHtml = '';
+    var price     = p.price;
+    var compare   = p.compare_at_price;
+    var onSale    = compare && compare > price;
+
+    priceHtml += '<span class="rpa-price' + sid + '">' + money(price) + '</span>';
+    if (onSale) {
+      priceHtml += '<span class="rpa-compare' + sid + '">' + money(compare) + '</span>';
+      priceHtml += '<span class="rpa-badge' + sid + '">Sale</span>';
+    }
+
+    var vendorHtml = showVendor && p.vendor
+      ? '<span class="rpa-vendor' + sid + '">' + p.vendor + '</span>'
+      : '';
+
+    /* Colour swatches from options */
+    var swatchHtml = '';
+    if (showSwatches && p.options) {
+      var colourIdx = -1;
+      p.options.forEach(function(o, i) {
+        if (/colou?r/i.test(o)) colourIdx = i;
+      });
+      if (colourIdx > -1 && p.variants) {
+        var seen = {};
+        var swatches = [];
+        p.variants.forEach(function(v) {
+          var val = v['option' + (colourIdx + 1)];
+          if (val && !seen[val]) {
+            seen[val] = true;
+            /* Named CSS colours work for common colours; fall back to dim */
+            swatches.push(
+              '<span class="rpa-swatch' + sid + '" title="' + val + '" ' +
+              'style="background:' + val.toLowerCase().replace(/\s+/g, '') + ';"></span>'
+            );
+          }
+        });
+        if (swatches.length > 1) {
+          swatchHtml = '<div class="rpa-swatches' + sid + '">' + swatches.join('') + '</div>';
+        }
+      }
+    }
+
+    var imgHtml = img
+      ? '<img class="rpa-img' + sid + '" src="' + img + '" alt="' + p.title + '" loading="lazy" width="600" height="800">'
+      : '<div class="rpa-img' + sid + '" style="background:var(--line);width:100%;height:100%;"></div>';
+
+    return (
+      '<div class="rpa-card' + sid + '" role="listitem">' +
+        '<div class="rpa-img-wrap' + sid + '">' +
+          imgHtml +
+          '<div class="rpa-overlay' + sid + '">' +
+            '<a class="rpa-qv' + sid + '" href="' + p.url + '">' + btnText + '</a>' +
+          '</div>' +
+        '</div>' +
+        '<div class="rpa-info' + sid + '">' +
+          vendorHtml +
+          '<a class="rpa-name' + sid + '" href="' + p.url + '">' + p.title + '</a>' +
+          '<div class="rpa-price-row' + sid + '">' + priceHtml + '</div>' +
+          swatchHtml +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  /* ── STAGGER REVEAL ───────────────────────────────── */
+  function revealCards() {
+    var cards = strip.querySelectorAll('.rpa-card' + sid);
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('rpa-visible');
+            io.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.08 });
+      cards.forEach(function(c, i) {
+        c.style.transitionDelay = (i * 0.045) + 's';
+        io.observe(c);
+      });
+    } else {
+      cards.forEach(function(c) { c.classList.add('rpa-visible'); });
+    }
+  }
+
+  /* ── FETCH RECOMMENDATIONS ────────────────────────── */
+  fetch('/recommendations/products.json?product_id=' + productId + '&limit=' + limit + '&intent=related')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var products = data.products || [];
+      if (!products.length) {
+        loading.textContent = '';
+
+        /* Fallback: try collection-based approach */
+        {%- if section.settings.fallback_collection != blank -%}
+        return fetch('/collections/{{ section.settings.fallback_collection }}/products.json?limit={{ limit }}')
+          .then(function(r) { return r.json(); })
+          .then(function(cd) {
+            renderProducts((cd.products || []).filter(function(p) {
+              return p.id != productId;
+            }).slice(0, limit));
+          });
+        {%- else -%}
+        renderProducts([]);
+        {%- endif -%}
+        return;
+      }
+      renderProducts(products);
+    })
+    .catch(function() {
+      if (loading) loading.textContent = '';
+    });
+
+  function renderProducts(products) {
+    if (!products.length) {
+      if (loading) loading.textContent = '';
+      /* Hide the whole section gracefully */
+      var section = document.getElementById('rpa' + sid);
+      if (section) section.style.display = 'none';
+      return;
+    }
+
+    var html = products.map(buildCard).join('');
+    strip.innerHTML = html;
+    updateArrows();
+    revealCards();
+  }
+
+  /* ── DRAG SCROLL ─────────────────────────────────── */
+  var isDragging  = false;
+  var startX      = 0;
+  var scrollLeft  = 0;
+  var dragDist    = 0;
+
+  strip.addEventListener('mousedown', function(e) {
+    isDragging = true;
+    dragDist   = 0;
+    startX     = e.pageX - strip.offsetLeft;
+    scrollLeft = strip.scrollLeft;
+    strip.classList.add('dragging');
+  });
+
+  window.addEventListener('mouseup', function() {
+    isDragging = false;
+    strip.classList.remove('dragging');
+  });
+
+  strip.addEventListener('mousemove', function(e) {
+    if (!isDragging) return;
+    e.preventDefault();
+    var x    = e.pageX - strip.offsetLeft;
+    var walk = (x - startX) * 1.4;
+    dragDist = Math.abs(walk);
+    strip.scrollLeft = scrollLeft - walk;
+  });
+
+  /* Prevent click on drag */
+  strip.addEventListener('click', function(e) {
+    if (dragDist > 6) e.preventDefault();
+  }, true);
+
+  /* ── ARROW NAV ─────────────────────────────────── */
+  function updateArrows() {
+    if (!btnPrev || !btnNext) return;
+    btnPrev.disabled = strip.scrollLeft <= 0;
+    btnNext.disabled = strip.scrollLeft + strip.clientWidth >= strip.scrollWidth - 4;
+  }
+
+  function scrollByPage(dir) {
+    var amount = strip.clientWidth * 0.75;
+    strip.scrollBy({ left: dir * amount, behavior: 'smooth' });
+    setTimeout(updateArrows, 400);
+  }
+
+  if (btnPrev) btnPrev.addEventListener('click', function() { scrollByPage(-1); });
+  if (btnNext) btnNext.addEventListener('click', function() { scrollByPage(1);  });
+  strip.addEventListener('scroll', updateArrows, { passive: true });
+
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Atelier Related",
+  "settings": [
+    { "type": "header", "content": "── Content ───────────────────────" },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Section title",
+      "default": "You May Also Like"
+    },
+    {
+      "type": "text",
+      "id": "btn_text",
+      "label": "Card button label",
+      "default": "View"
+    },
+    {
+      "type": "text",
+      "id": "fallback_collection",
+      "label": "Fallback collection handle",
+      "info": "Used if Shopify's recommendation engine returns no results. Enter a collection handle (e.g. 'all')."
+    },
+    {
+      "type": "range",
+      "id": "card_count",
+      "label": "Max products to show",
+      "min": 4, "max": 12, "step": 1,
+      "default": 8
+    },
+    {
+      "type": "checkbox",
+      "id": "show_vendor",
+      "label": "Show brand / vendor",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_swatches",
+      "label": "Show colour swatches",
+      "default": true
+    },
+    { "type": "header", "content": "── Colors ────────────────────────" },
+    { "type": "color", "id": "bg_color",   "label": "Background", "default": "#272727" },
+    { "type": "color", "id": "text_color", "label": "Text",       "default": "#f0f0ee" },
+    { "type": "header", "content": "── Typography ────────────────────" },
+    {
+      "type": "font_picker",
+      "id": "heading_font",
+      "label": "Heading font",
+      "default": "barlow_condensed_n9"
+    },
+    {
+      "type": "font_picker",
+      "id": "body_font",
+      "label": "Body / UI font",
+      "default": "barlow_n3"
+    },
+    {
+      "type": "range",
+      "id": "title_size",
+      "label": "Section title size",
+      "min": 12, "max": 48, "step": 2, "unit": "px",
+      "default": 22
+    },
+    {
+      "type": "range",
+      "id": "card_name_size",
+      "label": "Card product name size",
+      "min": 12, "max": 40, "step": 1, "unit": "px",
+      "default": 20
+    },
+    { "type": "header", "content": "── Cards ─────────────────────────" },
+    {
+      "type": "range",
+      "id": "card_width",
+      "label": "Card width",
+      "min": 140, "max": 400, "step": 10, "unit": "px",
+      "default": 240
+    },
+    {
+      "type": "select",
+      "id": "card_ratio",
+      "label": "Card image ratio",
+      "options": [
+        { "value": "2/3",  "label": "2:3 Portrait (default)" },
+        { "value": "3/4",  "label": "3:4 Portrait"           },
+        { "value": "1/1",  "label": "1:1 Square"             },
+        { "value": "4/3",  "label": "4:3 Landscape"          }
+      ],
+      "default": "2/3"
+    },
+    {
+      "type": "range",
+      "id": "btn_radius",
+      "label": "Button corner radius",
+      "min": 0, "max": 60, "step": 1, "unit": "px",
+      "default": 2
+    },
+    {
+      "type": "range",
+      "id": "card_gap",
+      "label": "Gap between cards",
+      "min": 6, "max": 40, "step": 2, "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "section_padding",
+      "label": "Section side padding",
+      "min": 16, "max": 100, "step": 4, "unit": "px",
+      "default": 32
+    }
+  ],
+  "presets": [
+    {
+      "name": "Atelier Related",
+      "settings": {
+        "title":          "You May Also Like",
+        "btn_text":       "View",
+        "card_count":     8,
+        "show_vendor":    false,
+        "show_swatches":  true,
+        "bg_color":       "#272727",
+        "text_color":     "#f0f0ee",
+        "heading_font":   "barlow_condensed_n9",
+        "body_font":      "barlow_n3",
+        "title_size":     22,
+        "card_name_size": 20,
+        "card_width":     240,
+        "card_ratio":     "2/3",
+        "btn_radius":     2,
+        "card_gap":       16,
+        "section_padding": 32
+      }
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,999 @@
+{%- comment -%}
+  COLLECTION HERO + CARD CAROUSEL
+  ─────────────────────────────────────────────────────────────────────────────
+  Bugs fixed vs previous version
+    • CSS calc() circular reference on card flex-basis removed — card width
+      now set as --card-w pixel var by JS, read by CSS. Reliable everywhere.
+    • Diamond grid: variable-index product access replaced with plain for loop
+      + empty-cell fill. No pagination edge cases, no modulo-on-zero risk.
+    • `inset` shorthand replaced with explicit top/right/bottom/left for
+      Safari <14.1 (iOS 14.0 and Catalina).
+    • `gap` on flex track now has `column-gap` fallback for Safari <14.1.
+    • ResizeObserver wraps card-width recalc in rAF so --cv CSS var has
+      time to update before JS reads it (mobile breakpoint race condition).
+    • Math.round(cv) → Math.floor(cv) in gap calc (consistent with maxI).
+    • `track.style.transition = ''` → removeProperty() so inline override
+      is fully cleared and the CSS rule takes over correctly.
+    • flex-wrap: nowrap explicit on track (some resets override default).
+    • Carousel card images: first <cv> cards load eager, rest lazy.
+    • overflow-wrap: break-word on headline prevents text overflow on narrow
+      promo panels (mobile stacked layout).
+    • Diamond grid expansion increased from -80px to -120px; covers corners
+      on viewports up to ~2 000px wide without distorting images.
+    • Dots button box-sizing: border-box prevents pixel-size drift.
+    • min-width: 0 on card prevents flex blowout in Safari.
+    • Empty carousel guard: wrapper hidden when no cards rendered.
+{%- endcomment -%}
+
+{%- liquid
+  assign sid = section.id
+
+  assign source_mode = section.settings.panel_source | default: 'auto'
+  assign active_col  = nil
+
+  if source_mode == 'auto' or source_mode == 'mixed'
+    if template.name == 'collection' and collection != blank
+      assign active_col = collection
+    endif
+  endif
+  if source_mode == 'manual' and section.settings.panel_collection != blank
+    assign active_col = collections[section.settings.panel_collection]
+  endif
+  if source_mode == 'mixed' and active_col == nil and section.settings.panel_collection != blank
+    assign active_col = collections[section.settings.panel_collection]
+  endif
+
+  assign hero_img = nil
+  if section.settings.hero_image != blank
+    assign hero_img = section.settings.hero_image
+  elsif active_col != nil and active_col.featured_image != blank
+    assign hero_img = active_col.featured_image
+  endif
+
+  assign auto_limit = section.settings.auto_limit | default: 12
+
+  assign render_blocks = false
+  if source_mode == 'blocks' or source_mode == 'mixed'
+    assign render_blocks = true
+  endif
+  if source_mode == 'auto' and active_col == nil
+    assign render_blocks = true
+  endif
+
+  assign card_count = 0
+  if render_blocks
+    for block in section.blocks
+      if block.type == 'carousel_card'
+        assign card_count = card_count | plus: 1
+      endif
+    endfor
+  endif
+  if source_mode != 'blocks' and active_col != nil
+    assign card_count = card_count | plus: active_col.products.size
+  endif
+-%}
+
+<style>
+  {{ section.settings.font | font_face: font_display: 'swap' }}
+
+  #chc-{{ sid }} {
+    --font:      {{ section.settings.font.family }}, {{ section.settings.font.fallback_families }};
+    --promo-bg:  {{ section.settings.promo_bg }};
+    --promo-fg:  {{ section.settings.promo_fg }};
+    --btn-bg:    {{ section.settings.btn_bg }};
+    --btn-fg:    {{ section.settings.btn_fg }};
+    --hero-bg:   {{ section.settings.hero_bg }};
+    --cv:        {{ section.settings.cards_visible }};
+    --card-gap:  6px;
+    --card-rad:  {{ section.settings.card_radius }}px;
+    --card-w:    200px; /* overwritten by JS on first paint */
+    font-family: var(--font);
+    width: 100%;
+    display: block;
+  }
+
+  /* ── HERO ──────────────────────────────────────────────── */
+  .chc-hero-{{ sid }} {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    width: 100%;
+    height: {{ section.settings.hero_height }}px;
+    overflow: hidden;
+    background: var(--hero-bg);
+  }
+
+  .chc-media-{{ sid }} {
+    -webkit-box-flex: 0;
+    -ms-flex: 0 0 {{ section.settings.split_pct }}%;
+    flex: 0 0 {{ section.settings.split_pct }}%;
+    position: relative;
+    overflow: hidden;
+    background: var(--hero-bg);
+  }
+
+  /*
+    Diamond grid: 3×3 CSS grid expanded 120px beyond container on all sides
+    then rotated 45°. Each cell counter-rotates images back to straight.
+    Parent overflow:hidden clips to container; dark background shows in gaps.
+    -120px expansion covers container corners for viewports up to ~2000px wide.
+  */
+  .chc-dgrid-{{ sid }} {
+    position: absolute;
+    top: -120px;
+    left: -120px;
+    right: -120px;
+    bottom: -120px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 10px;
+    -webkit-transform: rotate(45deg);
+    transform: rotate(45deg);
+    -webkit-transform-origin: 50% 50%;
+    transform-origin: 50% 50%;
+  }
+
+  .chc-dcell-{{ sid }} {
+    overflow: hidden;
+    background: var(--hero-bg);
+  }
+
+  .chc-dcell-{{ sid }} img {
+    width: 100%;
+    height: 100%;
+    -o-object-fit: cover;
+    object-fit: cover;
+    display: block;
+    -webkit-transform: rotate(-45deg) scale(1.55);
+    transform: rotate(-45deg) scale(1.55);
+    -webkit-transform-origin: 50% 50%;
+    transform-origin: 50% 50%;
+  }
+
+  /* Single hero image fallback */
+  .chc-simg-{{ sid }} {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+  }
+  .chc-simg-{{ sid }} img {
+    width: 100%;
+    height: 100%;
+    -o-object-fit: cover;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Right: promo panel */
+  .chc-promo-{{ sid }} {
+    -webkit-box-flex: 1;
+    -ms-flex: 1 1 0;
+    flex: 1 1 0;
+    min-width: 0;
+    position: relative;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    -webkit-box-align: start;
+    -ms-flex-align: start;
+    align-items: flex-start;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    padding: 36px 48px;
+    gap: 10px;
+    background: var(--promo-bg);
+    overflow: hidden;
+  }
+
+  /* Promo background image */
+  .chc-promo-bg-{{ sid }} {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 0;
+  }
+  .chc-promo-bg-{{ sid }} img {
+    width: 100%;
+    height: 100%;
+    -o-object-fit: cover;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* All text above bg image */
+  .chc-eyebrow-{{ sid }},
+  .chc-headline-{{ sid }},
+  .chc-sub-{{ sid }},
+  .chc-rule-{{ sid }},
+  .chc-btn-{{ sid }} {
+    position: relative;
+    z-index: 1;
+  }
+
+  .chc-eyebrow-{{ sid }} {
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    color: var(--promo-fg);
+    opacity: 0.6;
+    margin: 0;
+    line-height: 1;
+  }
+
+  .chc-headline-{{ sid }} {
+    font-size: clamp(22px, 4.6vw, {{ section.settings.headline_size }}px);
+    font-weight: 900;
+    line-height: 0.88;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    color: var(--promo-fg);
+    margin: 0;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  .chc-sub-{{ sid }} {
+    font-size: 9px;
+    font-weight: 300;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    color: var(--promo-fg);
+    opacity: 0.42;
+    margin: 0;
+    line-height: 1;
+  }
+
+  .chc-rule-{{ sid }} {
+    width: 28px;
+    height: 1px;
+    background: var(--promo-fg);
+    opacity: 0.2;
+    -ms-flex-negative: 0;
+    flex-shrink: 0;
+  }
+
+  .chc-btn-{{ sid }} {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 11px 26px;
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    font-family: var(--font);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    -webkit-transition: opacity 0.18s ease;
+    transition: opacity 0.18s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .chc-btn-{{ sid }}:hover { opacity: 0.76; }
+
+  /* ── CARD CAROUSEL ──────────────────────────────────────── */
+  .chc-cwrap-{{ sid }} {
+    position: relative;
+    overflow: hidden;
+    background: {{ section.settings.card_bg }};
+    -ms-touch-action: pan-y;
+    touch-action: pan-y;
+  }
+
+  .chc-track-{{ sid }} {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+    -ms-flex-direction: row;
+    flex-direction: row;
+    -ms-flex-wrap: nowrap;
+    flex-wrap: nowrap;
+    /* column-gap for Safari <14.1; gap for modern browsers */
+    -webkit-column-gap: var(--card-gap);
+    -moz-column-gap: var(--card-gap);
+    column-gap: var(--card-gap);
+    gap: var(--card-gap);
+    will-change: transform;
+    -webkit-transition: -webkit-transform 0.48s cubic-bezier(0.22, 0.61, 0.36, 1);
+    transition: transform 0.48s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+
+  .chc-card-{{ sid }} {
+    /*
+      Width driven by --card-w set by JS.
+      Avoids calc(100% - ...) which is circular in an unsized flex container
+      and can break in Safari. JS reads offsetWidth after layout so it's
+      always pixel-accurate regardless of viewport or breakpoint.
+    */
+    -webkit-box-flex: 0;
+    -ms-flex: 0 0 var(--card-w);
+    flex: 0 0 var(--card-w);
+    min-width: 0;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    background: var(--hero-bg);
+    border-radius: var(--card-rad);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Aspect ratio — padding-bottom trick works in all browsers */
+  .chc-card-{{ sid }}::after {
+    content: '';
+    display: block;
+    padding-bottom: {{ section.settings.card_ratio }}%;
+  }
+
+  .chc-card-inner-{{ sid }} {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+  }
+
+  .chc-card-{{ sid }} img {
+    width: 100%;
+    height: 100%;
+    -o-object-fit: cover;
+    object-fit: cover;
+    display: block;
+    -webkit-transition: -webkit-transform 0.42s ease;
+    transition: transform 0.42s ease;
+  }
+
+  .chc-card-{{ sid }}:hover img {
+    -webkit-transform: scale(1.05);
+    transform: scale(1.05);
+  }
+
+  .chc-clabel-{{ sid }} {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 10px 14px;
+    background: rgba(0,0,0,0.56);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #fff;
+    line-height: 1.3;
+  }
+
+  /* Dot navigation */
+  .chc-dots-{{ sid }} {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    gap: 5px;
+    padding: 10px 0 7px;
+    background: {{ section.settings.card_bg }};
+  }
+
+  .chc-dot-{{ sid }} {
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: {{ section.settings.dot_color }};
+    opacity: 0.2;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    -webkit-transition: opacity 0.2s;
+    transition: opacity 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .chc-dot-{{ sid }}.is-on { opacity: 1; }
+
+  /* ── Responsive ─────────────────────────────────────────── */
+  @media (max-width: 768px) {
+    #chc-{{ sid }} { --cv: {{ section.settings.cards_visible_mobile }}; }
+
+    .chc-hero-{{ sid }} {
+      -webkit-box-orient: vertical;
+      -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+      flex-direction: column;
+      height: auto;
+    }
+    .chc-media-{{ sid }} {
+      -webkit-box-flex: 0;
+      -ms-flex: none;
+      flex: none;
+      width: 100%;
+      height: {{ section.settings.hero_height | times: 0.52 | round }}px;
+    }
+    .chc-promo-{{ sid }} {
+      -webkit-box-flex: 0;
+      -ms-flex: none;
+      flex: none;
+      width: 100%;
+      padding: 22px 20px 28px;
+    }
+  }
+</style>
+
+<div id="chc-{{ sid }}">
+
+  <!-- ══ HERO BANNER ══════════════════════════════════════════ -->
+  <div class="chc-hero-{{ sid }}">
+
+    <!-- Left: imagery zone -->
+    <div class="chc-media-{{ sid }}">
+
+      {%- if section.settings.hero_layout == 'grid' and active_col != nil and active_col.products.size > 0 -%}
+        {%- comment -%}
+          ON A COLLECTION PAGE — pull up to 9 product images from that collection.
+          Simple for loop avoids variable-index access which breaks beyond page 1.
+          Fewer than 9 products → remaining cells show hero_bg (dark frame, intentional).
+        {%- endcomment -%}
+        <div class="chc-dgrid-{{ sid }}" aria-hidden="true">
+          {%- assign grid_filled = 0 -%}
+          {%- for prod in active_col.products limit: 9 -%}
+            {%- assign grid_filled = grid_filled | plus: 1 -%}
+            <div class="chc-dcell-{{ sid }}">
+              {%- if prod.featured_image != blank -%}
+                <img
+                  src="{{ prod.featured_image | image_url: width: 420 }}"
+                  width="420"
+                  height="{{ 420 | divided_by: prod.featured_image.aspect_ratio | ceil }}"
+                  alt="{{ prod.featured_image.alt | default: prod.title | escape }}"
+                  loading="{% if forloop.index <= 3 %}eager{% else %}lazy{% endif %}"
+                  decoding="async">
+              {%- endif -%}
+            </div>
+          {%- endfor -%}
+          {%- if grid_filled < 9 -%}
+            {%- assign empty_cells = 9 | minus: grid_filled -%}
+            {%- for e in (1..empty_cells) -%}
+              <div class="chc-dcell-{{ sid }}"></div>
+            {%- endfor -%}
+          {%- endif -%}
+        </div>
+
+      {%- elsif section.settings.hero_layout == 'grid' and render_blocks -%}
+        {%- comment -%}
+          FALLBACK GRID — no active collection (e.g. /collections page, homepage).
+          Blocks with a custom image get one fixed cell each.
+          Blocks with a collection share the remaining cells via ROUND-ROBIN:
+          round 0 takes product #1 from every selected collection, round 1 takes
+          product #2 from every selected collection, and so on, until 9 cells are
+          filled. This keeps representation equal regardless of how many
+          collections are selected (1 collection fills all 9 from itself; 5
+          collections contribute roughly 2 each) instead of hard-capping each
+          collection at a fixed count and leaving cells empty.
+        {%- endcomment -%}
+        <div class="chc-dgrid-{{ sid }}" aria-hidden="true">
+          {%- assign grid_filled = 0 -%}
+
+          {%- comment %} Fixed-image blocks claim their cell first. {%- endcomment -%}
+          {%- for block in section.blocks -%}
+            {%- if block.type == 'carousel_card' and block.settings.image != blank and grid_filled < 9 -%}
+              {%- assign grid_filled = grid_filled | plus: 1 -%}
+              <div class="chc-dcell-{{ sid }}">
+                <img
+                  src="{{ block.settings.image | image_url: width: 420 }}"
+                  width="420"
+                  height="{{ 420 | divided_by: block.settings.image.aspect_ratio | ceil }}"
+                  alt="{{ block.settings.image.alt | escape }}"
+                  loading="{% if grid_filled <= 3 %}eager{% else %}lazy{% endif %}"
+                  decoding="async">
+              </div>
+            {%- endif -%}
+          {%- endfor -%}
+
+          {%- comment %} Build the list of collection-sourced blocks (skip ones that already used a custom image). {%- endcomment -%}
+          {%- assign grid_col_handles = '' -%}
+          {%- assign grid_col_count = 0 -%}
+          {%- for block in section.blocks -%}
+            {%- if block.type == 'carousel_card' and block.settings.image == blank and block.settings.collection != blank -%}
+              {%- assign grid_col_count = grid_col_count | plus: 1 -%}
+              {%- if grid_col_handles == '' -%}
+                {%- assign grid_col_handles = block.settings.collection -%}
+              {%- else -%}
+                {%- assign grid_col_handles = grid_col_handles | append: ',' | append: block.settings.collection -%}
+              {%- endif -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {%- assign grid_col_list = grid_col_handles | split: ',' -%}
+
+          {%- if grid_col_count > 0 and grid_filled < 9 -%}
+            {%- assign grid_col_count_m1 = grid_col_count | minus: 1 -%}
+            {%- for grid_round in (0..8) -%}
+              {%- if grid_filled >= 9 -%}{%- break -%}{%- endif -%}
+              {%- for grid_ci in (0..grid_col_count_m1) -%}
+                {%- if grid_filled >= 9 -%}{%- break -%}{%- endif -%}
+                {%- assign grid_prod = collections[grid_col_list[grid_ci]].products[grid_round] -%}
+                {%- if grid_prod != blank and grid_prod.featured_image != blank -%}
+                  {%- assign grid_filled = grid_filled | plus: 1 -%}
+                  <div class="chc-dcell-{{ sid }}">
+                    <img
+                      src="{{ grid_prod.featured_image | image_url: width: 420 }}"
+                      width="420"
+                      height="{{ 420 | divided_by: grid_prod.featured_image.aspect_ratio | ceil }}"
+                      alt="{{ grid_prod.featured_image.alt | default: grid_prod.title | escape }}"
+                      loading="{% if grid_filled <= 3 %}eager{% else %}lazy{% endif %}"
+                      decoding="async">
+                  </div>
+                {%- endif -%}
+              {%- endfor -%}
+            {%- endfor -%}
+          {%- endif -%}
+
+          {%- if grid_filled < 9 -%}
+            {%- assign empty_cells = 9 | minus: grid_filled -%}
+            {%- for e in (1..empty_cells) -%}
+              <div class="chc-dcell-{{ sid }}"></div>
+            {%- endfor -%}
+          {%- endif -%}
+        </div>
+
+      {%- elsif hero_img != blank -%}
+        <div class="chc-simg-{{ sid }}">
+          <img
+            src="{{ hero_img | image_url: width: 1200 }}"
+            width="1200"
+            height="{{ 1200 | divided_by: hero_img.aspect_ratio | ceil }}"
+            srcset="{{ hero_img | image_url: width: 640 }} 640w,
+                    {{ hero_img | image_url: width: 1200 }} 1200w"
+            sizes="{{ section.settings.split_pct }}vw"
+            alt="{{ hero_img.alt | escape }}"
+            loading="eager"
+            fetchpriority="high"
+            decoding="async">
+        </div>
+
+      {%- else -%}
+        <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:#111;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;opacity:.35;">
+          {{ 'lifestyle-1' | placeholder_svg_tag: 'placeholder-svg' }}
+        </div>
+      {%- endif -%}
+
+    </div>
+
+    <!-- Right: promo overlay -->
+    <div class="chc-promo-{{ sid }}">
+
+      {%- if section.settings.promo_bg_image != blank -%}
+        <div class="chc-promo-bg-{{ sid }}" aria-hidden="true">
+          <img
+            src="{{ section.settings.promo_bg_image | image_url: width: 900 }}"
+            width="900"
+            height="{{ 900 | divided_by: section.settings.promo_bg_image.aspect_ratio | ceil }}"
+            alt=""
+            loading="eager"
+            decoding="async">
+        </div>
+      {%- endif -%}
+
+      {%- if section.settings.promo_eyebrow != blank -%}
+        <p class="chc-eyebrow-{{ sid }}">{{ section.settings.promo_eyebrow }}</p>
+      {%- endif -%}
+
+      {%- if section.settings.promo_headline != blank -%}
+        <p class="chc-headline-{{ sid }}">{{ section.settings.promo_headline }}</p>
+      {%- endif -%}
+
+      {%- if section.settings.promo_sub != blank -%}
+        <div class="chc-rule-{{ sid }}"></div>
+        <p class="chc-sub-{{ sid }}">{{ section.settings.promo_sub }}</p>
+      {%- endif -%}
+
+      {%- if section.settings.hero_cta_label != blank -%}
+        <button type="button" class="chc-btn-{{ sid }}" data-chc-scroll>
+          {{- section.settings.hero_cta_label -}}
+        </button>
+      {%- endif -%}
+
+    </div>
+
+  </div><!-- /hero -->
+
+
+  <!-- ══ CARD CAROUSEL ════════════════════════════════════════ -->
+  {%- if card_count > 0 -%}
+  <div class="chc-cwrap-{{ sid }}" data-chc-wrap>
+    <div class="chc-track-{{ sid }}" data-chc-track>
+
+      {%- assign cv_int = section.settings.cards_visible -%}
+
+      {%- if render_blocks -%}
+        {%- assign block_idx = 0 -%}
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'carousel_card' -%}
+            {%- liquid
+              assign ci = block.settings.image
+              assign cu = block.settings.link
+              assign cl = block.settings.label
+              if block.settings.collection != blank
+                assign bc = collections[block.settings.collection]
+                if ci == blank and bc.featured_image != blank
+                  assign ci = bc.featured_image
+                endif
+                if cu == blank
+                  assign cu = bc.url
+                endif
+                if cl == blank
+                  assign cl = bc.title
+                endif
+              endif
+              assign block_idx = block_idx | plus: 1
+            -%}
+            <a href="{{ cu | default: '#' }}" class="chc-card-{{ sid }}" {{ block.shopify_attributes }}>
+              <div class="chc-card-inner-{{ sid }}">
+                {%- if ci != blank -%}
+                  <img
+                    src="{{ ci | image_url: width: 600 }}"
+                    width="600"
+                    height="{{ 600 | divided_by: ci.aspect_ratio | ceil }}"
+                    alt="{{ ci.alt | default: cl | escape }}"
+                    loading="{% if block_idx <= cv_int %}eager{% else %}lazy{% endif %}"
+                    decoding="async">
+                {%- else -%}
+                  <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:#222;"></div>
+                {%- endif -%}
+                {%- if cl != blank -%}
+                  <div class="chc-clabel-{{ sid }}">{{ cl }}</div>
+                {%- endif -%}
+              </div>
+            </a>
+          {%- endif -%}
+        {%- endfor -%}
+      {%- endif -%}
+
+      {%- if source_mode != 'blocks' and active_col != nil -%}
+        {%- assign auto_idx = 0 -%}
+        {%- for prod in active_col.products limit: auto_limit -%}
+          {%- if prod.featured_image != blank -%}
+            {%- assign auto_idx = auto_idx | plus: 1 -%}
+            <a href="{{ prod.url }}" class="chc-card-{{ sid }}">
+              <div class="chc-card-inner-{{ sid }}">
+                <img
+                  src="{{ prod.featured_image | image_url: width: 600 }}"
+                  width="600"
+                  height="{{ 600 | divided_by: prod.featured_image.aspect_ratio | ceil }}"
+                  alt="{{ prod.featured_image.alt | default: prod.title | escape }}"
+                  loading="{% if auto_idx <= cv_int %}eager{% else %}lazy{% endif %}"
+                  decoding="async">
+                {%- if section.settings.show_card_label -%}
+                  <div class="chc-clabel-{{ sid }}">{{ prod.title }}</div>
+                {%- endif -%}
+              </div>
+            </a>
+          {%- endif -%}
+        {%- endfor -%}
+      {%- endif -%}
+
+    </div>
+
+    {%- if section.settings.show_dots -%}
+      <div class="chc-dots-{{ sid }}" data-chc-dots aria-hidden="true"></div>
+    {%- endif -%}
+  </div>
+  {%- endif -%}
+
+</div>
+
+
+<script>
+(function () {
+  'use strict';
+
+  var ROOT   = document.getElementById('chc-{{ sid }}');
+  if (!ROOT)  return;
+
+  /* ── CTA — scroll to the card carousel below ──────────────
+     Placed before the carousel-existence guard so the button
+     still works (falls back to scrolling one viewport) even
+     on pages where no cards rendered. */
+  var ctaBtn = ROOT.querySelector('[data-chc-scroll]');
+  if (ctaBtn) {
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    ctaBtn.addEventListener('click', function () {
+      var scrollTarget = ROOT.querySelector('[data-chc-wrap]');
+      if (scrollTarget && scrollTarget.scrollIntoView) {
+        scrollTarget.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+      } else {
+        window.scrollBy({ top: window.innerHeight, behavior: reduceMotion ? 'auto' : 'smooth' });
+      }
+    });
+  }
+
+  var wrap   = ROOT.querySelector('[data-chc-wrap]');
+  var track  = ROOT.querySelector('[data-chc-track]');
+  var dotsEl = ROOT.querySelector('[data-chc-dots]');
+  if (!wrap || !track) return;
+
+  var N     = track.children.length;
+  if (!N)   return;
+
+  var DELAY = {{ section.settings.autoplay_delay }} * 1000;
+  var GAP   = 6; /* px — matches --card-gap: 6px */
+  var cur   = 0;
+  var timer = null;
+  var live  = false;
+  var tsx   = 0;
+
+  /* ── Helpers ───────────────────────────────────────────── */
+
+  function getCV() {
+    /* Read --cv from CSS so media-query breakpoints apply automatically */
+    var v = getComputedStyle(ROOT).getPropertyValue('--cv');
+    return parseFloat(v) || {{ section.settings.cards_visible }};
+  }
+
+  function maxI() {
+    return Math.max(0, N - Math.floor(getCV()));
+  }
+
+  function setCardWidth() {
+    /*
+      Calculate card width in pixels and write it back as --card-w.
+      This avoids the CSS calc(100% / var(--cv)) circular-reference
+      problem in unsized flex containers (breaks in Safari).
+    */
+    var cv   = getCV();
+    var w    = (wrap.offsetWidth - GAP * (Math.floor(cv) - 1)) / cv;
+    ROOT.style.setProperty('--card-w', w.toFixed(2) + 'px');
+    return w;
+  }
+
+  function goTo(i) {
+    var cv = getCV();
+    cur = Math.max(0, Math.min(i, maxI()));
+    var w  = (wrap.offsetWidth - GAP * (Math.floor(cv) - 1)) / cv;
+    track.style.transform = 'translateX(-' + (cur * (w + GAP)).toFixed(1) + 'px)';
+    syncDots();
+  }
+
+  function next() { goTo(cur < maxI() ? cur + 1 : 0); }
+
+  /* ── Timer ─────────────────────────────────────────────── */
+  function startTimer() {
+    clearInterval(timer);
+    if (DELAY > 0 && live) timer = setInterval(next, DELAY);
+  }
+  function stopTimer() { clearInterval(timer); timer = null; }
+
+  /* ── Dots ──────────────────────────────────────────────── */
+  function buildDots() {
+    if (!dotsEl) return;
+    var pages = maxI() + 1;
+    if (pages <= 1) { dotsEl.hidden = true; return; }
+    dotsEl.hidden = false;
+    var html = '';
+    for (var i = 0; i < pages; i++) {
+      html += '<button class="chc-dot-{{ sid }}" data-i="' + i +
+              '" aria-label="Page ' + (i + 1) + '"></button>';
+    }
+    dotsEl.innerHTML = html;
+    dotsEl.querySelectorAll('[data-i]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        goTo(+this.dataset.i);
+        stopTimer(); startTimer();
+      });
+    });
+  }
+
+  function syncDots() {
+    if (!dotsEl) return;
+    dotsEl.querySelectorAll('[data-i]').forEach(function (b, i) {
+      b.classList.toggle('is-on', i === cur);
+    });
+  }
+
+  /* ── Init ──────────────────────────────────────────────── */
+  setCardWidth();
+  buildDots();
+
+  /* Position without animation on first paint */
+  track.style.removeProperty('transition');
+  goTo(0);
+  requestAnimationFrame(function () {
+    track.style.removeProperty('transition'); /* ensure CSS rule restored */
+  });
+
+  /* ── IntersectionObserver ──────────────────────────────── */
+  new IntersectionObserver(function (entries) {
+    live = entries[0].isIntersecting;
+    live ? startTimer() : stopTimer();
+  }, { threshold: 0.1 }).observe(wrap);
+
+  /* ── Hover pause ───────────────────────────────────────── */
+  wrap.addEventListener('mouseenter', stopTimer, { passive: true });
+  wrap.addEventListener('mouseleave', function () {
+    if (live) startTimer();
+  }, { passive: true });
+
+  /* ── Touch / swipe ─────────────────────────────────────── */
+  wrap.addEventListener('touchstart', function (e) {
+    tsx = e.touches[0].clientX;
+    stopTimer();
+  }, { passive: true });
+
+  wrap.addEventListener('touchend', function (e) {
+    var dx = e.changedTouches[0].clientX - tsx;
+    if (Math.abs(dx) > 44) goTo(dx < 0 ? cur + 1 : cur - 1);
+    if (live) startTimer();
+  }, { passive: true });
+
+  /* ── ResizeObserver ────────────────────────────────────────
+     rAF defers read until after CSS recalculates --cv for the
+     new breakpoint, preventing a stale mobile/desktop value.  */
+  new ResizeObserver(function () {
+    requestAnimationFrame(function () {
+      track.style.removeProperty('transition'); /* snap without animation */
+      setCardWidth();
+      buildDots();
+      goTo(Math.min(cur, maxI()));
+      requestAnimationFrame(function () {
+        track.style.removeProperty('transition');
+      });
+    });
+  }).observe(wrap);
+
+  /* ── Tab visibility ────────────────────────────────────── */
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) stopTimer();
+    else if (live) startTimer();
+  }, { passive: true });
+
+  /* ── Shopify theme editor — reinit on section reload ────── */
+  document.addEventListener('shopify:section:load', function (e) {
+    if (e.detail && e.detail.sectionId === '{{ sid }}') {
+      setCardWidth();
+      buildDots();
+      goTo(0);
+    }
+  });
+
+})();
+</script>
+
+
+{% schema %}
+{
+  "name": "Collection Hero",
+  "tag": "section",
+  "settings": [
+
+    { "type": "header", "content": "━━ Typography" },
+    { "type": "font_picker", "id": "font", "label": "Font", "default": "sans-serif" },
+
+    { "type": "header", "content": "━━ Data Source",
+      "info": "Auto uses the active collection page. On pages with no collection (e.g. /collections, homepage) it falls back to your Carousel Card blocks — so add those to control what shows there." },
+    {
+      "type": "select",
+      "id": "panel_source",
+      "label": "Card Source",
+      "default": "auto",
+      "options": [
+        { "value": "auto",   "label": "Current collection (auto)" },
+        { "value": "manual", "label": "Specific collection" },
+        { "value": "mixed",  "label": "Custom blocks + collection fill" },
+        { "value": "blocks", "label": "Custom blocks only" }
+      ]
+    },
+    { "type": "collection", "id": "panel_collection",
+      "label": "Collection — Manual / Mixed mode" },
+    { "type": "range", "id": "auto_limit", "label": "Max auto products",
+      "min": 4, "max": 24, "step": 2, "default": 12 },
+
+    { "type": "header", "content": "━━ Hero Banner" },
+    { "type": "range", "id": "hero_height", "label": "Height",
+      "min": 180, "max": 700, "step": 20, "unit": "px", "default": 420 },
+    { "type": "color", "id": "hero_bg", "label": "Background / Grid Gap Colour",
+      "default": "#0a0a0a",
+      "info": "Fills the gap lines between diamonds and any uncovered corners." },
+    {
+      "type": "select",
+      "id": "hero_layout",
+      "label": "Left Image Style",
+      "default": "grid",
+      "options": [
+        { "value": "grid",  "label": "Diamond grid (collection products)" },
+        { "value": "image", "label": "Single hero image" }
+      ]
+    },
+    { "type": "image_picker", "id": "hero_image", "label": "Hero Image",
+      "info": "Used in Single Image mode, or as fallback when no collection is active." },
+    { "type": "range", "id": "split_pct", "label": "Image Zone Width",
+      "min": 40, "max": 72, "step": 2, "unit": "%", "default": 60,
+      "info": "Percentage of the hero width used by the imagery side." },
+
+    { "type": "header", "content": "━━ Promo Overlay" },
+    { "type": "color", "id": "promo_bg", "label": "Background Colour", "default": "#0a0a0a",
+      "info": "Solid colour fallback when no background image is set." },
+    { "type": "image_picker", "id": "promo_bg_image", "label": "Background Image",
+      "info": "Optional. Overlays the solid colour. Use a dark or high-contrast image to keep text legible." },
+    { "type": "color", "id": "promo_fg",       "label": "Text Colour",       "default": "#ffffff" },
+    { "type": "text",  "id": "promo_eyebrow",  "label": "Eyebrow",           "default": "Jersey Meets Streetwear" },
+    { "type": "text",  "id": "promo_headline", "label": "Headline",          "default": "Up To 50% Off",
+      "info": "Main promotional message — discount, season, launch, etc." },
+    { "type": "range", "id": "headline_size",  "label": "Headline Max Size",
+      "min": 32, "max": 100, "step": 2, "unit": "px", "default": 68 },
+    { "type": "text",  "id": "promo_sub",      "label": "Sub-text",          "default": "Selected Styles" },
+    { "type": "color", "id": "btn_bg",         "label": "Button Background", "default": "#f5e100" },
+    { "type": "color", "id": "btn_fg",         "label": "Button Text",       "default": "#0a0a0a" },
+    { "type": "text",  "id": "hero_cta_label", "label": "Button Label",      "default": "Shop Now",
+      "info": "Clicking smooth-scrolls down to the card carousel below." },
+
+    { "type": "header", "content": "━━ Card Carousel" },
+    { "type": "color", "id": "card_bg", "label": "Carousel Background", "default": "#f5f5f5" },
+    { "type": "range", "id": "card_radius", "label": "Card Corner Radius",
+      "min": 0, "max": 24, "step": 2, "unit": "px", "default": 10 },
+    { "type": "range", "id": "cards_visible", "label": "Cards Visible — Desktop",
+      "min": 2, "max": 7, "step": 1, "default": 5 },
+    { "type": "range", "id": "cards_visible_mobile", "label": "Cards Visible — Mobile",
+      "min": 1, "max": 4, "step": 1, "default": 2 },
+    { "type": "range", "id": "card_ratio", "label": "Card Height Ratio",
+      "min": 80, "max": 220, "step": 5, "unit": "%", "default": 155,
+      "info": "Height as % of card width. 100 = square · 155 = portrait." },
+    { "type": "range", "id": "autoplay_delay", "label": "Auto-advance Interval",
+      "min": 2, "max": 10, "step": 1, "unit": "s", "default": 4 },
+    { "type": "checkbox", "id": "show_dots",      "label": "Show dot indicators",        "default": true },
+    { "type": "color",    "id": "dot_color",       "label": "Dot Colour",                "default": "#0a0a0a" },
+    { "type": "checkbox", "id": "show_card_label", "label": "Show product name on cards", "default": true }
+
+  ],
+
+  "blocks": [
+    {
+      "type": "carousel_card",
+      "name": "Carousel Card",
+      "settings": [
+        { "type": "image_picker", "id": "image",      "label": "Image" },
+        { "type": "collection",   "id": "collection", "label": "Collection",
+          "info": "Auto-pulls image, link and label. Override with fields below." },
+        { "type": "text", "id": "label", "label": "Card Label" },
+        { "type": "url",  "id": "link",  "label": "Custom Link" }
+      ]
+    }
+  ],
+
+  "max_blocks": 20,
+
+  "presets": [
+    {
+      "name": "Collection Hero",
+      "settings": {
+        "hero_height": 420,
+        "hero_layout": "grid",
+        "split_pct": 60,
+        "promo_eyebrow": "Jersey Meets Streetwear",
+        "promo_headline": "Up To 50% Off",
+        "promo_sub": "Selected Styles",
+        "hero_cta_label": "Shop Now",
+        "card_radius": 10,
+        "cards_visible": 5,
+        "cards_visible_mobile": 2,
+        "card_ratio": 155,
+        "autoplay_delay": 4,
+        "show_dots": true
+      },
+      "blocks": [
+        { "type": "carousel_card", "settings": { "label": "Brands" } },
+        { "type": "carousel_card", "settings": { "label": "New In" } },
+        { "type": "carousel_card", "settings": { "label": "Spring & Summer" } },
+        { "type": "carousel_card", "settings": { "label": "Plus-Size" } },
+        { "type": "carousel_card", "settings": { "label": "Outfits" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

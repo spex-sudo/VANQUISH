@@ -1,0 +1,731 @@
+{%- comment -%}
+ 
+  ================================================================
+  robots.txt.liquid
+  File location: templates/robots.txt.liquid
+
+  SPEX SEO ROBOTS.TXT
+  Engineered for maximum crawl efficiency, organic traffic,
+  AI-powered discovery, and zero crawl-budget waste.
+
+  goal, idk but it will:
+  ─ Protect crawl budget by blocking zero-value Shopify paths
+  ─ Eliminate duplicate content from filters/sorts/pagination
+  ─ Allow every search engine and AI that drives real referrals
+  ─ Block aggressive scrapers and SEO competitor crawlers
+  ─ Expose structured data paths for Google Shopping & Rich Results
+  ================================================================
+{%- endcomment -%}
+
+# ================================================================
+# SPEX ROBOTS.TXT
+# Store: {{ shop.name }}
+# Domain: {{ shop.permanent_domain }}
+# Updated: {{ 'now' | date: '%Y-%m-%d' }}
+# ================================================================
+
+
+# ════════════════════════════════════════════════════════════════
+# 1. BLOCKED SCRAPERS & ZERO-VALUE CRAWLERS
+# ════════════════════════════════════════════════════════════════
+
+# Common Crawl
+User-agent: CCBot
+Disallow: /
+
+# ByteDance / TikTok scraper — aggressive, no verified referral path
+User-agent: Bytespider
+Disallow: /
+
+# Diffbot — commercial data extraction service
+User-agent: Diffbot
+Disallow: /
+
+# DataForSEO — SEO data aggregator, no traffic return
+User-agent: DataForSeoBot
+Disallow: /
+
+# SEO tool crawlers (competitor analysis, zero consumer traffic)
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: SemrushBot-SA
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: AhrefsSiteAudit
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: BLEXBot
+Disallow: /
+
+User-agent: Rogerbot
+Disallow: /
+
+User-agent: SplitSignalBot
+Disallow: /
+
+User-agent: SEOkicks
+Disallow: /
+
+User-agent: seoscanbot
+Disallow: /
+
+User-agent: Seekport Crawler
+Disallow: /
+
+# Huawei PetalBot 
+User-agent: PetalBot
+Disallow: /
+
+# Generic scraper frameworks
+User-agent: Scrapy
+Disallow: /
+
+User-agent: python-requests
+Disallow: /
+
+User-agent: python-urllib
+Disallow: /
+
+User-agent: libwww-perl
+Disallow: /
+
+User-agent: curl
+Disallow: /
+
+User-agent: wget
+Disallow: /
+
+User-agent: Go-http-client
+Disallow: /
+
+# Image proxy scrapers (no referral value)
+User-agent: proximic
+Disallow: /
+
+User-agent: spbot
+Disallow: /
+
+User-agent: Exabot
+Disallow: /
+
+User-agent: 80legs
+Disallow: /
+
+User-agent: ia_archiver
+Disallow: /
+
+
+# ════════════════════════════════════════════════════════════════
+# 2. GOOGLE 
+# ════════════════════════════════════════════════════════════════
+
+User-agent: Googlebot
+# ── Core commerce paths (always crawl) ──
+Allow: /products/
+Allow: /collections/
+Allow: /blogs/
+Allow: /pages/
+Allow: /
+Allow: /*.js$
+Allow: /*.css$
+
+# ── Private / transactional (zero SEO value) ──
+Disallow: /admin
+Disallow: /account
+Disallow: /cart
+Disallow: /checkout
+Disallow: /orders
+Disallow: /customers/
+Disallow: /services/
+
+# ── Internal search results (thin/duplicate content) ──
+Disallow: /search
+
+# ── Filtered & sorted collection URLs (DUPLICATE CONTENT TRAP)
+#    e.g. /collections/tops?sort_by=price-ascending
+#         /collections/tops?filter.p.m.color=red
+#         /collections/tops+bottoms (multi-tag)
+Disallow: /collections/*+*
+Disallow: /*?sort_by*
+Disallow: /*?filter*
+Disallow: /*?q=*
+
+# ── Utility & login paths ──
+Disallow: /password
+Disallow: /challenge
+Disallow: /fr/cart
+Disallow: /en/cart
+
+# ── CDN & asset internals ──
+Disallow: /cdn/wpm/
+Disallow: /checkouts/
+
+# ── Policy pages (allow — they add E-E-A-T trust signals) ──
+Allow: /policies/
+
+# Google Image Bot 
+User-agent: Googlebot-Image
+Allow: /products/
+Allow: /collections/
+Allow: /blogs/
+Allow: /
+Disallow: /admin
+Disallow: /account
+Disallow: /cart
+Disallow: /checkout
+
+# Google Ads verification bot
+User-agent: AdsBot-Google
+Allow: /products/
+Disallow: /cart
+Disallow: /checkout
+Disallow: /admin
+
+# Google Shopping feed crawler
+User-agent: Google-InspectionTool
+Allow: /
+
+# Google Extended (Gemini / SGE / AI Overviews)
+User-agent: Google-Extended
+Allow: /products/
+Allow: /collections/
+Allow: /blogs/
+Allow: /pages/
+Allow: /
+Disallow: /admin
+Disallow: /cart
+Disallow: /checkout
+Disallow: /account
+Disallow: /collections/*+*
+Disallow: /*?sort_by*
+Disallow: /*?filter*
+
+
+# ════════════════════════════════════════════════════════════════
+# 3. BING + MICROSOFT COPILOT
+# ════════════════════════════════════════════════════════════════
+
+User-agent: Bingbot
+Allow: /products/
+Allow: /collections/
+Allow: /blogs/
+Allow: /pages/
+Allow: /
+Disallow: /admin
+Disallow: /account
+Disallow: /cart
+Disallow: /checkout
+Disallow: /orders
+Disallow: /search
+Disallow: /collections/*+*
+Disallow: /*?sort_by*
+Disallow: /*?filter*
+
+# Bing Ads verification
+User-agent: adidxbot
+Allow: /products/
+Allow: /collections/
+Allow: /
+Disallow: /admin
+Disallow: /cart
+Disallow: /checkout
+
+
+# ════════════════════════════════════════════════════════════════
+# 4. PERPLEXITY AI
+# ════════════════════════════════════════════════════════════════
+
+User-agent: PerplexityBot
+Allow: /products/
+Allow: /collections/
+Allow: /blogs/
+Allow: /pages/
+Allow: /
+Disallow: /admin
+Disallow: /account
+Disallow: /cart
+Disallow: /checkout
+Disallow: /collections/*+*
+Disallow: /*?sort_by*
+Disallow: /*?filter*
+
+
+# ════════════════════════════════════════════════════════════════
+# 5. OPENAI — ChatGPT & SearchGPT
+# ════════════════════════════════════════════════════════════════
+
+User-agent: GPTBot
+Allow: /products/
+Allow: /collections/
+Allow: /blogs/
+Allow: /pages/
+Allow: /
+Disallow: /admin
+Disallow: /account
+Disallow: /cart
+Disallow: /checkout
+Disallow: /collections/*+*
+Disallow: /*?sort_by*
+Disallow: /*?filter*
+
+User-agent: OAI-SearchBot
+Allow: /products/
+Allow: /collections/
+Allow: /blogs/
+Allow: /pages/
+Allow: /
+Disallow: /admin
+Disallow: /cart
+Disallow: /checkout
+
+
+# ════════════════════════════════════════════════════════════════
+# 6. ANTHROPIC — Claude AI
+# ════════════════════════════════════════════════════════════════
+
+User-agent: ClaudeBot
+Allow: /products/
+Allow: /collections/
+Allow: /blogs/
+Allow: /pages/
+Allow: /
+Disallow: /admin
+Disallow: /account
+Disallow: /cart
+Disallow: /checkout
+Disallow: /collections/*+*
+Disallow: /*?sort_by*
+Disallow: /*?filter*
+
+User-agent: anthropic-ai
+Allow: /products/
+Allow: /collections/
+Allow: /blogs/
+Allow: /pages/
+Allow: /
+Disallow: /admin
+Disallow: /cart
+Disallow: /checkout
+
+
+# ════════════════════════════════════════════════════════════════
+# 7. APPLE 
+# ════════════════════════════════════════════════════════════════
+
+User-agent: Applebot
+Allow: /products/
+Allow: /collections/
+Allow: /blogs/
+Allow: /pages/
+Allow: /
+Disallow: /admin
+Disallow: /account
+Disallow: /cart
+Disallow: /checkout
+
+User-agent: Applebot-Extended
+Allow: /products/
+Allow: /collections/
+Allow: /blogs/
+Allow: /
+Disallow: /admin
+Disallow: /cart
+Disallow: /checkout
+
+
+# ════════════════════════════════════════════════════════════════
+# 8. DUCKDUCKGO
+# ════════════════════════════════════════════════════════════════
+
+User-agent: DuckDuckBot
+Allow: /products/
+Allow: /collections/
+Allow: /blogs/
+Allow: /pages/
+Allow: /
+Disallow: /admin
+Disallow: /account
+Disallow: /cart
+Disallow: /checkout
+Disallow: /collections/*+*
+Disallow: /*?sort_by*
+Disallow: /*?filter*
+
+User-agent: DuckDuckGo-Favicons-Bot
+Allow: /
+Disallow: /admin
+
+
+# ════════════════════════════════════════════════════════════════
+# 9. YOU.COM AI SEARCH
+# ════════════════════════════════════════════════════════════════
+
+User-agent: YouBot
+Allow: /products/
+Allow: /collections/
+Allow: /blogs/
+Allow: /pages/
+Allow: /
+Disallow: /admin
+Disallow: /cart
+Disallow: /checkout
+Disallow: /collections/*+*
+Disallow: /*?sort_by*
+
+
+# ════════════════════════════════════════════════════════════════
+# 10. META AI
+# ════════════════════════════════════════════════════════════════
+
+User-agent: Meta-ExternalAgent
+Allow: /products/
+Allow: /collections/
+Allow: /blogs/
+Allow: /pages/
+Allow: /
+Disallow: /admin
+Disallow: /cart
+Disallow: /checkout
+
+# Facebook link preview (social sharing, not AI)
+User-agent: facebookexternalhit
+Allow: /products/
+Allow: /collections/
+Allow: /blogs/
+Allow: /pages/
+Allow: /
+Disallow: /admin
+Disallow: /cart
+Disallow: /checkout
+
+
+# ════════════════════════════════════════════════════════════════
+# 11. INTERNATIONAL SEARCH ENGINES
+# ════════════════════════════════════════════════════════════════
+
+# Yandex — Russia / Eastern Europe
+User-agent: Yandex
+Allow: /products/
+Allow: /collections/
+Allow: /blogs/
+Allow: /pages/
+Allow: /
+Disallow: /admin
+Disallow: /account
+Disallow: /cart
+Disallow: /checkout
+Disallow: /collections/*+*
+Disallow: /*?sort_by*
+
+# Baidu — China
+User-agent: Baiduspider
+Allow: /products/
+Allow: /collections/
+Allow: /blogs/
+Allow: /
+Disallow: /admin
+Disallow: /cart
+Disallow: /checkout
+
+# Naver — South Korea
+User-agent: NaverBot
+Allow: /products/
+Allow: /collections/
+Allow: /
+Disallow: /admin
+Disallow: /cart
+Disallow: /checkout
+
+
+# ════════════════════════════════════════════════════════════════
+# 12. SOCIAL & LINK PREVIEW BOTS
+# ════════════════════════════════════════════════════════════════
+
+# Twitter / X card previews
+User-agent: Twitterbot
+Allow: /products/
+Allow: /collections/
+Allow: /blogs/
+Allow: /pages/
+Allow: /
+Disallow: /admin
+Disallow: /cart
+Disallow: /checkout
+
+# LinkedIn rich previews
+User-agent: LinkedInBot
+Allow: /products/
+Allow: /pages/
+Allow: /blogs/
+Allow: /
+Disallow: /admin
+Disallow: /cart
+
+# Pinterest rich pins 
+User-agent: Pinterestbot
+Allow: /products/
+Allow: /collections/
+Allow: /blogs/
+Allow: /
+Disallow: /admin
+Disallow: /cart
+Disallow: /checkout
+
+# WhatsApp link previews
+User-agent: WhatsApp
+Allow: /products/
+Allow: /collections/
+Allow: /pages/
+Allow: /
+Disallow: /admin
+Disallow: /cart
+
+
+# ════════════════════════════════════════════════════════════════
+# 13. AMAZON PRODUCT DISCOVERY
+#     Amazon's bot feeds Alexa voice shopping and Amazon's
+#     product recommendation surfaces.
+# ════════════════════════════════════════════════════════════════
+
+User-agent: Amazonbot
+Allow: /products/
+Allow: /collections/
+Allow: /
+Disallow: /admin
+Disallow: /cart
+Disallow: /checkout
+Disallow: /account
+
+
+# ════════════════════════════════════════════════════════════════
+# CRAWLERS
+# ════════════════════════════════════════════════════════════════
+
+# BrandVerity 
+User-agent: BrandVerity
+Disallow: /
+
+# MarkMonitor
+User-agent: MarkMonitor
+Disallow: /
+
+# Incopro / Corsearch
+User-agent: Incopro
+Disallow: /
+
+User-agent: Corsearch
+Disallow: /
+
+# Red Points — automated brand protection & takedown service
+User-agent: RedPoints
+Disallow: /
+
+# OpSec Online — brand and anti-counterfeiting monitoring
+User-agent: OpSecBot
+Disallow: /
+
+# NetSol Technologies — domain and trademark monitoring
+User-agent: NetSolBot
+Disallow: /
+
+# BrandProtect (now part of Edelman) — online brand risk monitoring
+User-agent: BrandProtect
+Disallow: /
+
+# Pointer Brand Protection — IP and trademark crawler
+User-agent: PointerBot
+Disallow: /
+
+# Convey — brand compliance monitoring
+User-agent: ConveyBot
+Disallow: /
+
+# Entura International 
+User-agent: Entura
+Disallow: /
+
+# CSC DBS 
+User-agent: CSC-Bot
+Disallow: /
+
+# Copyscape
+User-agent: Copyscape
+Disallow: /
+
+# Copyleaks 
+User-agent: Copyleaks
+Disallow: /
+
+# PlagSpotter — plagiarism scanning service
+User-agent: PlagSpotter
+Disallow: /
+
+# PlagScan — academic and commercial plagiarism detection
+User-agent: PlagScanBot
+Disallow: /
+
+# Originality.ai — AI content and plagiarism detection
+User-agent: OriginalityBot
+Disallow: /
+
+# Unicheck — plagiarism detection (used by enforcement agencies)
+User-agent: Unicheck
+Disallow: /
+
+# Grammarly crawler — content scraping for analysis
+User-agent: GrammarlyBot
+Disallow: /
+
+# DMCA.com — automated DMCA violation detection crawler
+User-agent: DMCA-Bot
+Disallow: /
+
+# Attributor (now Digimarc) — digital watermark & content ID crawler
+User-agent: Attributor
+Disallow: /
+
+User-agent: Digimarc
+Disallow: /
+
+# Piracylocator — automated piracy and IP violation detection
+User-agent: Piracylocator
+Disallow: /
+
+# Meltwater — media monitoring that includes IP/brand tracking
+User-agent: MeltwaterNews
+Disallow: /
+
+User-agent: Meltwater
+Disallow: /
+
+# Brandwatch — social and web monitoring (brand surveillance)
+User-agent: Brandwatch
+Disallow: /
+
+# Mention.com — brand mention and content monitoring
+User-agent: Mention
+Disallow: /
+
+# Talkwalker — brand and content monitoring crawler
+User-agent: Talkwalker
+Disallow: /
+
+# SimilarWeb — competitor intelligence platform
+# Used by brands to audit competitor product catalogs
+User-agent: SimilarWeb
+Disallow: /
+
+User-agent: SimilarWebBot
+Disallow: /
+
+# Contently — content auditing and intellectual property scanning
+User-agent: ContentlyBot
+Disallow: /
+
+# iParty / NetMonitor — IP monitoring crawlers
+User-agent: NetMonitor
+Disallow: /
+
+# Lumen Database crawlers — automated DMCA notice aggregation
+User-agent: LumenBot
+Disallow: /
+
+# Ripen eCommerce — competitive product catalog scraping
+# Feeds into brand/trademark comparison services
+User-agent: RipenBot
+Disallow: /
+
+# Wiser / Incompetitor — retail price & catalog intelligence
+User-agent: Wiser
+Disallow: /
+
+User-agent: Incompetitor
+Disallow: /
+
+User-agent: Prisync
+Disallow: /
+
+User-agent: Pricefy
+Disallow: /
+
+User-agent: PriceSpy
+Disallow: /
+
+User-agent: Sklik
+Disallow: /
+
+# Visualping — automated page change detection
+# Used to monitor competitor/reseller catalog changes
+User-agent: Visualping
+Disallow: /
+
+# ChangeDetection crawlers — monitors page changes for IP teams
+User-agent: ChangeDetectionBot
+Disallow: /
+
+
+# ════════════════════════════════════════════════════════════════
+# 14. GLOBAL DEFAULT  
+# ════════════════════════════════════════════════════════════════
+
+User-agent: *
+# Allow all core content paths
+Allow: /products/
+Allow: /collections/
+Allow: /blogs/
+Allow: /pages/
+Allow: /*.js$
+Allow: /*.css$
+Allow: /
+
+# Block all private, transactional, and zero-value paths
+Disallow: /admin
+Disallow: /account
+Disallow: /cart
+Disallow: /checkout
+Disallow: /orders
+Disallow: /customers/
+Disallow: /services/
+Disallow: /search
+Disallow: /password
+Disallow: /challenge
+Disallow: /cdn/wpm/
+Disallow: /checkouts/
+
+# Block duplicate content generators
+Disallow: /collections/*+*
+Disallow: /*?sort_by*
+Disallow: /*?filter*
+Disallow: /*?q=*
+Disallow: /*?variant=*&*
+Disallow: /*?view=*
+Disallow: /*?preview_theme_id=*
+Disallow: /*?preview_key=*
+Disallow: /*?_ab=*
+Disallow: /*?_pos=*
+Disallow: /*?_psq=*
+Disallow: /*?_ss=*
+Disallow: /*?_v=*
+Disallow: /*?ls=*
+Disallow: /*?mc_cid=*
+Disallow: /*?mc_eid=*
+Disallow: /*?fbclid=*
+Disallow: /*?gclid=*
+Disallow: /*?utm_*
+
+
+# ════════════════════════════════════════════════════════════════
+# 15. SITEMAPS
+# ════════════════════════════════════════════════════════════════
+
+Sitemap: {{ shop.url }}/sitemap.xml

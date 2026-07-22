@@ -1,0 +1,1326 @@
+{%- comment -%}
+  APEX HEADER — V19.1 · Pill System
+  • Fixed/always-visible — no mode selector
+  • Spacer height pre-computed in Liquid to eliminate CLS
+  • Notification, drawer, search, vault all preserved
+{%- endcomment -%}
+
+{%- liquid
+  assign logo_subtext = section.settings.logo_subtext | replace: '{currency}', cart.currency.iso_code
+  assign _spacer_h    = section.settings.height | plus: section.settings.pill_margin | plus: 8
+-%}
+
+{%- if section.settings.text_logo_font != blank and section.settings.logo == blank -%}
+  <style>{{ section.settings.text_logo_font | font_face: font_display: 'swap' }}</style>
+{%- endif -%}
+
+<style>
+/* ═══════════════ TOKENS ═══════════════ */
+:root {
+  --apex-height:       {{ section.settings.height }}px;
+  --apex-max:          {{ section.settings.max_width }}px;
+  --apex-pad:          {{ section.settings.padding_side }}px;
+  --apex-accent:       {{ section.settings.accent_color }};
+  --apex-pill-bg:      {{ section.settings.pill_bg_color }};
+  --apex-pill-text:    {{ section.settings.pill_text_color }};
+  --apex-pill-radius:  {{ section.settings.pill_radius }}px;
+  --apex-pill-margin:  {{ section.settings.pill_margin }}px;
+  --apex-pill-gap:     {{ section.settings.pill_gap }}px;
+  --apex-frosted-bg:   {{ section.settings.pill_bg_color | color_modify: 'alpha', 0.35 }};
+  --apex-frosted-blur: {{ section.settings.frosted_blur }}px;
+  --apex-badge-bg:     {{ section.settings.badge_bg_color }};
+  --apex-badge-text:   {{ section.settings.badge_text_color }};
+  --apex-overlay-bg:   {{ section.settings.scroll_bg_color }};
+  --apex-overlay-text: {{ section.settings.scroll_text_color }};
+  /* Pre-computed in Liquid — JS will refine after layout, but this eliminates CLS on first paint */
+  --apex-shell-bottom: {{ _spacer_h }}px;
+  --apex-ease:         cubic-bezier(0.22, 1, 0.36, 1);
+  --apex-ui:           'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+/* ═══════════════ SCOPED RESET ═══════════════ */
+#ApexRoot *, #ApexRoot *::before, #ApexRoot *::after {
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ═══════════════ ROOT WRAPPER — always fixed ═══════════════ */
+#ApexRoot {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 900;
+  /* pointer-events intentionally NOT set here — each child manages its own
+     so invisible overlays (backdrop, search) don't swallow page clicks when closed */
+}
+
+/* Spacer hidden — header overlays sections below, no space reserved */
+.apex-spacer {
+  display: none;
+  width: 100%;
+  height: var(--apex-shell-bottom);
+  pointer-events: none;
+}
+
+/* ═══════════════ NOTIF FLOATING PILL (left, at-top only) ═══════════════ */
+.apex-notif-pill {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  background: rgba(255,255,255,0.15);
+  -webkit-backdrop-filter: blur(18px) saturate(1.8);
+  backdrop-filter: blur(18px) saturate(1.8);
+  border: 1px solid rgba(255,255,255,0.28);
+  border-radius: 100px;
+  padding: 8px 16px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.3);
+  font-family: var(--apex-ui);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  line-height: 1.3;
+  white-space: nowrap;
+  color: var(--apex-pill-text);
+  /* max-width + padding animate to collapse flex space when hidden */
+  max-width: 320px;
+  overflow: hidden;
+  transition: opacity 0.4s ease, transform 0.4s ease,
+              max-width 0.4s ease, padding 0.4s ease,
+              margin 0.4s ease, border-width 0.4s ease;
+}
+.apex-notif-pill-text {
+  display: block;
+  white-space: nowrap;
+  /* overflow intentionally NOT hidden here — the pill clips via its own
+     overflow:hidden. The text must be allowed to extend beyond the element
+     so translateX can scroll it into view. */
+  will-change: auto;
+}
+/* Active marquee — class + CSS var set by JS */
+.apex-notif-pill-text.apex-marquee {
+  will-change: transform;
+  animation: apexMarquee var(--apex-mq-dur, 8s) linear infinite;
+}
+/* Linked pill — JS adds this class when a URL is active */
+.apex-notif-pill.is-linked { cursor: pointer; }
+.apex-notif-pill.is-linked:hover { opacity: 0.82; }
+@keyframes apexMarquee {
+  0%,  18% { transform: translateX(0); }                              /* hold at start */
+  72%, 87% { transform: translateX(var(--apex-mq-dist, -60px)); }    /* hold at end   */
+  97%, 100%{ transform: translateX(0); }                             /* snap back     */
+}
+/* Inline shipping progress track */
+.apex-notif-pill-track {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: rgba(255,255,255,0.25);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.apex-notif-pill-bar {
+  height: 100%;
+  background: var(--apex-accent);
+  border-radius: 2px;
+  width: 0%;
+  transition: width 0.9s ease;
+}
+/* Hidden on scroll — collapses fully so logo stays left-aligned */
+#ApexRoot:not(.apex-at-top):not(.apex-notif-flash) .apex-notif-pill {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-8px);
+  max-width: 0;
+  padding-left: 0;
+  padding-right: 0;
+  border-width: 0;
+  margin-right: 0;
+  overflow: hidden; /* only clip when already invisible — no Safari backdrop conflict */
+}
+
+/* ═══════════════ HEADER PILL ═══════════════ */
+.apex-shell {
+  padding: 0 var(--apex-pill-margin);
+  transition: padding 0.3s ease;
+}
+.apex-bar {
+  max-width: var(--apex-max);
+  margin: 0 auto;
+  height: var(--apex-height);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 var(--apex-pad);
+  background: var(--apex-pill-bg);
+  color: var(--apex-pill-text);
+  border-radius: var(--apex-pill-radius);
+  transition: height 0.35s ease, box-shadow 0.35s ease, border-radius 0.35s ease,
+              background 0.45s ease, opacity 0.35s ease;
+}
+.apex-shell.scrolled .apex-bar {
+  box-shadow: 0 6px 24px rgba(0,0,0,0.08), 0 1px 0 rgba(0,0,0,0.04);
+}
+{% if section.settings.shrink_on_scroll %}
+.apex-shell.scrolled .apex-bar { height: calc(var(--apex-height) * 0.85); }
+{% endif %}
+@media (max-width: 900px) {
+  .apex-shell { padding: 0 10px; }
+  .apex-bar { height: 56px !important; padding: 0 18px !important; border-radius: var(--apex-pill-radius) !important; }
+  .apex-shell.scrolled .apex-bar { height: 52px !important; }
+}
+
+/* LEFT: LOGO + SUBTEXT */
+.apex-left {
+  display: flex; align-items: center; gap: 14px; min-width: 0;
+}
+.apex-logo-link {
+  display: inline-flex; align-items: center;
+  text-decoration: none; color: inherit;
+  transition: opacity 0.4s ease, max-width 0.4s ease;
+  max-width: 400px; overflow: hidden; /* enables space collapse when hidden */
+  flex-shrink: 1; /* allow shrink so max-width:0 actually collapses space */
+  -webkit-tap-highlight-color: transparent;
+}
+.apex-logo-link:hover { opacity: 0.7; }
+.apex-logo-text {
+  {% if section.settings.text_logo_font != blank %}
+    font-family: {{ section.settings.text_logo_font.family }}, {{ section.settings.text_logo_font.fallback_families }};
+  {% else %}
+    font-family: 'Impact', 'Arial Narrow', sans-serif;
+  {% endif %}
+  font-size: {{ section.settings.text_logo_size }}px;
+  letter-spacing: {{ section.settings.text_logo_spacing }}px;
+  text-transform: uppercase; line-height: 1;
+  color: inherit; white-space: nowrap; display: block;
+}
+.apex-subtext {
+  font-family: var(--apex-ui);
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 2.5px; text-transform: uppercase;
+  color: inherit; white-space: nowrap; line-height: 1;
+  max-width: 200px; overflow: hidden;
+  transition: opacity 0.4s ease, max-width 0.4s ease;
+}
+@media (max-width: 480px) { .apex-subtext { font-size: 10px; letter-spacing: 2px; } }
+
+/* RIGHT: ACTIONS */
+.apex-right {
+  display: flex; align-items: center; gap: 4px; flex-shrink: 0;
+  transition: background 0.45s ease, border-radius 0.45s ease,
+              padding 0.45s ease, box-shadow 0.45s ease;
+}
+.apex-icon-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: none; border: none; cursor: pointer;
+  color: inherit; text-decoration: none;
+  padding: 8px; position: relative;
+  transition: opacity 0.2s; flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.apex-icon-btn:hover { opacity: 0.6; }
+.apex-icon-btn svg {
+  display: block;
+  width: {{ section.settings.icon_size }}px;
+  height: {{ section.settings.icon_size }}px;
+  stroke: currentColor; fill: none;
+  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+  pointer-events: none;
+}
+.apex-cart-badge {
+  position: absolute; top: 0; right: 0;
+  min-width: 16px; height: 16px; border-radius: 10px;
+  background: var(--apex-badge-bg); color: var(--apex-badge-text);
+  font-family: var(--apex-ui); font-size: 9px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 4px; line-height: 1;
+  transition: transform 0.25s var(--apex-ease), opacity 0.2s;
+}
+.apex-cart-badge[data-count="0"] { opacity: 0; transform: scale(0.3); }
+
+/* HAMBURGER */
+.apex-menu-btn {
+  display: inline-flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 5px; background: none; border: none; cursor: pointer;
+  color: inherit; padding: 10px 8px;
+  width: 38px; height: 38px;
+  transition: opacity 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.apex-menu-btn:hover { opacity: 0.7; }
+.apex-menu-line {
+  display: block; width: 22px; height: 1.8px;
+  background: currentColor; border-radius: 1px;
+  transition: transform 0.35s var(--apex-ease), opacity 0.2s ease;
+  transform-origin: center;
+}
+.apex-menu-btn[aria-expanded="true"] .apex-menu-line:nth-child(1) { transform: translateY(6.8px) rotate(45deg); }
+.apex-menu-btn[aria-expanded="true"] .apex-menu-line:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.apex-menu-btn[aria-expanded="true"] .apex-menu-line:nth-child(3) { transform: translateY(-6.8px) rotate(-45deg); }
+
+/* ═══════════════ QUICK-NAV STRIP ═══════════════ */
+.apex-qn {
+  margin: {{ section.settings.qn_gap }}px var(--apex-pill-margin) 0;
+  max-width: var(--apex-max);
+  margin-left: auto; margin-right: auto;
+  display: flex;
+  justify-content: {{ section.settings.qn_alignment }};
+  padding: 0 calc(var(--apex-pad) - 6px);
+  pointer-events: none;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+@media (min-width: 901px) {
+  .apex-qn {
+    margin-left: max(var(--apex-pill-margin), calc((100vw - var(--apex-max)) / 2));
+    margin-right: max(var(--apex-pill-margin), calc((100vw - var(--apex-max)) / 2));
+  }
+}
+@media (max-width: 900px) {
+  .apex-qn { margin-left: 10px !important; margin-right: 10px !important; padding: 0 8px; }
+}
+.apex-qn-track {
+  display: flex; gap: {{ section.settings.qn_gap_x }}px;
+  align-items: center; overflow-x: auto;
+  scrollbar-width: none; -ms-overflow-style: none;
+  padding: 6px 4px; pointer-events: auto;
+  scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 14px, #000 calc(100% - 14px), transparent);
+          mask-image: linear-gradient(to right, transparent, #000 14px, #000 calc(100% - 14px), transparent);
+}
+.apex-qn-track::-webkit-scrollbar { display: none; }
+.apex-qn-link {
+  font-family: var(--apex-ui); font-size: {{ section.settings.qn_font_size }}px;
+  font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase;
+  color: {{ section.settings.qn_text_color }}; text-decoration: none;
+  padding: 4px 0; position: relative; white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 6px;
+  scroll-snap-align: start; transition: color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.apex-qn-link::after {
+  content: ''; position: absolute; left: 0; bottom: 1px;
+  height: 1px; width: 0; background: currentColor;
+  transition: width 0.3s var(--apex-ease);
+}
+.apex-qn-link:hover, .apex-qn-link[aria-current="page"] { color: {{ section.settings.qn_hover_color }}; }
+.apex-qn-link:hover::after, .apex-qn-link[aria-current="page"]::after { width: 100%; }
+.apex-qn-static { cursor: default; }
+.apex-qn-static:hover { color: {{ section.settings.qn_text_color }}; }
+.apex-qn-static:hover::after { width: 0; }
+.apex-qn-badge {
+  font-size: 8.5px; font-weight: 800; letter-spacing: 0.8px;
+  padding: 2px 5px; border-radius: 3px; line-height: 1; white-space: nowrap;
+}
+@keyframes apexQnPulse {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.08); }
+}
+.apex-qn-link[data-pulse="true"] .apex-qn-badge {
+  animation: apexQnPulse 1.8s ease-in-out infinite; transform-origin: center;
+}
+
+/* ═══════════════ BACKDROP ═══════════════ */
+.apex-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.25); z-index: 850;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.4s ease;
+  backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+}
+.apex-backdrop.open { opacity: 1; pointer-events: auto; }
+
+/* ═══════════════ SIDE DRAWER ═══════════════ */
+.apex-drawer {
+  position: fixed; top: 0; right: 0; bottom: 0;
+  width: {{ section.settings.drawer_width }}%;
+  max-width: {{ section.settings.drawer_max_width }}px;
+  min-width: 320px;
+  height: 100vh; height: 100dvh;
+  background: var(--apex-pill-bg); color: var(--apex-pill-text);
+  border-radius: {{ section.settings.drawer_radius }}px 0 0 {{ section.settings.drawer_radius }}px;
+  z-index: 940;
+  display: flex; flex-direction: column; overflow: hidden;
+  transform: translateX(100%);
+  transition: transform 0.55s var(--apex-ease);
+  box-shadow: -12px 0 40px rgba(0,0,0,0.12);
+  will-change: transform; pointer-events: none;
+}
+.apex-drawer.open { transform: translateX(0); pointer-events: auto; }
+@media (max-width: 768px) { .apex-drawer { width: 88vw; min-width: 0; } }
+
+.apex-drawer-top {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 22px 28px 18px; flex-shrink: 0;
+}
+.apex-drawer-logo {
+  text-decoration: none; color: var(--apex-pill-text);
+  font-family: var(--apex-ui); font-weight: 900;
+  font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+}
+.apex-close-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: 50%;
+  background: none; border: 1.5px solid rgba(0,0,0,0.12);
+  cursor: pointer; color: var(--apex-pill-text);
+  transition: background 0.22s, border-color 0.22s, color 0.22s, transform 0.35s var(--apex-ease);
+  flex-shrink: 0; -webkit-tap-highlight-color: transparent;
+}
+.apex-close-btn:hover {
+  background: var(--apex-pill-text); border-color: var(--apex-pill-text);
+  color: var(--apex-pill-bg); transform: rotate(90deg);
+}
+.apex-close-btn svg {
+  width: 14px; height: 14px;
+  stroke: currentColor; fill: none;
+  stroke-width: 2.2; stroke-linecap: round; pointer-events: none;
+}
+.apex-drawer-divider { height: 1px; background: rgba(0,0,0,0.08); margin: 0 28px; flex-shrink: 0; }
+.apex-drawer-body {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  -webkit-overflow-scrolling: touch; padding: 8px 28px 28px;
+}
+.apex-drawer-nav { display: flex; flex-direction: column; }
+.apex-mi { display: block; border-bottom: 1px solid rgba(0,0,0,0.08); }
+.apex-mi:last-child { border-bottom: none; }
+.apex-mi-link, .apex-mi-toggle {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; text-align: left;
+  background: none; border: none; cursor: pointer;
+  text-decoration: none; color: var(--apex-pill-text);
+  font-family: var(--apex-ui); font-size: 17px; font-weight: 800;
+  letter-spacing: 0.5px; text-transform: uppercase;
+  padding: 14px 4px; line-height: 1.1;
+  opacity: 0; transform: translateX(-12px);
+  transition: opacity 0.4s ease, transform 0.4s ease, color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.apex-drawer.open .apex-mi-link,
+.apex-drawer.open .apex-mi-toggle { opacity: 1; transform: translateX(0); }
+.apex-mi-link:hover, .apex-mi-toggle:hover { color: var(--apex-accent); }
+@media (max-width: 480px) { .apex-mi-link, .apex-mi-toggle { font-size: 16px; padding: 13px 4px; } }
+
+.apex-chev {
+  width: 16px; height: 16px; flex-shrink: 0;
+  transition: transform 0.35s var(--apex-ease);
+  stroke: currentColor; fill: none;
+  stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+}
+.apex-mi[data-open="true"] .apex-chev { transform: rotate(180deg); }
+.apex-mi-sub { max-height: 0; overflow: hidden; transition: max-height 0.45s var(--apex-ease); }
+.apex-mi[data-open="true"] .apex-mi-sub { max-height: 1600px; }
+.apex-mi-sub-inner { padding: 4px 4px 24px; }
+
+.apex-vault-label {
+  font-family: var(--apex-ui); font-size: 9px; font-weight: 900;
+  letter-spacing: 3px; text-transform: uppercase;
+  color: var(--apex-accent); margin: 0 0 14px; display: block;
+}
+.apex-vault-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.apex-vault-item { display: block; text-decoration: none; overflow: hidden; }
+.apex-vault-img-wrap {
+  aspect-ratio: 3/4; overflow: hidden;
+  border-radius: {{ section.settings.vault_radius }}px;
+  background: rgba(0,0,0,0.04);
+}
+.apex-vault-img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  transition: transform 0.55s var(--apex-ease);
+}
+.apex-vault-item:hover .apex-vault-img { transform: scale(1.06); }
+.apex-vault-name {
+  display: block; font-family: var(--apex-ui);
+  font-size: 9px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--apex-pill-text); margin-top: 8px; opacity: 0.85;
+}
+.apex-drawer-footer {
+  padding: 14px {{ section.settings.padding_side }}px 18px;
+  display: flex; align-items: center; gap: 18px;
+  border-top: 1px solid rgba(0,0,0,0.08); flex-wrap: wrap;
+}
+.apex-drawer-footer-link {
+  font-family: var(--apex-ui); font-size: 9px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--apex-pill-text); text-decoration: none;
+  opacity: 0.4; transition: opacity 0.2s;
+}
+.apex-drawer-footer-link:hover { opacity: 0.95; }
+
+/* ═══════════════ BACK-HOME OVERLAY ═══════════════ */
+.apex-back-home {
+  position: fixed;
+  top: calc(var(--apex-shell-bottom) + {{ section.settings.back_home_offset_y }}px);
+  left: var(--apex-pill-margin); z-index: 700;
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--apex-frosted-bg);
+  -webkit-backdrop-filter: blur(var(--apex-frosted-blur)) saturate(180%);
+  backdrop-filter: blur(var(--apex-frosted-blur)) saturate(180%);
+  color: var(--apex-pill-text);
+  padding: 9px 16px 9px 14px; border-radius: var(--apex-pill-radius);
+  font-family: var(--apex-ui); font-size: 11px; font-weight: 800;
+  letter-spacing: 1.8px; text-transform: uppercase; text-decoration: none; line-height: 1;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08), 0 1px 0 rgba(0,0,0,0.04);
+  opacity: 0; transform: translateX(-8px);
+  animation: apexBackIn 0.55s var(--apex-ease) 0.25s forwards;
+  transition: opacity 0.2s ease, transform 0.25s var(--apex-ease), box-shadow 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.apex-back-home:hover { transform: translateX(-1px) scale(1.02); box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
+.apex-back-home.apex-hide { opacity: 0 !important; transform: translateX(-12px) scale(0.95) !important; pointer-events: none; }
+.apex-back-home svg {
+  width: 13px; height: 13px; stroke: currentColor; fill: none;
+  stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;
+}
+@keyframes apexBackIn { to { opacity: 1; transform: translateX(0); } }
+@media (max-width: 480px) {
+  .apex-back-home { left: 10px; padding: 8px 14px 8px 12px; font-size: 10px; letter-spacing: 1.5px; gap: 6px; }
+  .apex-back-home svg { width: 11px; height: 11px; }
+}
+
+/* ═══════════════ SEARCH OVERLAY ═══════════════ */
+.apex-search {
+  position: fixed; inset: 0;
+  background: var(--apex-overlay-bg); z-index: 970;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 40px 32px; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+}
+.apex-search.open { opacity: 1; pointer-events: auto; }
+.apex-search-inner { width: 100%; max-width: 580px; position: relative; }
+.apex-search-eyebrow {
+  display: block; font-family: var(--apex-ui);
+  font-size: 9px; font-weight: 900; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--apex-overlay-text); opacity: 0.35; margin-bottom: 18px;
+}
+.apex-search-field {
+  width: 100%; background: none; border: none;
+  border-bottom: 1.5px solid var(--apex-overlay-text);
+  padding: 12px 0; font-family: var(--apex-ui);
+  font-size: clamp(22px, 5vw, 36px); font-weight: 700;
+  color: var(--apex-overlay-text); outline: none;
+  caret-color: var(--apex-accent); letter-spacing: -0.5px; -webkit-appearance: none;
+}
+.apex-search-field::placeholder { color: var(--apex-overlay-text); opacity: 0.18; }
+.apex-search-esc {
+  display: inline-flex; align-items: center; gap: 8px; margin-top: 20px;
+  background: none; border: none; cursor: pointer;
+  font-family: var(--apex-ui); font-size: 9px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--apex-overlay-text); opacity: 0.3; padding: 0; transition: opacity 0.2s;
+}
+.apex-search-esc:hover { opacity: 0.8; }
+
+/* FOCUS */
+.apex-menu-btn:focus-visible,
+.apex-icon-btn:focus-visible,
+.apex-mi-link:focus-visible,
+.apex-mi-toggle:focus-visible {
+  outline: 2px solid var(--apex-accent); outline-offset: 3px; border-radius: 2px;
+}
+
+/* ═══════════════ AT-TOP OVERLAY STATE ═══════════════
+   When the user is at the very top of the page the header
+   overlays the section below it — no background, no logo,
+   no quick-nav. Only the right-side buttons stay visible
+   inside their own mini pill.
+════════════════════════════════════════════════════ */
+
+/* Bar itself is transparent — content shows through */
+#ApexRoot.apex-at-top .apex-bar {
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Logo + subtext: fade out AND collapse space so notif pill can extend freely */
+#ApexRoot.apex-at-top .apex-logo-link,
+#ApexRoot.apex-at-top .apex-subtext,
+#ApexRoot.apex-notif-flash .apex-logo-link,
+#ApexRoot.apex-notif-flash .apex-subtext {
+  opacity: 0;
+  pointer-events: none;
+  max-width: 0;
+  overflow: hidden;
+}
+
+/* Right buttons get their own mini pill */
+#ApexRoot.apex-at-top .apex-right {
+  background: var(--apex-pill-bg);
+  border-radius: 100px;
+  padding: 5px 6px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.1);
+}
+
+/* Quick-nav links fade + lift out of view */
+#ApexRoot.apex-at-top .apex-qn {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-6px);
+}
+
+/* ── Transition into full header on scroll ─────────────
+   All transitions are already on the individual elements above.
+   When .apex-at-top is removed, they all animate back naturally.
+────────────────────────────────────────────────── */
+
+/* ═══════════════ FLASH NOTIFICATION STATE ═══════════════
+   Triggered by JS every N seconds regardless of scroll.
+   Mirrors the at-top pill mode so the header collapses to
+   the mini pill while the flash notification is displayed.
+══════════════════════════════════════════════════════════ */
+#ApexRoot.apex-notif-flash .apex-bar {
+  background: transparent;
+  box-shadow: none;
+}
+#ApexRoot.apex-notif-flash .apex-logo-link,
+#ApexRoot.apex-notif-flash .apex-subtext {
+  opacity: 0;
+  pointer-events: none;
+}
+#ApexRoot.apex-notif-flash .apex-right {
+  background: var(--apex-pill-bg);
+  border-radius: 100px;
+  padding: 5px 6px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.1);
+}
+#ApexRoot.apex-notif-flash .apex-qn {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-6px);
+}
+/* Flash notif pill — visible, colors applied inline by JS */
+#ApexRoot.apex-notif-flash .apex-notif-pill {
+  opacity: 1;
+  transform: translateX(0);
+  /* Glass blur removed — solid bg from JS inline style reads cleaner */
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+</style>
+
+<div id="ApexRoot" class="apex-at-top">
+
+  {%- comment -%} HEADER PILL {%- endcomment -%}
+  <div id="ApexShell" class="apex-shell" role="banner">
+    <div class="apex-bar">
+      <div class="apex-left">
+        {%- comment -%} Floating notif pill — glass, left side, at-top only {%- endcomment -%}
+        <div class="apex-notif-pill" id="ApexNotifPill" aria-live="polite">
+          <span class="apex-notif-pill-text" id="ApexNotifText">{{ section.settings.notif_text | escape }}</span>
+          {%- if section.settings.ship_threshold > 0 -%}
+            <span class="apex-notif-pill-track"><span class="apex-notif-pill-bar" id="ApexNotifBar"></span></span>
+          {%- endif -%}
+        </div>
+        <a href="{{ routes.root_url }}" class="apex-logo-link" aria-label="{{ shop.name }} — Home">
+          {%- if section.settings.logo != blank -%}
+            <img
+              src="{{ section.settings.logo | image_url: width: 400 }}"
+              alt="{{ shop.name }}"
+              height="{{ section.settings.logo_height }}"
+              width="auto"
+              style="height:{{ section.settings.logo_height }}px;width:auto;display:block;"
+              loading="eager"
+              fetchpriority="high">
+          {%- else -%}
+            <span class="apex-logo-text">{{ section.settings.custom_logo_text }}</span>
+          {%- endif -%}
+        </a>
+        {%- if logo_subtext != blank -%}
+          <span class="apex-subtext">{{ logo_subtext | escape }}</span>
+        {%- endif -%}
+      </div>
+
+      <div class="apex-right">
+        <button class="apex-icon-btn" onclick="apexOpenSearch()" aria-label="Search store" id="ApexSearchBtn">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="11" cy="11" r="7.5"/>
+            <line x1="17" y1="17" x2="22.5" y2="22.5"/>
+          </svg>
+        </button>
+
+        {%- assign cart_url = section.settings.custom_cart_url | default: routes.cart_url -%}
+        <a
+          href="{{ cart_url }}"
+          class="apex-icon-btn"
+          aria-label="Cart — {{ cart.item_count }} {{ cart.item_count | pluralize: 'item', 'items' }}"
+          id="ApexCartBtn">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 7h18l-1.5 11.5a2 2 0 01-2 1.5H6.5a2 2 0 01-2-1.5L3 7z"/>
+            <path d="M8 7V5a4 4 0 018 0v2"/>
+          </svg>
+          <span class="apex-cart-badge" id="ApexBadge" data-count="{{ cart.item_count }}">{{ cart.item_count }}</span>
+        </a>
+
+        <button
+          class="apex-menu-btn" id="ApexMenuBtn"
+          onclick="apexToggleDrawer()"
+          aria-haspopup="true" aria-expanded="false"
+          aria-controls="ApexDrawer"
+          aria-label="Toggle navigation menu">
+          <span class="apex-menu-line" aria-hidden="true"></span>
+          <span class="apex-menu-line" aria-hidden="true"></span>
+          <span class="apex-menu-line" aria-hidden="true"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  {%- comment -%} QUICK-NAV STRIP {%- endcomment -%}
+  {%- assign qn_count = 0 -%}
+  {%- for block in section.blocks -%}
+    {%- if block.type == 'quick_link' and block.settings.label != blank -%}
+      {%- assign qn_count = qn_count | plus: 1 -%}
+    {%- endif -%}
+  {%- endfor -%}
+  {%- if section.settings.show_qn and qn_count > 0 -%}
+    <nav class="apex-qn" aria-label="Quick navigation">
+      <div class="apex-qn-track">
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'quick_link' and block.settings.label != blank -%}
+            {%- assign is_active = false -%}
+            {%- if block.settings.url != blank and request.path == block.settings.url -%}{%- assign is_active = true -%}{%- endif -%}
+            {%- if block.settings.url != blank -%}
+              <a href="{{ block.settings.url }}" class="apex-qn-link" {{ block.shopify_attributes }}
+                {% if is_active %}aria-current="page"{% endif %}
+                {% if block.settings.pulse_badge %}data-pulse="true"{% endif %}>
+                {{ block.settings.label | escape }}
+                {%- if block.settings.badge_text != blank -%}
+                  <span class="apex-qn-badge" style="background:{{ block.settings.badge_bg }};color:{{ block.settings.badge_text_color }};">{{ block.settings.badge_text | escape }}</span>
+                {%- endif -%}
+              </a>
+            {%- else -%}
+              <span class="apex-qn-link apex-qn-static" {{ block.shopify_attributes }}
+                {% if block.settings.pulse_badge %}data-pulse="true"{% endif %}>
+                {{ block.settings.label | escape }}
+                {%- if block.settings.badge_text != blank -%}
+                  <span class="apex-qn-badge" style="background:{{ block.settings.badge_bg }};color:{{ block.settings.badge_text_color }};">{{ block.settings.badge_text | escape }}</span>
+                {%- endif -%}
+              </span>
+            {%- endif -%}
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    </nav>
+  {%- endif -%}
+
+  {%- comment -%} BACK-HOME OVERLAY {%- endcomment -%}
+  {%- if section.settings.show_back_home and request.page_type != 'index' and request.page_type != 'product' -%}
+    <a href="{{ routes.root_url }}" class="apex-back-home" aria-label="Back to home page">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 015 5v6"/></svg>
+      {{ section.settings.back_home_label }}
+    </a>
+  {%- endif -%}
+
+  <div class="apex-backdrop" id="ApexBackdrop" onclick="apexCloseAll()" aria-hidden="true"></div>
+
+  {%- comment -%} SIDE DRAWER {%- endcomment -%}
+  <aside id="ApexDrawer" class="apex-drawer" role="dialog" aria-modal="true" aria-label="Site navigation" tabindex="-1">
+    <div class="apex-drawer-top">
+      <a href="{{ routes.root_url }}" class="apex-drawer-logo" onclick="apexCloseAll()">
+        {%- if section.settings.logo != blank -%}
+          <img
+            src="{{ section.settings.logo | image_url: width: 240 }}"
+            alt="{{ shop.name }}"
+            height="{{ section.settings.logo_height | at_most: 28 }}"
+            width="auto"
+            style="height:{{ section.settings.logo_height | at_most: 28 }}px;width:auto;display:block;"
+            loading="lazy">
+        {%- else -%}
+          {{ section.settings.custom_logo_text }}
+        {%- endif -%}
+      </a>
+      <button class="apex-close-btn" onclick="apexCloseAll()" aria-label="Close navigation menu">
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+          <line x1="1" y1="1" x2="15" y2="15"/>
+          <line x1="15" y1="1" x2="1" y2="15"/>
+        </svg>
+      </button>
+    </div>
+    <div class="apex-drawer-divider"></div>
+
+    <nav class="apex-drawer-body" aria-label="Main navigation">
+      <div class="apex-drawer-nav">
+        {%- for link in section.settings.menu.links -%}
+          <div class="apex-mi">
+            <a href="{{ link.url }}"
+               class="apex-mi-link"
+               style="transition-delay: {{ forloop.index | times: 50 }}ms;"
+               {% if link.active %}aria-current="page"{% endif %}>
+              {{ link.title }}
+            </a>
+          </div>
+        {%- endfor -%}
+
+        {%- assign has_collections = false -%}
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'collection' and block.settings.collection != blank -%}
+            {%- assign has_collections = true -%}
+          {%- endif -%}
+        {%- endfor -%}
+
+        {%- if has_collections -%}
+          {%- assign vault_delay = section.settings.menu.links.size | plus: 1 | times: 50 -%}
+          <div class="apex-mi" data-open="true">
+            <button type="button" class="apex-mi-toggle"
+              style="transition-delay: {{ vault_delay }}ms;"
+              aria-expanded="true" data-apex-toggle>
+              {{ section.settings.vault_label | default: 'COLLECTIONS' }}
+              <svg class="apex-chev" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="apex-mi-sub">
+              <div class="apex-mi-sub-inner">
+                <div class="apex-vault-grid">
+                  {%- for block in section.blocks -%}
+                    {%- if block.type == 'collection' and block.settings.collection != blank -%}
+                      <a href="{{ block.settings.collection.url }}" class="apex-vault-item" {{ block.shopify_attributes }}>
+                        <div class="apex-vault-img-wrap">
+                          {%- if block.settings.collection.featured_image -%}
+                            <img
+                              src="{{ block.settings.collection.featured_image | image_url: width: 360 }}"
+                              width="360"
+                              height="{{ 360 | divided_by: block.settings.collection.featured_image.aspect_ratio | ceil }}"
+                              alt="{{ block.settings.collection.title | escape }}"
+                              class="apex-vault-img"
+                              loading="lazy">
+                          {%- endif -%}
+                        </div>
+                        <span class="apex-vault-name">{{ block.settings.collection.title }}</span>
+                      </a>
+                    {%- endif -%}
+                  {%- endfor -%}
+                </div>
+              </div>
+            </div>
+          </div>
+        {%- endif -%}
+      </div>
+    </nav>
+
+    {%- if section.settings.footer_link_1_url != blank or section.settings.footer_link_2_url != blank -%}
+      <div class="apex-drawer-footer">
+        {%- if section.settings.footer_link_1_url != blank and section.settings.footer_link_1_text != blank -%}
+          <a href="{{ section.settings.footer_link_1_url }}" class="apex-drawer-footer-link">{{ section.settings.footer_link_1_text }}</a>
+        {%- endif -%}
+        {%- if section.settings.footer_link_2_url != blank and section.settings.footer_link_2_text != blank -%}
+          <a href="{{ section.settings.footer_link_2_url }}" class="apex-drawer-footer-link">{{ section.settings.footer_link_2_text }}</a>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+  </aside>
+
+  {%- comment -%} SEARCH OVERLAY {%- endcomment -%}
+  <div id="ApexSearch" class="apex-search" role="search" aria-label="Search">
+    <div class="apex-search-inner">
+      <span class="apex-search-eyebrow">What are you looking for?</span>
+      <form action="{{ routes.search_url }}" method="get" role="search">
+        <input type="hidden" name="type" value="product">
+        <input id="ApexSearchInput" class="apex-search-field"
+          type="search" name="q"
+          placeholder="{{ section.settings.search_placeholder }}"
+          autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+          aria-label="Search products">
+      </form>
+      <button type="button" class="apex-search-esc" onclick="apexCloseSearch()">
+        <span style="opacity:0.5;font-size:8px;letter-spacing:1px;border:1px solid currentColor;padding:2px 4px;border-radius:2px;">ESC</span>
+        Close
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<div class="apex-spacer" id="ApexSpacer" aria-hidden="true"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var root        = document.getElementById('ApexRoot');
+  var shell       = document.getElementById('ApexShell');
+  var drawer      = document.getElementById('ApexDrawer');
+  var backdrop    = document.getElementById('ApexBackdrop');
+  var menuBtn     = document.getElementById('ApexMenuBtn');
+  var searchEl    = document.getElementById('ApexSearch');
+  var searchInput = document.getElementById('ApexSearchInput');
+  var backHomeEl  = document.querySelector('.apex-back-home');
+
+  var _drawerOpen = false;
+  var _searchOpen = false;
+  var _lastFocus  = null;
+  var _ticking    = false;
+
+  /* ── Layout measurement — updates spacer + CSS var to match real header height ── */
+  function updateLayout() {
+    var atTop   = window.pageYOffset <= 40;
+    var scrolled = !atTop;
+    if (root)  root.classList.toggle('apex-at-top', atTop);
+    if (shell) shell.classList.toggle('scrolled', scrolled);
+    if (backHomeEl) backHomeEl.classList.toggle('apex-hide', scrolled);
+
+    /* Update CSS var for back-home overlay positioning.
+       At top the notif is hidden so only use bar height. */
+    if (root) {
+      var h = root.getBoundingClientRect().bottom;
+      if (h <= 0) h = root.offsetHeight;
+      document.documentElement.style.setProperty('--apex-shell-bottom', (Math.ceil(h) + 8) + 'px');
+    }
+  }
+
+  function onScrollOrResize() {
+    if (_ticking) return;
+    _ticking = true;
+    requestAnimationFrame(function () { updateLayout(); _ticking = false; });
+  }
+
+  window.addEventListener('scroll',  onScrollOrResize, { passive: true });
+  window.addEventListener('resize',  onScrollOrResize, { passive: true });
+
+  /* ResizeObserver keeps spacer in sync when notif is dismissed or header shrinks */
+  if (window.ResizeObserver && root) {
+    try { new ResizeObserver(updateLayout).observe(root); } catch(e) {}
+  }
+
+  /* Run immediately + small delay to catch font-swap reflow */
+  updateLayout();
+  setTimeout(updateLayout, 200);
+
+  /* ── DRAWER ── */
+  window.apexOpenDrawer = function () {
+    if (_drawerOpen) return;
+    _drawerOpen = true;
+    _lastFocus = document.activeElement;
+    drawer.classList.add('open');
+    backdrop.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    if (menuBtn) menuBtn.setAttribute('aria-expanded', 'true');
+    setTimeout(function () { if (drawer) drawer.focus(); }, 80);
+  };
+
+  window.apexCloseDrawer = function () {
+    if (!_drawerOpen) return;
+    _drawerOpen = false;
+    drawer.classList.remove('open');
+    backdrop.classList.remove('open');
+    if (!_searchOpen) document.body.style.overflow = '';
+    if (menuBtn) menuBtn.setAttribute('aria-expanded', 'false');
+    /* Collapse non-vault sub-items; keep vault open for next open */
+    drawer.querySelectorAll('.apex-mi[data-open="true"]').forEach(function (el) {
+      if (!el.querySelector('.apex-vault-grid')) {
+        el.setAttribute('data-open', 'false');
+        var btn = el.querySelector('[data-apex-toggle]');
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+      }
+    });
+    if (_lastFocus) { try { _lastFocus.focus(); } catch(e) {} }
+  };
+
+  window.apexToggleDrawer = function () { _drawerOpen ? apexCloseDrawer() : apexOpenDrawer(); };
+
+  /* ── EXPAND/COLLAPSE MENU ITEMS ── */
+  drawer && drawer.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-apex-toggle]');
+    if (!btn) return;
+    e.preventDefault();
+    var item = btn.closest('.apex-mi');
+    if (!item) return;
+    var isOpen = item.getAttribute('data-open') === 'true';
+    /* Accordion: close others */
+    drawer.querySelectorAll('.apex-mi[data-open="true"]').forEach(function (el) {
+      if (el !== item) {
+        el.setAttribute('data-open', 'false');
+        var b = el.querySelector('[data-apex-toggle]');
+        if (b) b.setAttribute('aria-expanded', 'false');
+      }
+    });
+    item.setAttribute('data-open', isOpen ? 'false' : 'true');
+    btn.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+  });
+
+  /* ── SEARCH ── */
+  window.apexOpenSearch = function () {
+    if (_searchOpen) { apexCloseSearch(); return; }
+    _searchOpen = true;
+    searchEl.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(function () { if (searchInput) searchInput.focus(); }, 60);
+  };
+  window.apexCloseSearch = function () {
+    if (!_searchOpen) return;
+    _searchOpen = false;
+    searchEl.classList.remove('open');
+    if (!_drawerOpen) document.body.style.overflow = '';
+  };
+  window.apexCloseAll = function () { apexCloseDrawer(); apexCloseSearch(); };
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    if (_searchOpen) { apexCloseSearch(); return; }
+    if (_drawerOpen) apexCloseDrawer();
+  });
+
+  /* ── CART BADGE ── */
+  function setBadge(n) {
+    var b = document.getElementById('ApexBadge');
+    if (!b) return;
+    var c = parseInt(n, 10) || 0;
+    b.textContent = c;
+    b.setAttribute('data-count', c);
+  }
+  document.addEventListener('cart:updated', function (e) {
+    if (e.detail && e.detail.cart) setBadge(e.detail.cart.item_count);
+  });
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden && window.fetch) {
+      fetch('/cart.js', { credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (d) { setBadge(d.item_count); })
+        .catch(function () {});
+    }
+  });
+
+  /* ── NOTIF PILL — shipping progress / custom text / link ── */
+  (function() {
+    var SHIP_CAP    = {{ section.settings.ship_threshold | default: 0 }};
+    var CART_TOTAL  = {{ cart.total_price | divided_by: 100.0 }};
+    var MSG_BEFORE  = {{ section.settings.ship_msg_before | json }};
+    var MSG_AFTER   = {{ section.settings.ship_msg_after  | json }};
+    var CURRENCY    = {{ cart.currency.symbol | json }};
+    var STATIC_URL  = {{ section.settings.notif_url | default: '' | json }};
+    var textEl      = document.getElementById('ApexNotifText');
+    var barEl       = document.getElementById('ApexNotifBar');
+    var pillEl      = document.getElementById('ApexNotifPill');
+
+    if (!textEl) return;
+
+    if (SHIP_CAP > 0) {
+      var rem = SHIP_CAP - CART_TOTAL;
+      if (rem > 0) {
+        textEl.textContent = MSG_BEFORE.replace('{amount}', CURRENCY + Math.ceil(rem));
+        if (barEl) barEl.style.width = Math.min(Math.round((CART_TOTAL / SHIP_CAP) * 100), 99) + '%';
+      } else if (CART_TOTAL > 0) {
+        textEl.textContent = MSG_AFTER;
+        if (barEl) barEl.style.width = '100%';
+      }
+    }
+
+    /* Shared click handler — checks active URL at click time so flash can override */
+    if (pillEl) {
+      if (STATIC_URL) pillEl.classList.add('is-linked');
+      pillEl.addEventListener('click', function() {
+        var url = pillEl._activeUrl || STATIC_URL;
+        if (url) window.location.href = url;
+      });
+    }
+  })();
+
+  /* ── NOTIF PILL MARQUEE ──────────────────────────────────────────────
+     Measures text overflow once visible. If text is wider than the pill,
+     animates it scrolling left. Restarts on content change (flash restore).
+     Uses MutationObserver on root class — zero scroll/resize cost.
+  ───────────────────────────────────────────────────────────────────── */
+  (function() {
+    var pillEl   = document.getElementById('ApexNotifPill');
+    var textEl   = document.getElementById('ApexNotifText');
+    if (!pillEl || !textEl) return;
+
+    var _marqueeRaf = null;
+
+    function applyMarquee() {
+      textEl.classList.remove('apex-marquee');
+      textEl.style.removeProperty('--apex-mq-dist');
+      textEl.style.removeProperty('--apex-mq-dur');
+
+      cancelAnimationFrame(_marqueeRaf);
+      _marqueeRaf = requestAnimationFrame(function() {
+        /* Probe real text width unconstrained — textEl is a block inside
+           flex-column so scrollWidth returns the clamped container width,
+           not the actual text width. Probe bypasses all layout constraints. */
+        var probe = document.createElement('span');
+        probe.style.cssText =
+          'position:fixed;top:-9999px;left:-9999px;' +
+          'white-space:nowrap;visibility:hidden;pointer-events:none;' +
+          'padding:0;margin:0;border:0;';
+        var cs = window.getComputedStyle(textEl);
+        probe.style.font          = cs.font;
+        probe.style.letterSpacing = cs.letterSpacing;
+        probe.style.fontSize      = cs.fontSize;
+        probe.style.fontWeight    = cs.fontWeight;
+        probe.style.fontFamily    = cs.fontFamily;
+        probe.textContent = textEl.textContent;
+        document.body.appendChild(probe);
+        var textW = probe.offsetWidth;
+        document.body.removeChild(probe);
+
+        /* Available content width = clientWidth minus horizontal padding */
+        var padH  = parseFloat(cs.paddingLeft || 0) + parseFloat(cs.paddingRight || 0);
+        var avail = pillEl.clientWidth - padH;
+
+        var overflow = textW - avail;
+        if (overflow > 6) {
+          var dist = -(overflow + 16);
+          var dur  = Math.min(14, Math.max(4, Math.abs(dist) / 50));
+          textEl.style.setProperty('--apex-mq-dist', dist + 'px');
+          textEl.style.setProperty('--apex-mq-dur',  dur  + 's');
+          textEl.classList.add('apex-marquee');
+        }
+      });
+    }
+
+    function stopMarquee() {
+      cancelAnimationFrame(_marqueeRaf);
+      textEl.classList.remove('apex-marquee');
+      textEl.style.removeProperty('--apex-mq-dist');
+      textEl.style.removeProperty('--apex-mq-dur');
+    }
+
+    /* Watch root class changes — triggers when at-top/flash state changes.
+       Observer stored so it can be disconnected if the section is removed
+       (prevents memory leak in Shopify theme editor section reloads). */
+    var _mo = null;
+    if (root && window.MutationObserver) {
+      _mo = new MutationObserver(function(muts) {
+        muts.forEach(function(m) {
+          if (m.attributeName !== 'class') return;
+          var visible = root.classList.contains('apex-at-top') ||
+                        root.classList.contains('apex-notif-flash');
+          if (visible) setTimeout(applyMarquee, 450);
+          else         stopMarquee();
+        });
+      });
+      _mo.observe(root, { attributes: true });
+      /* Disconnect on section removal */
+      if (window.Shopify && window.Shopify.on) {
+        window.Shopify.on('section:deselect', function() { _mo && _mo.disconnect(); });
+        window.Shopify.on('section:unload',   function() { _mo && _mo.disconnect(); });
+      }
+    }
+
+    /* Also expose so flash restore can re-check after content swap */
+    window._apexNotifMarquee = applyMarquee;
+
+    /* Initial check if page loads at top */
+    if (root && root.classList.contains('apex-at-top')) setTimeout(applyMarquee, 500);
+  })();
+
+  /* ── FLASH NOTIFICATIONS ─────────────────────────────────────────
+     Every FLASH_INTERVAL ms, pick the next flash notif from the pool,
+     force the header into pill mode, show the notification for
+     FLASH_DURATION ms, then restore.
+     Skips if drawer or search is open to avoid fighting the UI.
+  ─────────────────────────────────────────────────────────────────── */
+  (function() {
+    var FLASH_POOL = [];
+    {%- for block in section.blocks -%}
+      {%- if block.type == 'flash_notif' and block.settings.text != blank -%}
+      FLASH_POOL.push({ text: {{ block.settings.text | json }}, bg: {{ block.settings.bg_color | json }}, color: {{ block.settings.text_color | json }}, url: {{ block.settings.url | default: "" | json }} });
+      {%- endif -%}
+    {%- endfor -%}
+
+    if (!root || FLASH_POOL.length === 0) return;
+
+    var INTERVAL = {{ section.settings.flash_interval | default: 15 }} * 1000;
+    var DURATION = {{ section.settings.flash_duration | default: 5 }} * 1000;
+
+    var pill      = document.getElementById('ApexNotifPill');
+    var pillText  = document.getElementById('ApexNotifText');
+    var pillBar   = document.getElementById('ApexNotifBar');
+    if (!pill || !pillText) return;
+
+    var _flashIdx        = 0;
+    var _flashHideTimer  = null;
+    var _origText        = null;
+    var _origBg          = null;
+    var _origColor       = null;
+    var _origBarDisplay  = null;
+
+    function showFlash() {
+      /* Don't interrupt open drawer/search, and don't stack flashes */
+      if (_drawerOpen || _searchOpen) return;
+      if (root.classList.contains('apex-notif-flash')) return;
+
+      var n = FLASH_POOL[_flashIdx % FLASH_POOL.length];
+      _flashIdx++;
+
+      /* Snapshot current pill state so we can restore it */
+      _origText       = pillText.textContent;
+      _origBg         = pill.style.background;
+      _origColor      = pillText.style.color;
+      _origBarDisplay = pillBar ? pillBar.parentElement.style.display : null;
+
+      /* Apply flash notification styles */
+      pill.style.background    = n.bg;
+      pill.style.border        = '1px solid rgba(255,255,255,0.18)';
+      pillText.style.color     = n.color;
+      pillText.textContent     = n.text;
+      /* Measure marquee for new flash text */
+      if (window._apexNotifMarquee) setTimeout(window._apexNotifMarquee, 50);
+      /* Hide shipping bar during flash so it doesn't conflict */
+      if (pillBar) pillBar.parentElement.style.display = 'none';
+      pill.classList.remove('has-progress');
+
+      /* Set link if this flash notif has one */
+      pill._activeUrl = n.url || null;
+      if (n.url) pill.classList.add('is-linked');
+      else       pill.classList.remove('is-linked');
+
+      /* Force pill mode on header */
+      root.classList.add('apex-notif-flash');
+
+      clearTimeout(_flashHideTimer);
+      _flashHideTimer = setTimeout(restoreFlash, DURATION);
+    }
+
+    /* Static URL baked once at render time — used to restore after flash */
+    var STATIC_URL_RESTORE = {{ section.settings.notif_url | default: '' | json }};
+
+    function restoreFlash() {
+      root.classList.remove('apex-notif-flash');
+
+      /* Restore link state */
+      pill._activeUrl = null;
+      pill.classList.toggle('is-linked', !!STATIC_URL_RESTORE);
+
+      /* Restore pill */
+      pill.style.background       = _origBg    || '';
+      pill.style.border           = '';
+      pillText.style.color        = _origColor || '';
+      pillText.textContent        = _origText  || '';
+      /* Re-measure marquee for restored text */
+      if (window._apexNotifMarquee) setTimeout(window._apexNotifMarquee, 50);
+      if (pillBar && _origBarDisplay !== null) {
+        pillBar.parentElement.style.display = _origBarDisplay;
+        /* Re-apply has-progress if shipping bar was active */
+        if (_origBarDisplay !== 'none') pill.classList.add('has-progress');
+      }
+    }
+
+    /* Wait one full interval before the first flash, then cycle */
+    setTimeout(function() {
+      showFlash();
+      setInterval(showFlash, INTERVAL);
+    }, INTERVAL);
+  })();
+
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Apex Header V19",
+  "settings": [
+    { "type": "header",  "content": "💬 Floating Notif Pill (left, at-top only)" },
+    { "type": "text",    "id": "notif_text",        "label": "Message",                "default": "NEW DROP ONLINE NOW.", "info": "Shown inside the left glassmorphism pill when at the top of the page. Overridden by shipping progress if threshold is set." },
+    { "type": "url",     "id": "notif_url",          "label": "Link URL",               "info": "Optional. Makes the pill clickable." },
+    { "type": "color",   "id": "notif_pill_text",   "label": "Pill text color",        "default": "#ffffff" },
+
+    { "type": "header",  "content": "🔔 Flash Notifications" },
+    { "type": "paragraph", "content": "Add Flash Notification blocks below. They appear next to the mini header pill every N seconds for a short burst, regardless of scroll position." },
+    { "type": "range",   "id": "flash_interval",    "label": "Interval between flashes", "min": 5,    "max": 60,    "step": 1,    "unit": "s",  "default": 15 },
+    { "type": "range",   "id": "flash_duration",    "label": "How long each flash shows", "min": 2,    "max": 10,    "step": 1,    "unit": "s",  "default": 5 },
+    { "type": "header",  "content": "🚚 Free Shipping Progress" },
+    { "type": "paragraph", "content": "Set threshold > 0 to replace the message with a live shipping progress bar." },
+    { "type": "number",  "id": "ship_threshold",  "label": "Threshold (0 = off)",         "default": 0 },
+    { "type": "text",    "id": "ship_msg_before",  "label": "Message — Not Qualified",     "default": "Spend {amount} more for free shipping", "info": "{amount} is replaced automatically." },
+    { "type": "text",    "id": "ship_msg_after",   "label": "Message — Qualified",         "default": "🎉 Free shipping unlocked!" },
+
+    { "type": "header", "content": "💊 Pill Layout" },
+    { "type": "checkbox", "id": "shrink_on_scroll",     "label": "Shrink on Scroll",           "default": true },
+    { "type": "range",    "id": "height",               "label": "Pill Height (px)",           "min": 50, "max": 100, "step": 2, "default": 64 },
+    { "type": "range",    "id": "max_width",            "label": "Max Width (px)",             "min": 600, "max": 1800, "step": 20, "default": 1400 },
+    { "type": "range",    "id": "padding_side",         "label": "Inner Side Padding (px)",    "min": 12, "max": 60, "step": 2, "default": 24 },
+    { "type": "range",    "id": "pill_margin",          "label": "Outer Margin (px)",          "min": 0, "max": 32, "step": 2, "default": 14 },
+    { "type": "range",    "id": "pill_radius",          "label": "Outer Corner Radius (px)",   "min": 0, "max": 100, "step": 2, "default": 100 },
+    { "type": "range",    "id": "frosted_blur",         "label": "Frosted Blur Strength (px)", "min": 0, "max": 30, "step": 1, "default": 18 },
+    { "type": "range",    "id": "drawer_radius",        "label": "Drawer Corner Radius (px)",  "min": 0, "max": 60, "step": 2, "default": 24 },
+    { "type": "range",    "id": "drawer_width",         "label": "Drawer Width (% of screen)", "min": 30, "max": 80, "step": 5, "default": 50 },
+    { "type": "range",    "id": "drawer_max_width",     "label": "Drawer Max Width (px)",      "min": 320, "max": 720, "step": 20, "default": 520 },
+    { "type": "color",    "id": "pill_bg_color",        "label": "Pill Background",            "default": "#ececec" },
+    { "type": "color",    "id": "pill_text_color",      "label": "Pill Text & Icons",          "default": "#000000" },
+
+    { "type": "header", "content": "🧭 Quick-Nav Strip" },
+    { "type": "paragraph", "content": "Collection links below the header. Add Quick-Nav Link blocks to populate." },
+    { "type": "checkbox", "id": "show_qn",              "label": "Show Quick-Nav Strip",       "default": true },
+    { "type": "select",   "id": "qn_alignment",         "label": "Alignment",
+      "options": [
+        { "value": "flex-end",      "label": "Right"   },
+        { "value": "center",        "label": "Center"  },
+        { "value": "flex-start",    "label": "Left"    },
+        { "value": "space-between", "label": "Justify" }
+      ], "default": "flex-end" },
+    { "type": "range", "id": "qn_gap",       "label": "Gap Below Header (px)",      "min": 0,  "max": 24, "step": 1, "default": 6 },
+    { "type": "range", "id": "qn_gap_x",     "label": "Spacing Between Links (px)", "min": 8,  "max": 48, "step": 2, "default": 22 },
+    { "type": "range", "id": "qn_font_size", "label": "Link Font Size (px)",        "min": 9,  "max": 14, "step": 1, "default": 10 },
+    { "type": "color", "id": "qn_text_color",  "label": "Link Color (Idle)",          "default": "#888888" },
+    { "type": "color", "id": "qn_hover_color", "label": "Link Color (Hover/Active)",  "default": "#000000" },
+
+    { "type": "header", "content": "↩ Back-Home Overlay" },
+    { "type": "checkbox", "id": "show_back_home",     "label": "Show on Non-Home Pages", "default": true, "info": "Hidden on home and product pages. Disappears on scroll." },
+    { "type": "text",     "id": "back_home_label",    "label": "Button Label",            "default": "Back Home" },
+    { "type": "range",    "id": "back_home_offset_y", "label": "Vertical Offset Below Header (px)", "min": 0, "max": 200, "step": 2, "default": 8 },
+
+    { "type": "header",    "content": "☰ Menu" },
+    { "type": "link_list", "id": "menu", "label": "Navigation", "default": "main-menu" },
+
+    { "type": "header", "content": "🅰 Branding" },
+    { "type": "text",        "id": "custom_logo_text", "label": "Text Logo (fallback)",  "default": "SOVEREIGN" },
+    { "type": "image_picker","id": "logo",              "label": "Logo Image" },
+    { "type": "range",       "id": "logo_height",       "label": "Logo Height (px)",     "min": 16, "max": 50, "step": 2, "default": 26 },
+    { "type": "text",        "id": "logo_subtext",      "label": "Logo Subtext",          "default": "{currency}", "info": "Use {currency} for live ISO code. Leave blank to hide." },
+    { "type": "font_picker", "id": "text_logo_font",    "label": "Text Logo Font",        "default": "work_sans_n7" },
+    { "type": "range",       "id": "text_logo_size",    "label": "Text Logo Size (px)",  "min": 14, "max": 40, "step": 1, "default": 22 },
+    { "type": "range",       "id": "text_logo_spacing", "label": "Letter Spacing (px)",  "min": 0,  "max": 15, "step": 1, "default": 3 },
+
+    { "type": "header", "content": "🔍 Search" },
+    { "type": "text", "id": "search_placeholder", "label": "Search Placeholder", "default": "Search products…" },
+
+    { "type": "header", "content": "🛒 Icons & Cart Badge" },
+    { "type": "range", "id": "icon_size",        "label": "Icon Size (px)",        "min": 16, "max": 28, "step": 1, "default": 20 },
+    { "type": "color", "id": "badge_bg_color",   "label": "Cart Badge Background", "default": "#e63946" },
+    { "type": "color", "id": "badge_text_color", "label": "Cart Badge Text",        "default": "#ffffff" },
+    { "type": "url",   "id": "custom_cart_url",  "label": "Custom Cart URL",        "info": "Leave blank for /cart." },
+
+    { "type": "header", "content": "🔗 Drawer Footer Links" },
+    { "type": "text", "id": "footer_link_1_text", "label": "Link 1 Label", "default": "Contact" },
+    { "type": "url",  "id": "footer_link_1_url",  "label": "Link 1 URL" },
+    { "type": "text", "id": "footer_link_2_text", "label": "Link 2 Label", "default": "About" },
+    { "type": "url",  "id": "footer_link_2_url",  "label": "Link 2 URL" },
+
+    { "type": "header", "content": "🎨 Search Overlay Colors" },
+    { "type": "color", "id": "accent_color",      "label": "Accent",            "default": "#d4af37" },
+    { "type": "color", "id": "scroll_bg_color",   "label": "Search Overlay BG", "default": "#ffffff" },
+    { "type": "color", "id": "scroll_text_color", "label": "Search Overlay Text","default": "#000000" },
+
+    { "type": "header", "content": "🗄 Vault" },
+    { "type": "text",  "id": "vault_label",   "label": "Vault Section Title",     "default": "THE VAULT" },
+    { "type": "range", "id": "vault_radius",  "label": "Vault Image Radius (px)", "min": 0, "max": 24, "step": 1, "default": 4 }
+  ],
+  "max_blocks": 16,
+  "blocks": [
+    {
+      "type": "collection", "name": "Vault Collection", "limit": 4,
+      "settings": [
+        { "type": "collection", "id": "collection", "label": "Collection" }
+      ]
+    },
+    {
+      "type": "quick_link", "name": "Quick-Nav Link", "limit": 7,
+      "settings": [
+        { "type": "text",     "id": "label",            "label": "Link Label",           "default": "New Arrivals" },
+        { "type": "url",      "id": "url",              "label": "Link URL" },
+        { "type": "header",   "content": "Optional Badge" },
+        { "type": "text",     "id": "badge_text",       "label": "Badge Text",           "info": "E.g. NEW, HOT, -30%. Leave blank to hide." },
+        { "type": "color",    "id": "badge_bg",         "label": "Badge Background",     "default": "#000000" },
+        { "type": "color",    "id": "badge_text_color", "label": "Badge Text Color",     "default": "#ffffff" },
+        { "type": "checkbox", "id": "pulse_badge",      "label": "Pulse Animation on Badge", "default": false }
+      ]
+    },
+    {
+      "type": "flash_notif", "name": "Flash Notification", "limit": 8,
+      "settings": [
+        { "type": "text",  "id": "text",       "label": "Message",          "default": "Limited stock — grab yours now." },
+        { "type": "url",   "id": "url",        "label": "Link URL",          "info": "Optional. Makes the notification clickable." },
+        { "type": "color", "id": "bg_color",   "label": "Pill background",  "default": "#111111" },
+        { "type": "color", "id": "text_color", "label": "Text color",       "default": "#ffffff" }
+      ]
+    }
+  ],
+  "presets": [{ "name": "Apex Header V19" }]
+}
+{% endschema %}

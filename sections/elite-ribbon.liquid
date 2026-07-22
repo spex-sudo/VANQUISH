@@ -1,0 +1,181 @@
+<style>
+  .prestige-bar-{{ section.id }} {
+    /* Color Variables */
+    --bg-color: {{ section.settings.bg_color }};
+    --accent-color: {{ section.settings.accent_color }};
+    --text-color: {{ section.settings.text_color }};
+    --border-color: {{ section.settings.border_color }};
+   
+    position: relative;
+    width: 100%;
+    padding: {{ section.settings.padding_vertical }}px 0;
+    background: var(--bg-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-top: {{ section.settings.border_width }}px solid var(--border-color);
+    border-bottom: {{ section.settings.border_width }}px solid var(--border-color);
+    text-decoration: none;
+    z-index: 10;
+    transition: all 0.5s ease;
+  }
+
+  /* Animated Luxury Glow */
+  .prestige-bar-{{ section.id }}::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -150%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      {{ section.settings.accent_color | color_modify: 'alpha', 0.15 }},
+      transparent
+    );
+    animation: prestige-shimmer 8s infinite linear;
+  }
+
+  .prestige-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    z-index: 2;
+    width: 90%;
+    max-width: 1400px;
+  }
+
+  /* The "Active" Social Proof Logic */
+  .prestige-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--accent-color);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .prestige-pulse {
+    width: 8px;
+    height: 8px;
+    background-color: var(--accent-color);
+    border-radius: 50%;
+    position: relative;
+  }
+
+  .prestige-pulse::before {
+    content: '';
+    position: absolute;
+    width: 100%; height: 100%;
+    background: inherit;
+    border-radius: 50%;
+    animation: prestige-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  /* Main Hook Text */
+  .prestige-hook {
+    font-family: serif;
+    color: var(--text-color);
+    font-size: 16px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin: 0;
+    text-align: center;
+  }
+
+  .prestige-hook span {
+    color: var(--accent-color);
+    font-weight: 700;
+    text-shadow: 0 0 10px {{ section.settings.accent_color | color_modify: 'alpha', 0.3 }};
+  }
+
+  /* The CTA Button */
+  .prestige-cta {
+    background: transparent;
+    color: var(--text-color);
+    border: 1px solid var(--accent-color);
+    padding: 8px 24px;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    transition: 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    white-space: nowrap;
+  }
+
+  .prestige-bar-{{ section.id }}:hover .prestige-cta {
+    background: var(--accent-color);
+    color: var(--bg-color);
+    box-shadow: 0 0 20px {{ section.settings.accent_color | color_modify: 'alpha', 0.4 }};
+  }
+
+  @keyframes prestige-ping {
+    75%, 100% { transform: scale(3); opacity: 0; }
+  }
+
+  @keyframes prestige-shimmer {
+    0% { left: -150%; }
+    30% { left: 150%; }
+    100% { left: 150%; }
+  }
+
+  /* Mobile Optimization */
+  @media (max-width: 900px) {
+    .prestige-container { gap: 20px; flex-direction: column; text-align: center; }
+    .prestige-indicator { font-size: 9px; }
+    .prestige-hook { font-size: 13px; line-height: 1.4; }
+  }
+</style>
+
+<a href="{{ section.settings.link_url }}"
+   class="prestige-bar-{{ section.id }}"
+   {% if section.settings.open_new_tab %}target="_blank"{% endif %}>
+ 
+  <div class="prestige-container">
+    {% if section.settings.show_indicator %}
+      <div class="prestige-indicator">
+        <div class="prestige-pulse"></div>
+        {{ section.settings.indicator_text }}
+      </div>
+    {% endif %}
+   
+    <p class="prestige-hook">
+      {{ section.settings.main_text }} <span>{{ section.settings.highlight_text }}</span>
+    </p>
+
+    <div class="prestige-cta">
+      {{ section.settings.cta_text }}
+    </div>
+  </div>
+</a>
+
+{% schema %}
+{
+  "name": "Prestige Bar V10",
+  "settings": [
+    { "type": "header", "content": "Action & Destination" },
+    { "type": "url", "id": "link_url", "label": "Destination Link" },
+    { "type": "checkbox", "id": "open_new_tab", "label": "Open in new tab", "default": true },
+   
+    { "type": "header", "content": "Persuasion Content" },
+    { "type": "text", "id": "main_text", "label": "Main Message", "default": "Limited Opportunity:" },
+    { "type": "text", "id": "highlight_text", "label": "Highlighted Phrase", "default": "CLAIM FREE VIP ACCESS" },
+    { "type": "text", "id": "cta_text", "label": "CTA Button Label", "default": "Enter Now" },
+    { "type": "checkbox", "id": "show_indicator", "label": "Show Live Indicator", "default": true },
+    { "type": "text", "id": "indicator_text", "label": "Indicator Text", "default": "24 Spots Remaining" },
+
+    { "type": "header", "content": "Luxury Styling" },
+    { "type": "color", "id": "bg_color", "label": "Background", "default": "#000000" },
+    { "type": "color", "id": "accent_color", "label": "Accent (Gold/Brand)", "default": "#d4af37" },
+    { "type": "color", "id": "text_color", "label": "Text Color", "default": "#ffffff" },
+    { "type": "color", "id": "border_color", "label": "Outline/Border Color", "default": "#1a1a1a" },
+    { "type": "range", "id": "border_width", "label": "Border Thickness", "min": 0, "max": 4, "step": 1, "default": 1 },
+    { "type": "range", "id": "padding_vertical", "label": "Bar Slimness (Padding)", "min": 10, "max": 40, "step": 2, "default": 18 }
+  ],
+  "presets": [{ "name": "Prestige Bar V10" }]
+}
+{% endschema %}

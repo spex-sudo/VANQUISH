@@ -1,0 +1,1907 @@
+{%- comment -%}
+  APEX ZENITH MASTER DISCOVERY — V15
+  Conversion-focused rebuild:
+    • Quick-add (+) button with variant-aware logic (single variant = direct add; multi = drawer)
+    • Hover image swap (second media as on-hover state, no carousel work)
+    • Color swatch preview under title (limit 4 + "+N")
+    • Smart badges: Sale (with %), New, Low Stock, Bestseller
+    • Judge.me ratings rendered directly with product.id (fixes broken @app rendering)
+    • Hover lift, focus rings, reduced-motion safety
+    • Delegated event handlers (no inline onclick → CSP-safe)
+    • Skeleton placeholders during infinite scroll
+{%- endcomment -%}
+
+{%- liquid
+  assign sid    = section.id
+  assign acc    = section.settings.ac
+  assign sale_c = section.settings.sale_color
+-%}
+
+<style>
+  #ApexZenith-{{ sid }} {
+    --gap: {{ section.settings.gap }}px;
+    --rd: {{ section.settings.rd }}px;
+    --ac: {{ acc }};
+    --sale: {{ sale_c }};
+    --ink: #111;
+    --dim: #6b6b6b;
+    --line: #ececec;
+    --soft: #f7f7f7;
+    --new: #2d6a4f;
+    --low: #c8102e;
+
+    max-width: {{ section.settings.max_w }}px;
+    margin: 0 auto;
+    padding: {{ section.settings.p_v }}px 20px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: var(--ink);
+  }
+
+  .apex-grid-{{ sid }} {
+    display: grid;
+    gap: var(--gap);
+    grid-template-columns: repeat({{ section.settings.pc_cols }}, minmax(0, 1fr));
+  }
+
+  /* ── Card ── */
+  .apex-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+    contain: layout paint style;
+  }
+  .apex-card:hover { transform: translateY(-3px); }
+
+  .apex-media {
+    position: relative;
+    width: 100%;
+    aspect-ratio: {{ section.settings.ratio }};
+    border-radius: var(--rd);
+    overflow: hidden;
+    background: var(--soft);
+    margin-bottom: 12px;
+  }
+
+  /* Stacked images — one per product media. Active one is opacity:1, rest opacity:0 */
+  .apex-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    opacity: 0;
+    transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.7s ease;
+    will-change: opacity;
+  }
+  .apex-img.is-active {
+    opacity: 1;
+    /* Native View Transitions API support — Chromium 111+ degrades gracefully */
+    view-transition-name: var(--vt-name, none);
+  }
+  .apex-media:hover .apex-img.is-active { transform: scale(1.04); }
+
+  /* Image counter pill — "1/4" indicator, bottom-left (out of the way of badges + wishlist) */
+  .apex-counter {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    z-index: 5;
+    padding: 3px 8px;
+    border-radius: 100px;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    color: rgba(255,255,255,0.92);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.22s;
+  }
+  .apex-card:hover .apex-counter { opacity: 1; }
+
+  @media (max-width: 768px) {
+    .apex-counter { opacity: 1; }
+  }
+
+  /* Visible mini prev/next buttons — appear on hover (desktop) or always on mobile */
+  .apex-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%) scale(0.9);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    -webkit-tap-highlight-color: transparent;
+    z-index: 4;
+    opacity: 0;
+    transition: opacity 0.22s, transform 0.18s, background 0.16s;
+  }
+  .apex-card:hover .apex-arrow,
+  .apex-arrow:focus-visible {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
+  .apex-arrow:hover  { background: #fff; }
+  .apex-arrow:active { transform: translateY(-50%) scale(0.9); }
+  .apex-arrow svg {
+    width: 12px;
+    height: 12px;
+    stroke: #111;
+    fill: none;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .apex-arrow-prev { left: 8px; }
+  .apex-arrow-next { right: 8px; }
+
+  /* Mobile: arrows hidden — swipe gesture handles navigation */
+  @media (max-width: 768px) {
+    .apex-arrow { display: none; }
+  }
+
+  /* Dot indicators — bottom-center row */
+  .apex-dots {
+    position: absolute;
+    left: 50%;
+    bottom: 8px;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 4px;
+    z-index: 5;
+    padding: 4px 6px;
+    border-radius: 100px;
+    background: rgba(0,0,0,0.18);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    opacity: 0;
+    transition: opacity 0.25s;
+    pointer-events: none;
+  }
+  .apex-card:hover .apex-dots { opacity: 1; }
+  .apex-dots > * { pointer-events: auto; }
+  .apex-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.55);
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.18s, width 0.2s;
+    -webkit-tap-highlight-color: transparent;
+    flex-shrink: 0;
+  }
+  .apex-dot.is-active {
+    background: #fff;
+    width: 14px;
+    border-radius: 100px;
+  }
+  .apex-dot:hover { background: rgba(255,255,255,0.85); }
+
+  @media (max-width: 768px) {
+    .apex-dots { opacity: 1; }
+  }
+
+  .apex-link {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: block;
+    text-decoration: none;
+  }
+
+  /* ── Badges ── */
+  .apex-badges {
+    position: absolute;
+    top: 10px; left: 10px;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    pointer-events: none;
+    align-items: flex-start;
+  }
+  .apex-bdg {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 9px;
+    border-radius: 3px;
+    font-size: 9.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #fff;
+    line-height: 1;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+  .apex-bdg-sale { background: var(--sale); }
+  .apex-bdg-new  { background: var(--new); }
+  .apex-bdg-low  { background: var(--low); animation: apex-pulse 1.6s ease-in-out infinite; }
+  .apex-bdg-best { background: rgba(0,0,0,0.85); }
+  .apex-bdg-cust { background: var(--ac); }
+  @keyframes apex-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(200,16,46,0); }
+    50%      { box-shadow: 0 0 0 6px rgba(200,16,46,0.18); }
+  }
+
+  /* ── Wishlist (top-right) ── */
+  .apex-wish {
+    position: absolute;
+    top: 10px; right: 10px;
+    z-index: 6;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.16s, background 0.18s;
+    opacity: 0;
+  }
+  .apex-card:hover .apex-wish,
+  .apex-wish.is-saved,
+  .apex-wish:focus-visible { opacity: 1; }
+  .apex-wish:active { transform: scale(0.9); }
+  .apex-wish svg { width: 14px; height: 14px; fill: none; stroke: var(--ink); stroke-width: 1.8; transition: fill 0.2s, stroke 0.2s; }
+  .apex-wish.is-saved svg { fill: var(--sale); stroke: var(--sale); }
+  .apex-wish.is-saved {
+    animation: apex-wish-pop 0.42s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes apex-wish-pop {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.28); }
+    70%  { transform: scale(0.92); }
+    100% { transform: scale(1); }
+  }
+
+  /* ── Quick add (+) ── */
+  .apex-qa {
+    position: absolute;
+    bottom: 10px; right: 10px;
+    z-index: 6;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+    -webkit-tap-highlight-color: transparent;
+    transform: translateY(8px) scale(0.85);
+    opacity: 0;
+    transition: opacity 0.22s, transform 0.22s cubic-bezier(0.32, 0.72, 0, 1), background 0.18s;
+  }
+  .apex-card:hover .apex-qa,
+  .apex-qa:focus-visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  .apex-qa:hover { background: var(--ac); }
+  .apex-qa:active { transform: scale(0.92); }
+  .apex-qa.is-loading { background: var(--dim); pointer-events: none; }
+  .apex-qa.is-added { background: var(--new); }
+  .apex-qa svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.2; }
+  .apex-qa-spinner {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    animation: apex-spin 0.7s linear infinite;
+    display: none;
+  }
+  .apex-qa.is-loading .apex-qa-icon { display: none; }
+  .apex-qa.is-loading .apex-qa-spinner { display: block; }
+  @keyframes apex-spin { to { transform: rotate(360deg); } }
+
+  /* Mobile: always show quick-add + wishlist */
+  @media (max-width: 768px) {
+    .apex-qa, .apex-wish {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  /* ── Info ── */
+  .apex-info {
+    padding: 4px 2px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .apex-vendor {
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin: 0;
+  }
+  .apex-title {
+    position: relative;
+    z-index: 2;
+    font-size: 13.5px;
+    font-weight: 500;
+    line-height: 1.32;
+    color: var(--ink);
+    text-decoration: none;
+    margin: 0;
+    /* clamp to 2 lines */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .apex-title:hover { text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px; }
+
+  .apex-rating {
+    position: relative;
+    z-index: 2;
+    min-height: 14px;
+  }
+  /* Style Judge.me badge inline for grid card */
+  .apex-rating .jdgm-prev-badge {
+    --jdgm-paper: transparent;
+  }
+  .apex-rating .jdgm-prev-badge__stars { font-size: 12px !important; letter-spacing: -1px; }
+  .apex-rating .jdgm-prev-badge__text  { font-size: 10.5px !important; color: var(--dim) !important; margin-left: 4px; }
+
+  .apex-price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .apex-price {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .apex-price.is-sale { color: var(--sale); }
+  .apex-price-was {
+    font-size: 12px;
+    color: var(--dim);
+    text-decoration: line-through;
+  }
+  .apex-savings {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--sale);
+    letter-spacing: 0.04em;
+    margin-left: auto;
+  }
+
+  /* ── Color swatches preview ── */
+  .apex-swatches {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 2px;
+  }
+  .apex-sw {
+    width: 13px; height: 13px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.12);
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: transform 0.14s;
+    background-size: cover;
+  }
+  .apex-sw:hover { transform: scale(1.18); }
+  .apex-sw-more {
+    font-size: 9.5px;
+    color: var(--dim);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── Toast ── */
+  .apex-toast-{{ sid }} {
+    position: fixed;
+    bottom: 30px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    z-index: 9999;
+    background: var(--ink);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.22);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.28s, transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: calc(100vw - 40px);
+  }
+  .apex-toast-{{ sid }}.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+  }
+  .apex-toast-{{ sid }} svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; flex-shrink: 0; }
+  .apex-toast-{{ sid }} a {
+    color: #fff;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    margin-left: 4px;
+    font-weight: 600;
+  }
+
+  /* ── Variant drawer ── */
+  .apex-drawer-bd-{{ sid }} {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.42);
+    z-index: 9998;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.28s ease;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+  .apex-drawer-bd-{{ sid }}.open { opacity: 1; pointer-events: auto; }
+  .apex-drawer-{{ sid }} {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: #fff;
+    border-radius: 20px 20px 0 0;
+    z-index: 9999;
+    transform: translateY(100%);
+    transition: transform 0.36s cubic-bezier(0.32, 0.72, 0, 1);
+    max-height: 80vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.18);
+  }
+  .apex-drawer-{{ sid }}.open { transform: translateY(0); }
+  .apex-dr-handle {
+    flex-shrink: 0;
+    display: flex; justify-content: center;
+    padding: 10px 0 6px;
+  }
+  .apex-dr-handle::before {
+    content: '';
+    width: 38px; height: 4px;
+    background: var(--line);
+    border-radius: 100px;
+  }
+  .apex-dr-head {
+    padding: 6px 22px 14px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .apex-dr-title {
+    font-size: 13px; font-weight: 600; letter-spacing: 0.04em;
+    margin: 0;
+    /* clamp to 1 line */
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    flex: 1;
+    padding-right: 12px;
+  }
+  .apex-dr-close {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--soft);
+    border: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .apex-dr-close svg { width: 12px; height: 12px; stroke: var(--ink); fill: none; stroke-width: 1.8; }
+  .apex-dr-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px 22px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .apex-dr-opt-label {
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin: 0 0 9px;
+  }
+  .apex-dr-opt-label + .apex-dr-opt-label { margin-top: 18px; }
+  .apex-dr-opts {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    margin-bottom: 4px;
+  }
+  .apex-dr-opt {
+    padding: 9px 14px;
+    border-radius: 100px;
+    background: var(--soft);
+    border: 1px solid transparent;
+    font-size: 11.5px; font-weight: 500;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: background 0.16s, border-color 0.16s, color 0.16s;
+    -webkit-tap-highlight-color: transparent;
+    line-height: 1;
+  }
+  .apex-dr-opt.on {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+  }
+  .apex-dr-opt:disabled {
+    opacity: 0.32;
+    text-decoration: line-through;
+    cursor: not-allowed;
+  }
+  .apex-dr-foot {
+    padding: 14px 22px 18px;
+    border-top: 1px solid var(--line);
+    flex-shrink: 0;
+  }
+  .apex-dr-cta {
+    width: 100%;
+    padding: 14px 18px;
+    background: var(--ink);
+    color: #fff;
+    border: none;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.18s, background 0.18s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .apex-dr-cta:hover { opacity: 0.92; }
+  .apex-dr-cta:disabled { background: var(--line); color: var(--dim); cursor: not-allowed; }
+  .apex-dr-cta.is-loading .apex-dr-cta-text { opacity: 0.5; }
+
+  /* ── Infinite scroll status ── */
+  .apex-status-{{ sid }} {
+    margin-top: 60px;
+    padding: 30px 0;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+  .apex-status-text {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.26em;
+    color: var(--dim);
+    font-weight: 500;
+  }
+  .apex-pulse {
+    width: 60px; height: 2px;
+    background: var(--line);
+    position: relative;
+    overflow: hidden;
+  }
+  .apex-pulse::after {
+    content: '';
+    position: absolute;
+    left: -100%;
+    width: 100%; height: 100%;
+    background: var(--ac);
+    box-shadow: 0 0 10px var(--ac);
+    animation: apex-slide 1.5s infinite;
+    display: none;
+  }
+  .is-loading .apex-pulse::after { display: block; }
+  @keyframes apex-slide {
+    0%   { left: -100%; }
+    100% { left: 100%; }
+  }
+
+  /* ── Ascend ── */
+  #ApexAscend-{{ sid }} {
+    position: fixed;
+    bottom: 30px; right: 30px;
+    z-index: 99;
+    width: 44px; height: 44px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.10);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.32s, visibility 0.32s, transform 0.18s;
+  }
+  #ApexAscend-{{ sid }}.is-visible {
+    opacity: 1;
+    visibility: visible;
+  }
+  #ApexAscend-{{ sid }}:hover { transform: translateY(-2px); }
+  #ApexAscend-{{ sid }} svg { width: 16px; fill: var(--ac); }
+
+  /* ── Mobile ── */
+  @media (max-width: 768px) {
+    .apex-grid-{{ sid }} { grid-template-columns: repeat({{ section.settings.mb_cols }}, minmax(0, 1fr)); }
+    .apex-title  { font-size: 12.5px; }
+    .apex-price  { font-size: 13px; }
+    .apex-qa     { width: 32px; height: 32px; bottom: 8px; right: 8px; }
+    .apex-qa svg { width: 14px; height: 14px; }
+    .apex-wish   { width: 28px; height: 28px; top: 8px; right: 8px; }
+    .apex-wish svg { width: 12px; height: 12px; }
+    .apex-bdg    { font-size: 8.5px; padding: 4px 7px; }
+    #ApexAscend-{{ sid }} { bottom: 16px; right: 16px; width: 40px; height: 40px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .apex-card, .apex-img,
+    .apex-qa, .apex-wish, .apex-toast-{{ sid }},
+    .apex-drawer-{{ sid }}, .apex-drawer-bd-{{ sid }} { transition: none !important; }
+    .apex-bdg-low, .apex-pulse::after { animation: none !important; }
+  }
+</style>
+
+<div id="ApexZenith-{{ sid }}" data-apex-section="{{ sid }}">
+  {%- comment -%}
+    PRODUCT SOURCE
+    On a collection template: paginate the literal `collection.products` so
+    Shopify's engine correctly scopes products to that collection (sort, filter,
+    and pagination all work as expected). `collection` is always defined on
+    collection.* templates and is never blank there.
+    On every other template (homepage, /collections index, search, etc.):
+    paginate `collections.all.products` so the grid still populates with the
+    full catalogue as a sensible default.
+    Two separate paginate blocks are required because Shopify's `paginate` tag
+    requires a literal object path — it does not correctly resolve through a
+    Liquid-assigned variable, causing it to silently fall back to all-products
+    behaviour regardless of which collection is being viewed.
+  {%- endcomment -%}
+
+  {%- if template.name == 'collection' -%}
+
+    {%- comment %} ── COLLECTION PAGE — show only this collection's products ── {%- endcomment %}
+    {%- paginate collection.products by section.settings.page_limit -%}
+      <div class="apex-grid-{{ sid }}" id="ApexGrid-{{ sid }}">
+        {%- for product in collection.products -%}
+        {%- liquid
+          comment
+            LCP: first row (= desktop column count) loads eagerly
+          endcomment
+          assign eager_max = section.settings.pc_cols
+          assign is_eager = false
+          if forloop.index0 < eager_max
+            assign is_eager = true
+          endif
+        -%}
+        {%- liquid
+          assign on_sale       = false
+          assign discount_pct  = 0
+          assign savings       = 0
+          if product.compare_at_price > product.price
+            assign on_sale = true
+            assign savings = product.compare_at_price | minus: product.price
+            assign discount_pct = savings | times: 100 | divided_by: product.compare_at_price | round
+          endif
+
+          assign first_var      = product.selected_or_first_available_variant
+          assign avail_inv      = first_var.inventory_quantity
+          assign track_inv      = first_var.inventory_management
+          assign is_low_stock   = false
+          if track_inv != blank and avail_inv > 0 and avail_inv <= section.settings.low_stock_threshold
+            assign is_low_stock = true
+          endif
+
+          assign is_new = false
+          assign new_hours = section.settings.new_hours
+          if new_hours > 0
+            assign cutoff_seconds = new_hours | times: 3600
+            assign now_ts = 'now' | date: '%s' | times: 1
+            assign cutoff_ts = now_ts | minus: cutoff_seconds
+            assign created_ts = product.created_at | date: '%s' | times: 1
+            if created_ts > cutoff_ts
+              assign is_new = true
+            endif
+          endif
+
+          assign is_best = false
+          if product.tags contains 'bestseller' or product.tags contains 'best-seller'
+            assign is_best = true
+          endif
+
+          assign custom_badge = product.metafields.theme.badge_text.value | default: product.metafields.theme.badge_text
+          if custom_badge.first
+            assign custom_badge = custom_badge.first
+          endif
+
+          assign max_imgs = section.settings.max_card_images | default: 4
+          assign img_count = product.images.size
+          if img_count > max_imgs
+            assign img_count = max_imgs
+          endif
+
+          assign color_opt_idx = 0
+          for opt in product.options_with_values
+            assign opt_lc = opt.name | downcase
+            if opt_lc == 'color' or opt_lc == 'colour'
+              assign color_opt_idx = forloop.index
+              break
+            endif
+          endfor
+        -%}
+
+        <div class="apex-card" data-pid="{{ product.id }}" data-handle="{{ product.handle }}">
+          <div class="apex-media">
+            <a href="{{ product.url }}" class="apex-link" aria-label="{{ product.title | escape }}"></a>
+
+            {%- comment %} Badges (max 2 visible — priority order) {%- endcomment -%}
+            <div class="apex-badges" aria-hidden="true">
+              {%- assign badge_count = 0 -%}
+              {%- if custom_badge != blank and badge_count < 2 -%}
+                <span class="apex-bdg apex-bdg-cust">{{ custom_badge }}</span>
+                {%- assign badge_count = badge_count | plus: 1 -%}
+              {%- endif -%}
+              {%- if on_sale and badge_count < 2 -%}
+                <span class="apex-bdg apex-bdg-sale">−{{ discount_pct }}%</span>
+                {%- assign badge_count = badge_count | plus: 1 -%}
+              {%- endif -%}
+              {%- if is_low_stock and badge_count < 2 -%}
+                <span class="apex-bdg apex-bdg-low">Only {{ avail_inv }} left</span>
+                {%- assign badge_count = badge_count | plus: 1 -%}
+              {%- elsif is_new and badge_count < 2 -%}
+                <span class="apex-bdg apex-bdg-new">New</span>
+                {%- assign badge_count = badge_count | plus: 1 -%}
+              {%- elsif is_best and badge_count < 2 -%}
+                <span class="apex-bdg apex-bdg-best">Bestseller</span>
+                {%- assign badge_count = badge_count | plus: 1 -%}
+              {%- endif -%}
+            </div>
+
+            {%- if section.settings.show_wishlist -%}
+              <button type="button" class="apex-wish" data-apex-wish="{{ product.handle }}" data-pid="{{ product.id }}" aria-label="Save {{ product.title | escape }}" aria-pressed="false">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+              </button>
+            {%- endif -%}
+
+            {%- if img_count > 0 -%}
+              {%- for img in product.images limit: img_count -%}
+                {%- assign is_first_img = forloop.first -%}
+                <img
+                  class="apex-img{% if is_first_img %} is-active{% endif %}"
+                  data-img-idx="{{ forloop.index0 }}"
+                  src="{{ img | image_url: width: 600 }}"
+                  srcset="{{ img | image_url: width: 320 }} 320w,
+                          {{ img | image_url: width: 480 }} 480w,
+                          {{ img | image_url: width: 600 }} 600w,
+                          {{ img | image_url: width: 800 }} 800w,
+                          {{ img | image_url: width: 1000 }} 1000w"
+                  sizes="(max-width: 768px) {{ 100 | divided_by: section.settings.mb_cols }}vw, {{ 100 | divided_by: section.settings.pc_cols }}vw"
+                  width="{{ img.width }}"
+                  height="{{ img.height }}"
+                  alt="{% if is_first_img %}{{ img.alt | default: product.title | escape }}{% endif %}"
+                  loading="{% if is_first_img and is_eager %}eager{% else %}lazy{% endif %}"
+                  {% if is_first_img and is_eager %}fetchpriority="high"{% endif %}
+                  decoding="async"
+                  {% unless is_first_img %}aria-hidden="true"{% endunless %}>
+              {%- endfor -%}
+
+              {%- if img_count > 1 -%}
+                <span class="apex-counter" data-apex-counter aria-hidden="true">1/{{ img_count }}</span>
+                <button type="button" class="apex-arrow apex-arrow-prev" data-apex-img-prev aria-label="Previous image">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+                </button>
+                <button type="button" class="apex-arrow apex-arrow-next" data-apex-img-next aria-label="Next image">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+                <div class="apex-dots" data-apex-dots role="tablist" aria-label="Product images">
+                  {%- for img in product.images limit: img_count -%}
+                    <button type="button"
+                      class="apex-dot{% if forloop.first %} is-active{% endif %}"
+                      data-apex-dot="{{ forloop.index0 }}"
+                      role="tab"
+                      aria-label="Image {{ forloop.index }}"
+                      aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"></button>
+                  {%- endfor -%}
+                </div>
+              {%- endif -%}
+            {%- endif -%}
+
+            {%- if section.settings.show_quick_add and product.available -%}
+              <button type="button" class="apex-qa"
+                data-apex-qa="{{ product.id }}"
+                data-handle="{{ product.handle }}"
+                data-variants="{{ product.variants.size }}"
+                data-first-vid="{{ first_var.id }}"
+                aria-label="Add {{ product.title | escape }} to cart">
+                <svg class="apex-qa-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <line x1="12" y1="5" x2="12" y2="19"/>
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                <span class="apex-qa-spinner" aria-hidden="true"></span>
+              </button>
+            {%- endif -%}
+          </div>
+
+          <div class="apex-info">
+            {%- for block in section.blocks -%}
+              {%- case block.type -%}
+                {%- when '@app' -%}
+                  {% render block %}
+                {%- when 'title' -%}
+                  <a href="{{ product.url }}" class="apex-title">{{ product.title }}</a>
+                {%- when 'rating' -%}
+                  {%- comment %}
+                    Judge.me direct render with product.id — works whether or not the
+                    @app block is configured. Judge.me's auto-install JS finds these
+                    divs and injects star widgets. Same pattern used by Dawn.
+                  {%- endcomment %}
+                  <div class="apex-rating">
+                    <div class="jdgm-widget jdgm-preview-badge"
+                         data-id="{{ product.id }}"
+                         data-template="index"></div>
+                  </div>
+                {%- when 'swatches' -%}
+                  {%- if color_opt_idx > 0 -%}
+                    {%- assign color_idx = color_opt_idx | minus: 1 -%}
+                    {%- assign color_opt = product.options_with_values[color_idx] -%}
+                    {%- assign max_sw = section.settings.max_swatches | default: 4 -%}
+                    <div class="apex-swatches" aria-label="Available colors">
+                      {%- for val in color_opt.values limit: max_sw -%}
+                        {%- comment %} Find first available variant matching this color value {%- endcomment -%}
+                        {%- assign sw_vid = nil -%}
+                        {%- assign sw_img = nil -%}
+                        {%- for v in product.variants -%}
+                          {%- assign v_color = v.options[color_idx] -%}
+                          {%- if v_color == val -%}
+                            {%- if v.available and sw_vid == nil -%}
+                              {%- assign sw_vid = v.id -%}
+                              {%- if v.featured_image -%}
+                                {%- assign sw_img = v.featured_image | image_url: width: 600 -%}
+                              {%- endif -%}
+                            {%- elsif sw_vid == nil -%}
+                              {%- assign sw_vid = v.id -%}
+                              {%- if v.featured_image -%}
+                                {%- assign sw_img = v.featured_image | image_url: width: 600 -%}
+                              {%- endif -%}
+                            {%- endif -%}
+                          {%- endif -%}
+                        {%- endfor -%}
+                        <a href="{{ product.url }}?variant={{ sw_vid }}"
+                           class="apex-sw"
+                           title="{{ val }}"
+                           aria-label="{{ val }}"
+                           {% if sw_img %}data-img="{{ sw_img }}"{% endif %}
+                           style="background-color: {{ val | handle }};"></a>
+                      {%- endfor -%}
+                      {%- if color_opt.values.size > max_sw -%}
+                        <span class="apex-sw-more">+{{ color_opt.values.size | minus: max_sw }}</span>
+                      {%- endif -%}
+                    </div>
+                  {%- endif -%}
+                {%- when 'price' -%}
+                  <div class="apex-price-row">
+                    <span class="apex-price{% if on_sale %} is-sale{% endif %}">{{ product.price | money }}</span>
+                    {%- if on_sale -%}
+                      <span class="apex-price-was">{{ product.compare_at_price | money }}</span>
+                      {%- if section.settings.show_savings -%}
+                        <span class="apex-savings">Save {{ savings | money_without_trailing_zeros }}</span>
+                      {%- endif -%}
+                    {%- endif -%}
+                  </div>
+              {%- endcase -%}
+            {%- endfor -%}
+          </div>
+        </div>
+        {%- endfor -%}
+      </div>
+
+      {%- if paginate.next -%}
+        <div id="ApexSentinel-{{ sid }}" data-next-url="{{ paginate.next.url }}" class="apex-status-{{ sid }}">
+          <span class="apex-status-text">Discovering more</span>
+          <div class="apex-pulse"></div>
+        </div>
+      {%- endif -%}
+    {%- endpaginate -%}
+
+  {%- elsif template.name == 'list-collections' -%}
+
+    {%- comment %} ── /collections LIST PAGE ONLY — default to full catalogue ── {%- endcomment %}
+    {%- paginate collections.all.products by section.settings.page_limit -%}
+      <div class="apex-grid-{{ sid }}" id="ApexGrid-{{ sid }}">
+        {%- for product in collections.all.products -%}
+        {%- liquid
+          comment
+            LCP: first row (= desktop column count) loads eagerly
+          endcomment
+          assign eager_max = section.settings.pc_cols
+          assign is_eager = false
+          if forloop.index0 < eager_max
+            assign is_eager = true
+          endif
+        -%}
+        {%- liquid
+          assign on_sale       = false
+          assign discount_pct  = 0
+          assign savings       = 0
+          if product.compare_at_price > product.price
+            assign on_sale = true
+            assign savings = product.compare_at_price | minus: product.price
+            assign discount_pct = savings | times: 100 | divided_by: product.compare_at_price | round
+          endif
+
+          assign first_var      = product.selected_or_first_available_variant
+          assign avail_inv      = first_var.inventory_quantity
+          assign track_inv      = first_var.inventory_management
+          assign is_low_stock   = false
+          if track_inv != blank and avail_inv > 0 and avail_inv <= section.settings.low_stock_threshold
+            assign is_low_stock = true
+          endif
+
+          assign is_new = false
+          assign new_hours = section.settings.new_hours
+          if new_hours > 0
+            assign cutoff_seconds = new_hours | times: 3600
+            assign now_ts = 'now' | date: '%s' | times: 1
+            assign cutoff_ts = now_ts | minus: cutoff_seconds
+            assign created_ts = product.created_at | date: '%s' | times: 1
+            if created_ts > cutoff_ts
+              assign is_new = true
+            endif
+          endif
+
+          assign is_best = false
+          if product.tags contains 'bestseller' or product.tags contains 'best-seller'
+            assign is_best = true
+          endif
+
+          assign custom_badge = product.metafields.theme.badge_text.value | default: product.metafields.theme.badge_text
+          if custom_badge.first
+            assign custom_badge = custom_badge.first
+          endif
+
+          assign max_imgs = section.settings.max_card_images | default: 4
+          assign img_count = product.images.size
+          if img_count > max_imgs
+            assign img_count = max_imgs
+          endif
+
+          assign color_opt_idx = 0
+          for opt in product.options_with_values
+            assign opt_lc = opt.name | downcase
+            if opt_lc == 'color' or opt_lc == 'colour'
+              assign color_opt_idx = forloop.index
+              break
+            endif
+          endfor
+        -%}
+
+        <div class="apex-card" data-pid="{{ product.id }}" data-handle="{{ product.handle }}">
+          <div class="apex-media">
+            <a href="{{ product.url }}" class="apex-link" aria-label="{{ product.title | escape }}"></a>
+
+            {%- comment %} Badges (max 2 visible — priority order) {%- endcomment -%}
+            <div class="apex-badges" aria-hidden="true">
+              {%- assign badge_count = 0 -%}
+              {%- if custom_badge != blank and badge_count < 2 -%}
+                <span class="apex-bdg apex-bdg-cust">{{ custom_badge }}</span>
+                {%- assign badge_count = badge_count | plus: 1 -%}
+              {%- endif -%}
+              {%- if on_sale and badge_count < 2 -%}
+                <span class="apex-bdg apex-bdg-sale">−{{ discount_pct }}%</span>
+                {%- assign badge_count = badge_count | plus: 1 -%}
+              {%- endif -%}
+              {%- if is_low_stock and badge_count < 2 -%}
+                <span class="apex-bdg apex-bdg-low">Only {{ avail_inv }} left</span>
+                {%- assign badge_count = badge_count | plus: 1 -%}
+              {%- elsif is_new and badge_count < 2 -%}
+                <span class="apex-bdg apex-bdg-new">New</span>
+                {%- assign badge_count = badge_count | plus: 1 -%}
+              {%- elsif is_best and badge_count < 2 -%}
+                <span class="apex-bdg apex-bdg-best">Bestseller</span>
+                {%- assign badge_count = badge_count | plus: 1 -%}
+              {%- endif -%}
+            </div>
+
+            {%- if section.settings.show_wishlist -%}
+              <button type="button" class="apex-wish" data-apex-wish="{{ product.handle }}" data-pid="{{ product.id }}" aria-label="Save {{ product.title | escape }}" aria-pressed="false">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+              </button>
+            {%- endif -%}
+
+            {%- if img_count > 0 -%}
+              {%- for img in product.images limit: img_count -%}
+                {%- assign is_first_img = forloop.first -%}
+                <img
+                  class="apex-img{% if is_first_img %} is-active{% endif %}"
+                  data-img-idx="{{ forloop.index0 }}"
+                  src="{{ img | image_url: width: 600 }}"
+                  srcset="{{ img | image_url: width: 320 }} 320w,
+                          {{ img | image_url: width: 480 }} 480w,
+                          {{ img | image_url: width: 600 }} 600w,
+                          {{ img | image_url: width: 800 }} 800w,
+                          {{ img | image_url: width: 1000 }} 1000w"
+                  sizes="(max-width: 768px) {{ 100 | divided_by: section.settings.mb_cols }}vw, {{ 100 | divided_by: section.settings.pc_cols }}vw"
+                  width="{{ img.width }}"
+                  height="{{ img.height }}"
+                  alt="{% if is_first_img %}{{ img.alt | default: product.title | escape }}{% endif %}"
+                  loading="{% if is_first_img and is_eager %}eager{% else %}lazy{% endif %}"
+                  {% if is_first_img and is_eager %}fetchpriority="high"{% endif %}
+                  decoding="async"
+                  {% unless is_first_img %}aria-hidden="true"{% endunless %}>
+              {%- endfor -%}
+
+              {%- if img_count > 1 -%}
+                <span class="apex-counter" data-apex-counter aria-hidden="true">1/{{ img_count }}</span>
+                <button type="button" class="apex-arrow apex-arrow-prev" data-apex-img-prev aria-label="Previous image">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+                </button>
+                <button type="button" class="apex-arrow apex-arrow-next" data-apex-img-next aria-label="Next image">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+                <div class="apex-dots" data-apex-dots role="tablist" aria-label="Product images">
+                  {%- for img in product.images limit: img_count -%}
+                    <button type="button"
+                      class="apex-dot{% if forloop.first %} is-active{% endif %}"
+                      data-apex-dot="{{ forloop.index0 }}"
+                      role="tab"
+                      aria-label="Image {{ forloop.index }}"
+                      aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"></button>
+                  {%- endfor -%}
+                </div>
+              {%- endif -%}
+            {%- endif -%}
+
+            {%- if section.settings.show_quick_add and product.available -%}
+              <button type="button" class="apex-qa"
+                data-apex-qa="{{ product.id }}"
+                data-handle="{{ product.handle }}"
+                data-variants="{{ product.variants.size }}"
+                data-first-vid="{{ first_var.id }}"
+                aria-label="Add {{ product.title | escape }} to cart">
+                <svg class="apex-qa-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <line x1="12" y1="5" x2="12" y2="19"/>
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                <span class="apex-qa-spinner" aria-hidden="true"></span>
+              </button>
+            {%- endif -%}
+          </div>
+
+          <div class="apex-info">
+            {%- for block in section.blocks -%}
+              {%- case block.type -%}
+                {%- when '@app' -%}
+                  {% render block %}
+                {%- when 'title' -%}
+                  <a href="{{ product.url }}" class="apex-title">{{ product.title }}</a>
+                {%- when 'rating' -%}
+                  {%- comment %}
+                    Judge.me direct render with product.id — works whether or not the
+                    @app block is configured. Judge.me's auto-install JS finds these
+                    divs and injects star widgets. Same pattern used by Dawn.
+                  {%- endcomment %}
+                  <div class="apex-rating">
+                    <div class="jdgm-widget jdgm-preview-badge"
+                         data-id="{{ product.id }}"
+                         data-template="index"></div>
+                  </div>
+                {%- when 'swatches' -%}
+                  {%- if color_opt_idx > 0 -%}
+                    {%- assign color_idx = color_opt_idx | minus: 1 -%}
+                    {%- assign color_opt = product.options_with_values[color_idx] -%}
+                    {%- assign max_sw = section.settings.max_swatches | default: 4 -%}
+                    <div class="apex-swatches" aria-label="Available colors">
+                      {%- for val in color_opt.values limit: max_sw -%}
+                        {%- comment %} Find first available variant matching this color value {%- endcomment -%}
+                        {%- assign sw_vid = nil -%}
+                        {%- assign sw_img = nil -%}
+                        {%- for v in product.variants -%}
+                          {%- assign v_color = v.options[color_idx] -%}
+                          {%- if v_color == val -%}
+                            {%- if v.available and sw_vid == nil -%}
+                              {%- assign sw_vid = v.id -%}
+                              {%- if v.featured_image -%}
+                                {%- assign sw_img = v.featured_image | image_url: width: 600 -%}
+                              {%- endif -%}
+                            {%- elsif sw_vid == nil -%}
+                              {%- assign sw_vid = v.id -%}
+                              {%- if v.featured_image -%}
+                                {%- assign sw_img = v.featured_image | image_url: width: 600 -%}
+                              {%- endif -%}
+                            {%- endif -%}
+                          {%- endif -%}
+                        {%- endfor -%}
+                        <a href="{{ product.url }}?variant={{ sw_vid }}"
+                           class="apex-sw"
+                           title="{{ val }}"
+                           aria-label="{{ val }}"
+                           {% if sw_img %}data-img="{{ sw_img }}"{% endif %}
+                           style="background-color: {{ val | handle }};"></a>
+                      {%- endfor -%}
+                      {%- if color_opt.values.size > max_sw -%}
+                        <span class="apex-sw-more">+{{ color_opt.values.size | minus: max_sw }}</span>
+                      {%- endif -%}
+                    </div>
+                  {%- endif -%}
+                {%- when 'price' -%}
+                  <div class="apex-price-row">
+                    <span class="apex-price{% if on_sale %} is-sale{% endif %}">{{ product.price | money }}</span>
+                    {%- if on_sale -%}
+                      <span class="apex-price-was">{{ product.compare_at_price | money }}</span>
+                      {%- if section.settings.show_savings -%}
+                        <span class="apex-savings">Save {{ savings | money_without_trailing_zeros }}</span>
+                      {%- endif -%}
+                    {%- endif -%}
+                  </div>
+              {%- endcase -%}
+            {%- endfor -%}
+          </div>
+        </div>
+        {%- endfor -%}
+      </div>
+
+      {%- if paginate.next -%}
+        <div id="ApexSentinel-{{ sid }}" data-next-url="{{ paginate.next.url }}" class="apex-status-{{ sid }}">
+          <span class="apex-status-text">Discovering more</span>
+          <div class="apex-pulse"></div>
+        </div>
+      {%- endif -%}
+    {%- endpaginate -%}
+
+  {%- endif -%}
+
+  <button id="ApexAscend-{{ sid }}" type="button" aria-label="Back to top">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>
+  </button>
+</div>
+
+{%- comment %} Toast + Variant drawer (rendered once per section) {%- endcomment %}
+<div class="apex-toast-{{ sid }}" id="ApexToast-{{ sid }}" role="status" aria-live="polite">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="ApexToastText-{{ sid }}">Added to cart</span>
+  <a href="{{ routes.cart_url }}">View bag</a>
+</div>
+<div class="apex-drawer-bd-{{ sid }}" id="ApexDrawerBd-{{ sid }}" aria-hidden="true"></div>
+<div class="apex-drawer-{{ sid }}" id="ApexDrawer-{{ sid }}" role="dialog" aria-modal="true" aria-labelledby="ApexDrTitle-{{ sid }}" aria-hidden="true">
+  <div class="apex-dr-handle" aria-hidden="true"></div>
+  <div class="apex-dr-head">
+    <h3 class="apex-dr-title" id="ApexDrTitle-{{ sid }}">Select options</h3>
+    <button type="button" class="apex-dr-close" id="ApexDrClose-{{ sid }}" aria-label="Close">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="apex-dr-body" id="ApexDrBody-{{ sid }}"></div>
+  <div class="apex-dr-foot">
+    <button type="button" class="apex-dr-cta" id="ApexDrCta-{{ sid }}" disabled>
+      <span class="apex-dr-cta-text">Add to cart</span>
+    </button>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var SID    = '{{ sid }}';
+  var ROOT   = document.getElementById('ApexZenith-' + SID);
+  if (!ROOT) return;
+
+  var grid     = document.getElementById('ApexGrid-' + SID);
+  var sentinel = document.getElementById('ApexSentinel-' + SID);
+  var ascend   = document.getElementById('ApexAscend-' + SID);
+  var toast    = document.getElementById('ApexToast-' + SID);
+  var toastTxt = document.getElementById('ApexToastText-' + SID);
+  var drawer   = document.getElementById('ApexDrawer-' + SID);
+  var drawerBd = document.getElementById('ApexDrawerBd-' + SID);
+  var drClose  = document.getElementById('ApexDrClose-' + SID);
+  var drBody   = document.getElementById('ApexDrBody-' + SID);
+  var drTitle  = document.getElementById('ApexDrTitle-' + SID);
+  var drCta    = document.getElementById('ApexDrCta-' + SID);
+
+  /* ───────────── Toast ───────────── */
+  var toastTimer;
+  function showToast(msg) {
+    if (!toast) return;
+    /* Strict: only accept clean strings. Reject "[object Object]" and other coerced junk. */
+    var text;
+    if (typeof msg === 'string' && msg.length && msg.indexOf('[object') === -1) {
+      text = msg;
+    } else {
+      text = 'Added to cart';
+    }
+    toastTxt.textContent = text;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 3200);
+  }
+
+  /* Extract a clean string from any Shopify cart error shape */
+  function getCartErrMsg(err) {
+    if (!err) return 'Could not add to cart';
+    if (typeof err === 'string' && err.indexOf('[object') === -1) return err;
+    if (typeof err.description === 'string' && err.description.indexOf('[object') === -1) return err.description;
+    if (typeof err.message === 'string' && err.message.indexOf('[object') === -1) return err.message;
+    if (err.errors) {
+      if (typeof err.errors === 'string') return err.errors;
+      if (Array.isArray(err.errors) && typeof err.errors[0] === 'string') return err.errors[0];
+      if (typeof err.errors === 'object') {
+        var k = Object.keys(err.errors)[0];
+        var v = err.errors[k];
+        if (typeof v === 'string') return v;
+        if (Array.isArray(v) && typeof v[0] === 'string') return v[0];
+      }
+    }
+    return 'Could not add to cart';
+  }
+
+  /* ───────────── Cart helpers ───────────── */
+  function addToCart(variantId, qty, btn) {
+    var fd = new FormData();
+    fd.append('id', variantId);
+    fd.append('quantity', qty || 1);
+
+    return fetch('/cart/add.js', {
+      method: 'POST',
+      headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      body: fd
+    }).then(function (r) {
+      if (!r.ok) return r.json().then(function (e) { throw e; });
+      return r.json();
+    }).then(function (data) {
+      if (btn) {
+        btn.classList.remove('is-loading');
+        btn.classList.add('is-added');
+        setTimeout(function () { btn.classList.remove('is-added'); }, 1800);
+      }
+      /* Notify other cart widgets */
+      document.dispatchEvent(new CustomEvent('cart:refresh', { detail: data }));
+      document.dispatchEvent(new CustomEvent('apex:added', { detail: data }));
+      showToast('Added to cart');
+      return data;
+    }).catch(function (err) {
+      if (btn) btn.classList.remove('is-loading');
+      showToast(getCartErrMsg(err));
+      throw err;
+    });
+  }
+
+  /* ───────────── Quick add ───────────── */
+  function fetchProductJson(handle) {
+    return fetch('/products/' + handle + '.js', {
+      headers: { 'Accept': 'application/json' }
+    }).then(function (r) { return r.json(); });
+  }
+
+  /* Module-scoped drawer state — listeners registered ONCE below */
+  var drState = { product: null, sel: {}, sourceBtn: null };
+
+  function findDrVariant() {
+    if (!drState.product) return null;
+    return drState.product.variants.find(function (v) {
+      return Object.keys(drState.sel).every(function (idxStr) {
+        var idx = parseInt(idxStr, 10);
+        return getVariantOptVal(v, idx) === drState.sel[idx];
+      });
+    });
+  }
+
+  function renderDrSelections() {
+    if (!drState.product) return;
+    drBody.querySelectorAll('.apex-dr-opts').forEach(function (wrap) {
+      var idx = parseInt(wrap.getAttribute('data-opt'), 10);
+      wrap.querySelectorAll('.apex-dr-opt').forEach(function (btn) {
+        var val = btn.getAttribute('data-val');
+        btn.classList.toggle('on', drState.sel[idx] === val);
+        /* Grey out values that produce no available variant given current other selections */
+        var match = drState.product.variants.find(function (v) {
+          if (getVariantOptVal(v, idx) !== val) return false;
+          return Object.keys(drState.sel).every(function (sIdxStr) {
+            var sIdx = parseInt(sIdxStr, 10);
+            if (sIdx === idx) return true;
+            return drState.sel[sIdx] == null || getVariantOptVal(v, sIdx) === drState.sel[sIdx];
+          });
+        });
+        btn.disabled = !match || !match.available;
+      });
+    });
+    var v = findDrVariant();
+    var ctaText = drCta.querySelector('.apex-dr-cta-text');
+    if (v && v.available) {
+      drCta.disabled = false;
+      ctaText.textContent = 'Add to cart · ' + formatMoney(v.price);
+      drCta.setAttribute('data-vid', String(v.id));
+    } else {
+      drCta.disabled = true;
+      ctaText.textContent = v ? 'Sold out' : 'Select options';
+      drCta.removeAttribute('data-vid');
+    }
+  }
+
+  /* ONCE: drawer body delegated click */
+  drBody.addEventListener('click', function (e) {
+    var btn = e.target.closest('.apex-dr-opt');
+    if (!btn || btn.disabled) return;
+    var wrap = btn.closest('.apex-dr-opts');
+    if (!wrap) return;
+    var idx = parseInt(wrap.getAttribute('data-opt'), 10);
+    drState.sel[idx] = btn.getAttribute('data-val');
+    renderDrSelections();
+  });
+
+  /* ONCE: drawer CTA */
+  drCta.addEventListener('click', function () {
+    var vid = drCta.getAttribute('data-vid');
+    if (!vid || drCta.disabled) return;
+    drCta.classList.add('is-loading');
+    drCta.disabled = true;
+    var src = drState.sourceBtn;
+    addToCart(vid, 1, null).then(function () {
+      closeDrawer();
+      if (src) {
+        src.classList.add('is-added');
+        setTimeout(function () { src.classList.remove('is-added'); }, 1800);
+      }
+    }).catch(function () {}).then(function () {
+      drCta.classList.remove('is-loading');
+      drCta.disabled = false;
+    });
+  });
+
+  /* Shopify can return options as either ["Color","Size"] (strings)
+     OR [{name:"Color",values:[...],position:1}, ...] (objects).
+     This getter handles both. */
+  function getOptName(opt) {
+    if (typeof opt === 'string') return opt;
+    if (opt && typeof opt.name === 'string') return opt.name;
+    return '';
+  }
+
+  /* Variant option values: prefer v.options[i] but fall back to v['option' + (i+1)] */
+  function getVariantOptVal(variant, idx) {
+    if (variant.options && typeof variant.options[idx] === 'string') return variant.options[idx];
+    var keyed = variant['option' + (idx + 1)];
+    if (typeof keyed === 'string') return keyed;
+    return '';
+  }
+
+  function openDrawer(product, sourceBtn) {
+    drState.product = product;
+    drState.sel = {};
+    drState.sourceBtn = sourceBtn || null;
+
+    drTitle.textContent = product.title || '';
+    drBody.innerHTML = '';
+
+    var optionsList = product.options || [];
+    /* Filter out the implicit "Title" option Shopify adds when a product has no real options */
+    var realOptions = optionsList.filter(function (o) {
+      var n = getOptName(o);
+      return n && n.toLowerCase() !== 'title';
+    });
+    var hasMulti = realOptions.length > 0 && product.variants && product.variants.length > 1;
+
+    if (!hasMulti) {
+      /* Single variant — add directly, no drawer */
+      var firstVar = product.variants && product.variants[0];
+      if (firstVar) addToCart(firstVar.id, 1, sourceBtn);
+      return;
+    }
+
+    optionsList.forEach(function (opt, optIdx) {
+      var optName = getOptName(opt);
+      if (!optName || optName.toLowerCase() === 'title') return;
+
+      var label = document.createElement('p');
+      label.className = 'apex-dr-opt-label';
+      label.textContent = optName;
+      drBody.appendChild(label);
+
+      var wrap = document.createElement('div');
+      wrap.className = 'apex-dr-opts';
+      wrap.setAttribute('data-opt', String(optIdx));
+
+      /* Collect unique string values for this option position */
+      var values = [];
+      product.variants.forEach(function (v) {
+        var val = getVariantOptVal(v, optIdx);
+        if (val && values.indexOf(val) === -1) values.push(val);
+      });
+
+      values.forEach(function (val) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'apex-dr-opt';
+        btn.textContent = val;
+        btn.setAttribute('data-val', val);
+        wrap.appendChild(btn);
+      });
+      drBody.appendChild(wrap);
+    });
+
+    /* Pre-select first available variant */
+    var firstAvail = product.variants.find(function (v) { return v.available; }) || product.variants[0];
+    if (firstAvail) {
+      optionsList.forEach(function (_, idx) {
+        var v = getVariantOptVal(firstAvail, idx);
+        if (v) drState.sel[idx] = v;
+      });
+      renderDrSelections();
+    }
+
+    drawer.classList.add('open');
+    drawerBd.classList.add('open');
+    drawer.setAttribute('aria-hidden', 'false');
+    drawerBd.setAttribute('aria-hidden', 'false');
+    document.documentElement.style.overflow = 'hidden';
+
+    /* Save outer focus to restore on close */
+    drState.lastFocus = document.activeElement;
+    /* Focus first option (or CTA if no options) — improves keyboard a11y */
+    setTimeout(function () {
+      var first = drBody.querySelector('.apex-dr-opt:not(:disabled)') || drCta;
+      if (first && first.focus) first.focus({ preventScroll: true });
+    }, 360);
+  }
+
+  /* Focus trap inside drawer */
+  drawer.addEventListener('keydown', function (e) {
+    if (e.key !== 'Tab' || !drawer.classList.contains('open')) return;
+    var focusable = drawer.querySelectorAll('button:not(:disabled), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    if (!focusable.length) return;
+    var first = focusable[0];
+    var last  = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  });
+
+  function closeDrawer() {
+    drawer.classList.remove('open');
+    drawerBd.classList.remove('open');
+    drawer.setAttribute('aria-hidden', 'true');
+    drawerBd.setAttribute('aria-hidden', 'true');
+    document.documentElement.style.overflow = '';
+    /* Clear state so re-opens with a different product start fresh */
+    drState.product = null;
+    drState.sel = {};
+    drState.sourceBtn = null;
+    drBody.innerHTML = '';
+    drCta.disabled = true;
+    drCta.removeAttribute('data-vid');
+    var lbl = drCta.querySelector('.apex-dr-cta-text');
+    if (lbl) lbl.textContent = 'Add to cart';
+    /* Restore focus to the element that opened the drawer */
+    if (drState.lastFocus && drState.lastFocus.focus) {
+      try { drState.lastFocus.focus({ preventScroll: true }); } catch (e) {}
+    }
+  }
+  if (drClose)  drClose.addEventListener('click', closeDrawer);
+  if (drawerBd) drawerBd.addEventListener('click', closeDrawer);
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && drawer.classList.contains('open')) closeDrawer();
+  });
+
+  /* Money formatter — JSON-safe injection */
+  var moneyFmt = {{ shop.money_format | json }};
+  function formatMoney(cents) {
+    var n = (cents / 100).toFixed(2);
+    return moneyFmt.replace(/\{\{\s*amount\s*\}\}/g, n)
+                   .replace(/\{\{\s*amount_no_decimals\s*\}\}/g, Math.round(cents / 100))
+                   .replace(/\{\{\s*amount_with_comma_separator\s*\}\}/g, n.replace('.', ','))
+                   .replace(/\{\{\s*amount_no_decimals_with_comma_separator\s*\}\}/g, Math.round(cents / 100));
+  }
+
+  /* ───────────── Delegated card click handlers ───────────── */
+  /* ─────────── Image switcher utility ─────────── */
+  function switchImage(media, target) {
+    var imgs = media.querySelectorAll('.apex-img');
+    var dots = media.querySelectorAll('[data-apex-dot]');
+    var counter = media.querySelector('[data-apex-counter]');
+    if (imgs.length < 2) return;
+
+    var current = 0;
+    for (var i = 0; i < imgs.length; i++) {
+      if (imgs[i].classList.contains('is-active')) { current = i; break; }
+    }
+    var idx;
+    if (target === 'prev') idx = (current - 1 + imgs.length) % imgs.length;
+    else if (target === 'next') idx = (current + 1) % imgs.length;
+    else idx = target;
+    if (idx == null || idx === current || idx < 0 || idx >= imgs.length) return;
+
+    imgs[current].classList.remove('is-active');
+    imgs[idx].classList.add('is-active');
+    if (dots[current]) { dots[current].classList.remove('is-active'); dots[current].setAttribute('aria-selected', 'false'); }
+    if (dots[idx])     { dots[idx].classList.add('is-active');         dots[idx].setAttribute('aria-selected', 'true');  }
+    if (counter) counter.textContent = (idx + 1) + '/' + imgs.length;
+  }
+
+  /* ─────────── Card enhancements (idempotent — safe to re-run on appended items) ─────────── */
+  var SWIPE_THRESHOLD = 30;
+  var prefetched = {};
+  var canHover = window.matchMedia && window.matchMedia('(hover: hover)').matches;
+  var saveData = navigator.connection && navigator.connection.saveData === true;
+
+  function prefetchUrl(url) {
+    if (!url || prefetched[url]) return;
+    prefetched[url] = 1;
+    try {
+      var link = document.createElement('link');
+      link.rel = 'prefetch';
+      link.href = url;
+      link.as = 'document';
+      document.head.appendChild(link);
+    } catch (e) {}
+  }
+
+  function enhanceCards(scope) {
+    var root = scope || ROOT;
+
+    /* Touch swipe on each media block */
+    root.querySelectorAll('.apex-media').forEach(function (media) {
+      if (media.dataset.apexEnhanced) return;
+      var imgs = media.querySelectorAll('.apex-img');
+      if (imgs.length < 2) { media.dataset.apexEnhanced = '1'; return; }
+
+      var startX = 0, startY = 0, deltaX = 0, deltaY = 0, tracking = false;
+      media.addEventListener('touchstart', function (e) {
+        if (e.touches.length !== 1) return;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        deltaX = 0; deltaY = 0;
+        tracking = true;
+      }, { passive: true });
+      media.addEventListener('touchmove', function (e) {
+        if (!tracking || e.touches.length !== 1) return;
+        deltaX = e.touches[0].clientX - startX;
+        deltaY = e.touches[0].clientY - startY;
+        if (Math.abs(deltaY) > Math.abs(deltaX) * 1.5) tracking = false;
+      }, { passive: true });
+      media.addEventListener('touchend', function () {
+        if (!tracking) return;
+        tracking = false;
+        if (Math.abs(deltaX) >= SWIPE_THRESHOLD && Math.abs(deltaX) > Math.abs(deltaY)) {
+          switchImage(media, deltaX < 0 ? 'next' : 'prev');
+        }
+      }, { passive: true });
+
+      media.dataset.apexEnhanced = '1';
+    });
+
+    /* Predictive prefetch on sustained hover (desktop, non-data-saver) */
+    if (canHover && !saveData) {
+      root.querySelectorAll('.apex-card').forEach(function (card) {
+        if (card.dataset.apexPrefetch) return;
+        var link = card.querySelector('.apex-link');
+        if (!link) { card.dataset.apexPrefetch = '1'; return; }
+        var hoverTimer;
+        card.addEventListener('mouseenter', function () {
+          clearTimeout(hoverTimer);
+          hoverTimer = setTimeout(function () { prefetchUrl(link.href); }, 250);
+        });
+        card.addEventListener('mouseleave', function () { clearTimeout(hoverTimer); });
+        card.dataset.apexPrefetch = '1';
+      });
+    }
+
+    /* Color-swatch hover swaps card image */
+    root.querySelectorAll('.apex-swatches').forEach(function (sw) {
+      if (sw.dataset.apexSwatch) return;
+      var card = sw.closest('.apex-card');
+      if (!card) { sw.dataset.apexSwatch = '1'; return; }
+      var media = card.querySelector('.apex-media');
+      if (!media) { sw.dataset.apexSwatch = '1'; return; }
+
+      sw.addEventListener('mouseover', function (e) {
+        var btn = e.target.closest('.apex-sw');
+        if (!btn) return;
+        var imgUrl = btn.getAttribute('data-img');
+        if (!imgUrl) return;
+        var tmp = media.querySelector('[data-apex-swatch-preview]');
+        if (!tmp) {
+          tmp = document.createElement('img');
+          tmp.className = 'apex-img';
+          tmp.setAttribute('data-apex-swatch-preview', '');
+          tmp.style.zIndex = '2';
+          tmp.loading = 'lazy';
+          tmp.decoding = 'async';
+          media.insertBefore(tmp, media.firstChild);
+        }
+        tmp.src = imgUrl;
+        requestAnimationFrame(function () { tmp.classList.add('is-active'); });
+      });
+      sw.addEventListener('mouseleave', function () {
+        var tmp = media.querySelector('[data-apex-swatch-preview]');
+        if (tmp) tmp.classList.remove('is-active');
+      });
+
+      sw.dataset.apexSwatch = '1';
+    });
+  }
+  enhanceCards();
+
+  /* ─────────── Keyboard nav (arrows when card focused) — delegated, works for new cards too ─────────── */
+  ROOT.addEventListener('keydown', function (e) {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    var card = e.target.closest('.apex-card');
+    if (!card) return;
+    var tag = (e.target.tagName || '').toLowerCase();
+    if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+    var media = card.querySelector('.apex-media');
+    if (!media) return;
+    e.preventDefault();
+    switchImage(media, e.key === 'ArrowLeft' ? 'prev' : 'next');
+  });
+
+  ROOT.addEventListener('click', function (e) {
+    var qa = e.target.closest('[data-apex-qa]');
+    if (qa) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (qa.classList.contains('is-loading')) return;
+
+      var variantCount = parseInt(qa.getAttribute('data-variants'), 10);
+      var firstVid     = qa.getAttribute('data-first-vid');
+      var handle       = qa.getAttribute('data-handle');
+
+      /* Single-variant: add directly */
+      if (variantCount === 1 && firstVid) {
+        qa.classList.add('is-loading');
+        addToCart(firstVid, 1, qa);
+        return;
+      }
+      /* Multi-variant: open drawer */
+      qa.classList.add('is-loading');
+      fetchProductJson(handle).then(function (product) {
+        qa.classList.remove('is-loading');
+        openDrawer(product, qa);
+      }).catch(function () {
+        qa.classList.remove('is-loading');
+        showToast('Could not load options');
+      });
+      return;
+    }
+
+    /* Image switcher — dot, prev/next */
+    var dot = e.target.closest('[data-apex-dot]');
+    var prev = e.target.closest('[data-apex-img-prev]');
+    var next = e.target.closest('[data-apex-img-next]');
+    if (dot || prev || next) {
+      e.preventDefault();
+      e.stopPropagation();
+      var media = (dot || prev || next).closest('.apex-media');
+      if (!media) return;
+      if (dot)  switchImage(media, parseInt(dot.getAttribute('data-apex-dot'), 10));
+      if (prev) switchImage(media, 'prev');
+      if (next) switchImage(media, 'next');
+      return;
+    }
+
+    var wish = e.target.closest('[data-apex-wish]');
+    if (wish) {
+      e.preventDefault();
+      e.stopPropagation();
+      var handle = wish.getAttribute('data-apex-wish');
+      if (!handle) return;
+
+      /* Use the notch's global API if available — otherwise fall back to direct storage */
+      if (window.ApexFavorites) {
+        window.ApexFavorites.toggle(handle);
+        var nowSaved = window.ApexFavorites.has(handle);
+        wish.classList.toggle('is-saved', nowSaved);
+        wish.setAttribute('aria-pressed', nowSaved ? 'true' : 'false');
+      } else {
+        /* Standalone fallback — same key/event as the notch so it picks up later */
+        var saved = wish.classList.toggle('is-saved');
+        wish.setAttribute('aria-pressed', saved ? 'true' : 'false');
+        try {
+          var FAV_KEY = 'apex_favs_v1';
+          var list = JSON.parse(localStorage.getItem(FAV_KEY) || '[]');
+          if (!Array.isArray(list)) list = [];
+          if (saved && list.indexOf(handle) === -1) list.push(handle);
+          else if (!saved) list = list.filter(function (x) { return x !== handle; });
+          localStorage.setItem(FAV_KEY, JSON.stringify(list));
+          document.dispatchEvent(new CustomEvent('apex:favorites-changed', {
+            detail: { handle: handle, action: saved ? 'add' : 'remove' }
+          }));
+        } catch (err) {}
+      }
+      return;
+    }
+  });
+
+  /* Restore favorites state from notch's storage */
+  function applyFavState() {
+    try {
+      var savedList = JSON.parse(localStorage.getItem('apex_favs_v1') || '[]');
+      if (!Array.isArray(savedList)) savedList = [];
+      ROOT.querySelectorAll('[data-apex-wish]').forEach(function (btn) {
+        var handle = btn.getAttribute('data-apex-wish');
+        var on = savedList.indexOf(handle) !== -1;
+        btn.classList.toggle('is-saved', on);
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+    } catch (e) {}
+  }
+  applyFavState();
+  /* Re-sync when notch (or another tab) changes favorites */
+  document.addEventListener('apex:favorites-changed', applyFavState);
+  window.addEventListener('storage', function (e) {
+    if (e.key === 'apex_favs_v1') applyFavState();
+  });
+
+  /* ───────────── Infinite scroll ───────────── */
+  if (sentinel && grid) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (ent) {
+        if (ent.isIntersecting && !sentinel.classList.contains('is-loading')) loadNext();
+      });
+    }, { rootMargin: '600px' });
+
+    function loadNext() {
+      sentinel.classList.add('is-loading');
+      var nextUrl = sentinel.getAttribute('data-next-url');
+
+      /* 12s timeout via AbortController */
+      var ctrl, timer;
+      var fetchOpts = { headers: { 'X-Requested-With': 'XMLHttpRequest' }};
+      if (typeof AbortController !== 'undefined') {
+        ctrl = new AbortController();
+        fetchOpts.signal = ctrl.signal;
+        timer = setTimeout(function () { try { ctrl.abort(); } catch (e) {} }, 12000);
+      }
+
+      fetch(nextUrl, fetchOpts)
+        .then(function (r) {
+          if (timer) clearTimeout(timer);
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.text();
+        })
+        .then(function (html) {
+          var doc = new DOMParser().parseFromString(html, 'text/html');
+          var items = doc.querySelectorAll('#' + grid.id + ' > *');
+          var nextSent = doc.getElementById(sentinel.id);
+
+          /* Re-trigger Judge.me + other apps after injection */
+          items.forEach(function (item) { grid.appendChild(item); });
+
+          /* Re-attach touch swipe / prefetch / swatch hover to new cards */
+          enhanceCards(grid);
+
+          if (nextSent) {
+            sentinel.setAttribute('data-next-url', nextSent.getAttribute('data-next-url'));
+            sentinel.classList.remove('is-loading');
+          } else {
+            sentinel.innerHTML = '<span class="apex-status-text">All products loaded</span>';
+            io.disconnect();
+          }
+
+          /* Restore favorites state on new items */
+          applyFavState();
+
+          /* Re-init Judge.me on new items if available */
+          if (window.jdgm && typeof window.jdgm.SHOP_DOMAIN !== 'undefined') {
+            try { window.jdgm.customizeBadges && window.jdgm.customizeBadges(); } catch (e) {}
+            try { window.jdgm.docReady && window.jdgm.docReady(); } catch (e) {}
+          }
+          /* Re-render Yotpo / Stamped / Reviews.io if present */
+          if (window.yotpo && window.yotpo.refreshWidgets) try { window.yotpo.refreshWidgets(); } catch (e) {}
+          document.dispatchEvent(new CustomEvent('apex:appended', { detail: { count: items.length }}));
+        })
+        .catch(function () { sentinel.classList.remove('is-loading'); });
+    }
+    io.observe(sentinel);
+  }
+
+  /* ───────────── Ascend button ───────────── */
+  var ascendVisible = false;
+  var ticking = false;
+  function onScroll() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(function () {
+      var v = window.scrollY > 800;
+      if (v !== ascendVisible) {
+        ascend.classList.toggle('is-visible', v);
+        ascendVisible = v;
+      }
+      ticking = false;
+    });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  if (ascend) ascend.addEventListener('click', function () {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Apex Zenith Master V15",
+  "max_blocks": 12,
+  "settings": [
+    { "type": "header", "content": "Layout" },
+    { "type": "range", "id": "page_limit", "label": "Products per page", "min": 4, "max": 48, "step": 4, "default": 12 },
+    { "type": "range", "id": "pc_cols",    "label": "Desktop columns",   "min": 2, "max": 6, "step": 1, "default": 4 },
+    { "type": "range", "id": "mb_cols",    "label": "Mobile columns",    "min": 1, "max": 3, "step": 1, "default": 2 },
+    { "type": "range", "id": "max_w",      "label": "Max width",         "min": 800, "max": 1600, "step": 50, "default": 1300 },
+    { "type": "range", "id": "gap",        "label": "Card gap",          "min": 6, "max": 50, "step": 2, "default": 16 },
+    { "type": "range", "id": "p_v",        "label": "Vertical padding",  "min": 0, "max": 100, "step": 5, "default": 40 },
+    { "type": "range", "id": "rd",         "label": "Image rounding",    "min": 0, "max": 40, "step": 2, "default": 4 },
+    { "type": "select", "id": "ratio", "label": "Image ratio",
+      "options": [
+        { "value": "1/1", "label": "Square" },
+        { "value": "3/4", "label": "Portrait (3:4)" },
+        { "value": "4/5", "label": "Portrait (4:5)" },
+        { "value": "4/3", "label": "Landscape" }
+      ], "default": "1/1" },
+
+    { "type": "header", "content": "Colors" },
+    { "type": "color", "id": "ac",         "label": "Accent",     "default": "#111111" },
+    { "type": "color", "id": "sale_color", "label": "Sale color", "default": "#c8102e" },
+
+    { "type": "header", "content": "Conversion Features" },
+    { "type": "checkbox", "id": "show_quick_add", "label": "Show quick-add (+) button", "default": true },
+    { "type": "checkbox", "id": "show_wishlist",  "label": "Show wishlist heart",       "default": true },
+    { "type": "checkbox", "id": "show_savings",   "label": "Show 'Save $X' on sale items", "default": true },
+    { "type": "range",    "id": "low_stock_threshold", "label": "Low stock threshold", "min": 0, "max": 20, "step": 1, "default": 5,
+      "info": "Show 'Only X left' badge when inventory ≤ this. 0 = disabled." },
+    { "type": "range",    "id": "new_hours", "label": "Hours a product counts as 'New'", "min": 0, "max": 200, "step": 2, "unit": "h", "default": 24,
+      "info": "0 = disabled. 24 = last day, 168 = last week. Compares against product creation date." },
+    { "type": "range",    "id": "max_card_images", "label": "Max images per card", "min": 1, "max": 8, "step": 1, "default": 4,
+      "info": "How many product images render per card with switcher dots. Higher = more options to swipe through but heavier page weight." },
+    { "type": "range",    "id": "max_swatches", "label": "Max color swatches shown", "min": 2, "max": 8, "step": 1, "default": 4 }
+  ],
+  "blocks": [
+    { "type": "@app" },
+    { "type": "title",    "name": "Title",       "limit": 1 },
+    { "type": "rating",   "name": "Rating (Judge.me)", "limit": 1 },
+    { "type": "price",    "name": "Price",       "limit": 1 },
+    { "type": "swatches", "name": "Color swatches", "limit": 1 }
+  ],
+  "presets": [
+    { "name": "Apex Zenith V15",
+      "blocks": [
+        { "type": "title" },
+        { "type": "rating" },
+        { "type": "price" }
+      ]
+    }
+  ]
+}
+{% endschema %}

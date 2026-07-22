@@ -1,0 +1,826 @@
+{%- comment -%}
+  SOVEREIGN TRUST BANNER
+  Minimalist | Vertical Carousel | Overlay Mode | Timer | CRO-Optimized
+  All features individually toggleable via Theme Editor.
+{%- endcomment -%}
+
+{%- liquid
+  assign msg_count = 0
+  for block in section.blocks
+    if block.type == 'message'
+      assign msg_count = msg_count | plus: 1
+    endif
+  endfor
+-%}
+
+{%- if msg_count > 0 -%}
+
+{%- style -%}
+  /* ─── Outer wrapper ─────────────────────────────────── */
+  .stb-outer-{{ section.id }} {
+    {% if section.settings.overlay_mode %}
+      position: fixed;
+      {% if section.settings.overlay_position == 'top' %}
+        top: {{ section.settings.overlay_offset }}px;
+      {% else %}
+        bottom: {{ section.settings.overlay_offset }}px;
+      {% endif %}
+      left: {{ section.settings.overlay_h_offset }}%;
+      -webkit-transform: translateX(-{{ section.settings.overlay_h_offset }}%);
+              transform: translateX(-{{ section.settings.overlay_h_offset }}%);
+      width: {{ section.settings.overlay_width }}px;
+      max-width: calc(100vw - 24px);
+      z-index: {{ section.settings.overlay_z_index }};
+    {% else %}
+      margin: {{ section.settings.margin_v }}px auto;
+    {% endif %}
+    -webkit-transition: opacity 0.28s ease, -webkit-transform 0.28s ease;
+            transition: opacity 0.28s ease, transform 0.28s ease;
+  }
+
+  .stb-outer-{{ section.id }}.stb-gone {
+    opacity: 0 !important;
+    pointer-events: none;
+    -webkit-transform: {% if section.settings.overlay_mode %}translateX(-{{ section.settings.overlay_h_offset }}%) translateY(8px){% else %}translateY(4px){% endif %};
+            transform: {% if section.settings.overlay_mode %}translateX(-{{ section.settings.overlay_h_offset }}%) translateY(8px){% else %}translateY(4px){% endif %};
+  }
+
+  /* ─── Card ───────────────────────────────────────────── */
+  .stb-card-{{ section.id }} {
+    background: {{ section.settings.bg_color }};
+    border-radius: {{ section.settings.corner_radius }}px;
+    padding: {{ section.settings.pad_v }}px {{ section.settings.pad_h }}px;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+        -ms-flex-align: center;
+            align-items: center;
+    gap: 12px;
+    position: relative;
+    font-family: var(--font-body-family, sans-serif);
+    {% if section.settings.show_shadow %}
+      -webkit-box-shadow: 0 2px 20px rgba(0, 0, 0, 0.09);
+              box-shadow: 0 2px 20px rgba(0, 0, 0, 0.09);
+    {% endif %}
+    {% if section.settings.show_border %}
+      border: 1px solid rgba(0, 0, 0, 0.07);
+    {% endif %}
+  }
+
+  /* ─── Icon ───────────────────────────────────────────── */
+  .stb-icon-{{ section.id }} {
+    -ms-flex-negative: 0;
+        flex-shrink: 0;
+    width: {{ section.settings.icon_size }}px;
+    height: {{ section.settings.icon_size }}px;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+        -ms-flex-align: center;
+            align-items: center;
+    -webkit-box-pack: center;
+        -ms-flex-pack: center;
+            justify-content: center;
+  }
+  .stb-icon-{{ section.id }} svg,
+  .stb-icon-{{ section.id }} img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    -o-object-fit: contain;
+       object-fit: contain;
+  }
+
+  /* ─── Carousel ───────────────────────────────────────── */
+  .stb-carousel-{{ section.id }} {
+    -webkit-box-flex: 1;
+        -ms-flex: 1;
+            flex: 1;
+    overflow: hidden;
+    min-width: 0;
+    /* height injected by JS after first paint */
+  }
+
+  .stb-track-{{ section.id }} {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+        -ms-flex-direction: column;
+            flex-direction: column;
+    -webkit-transform: translateY(0);
+            transform: translateY(0);
+    will-change: transform;
+    -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+    -webkit-transition: -webkit-transform 0.42s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.42s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .stb-msg-{{ section.id }} {
+    font-size: {{ section.settings.font_size }}px;
+    color: {{ section.settings.text_color }};
+    font-weight: {{ section.settings.font_weight }};
+    line-height: 1.45;
+    white-space: nowrap;
+    overflow: hidden;
+    -o-text-overflow: ellipsis;
+       text-overflow: ellipsis;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+        -ms-flex-align: center;
+            align-items: center;
+    -ms-flex-negative: 0;
+        flex-shrink: 0;
+  }
+
+  /* ─── Separator ──────────────────────────────────────── */
+  .stb-sep-{{ section.id }} {
+    -ms-flex-negative: 0;
+        flex-shrink: 0;
+    width: 1px;
+    height: 22px;
+    background: rgba(0, 0, 0, 0.1);
+  }
+
+  /* ─── Timer ──────────────────────────────────────────── */
+  .stb-timer-{{ section.id }} {
+    -ms-flex-negative: 0;
+        flex-shrink: 0;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+        -ms-flex-direction: column;
+            flex-direction: column;
+    -webkit-box-align: end;
+        -ms-flex-align: end;
+            align-items: flex-end;
+    gap: 2px;
+  }
+
+  .stb-timer-lbl-{{ section.id }} {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.9px;
+    color: {{ section.settings.text_color }};
+    opacity: 0.5;
+    line-height: 1;
+    font-family: var(--font-body-family, sans-serif);
+  }
+
+  .stb-timer-num-{{ section.id }} {
+    font-family: monospace;
+    font-size: {{ section.settings.timer_size }}px;
+    font-weight: 600;
+    color: {{ section.settings.timer_color }};
+    letter-spacing: 0.5px;
+    line-height: 1;
+  }
+
+  /* ─── CTA Button ─────────────────────────────────────── */
+  .stb-cta-{{ section.id }} {
+    -ms-flex-negative: 0;
+        flex-shrink: 0;
+    display: -webkit-inline-box;
+    display: -ms-inline-flexbox;
+    display: inline-flex;
+    -webkit-box-align: center;
+        -ms-flex-align: center;
+            align-items: center;
+    -webkit-box-pack: center;
+        -ms-flex-pack: center;
+            justify-content: center;
+    background: {{ section.settings.btn_bg }};
+    color: {{ section.settings.btn_color }} !important;
+    border-radius: {{ section.settings.btn_radius }}px;
+    padding: {{ section.settings.btn_pad_v }}px {{ section.settings.btn_pad_h }}px;
+    font-size: {{ section.settings.font_size }}px;
+    font-weight: 600;
+    text-decoration: none !important;
+    white-space: nowrap;
+    border: none;
+    cursor: pointer;
+    line-height: 1;
+    -webkit-transition: opacity 0.18s ease;
+            transition: opacity 0.18s ease;
+    font-family: var(--font-body-family, sans-serif);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    -webkit-user-select: none;
+       -moz-user-select: none;
+        -ms-user-select: none;
+            user-select: none;
+  }
+  .stb-cta-{{ section.id }}:hover { opacity: 0.82; }
+
+  /* ─── Dismiss ────────────────────────────────────────── */
+  .stb-close-{{ section.id }} {
+    position: absolute;
+    top: 5px;
+    right: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 11px;
+    line-height: 1;
+    color: {{ section.settings.text_color }};
+    opacity: 0.3;
+    padding: 4px 5px;
+    -webkit-transition: opacity 0.18s;
+            transition: opacity 0.18s;
+    font-family: sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .stb-close-{{ section.id }}:hover { opacity: 0.65; }
+
+  /* ─── Mobile ─────────────────────────────────────────── */
+  @media (max-width: 480px) {
+    .stb-card-{{ section.id }} {
+      gap: 8px;
+      padding: {{ section.settings.pad_v | minus: 2 }}px {{ section.settings.pad_h | minus: 6 }}px;
+    }
+    .stb-msg-{{ section.id }} {
+      font-size: {{ section.settings.font_size | minus: 1 }}px;
+    }
+    .stb-cta-{{ section.id }} {
+      font-size: {{ section.settings.font_size | minus: 1 }}px;
+      padding: {{ section.settings.btn_pad_v | minus: 1 }}px {{ section.settings.btn_pad_h | minus: 4 }}px;
+    }
+    .stb-timer-num-{{ section.id }} {
+      font-size: {{ section.settings.timer_size | minus: 1 }}px;
+    }
+  }
+{%- endstyle -%}
+
+<div class="stb-outer-{{ section.id }}" id="stb-outer-{{ section.id }}">
+  <div class="stb-card-{{ section.id }}">
+
+    {%- comment -%} Dismiss button (overlay mode only) {%- endcomment -%}
+    {%- if section.settings.overlay_mode and section.settings.show_dismiss -%}
+      <button
+        class="stb-close-{{ section.id }}"
+        id="stb-close-{{ section.id }}"
+        aria-label="Dismiss"
+        type="button"
+      >&#x2715;</button>
+    {%- endif -%}
+
+    {%- comment -%} Icon {%- endcomment -%}
+    {%- if section.settings.show_icon -%}
+      <div class="stb-icon-{{ section.id }}" aria-hidden="true">
+        {%- if section.settings.custom_icon != blank -%}
+          <img
+            src="{{ section.settings.custom_icon | image_url: width: 60 }}"
+            alt=""
+            width="{{ section.settings.icon_size }}"
+            height="{{ section.settings.icon_size }}"
+            loading="lazy"
+            decoding="async"
+          >
+        {%- else -%}
+          {%- case section.settings.icon_type -%}
+            {%- when 'shield-check' -%}
+              <svg viewBox="0 0 24 24" fill="{{ section.settings.icon_color }}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5L12 1zm-1.29 12.71L7.7 10.7l1.41-1.41 1.59 1.59 4.19-4.19 1.41 1.41-5.59 5.61z"/>
+              </svg>
+            {%- when 'check-circle' -%}
+              <svg viewBox="0 0 24 24" fill="{{ section.settings.icon_color }}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+              </svg>
+            {%- when 'truck' -%}
+              <svg viewBox="0 0 24 24" fill="{{ section.settings.icon_color }}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                <path d="M20 8h-3V4H3C1.9 4 1 4.9 1 6v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9-1.96-2.5H17v2.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+              </svg>
+            {%- when 'lock' -%}
+              <svg viewBox="0 0 24 24" fill="{{ section.settings.icon_color }}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+              </svg>
+            {%- when 'star' -%}
+              <svg viewBox="0 0 24 24" fill="{{ section.settings.icon_color }}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                <path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+              </svg>
+            {%- when 'gift' -%}
+              <svg viewBox="0 0 24 24" fill="{{ section.settings.icon_color }}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                <path d="M20 6h-2.18c.07-.23.18-.45.18-.7C18 3.48 16.52 2 14.7 2c-.8 0-1.56.31-2.13.83L12 3.4l-.57-.57C10.86 2.31 10.1 2 9.3 2 7.48 2 6 3.48 6 5.3c0 .25.11.47.18.7H4c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-5.3-2.5c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9.3 3.5c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM4 13h7v9H4v-9zm9 9v-9h7v9h-7z"/>
+              </svg>
+            {%- when 'tag' -%}
+              <svg viewBox="0 0 24 24" fill="{{ section.settings.icon_color }}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                <path d="m21.41 11.58-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58s1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41s-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z"/>
+              </svg>
+          {%- endcase -%}
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    {%- comment -%} Text Carousel {%- endcomment -%}
+    <div class="stb-carousel-{{ section.id }}" id="stb-carousel-{{ section.id }}">
+      <div class="stb-track-{{ section.id }}" id="stb-track-{{ section.id }}">
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'message' -%}
+            <div class="stb-msg-{{ section.id }}" {{ block.shopify_attributes }}>
+              {{- block.settings.text -}}
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    </div>
+
+    {%- comment -%} Timer {%- endcomment -%}
+    {%- if section.settings.show_timer -%}
+      <div class="stb-sep-{{ section.id }}"></div>
+      <div class="stb-timer-{{ section.id }}">
+        <span class="stb-timer-lbl-{{ section.id }}" id="stb-tlbl-{{ section.id }}">
+          {{- section.settings.timer_label -}}
+        </span>
+        <span class="stb-timer-num-{{ section.id }}" id="stb-tnum-{{ section.id }}">--:--:--</span>
+      </div>
+    {%- endif -%}
+
+    {%- comment -%} CTA Button {%- endcomment -%}
+    {%- if section.settings.show_cta -%}
+      <div class="stb-sep-{{ section.id }}"></div>
+      <a
+        href="{{ section.settings.cta_url | default: '#' }}"
+        class="stb-cta-{{ section.id }}"
+        {%- if section.settings.cta_url == blank %} role="button" tabindex="0"{%- endif -%}
+      >{{- section.settings.cta_text -}}</a>
+    {%- endif -%}
+
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var sid = '{{ section.id }}';
+
+  /* ─── Fast integer pad — avoids padStart (Safari <9 gap) ─── */
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+  function init() {
+    /* ─── CAROUSEL ───────────────────────────────────────── */
+    var carousel = document.getElementById('stb-carousel-' + sid);
+    var track    = document.getElementById('stb-track-'    + sid);
+
+    if (track && carousel) {
+      var msgs       = Array.prototype.slice.call(track.children);
+      var msgCount   = msgs.length;
+      var current    = 0;
+      var cachedH    = 0;          /* cached slot height — read once, refresh on resize */
+      var resizeTmr  = null;
+
+      function readH() {
+        /* offsetHeight: cheaper than getBoundingClientRect, avoids forced reflow per-tick */
+        cachedH = msgs[0] ? msgs[0].offsetHeight : 0;
+        return cachedH;
+      }
+
+      function applyH() {
+        if (cachedH > 0) carousel.style.height = cachedH + 'px';
+      }
+
+      function goTo(idx) {
+        if (cachedH > 0) {
+          track.style.WebkitTransform = 'translateY(-' + (idx * cachedH) + 'px)';
+          track.style.transform       = 'translateY(-' + (idx * cachedH) + 'px)';
+        }
+      }
+
+      /* Set height after first paint — zero layout impact on initial load */
+      requestAnimationFrame(function () {
+        readH();
+        applyH();
+      });
+
+      /* Debounced resize — passive so it never blocks scroll/paint */
+      window.addEventListener('resize', function () {
+        clearTimeout(resizeTmr);
+        resizeTmr = setTimeout(function () {
+          readH();
+          applyH();
+          goTo(current);
+        }, 150);
+      }, { passive: true });
+
+      /* Carousel rotation — no DOM reads inside the interval */
+      if (msgCount > 1) {
+        setInterval(function () {
+          current = (current + 1) % msgCount;
+          goTo(current);
+        }, {{ section.settings.carousel_speed }} * 1000);
+      }
+    }
+
+    /* ─── TIMER ──────────────────────────────────────────── */
+    {% if section.settings.show_timer %}
+    var tNum = document.getElementById('stb-tnum-' + sid);
+    var tLbl = document.getElementById('stb-tlbl-' + sid);
+
+    if (tNum) {
+      var tDur = {{ section.settings.timer_seconds | default: 3600 }};
+      var tKey = 'stb_tmr_' + sid;
+      var tHandle;
+
+      var saved = null;
+      try { saved = localStorage.getItem(tKey); } catch (e) {}
+      var now = Math.floor(Date.now() / 1000);
+      if (!saved) {
+        try { localStorage.setItem(tKey, now); } catch (e) {}
+        saved = now;
+      }
+      var rem = tDur - (now - parseInt(saved, 10));
+
+      (function tick() {
+        if (rem <= 0) {
+          tNum.textContent = '{{ section.settings.expiry_text | escape }}';
+          if (tLbl) tLbl.textContent = '';
+          return;
+        }
+        tNum.textContent =
+          pad(Math.floor(rem / 3600)) + ':' +
+          pad(Math.floor((rem % 3600) / 60)) + ':' +
+          pad(rem % 60);
+        rem--;
+        tHandle = setTimeout(tick, 1000);
+      }());
+    }
+    {% endif %}
+
+    /* ─── DISMISS (overlay mode only) ───────────────────── */
+    {% if section.settings.overlay_mode and section.settings.show_dismiss %}
+    var closeBtn = document.getElementById('stb-close-' + sid);
+    var outer    = document.getElementById('stb-outer-'  + sid);
+    if (closeBtn && outer) {
+      /* { once: true } auto-removes the listener after one click */
+      closeBtn.addEventListener('click', function () {
+        outer.classList.add('stb-gone');
+      }, { once: true });
+    }
+    {% endif %}
+  }
+
+  /* ─── Boot ───────────────────────────────────────────── */
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init, { once: true });
+  } else {
+    init();
+  }
+
+  /* Re-run when Theme Editor reloads this section */
+  document.addEventListener('shopify:section:load', function (e) {
+    if (e.detail && e.detail.sectionId === sid) init();
+  });
+
+}());
+</script>
+
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Trust Banner",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Appearance"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text Color",
+      "default": "#1a1a1a"
+    },
+    {
+      "type": "range",
+      "id": "corner_radius",
+      "label": "Corner Radius",
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "pad_v",
+      "label": "Padding — Vertical",
+      "min": 6,
+      "max": 28,
+      "step": 1,
+      "default": 13
+    },
+    {
+      "type": "range",
+      "id": "pad_h",
+      "label": "Padding — Horizontal",
+      "min": 10,
+      "max": 40,
+      "step": 1,
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "margin_v",
+      "label": "Vertical Margin (Standard Mode)",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "default": 16
+    },
+    {
+      "type": "checkbox",
+      "id": "show_shadow",
+      "label": "Drop Shadow",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_border",
+      "label": "Subtle Border",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "font_size",
+      "label": "Font Size",
+      "min": 11,
+      "max": 18,
+      "step": 1,
+      "default": 14
+    },
+    {
+      "type": "select",
+      "id": "font_weight",
+      "label": "Font Weight",
+      "default": "400",
+      "options": [
+        { "value": "400", "label": "Regular"   },
+        { "value": "500", "label": "Medium"    },
+        { "value": "600", "label": "Semi-Bold" }
+      ]
+    },
+    {
+      "type": "header",
+      "content": "Overlay Mode"
+    },
+    {
+      "type": "checkbox",
+      "id": "overlay_mode",
+      "label": "Enable Overlay (fixed position)",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "overlay_position",
+      "label": "Anchor Edge",
+      "default": "bottom",
+      "options": [
+        { "value": "top",    "label": "Top"    },
+        { "value": "bottom", "label": "Bottom" }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "overlay_offset",
+      "label": "Edge Offset (px)",
+      "min": 0,
+      "max": 180,
+      "step": 4,
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "overlay_h_offset",
+      "label": "Horizontal Position (0=left  50=center  100=right)",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "overlay_width",
+      "label": "Banner Width (px)",
+      "min": 240,
+      "max": 960,
+      "step": 10,
+      "default": 480
+    },
+    {
+      "type": "range",
+      "id": "overlay_z_index",
+      "label": "Z-Index",
+      "min": 0,
+      "max": 1000,
+      "step": 10,
+      "default": 300
+    },
+    {
+      "type": "checkbox",
+      "id": "show_dismiss",
+      "label": "Dismissible — show close button",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Icon"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_icon",
+      "label": "Show Icon",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "icon_type",
+      "label": "Icon Style",
+      "default": "shield-check",
+      "options": [
+        { "value": "shield-check", "label": "Shield Check" },
+        { "value": "check-circle", "label": "Check Circle" },
+        { "value": "truck",        "label": "Truck"        },
+        { "value": "lock",         "label": "Lock"         },
+        { "value": "star",         "label": "Star"         },
+        { "value": "gift",         "label": "Gift"         },
+        { "value": "tag",          "label": "Tag / Offer"  }
+      ]
+    },
+    {
+      "type": "color",
+      "id": "icon_color",
+      "label": "Icon Color",
+      "default": "#2d8a4e"
+    },
+    {
+      "type": "range",
+      "id": "icon_size",
+      "label": "Icon Size (px)",
+      "min": 16,
+      "max": 48,
+      "step": 1,
+      "default": 26
+    },
+    {
+      "type": "image_picker",
+      "id": "custom_icon",
+      "label": "Custom Icon (overrides preset above)"
+    },
+    {
+      "type": "header",
+      "content": "Text Carousel"
+    },
+    {
+      "type": "range",
+      "id": "carousel_speed",
+      "label": "Seconds Per Message",
+      "min": 2,
+      "max": 12,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "header",
+      "content": "Countdown Timer"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_timer",
+      "label": "Show Timer",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "timer_label",
+      "label": "Timer Label",
+      "default": "Offer Ends"
+    },
+    {
+      "type": "number",
+      "id": "timer_seconds",
+      "label": "Duration (seconds)",
+      "default": 3600
+    },
+    {
+      "type": "text",
+      "id": "expiry_text",
+      "label": "Expired Text",
+      "default": "Ended"
+    },
+    {
+      "type": "color",
+      "id": "timer_color",
+      "label": "Timer Color",
+      "default": "#1a1a1a"
+    },
+    {
+      "type": "range",
+      "id": "timer_size",
+      "label": "Timer Font Size",
+      "min": 11,
+      "max": 20,
+      "step": 1,
+      "default": 14
+    },
+    {
+      "type": "header",
+      "content": "CTA Button"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_cta",
+      "label": "Show Button",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "cta_text",
+      "label": "Button Label",
+      "default": "View"
+    },
+    {
+      "type": "url",
+      "id": "cta_url",
+      "label": "Button URL"
+    },
+    {
+      "type": "color",
+      "id": "btn_bg",
+      "label": "Button Background",
+      "default": "#e07b39"
+    },
+    {
+      "type": "color",
+      "id": "btn_color",
+      "label": "Button Text Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "btn_radius",
+      "label": "Button Radius",
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "btn_pad_v",
+      "label": "Button Padding — Vertical",
+      "min": 4,
+      "max": 18,
+      "step": 1,
+      "default": 9
+    },
+    {
+      "type": "range",
+      "id": "btn_pad_h",
+      "label": "Button Padding — Horizontal",
+      "min": 10,
+      "max": 36,
+      "step": 1,
+      "default": 18
+    }
+  ],
+  "blocks": [
+    {
+      "type": "message",
+      "name": "Message",
+      "limit": 8,
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Message Text",
+          "default": "Your orders are protected with our buyer guarantee."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Trust Banner",
+      "blocks": [
+        { "type": "message", "settings": { "text": "Your orders are protected with our buyer guarantee." } },
+        { "type": "message", "settings": { "text": "Free shipping on all orders over $50." } },
+        { "type": "message", "settings": { "text": "Secure checkout — all major cards accepted." } }
+      ]
+    }
+  ]
+}
+{% endschema %}

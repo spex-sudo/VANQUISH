@@ -1,0 +1,1171 @@
+{% comment %}
+  ╔══════════════════════════════════════════════════════════════════════╗
+  ║  Section: faq-dynamic.liquid                                         ║
+  ║  Location: sections/faq-dynamic.liquid                               ║
+  ║                                                                       ║
+  ║  FEATURES                                                             ║
+  ║  · Tabbed FAQ groups — drag to reorder in theme editor               ║
+  ║  · Auto-injects Shopify policy content on /policies/* pages          ║
+  ║  · Auto-detects product / collection / cart / page context           ║
+  ║  · Social-proof purchase popup (rotating, configurable)              ║
+  ║  · Shipping-times banner                                             ║
+  ║  · Trust-badges row                                                  ║
+  ║  · Live FAQ search filter                                            ║
+  ║  · URL-hash deep-link to any FAQ item                                ║
+  ║  · Keyboard-accessible (arrow-key tabs, Enter/Space accordion)       ║
+  ║  · Zero LCP / CLS impact:                                            ║
+  ║      – All CSS is inlined, no external stylesheet                    ║
+  ║      – <details>/<summary> accordion needs 0 JS                      ║
+  ║      – CSS grid-template-rows trick for smooth open (no reflow)      ║
+  ║      – JS is non-blocking (placed at bottom, single IIFE)            ║
+  ╚══════════════════════════════════════════════════════════════════════╝
+{% endcomment %}
+
+{%- liquid
+  assign s            = section.settings
+  assign sid          = 'faq-' | append: section.id
+
+  comment ── Auto-detect Shopify policy pages via canonical URL ──
+  endcomment
+  assign policy_object = nil
+  assign _cp = canonical_url
+  if _cp contains '/policies/privacy-policy'
+    assign policy_object = shop.privacy_policy
+  elsif _cp contains '/policies/refund-policy'
+    assign policy_object = shop.refund_policy
+  elsif _cp contains '/policies/shipping-policy'
+    assign policy_object = shop.shipping_policy
+  elsif _cp contains '/policies/terms-of-service'
+    assign policy_object = shop.terms_of_service
+  elsif _cp contains '/policies/legal-notice'
+    assign policy_object = shop.privacy_policy
+  endif
+
+  comment ── Count tab blocks so JS knows the total ──
+  endcomment
+  assign tab_count = 0
+  for block in section.blocks
+    if block.type == 'faq_tab'
+      assign tab_count = tab_count | plus: 1
+    endif
+  endfor
+
+  comment ── Context-aware smart heading ──
+  endcomment
+  assign auto_heading = s.heading
+  if auto_heading == blank
+    case template.name
+      when 'product'
+        assign auto_heading = 'Product FAQs'
+      when 'collection'
+        assign auto_heading = 'Collection FAQs'
+      when 'cart'
+        assign auto_heading = 'Order & Shipping FAQs'
+      when 'policy'
+        assign auto_heading = 'Policy Details'
+      else
+        assign auto_heading = 'See Our FAQs Below'
+    endcase
+  endif
+-%}
+
+<section
+  id="{{ sid }}"
+  class="faq-ds"
+  aria-label="{{ auto_heading | escape }}"
+  {{ section.shopify_attributes }}
+>
+
+<style>
+/* ── Reset & tokens ─────────────────────────────────────────────────── */
+#{{ sid }}{
+  --q-bg:      {{ s.bg_color       | default: '#ffffff' }};
+  --q-card:    {{ s.card_bg_color  | default: '#f5f5f5' }};
+  --q-accent:  {{ s.accent_color   | default: '#000000' }};
+  --q-border:  {{ s.border_color   | default: '#e5e5e5' }};
+  --q-h:       {{ s.heading_color  | default: '#000000' }};
+  --q-q:       {{ s.question_color | default: '#000000' }};
+  --q-a:       {{ s.answer_color   | default: '#444444' }};
+  --q-tab-on-bg:   {{ s.tab_active_bg   | default: '#000000' }};
+  --q-tab-on-fg:   {{ s.tab_active_text | default: '#ffffff' }};
+  --q-tab-off-fg:  {{ s.tab_inactive_text | default: '#666666' }};
+  --q-r:  {{ s.border_radius | default: 12 }}px;
+  --q-pt: {{ s.padding_top    | default: 60 }}px;
+  --q-pb: {{ s.padding_bottom | default: 60 }}px;
+  --q-px: {{ s.padding_sides  | default: 20 }}px;
+  --q-mw: {{ s.max_width      | default: 860 }}px;
+  background: var(--q-bg);
+  padding: var(--q-pt) var(--q-px) var(--q-pb);
+  box-sizing: border-box;
+}
+#{{ sid }} *,
+#{{ sid }} *::before,
+#{{ sid }} *::after { box-sizing: inherit; }
+
+/* ── Inner ───────────────────────────────────────────────────────────── */
+#{{ sid }} .fq-inner{
+  max-width: var(--q-mw);
+  margin: 0 auto;
+}
+
+/* ── Section heading ─────────────────────────────────────────────────── */
+#{{ sid }} .fq-heading{
+  font-size: clamp(1.2rem, 2.8vw, 1.7rem);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--q-h);
+  margin: 0 0 24px;
+  line-height: 1.2;
+}
+
+/* ── Search ──────────────────────────────────────────────────────────── */
+#{{ sid }} .fq-search-wrap{ margin-bottom: 20px; }
+#{{ sid }} .fq-search{
+  width: 100%;
+  padding: 11px 18px;
+  border: 2px solid var(--q-border);
+  border-radius: var(--q-r);
+  font-size: .9rem;
+  font-family: inherit;
+  background: var(--q-bg);
+  color: var(--q-q);
+  outline: none;
+  transition: border-color .2s;
+}
+#{{ sid }} .fq-search:focus{ border-color: var(--q-accent); }
+#{{ sid }} .fq-no-results{
+  display: none;
+  padding: 20px;
+  text-align: center;
+  color: var(--q-tab-off-fg);
+  font-size: .85rem;
+}
+
+/* ── Tab nav ─────────────────────────────────────────────────────────── */
+#{{ sid }} .fq-tabs{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+#{{ sid }} .fq-tab-btn{
+  padding: 8px 18px;
+  border: 2px solid var(--q-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--q-tab-off-fg);
+  font-size: .8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .18s, color .18s, border-color .18s;
+  white-space: nowrap;
+}
+#{{ sid }} .fq-tab-btn:hover,
+#{{ sid }} .fq-tab-btn[aria-selected="true"]{
+  background: var(--q-tab-on-bg);
+  color:      var(--q-tab-on-fg);
+  border-color: var(--q-tab-on-bg);
+}
+
+/* ── Panels ──────────────────────────────────────────────────────────── */
+#{{ sid }} .fq-panel{ display: none; }
+#{{ sid }} .fq-panel.is-active{ display: block; }
+/* No-JS: all panels visible */
+#{{ sid }}.fq-no-js .fq-panel{ display: block; }
+
+/* ── Accordion: details/summary base (works without JS) ─────────────── */
+#{{ sid }} details.fq-item{
+  background: var(--q-card);
+  border-radius: var(--q-r);
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+#{{ sid }} details.fq-item:last-child{ margin-bottom: 0; }
+
+#{{ sid }} summary.fq-q{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 20px 22px;
+  font-size: .88rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--q-q);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+#{{ sid }} summary.fq-q::-webkit-details-marker{ display: none; }
+#{{ sid }} summary.fq-q::marker{ display: none; }
+
+/* Icon circle */
+#{{ sid }} .fq-icon{
+  flex-shrink: 0;
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1.5px solid var(--q-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform .25s ease, background .2s;
+}
+#{{ sid }} details[open] > summary .fq-icon{
+  transform: rotate(180deg);
+  background: var(--q-accent);
+  border-color: var(--q-accent);
+  color: #fff;
+}
+#{{ sid }} .fq-icon svg{ width: 13px; height: 13px; display: block; pointer-events: none; }
+
+/* Smooth open/close — CSS grid trick → zero CLS, no height calc needed */
+#{{ sid }} .fq-body{
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows .28s cubic-bezier(.4,0,.2,1);
+}
+#{{ sid }} details[open] > .fq-body{
+  grid-template-rows: 1fr;
+}
+#{{ sid }} .fq-body-inner{
+  overflow: hidden;
+  padding: 0 22px 20px;
+}
+#{{ sid }} .fq-body-inner > *:first-child{ margin-top: 0; }
+#{{ sid }} .fq-body-inner > *:last-child{ margin-bottom: 0; }
+#{{ sid }} .fq-body-inner p,
+#{{ sid }} .fq-body-inner li{
+  font-size: .86rem;
+  color: var(--q-a);
+  line-height: 1.65;
+  margin: 0 0 6px;
+}
+#{{ sid }} .fq-body-inner ul{
+  margin: 0;
+  padding-left: 18px;
+}
+#{{ sid }} .fq-body-inner li{
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+}
+#{{ sid }} .fq-body-inner a{
+  color: var(--q-accent);
+  text-decoration: underline;
+}
+
+/* ── Shipping banner ─────────────────────────────────────────────────── */
+#{{ sid }} .fq-banner{
+  background: var(--q-accent);
+  color: #fff;
+  text-align: center;
+  padding: 18px 24px;
+  border-radius: var(--q-r);
+  margin: 16px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.55;
+}
+
+/* ── Trust badges ────────────────────────────────────────────────────── */
+#{{ sid }} .fq-trust{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 22px;
+  padding: 18px 0 4px;
+  border-top: 1px solid var(--q-border);
+  margin-top: 20px;
+}
+#{{ sid }} .fq-badge{
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--q-q);
+}
+#{{ sid }} .fq-badge svg{ width: 15px; height: 15px; flex-shrink: 0; }
+
+/* ── Policy content ──────────────────────────────────────────────────── */
+#{{ sid }} .fq-policy{
+  font-size: .9rem;
+  line-height: 1.75;
+  color: var(--q-a);
+  margin-bottom: 32px;
+}
+#{{ sid }} .fq-policy h1{ font-size: 1.3rem; font-weight: 800; margin: 0 0 16px; color: var(--q-q); }
+#{{ sid }} .fq-policy h2{ font-size: 1rem; font-weight: 700; text-transform: uppercase; margin: 24px 0 8px; color: var(--q-q); }
+#{{ sid }} .fq-policy p{ margin: 0 0 12px; }
+#{{ sid }} .fq-policy a{ color: var(--q-accent); }
+
+/* ── Social proof popup ──────────────────────────────────────────────── */
+#{{ sid }}-sp{
+  position: fixed;
+  bottom: 24px; left: 24px;
+  z-index: 9998;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: var(--q-r, 12px);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 310px;
+  box-shadow: 0 6px 28px rgba(0,0,0,.13);
+  transform: translateY(110px);
+  opacity: 0;
+  transition: transform .38s cubic-bezier(.4,0,.2,1), opacity .38s;
+  pointer-events: none;
+  will-change: transform;
+}
+#{{ sid }}-sp.sp-on{
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+#{{ sid }}-sp .sp-img{
+  width: 44px; height: 56px;
+  border-radius: 5px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #f0f0f0;
+}
+#{{ sid }}-sp .sp-txt{
+  font-size: .79rem;
+  line-height: 1.45;
+  color: #333;
+  margin: 0;
+}
+#{{ sid }}-sp .sp-txt a{
+  color: #0066cc;
+  font-weight: 600;
+  text-decoration: none;
+}
+#{{ sid }}-sp .sp-txt em{
+  font-style: normal;
+  color: #888;
+  font-size: .73rem;
+}
+#{{ sid }}-sp .sp-close{
+  position: absolute;
+  top: 6px; right: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #aaa;
+  line-height: 1;
+  padding: 2px 4px;
+}
+#{{ sid }}-sp .sp-close:hover{ color: #333; }
+
+/* ── Responsive ──────────────────────────────────────────────────────── */
+@media (max-width: 640px){
+  #{{ sid }}{ --q-px: 14px; }
+  #{{ sid }}-sp{ left: 10px; bottom: 10px; max-width: calc(100vw - 20px); }
+  #{{ sid }} .fq-banner{ font-size: .9rem; }
+}
+@media (prefers-reduced-motion: reduce){
+  #{{ sid }} .fq-body,
+  #{{ sid }} .fq-icon,
+  #{{ sid }}-sp{ transition: none; }
+}
+</style>
+
+  <div class="fq-inner fq-no-js" id="{{ sid }}-inner">
+
+    {%- if auto_heading != blank -%}
+      <h2 class="fq-heading">{{ auto_heading | escape }}</h2>
+    {%- endif -%}
+
+    {%- if s.show_search -%}
+      <div class="fq-search-wrap">
+        <input
+          type="search"
+          class="fq-search"
+          placeholder="{{ s.search_placeholder | default: 'Search FAQs...' | escape }}"
+          aria-label="Search FAQs"
+          autocomplete="off"
+          spellcheck="false"
+        >
+      </div>
+    {%- endif -%}
+
+    {%- if policy_object != nil -%}
+      <div class="fq-policy">{{ policy_object.body }}</div>
+    {%- endif -%}
+
+    {%- if tab_count > 1 -%}
+      <nav class="fq-tabs" role="tablist" aria-label="{{ auto_heading | escape }} categories">
+        {%- assign _ti = 0 -%}
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'faq_tab' -%}
+            {%- assign _ti = _ti | plus: 1 -%}
+            {%- assign _slug = block.settings.tab_slug | strip | handleize -%}
+            <button
+              class="fq-tab-btn"
+              role="tab"
+              aria-selected="{% if _ti == 1 %}true{% else %}false{% endif %}"
+              aria-controls="{{ sid }}-panel-{{ _ti }}"
+              id="{{ sid }}-tab-{{ _ti }}"
+              data-panel="{{ sid }}-panel-{{ _ti }}"
+              {% if _slug != blank %}data-slug="{{ _slug }}"{% endif %}
+              tabindex="{% if _ti == 1 %}0{% else %}-1{% endif %}"
+              {{ block.shopify_attributes }}
+            >{{ block.settings.tab_label | default: 'FAQ' | escape }}</button>
+          {%- endif -%}
+        {%- endfor -%}
+      </nav>
+    {%- endif -%}
+
+    {%- assign _pi       = 0 -%}
+    {%- assign _in_panel = false -%}
+    {%- assign _no_tabs  = false -%}
+
+    {%- if tab_count == 0 -%}
+      {%- assign _no_tabs = true -%}
+      <div class="fq-panel is-active" id="{{ sid }}-panel-0">
+    {%- endif -%}
+
+    {%- for block in section.blocks -%}
+
+      {%- if block.type == 'faq_tab' -%}
+        {%- if _in_panel -%}</div>{%- endif -%}
+        {%- assign _pi = _pi | plus: 1 -%}
+        {%- assign _in_panel = true -%}
+        <div
+          class="fq-panel{% if _pi == 1 %} is-active{% endif %}"
+          id="{{ sid }}-panel-{{ _pi }}"
+          role="tabpanel"
+          aria-labelledby="{{ sid }}-tab-{{ _pi }}"
+        >
+
+      {%- elsif block.type == 'faq_item' -%}
+        {%- liquid
+          assign _q      = block.settings.question
+          assign _answer = block.settings.answer
+          assign _src    = block.settings.policy_source
+
+          comment ── Auto-fill from Shopify Settings → Policies when a source is selected ──
+          endcomment
+          assign _policy_body = nil
+          if _src == 'privacy'
+            assign _policy_body = shop.privacy_policy.body
+          elsif _src == 'refund'
+            assign _policy_body = shop.refund_policy.body
+          elsif _src == 'terms'
+            assign _policy_body = shop.terms_of_service.body
+          elsif _src == 'shipping'
+            assign _policy_body = shop.shipping_policy.body
+          elsif _src == 'subscription'
+            assign _policy_body = shop.subscription_policy.body
+          elsif _src == 'contact'
+            for _p in shop.policies
+              if _p.url contains 'contact-information'
+                assign _policy_body = _p.body
+              endif
+            endfor
+          endif
+
+          if _policy_body != blank
+            assign _answer = _policy_body
+          endif
+        -%}
+        {%- if _q != blank -%}
+          <details
+            class="fq-item"
+            id="{{ sid }}-item-{{ block.id }}"
+            {% if block.settings.open_by_default %}open{% endif %}
+            {{ block.shopify_attributes }}
+          >
+            <summary class="fq-q">
+              <span>{{ _q | escape }}</span>
+              <span class="fq-icon" aria-hidden="true">
+                <svg viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M1 1.5 6 6.5 11 1.5" stroke="currentColor" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+            </summary>
+            <div class="fq-body">
+              <div class="fq-body-inner">
+                {{ _answer }}
+              </div>
+            </div>
+          </details>
+        {%- endif -%}
+
+      {%- elsif block.type == 'shipping_banner' -%}
+        {%- if block.settings.line_1 != blank or block.settings.line_2 != blank -%}
+          <div class="fq-banner" {{ block.shopify_attributes }}>
+            {%- if block.settings.line_1 != blank -%}
+              {{ block.settings.line_1 | escape }}{%- if block.settings.line_2 != blank -%}<br>{%- endif -%}
+            {%- endif -%}
+            {%- if block.settings.line_2 != blank -%}{{ block.settings.line_2 | escape }}{%- endif -%}
+          </div>
+        {%- endif -%}
+
+      {%- elsif block.type == 'trust_badges' -%}
+        {%- assign _any_badge = false -%}
+        {%- for i in (1..6) -%}
+          {%- assign _bk = 'badge_' | append: i -%}
+          {%- if block.settings[_bk] != blank -%}{%- assign _any_badge = true -%}{%- endif -%}
+        {%- endfor -%}
+        {%- if _any_badge -%}
+          <div class="fq-trust" {{ block.shopify_attributes }}>
+
+            {%- if block.settings.badge_1 != blank -%}
+              <span class="fq-badge">
+                <svg viewBox="0 0 16 16" fill="none"><path d="M8 1C4.13 1 1 4.13 1 8s3.13 7 7 7 7-3.13 7-7-3.13-7-7-7zm3.7 5.7-4 4c-.2.2-.45.3-.7.3s-.5-.1-.7-.3l-2-2c-.39-.39-.39-1.01 0-1.4.39-.39 1.01-.39 1.4 0l1.3 1.29 3.3-3.29c.39-.39 1.01-.39 1.4 0 .39.39.39 1.01 0 1.4z" fill="currentColor"/></svg>
+                {{ block.settings.badge_1 | escape }}
+              </span>
+            {%- endif -%}
+
+            {%- if block.settings.badge_2 != blank -%}
+              <span class="fq-badge">
+                <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="6" width="12" height="9" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M5 6V4a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                {{ block.settings.badge_2 | escape }}
+              </span>
+            {%- endif -%}
+
+            {%- if block.settings.badge_3 != blank -%}
+              <span class="fq-badge">
+                <svg viewBox="0 0 16 16" fill="none"><path d="M2 5.5h12M2 5.5l1.5 6h9L14 5.5M2 5.5H1M14 5.5h1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="5.5" cy="13.5" r="1.2" fill="currentColor"/><circle cx="10.5" cy="13.5" r="1.2" fill="currentColor"/><path d="M6 2.5h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                {{ block.settings.badge_3 | escape }}
+              </span>
+            {%- endif -%}
+
+            {%- if block.settings.badge_4 != blank -%}
+              <span class="fq-badge">
+                <svg viewBox="0 0 16 16" fill="none"><path d="M8 1.5l1.545 3.13 3.455.5-2.5 2.435.59 3.435L8 9.375l-3.09 1.625.59-3.435L3 5.13l3.455-.5L8 1.5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+                {{ block.settings.badge_4 | escape }}
+              </span>
+            {%- endif -%}
+
+            {%- if block.settings.badge_5 != blank -%}
+              <span class="fq-badge">
+                <svg viewBox="0 0 16 16" fill="none"><path d="M1 8l4 4 10-9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                {{ block.settings.badge_5 | escape }}
+              </span>
+            {%- endif -%}
+
+            {%- if block.settings.badge_6 != blank -%}
+              <span class="fq-badge">
+                <svg viewBox="0 0 16 16" fill="none"><path d="M8 1l1 3h3l-2.5 2 1 3L8 7.5 5.5 9l1-3L4 4h3L8 1z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+                {{ block.settings.badge_6 | escape }}
+              </span>
+            {%- endif -%}
+
+          </div>
+        {%- endif -%}
+
+      {%- endif -%}
+
+    {%- endfor -%}
+
+    {%- if _in_panel or _no_tabs -%}</div>{%- endif -%}
+
+    <p class="fq-no-results" aria-live="polite">No FAQs match your search. Try a different term.</p>
+
+  </div>
+
+  {%- if s.show_social_proof -%}
+    {%- assign sp_items = section.blocks | where: 'type', 'social_proof_item' -%}
+    {%- if sp_items.size > 0 -%}
+      <div id="{{ sid }}-sp" role="status" aria-live="polite" aria-atomic="true" aria-label="Recent purchase">
+        <div class="sp-img" aria-hidden="true"></div>
+        <p class="sp-txt"></p>
+        <button class="sp-close" aria-label="Dismiss">&times;</button>
+      </div>
+      <script type="application/json" id="{{ sid }}-spd">
+        [{% for block in sp_items %}{
+          "loc":  {{ block.settings.location     | default: 'Someone'   | json }},
+          "prod": {{ block.settings.product_name  | default: 'a product' | json }},
+          "url":  {{ block.settings.product_url   | default: ''          | json }},
+          "img":  {{ block.settings.product_image | image_url: width: 100 | default: '' | json }},
+          "ago":  {{ block.settings.time_ago      | default: 'Just now'  | json }}
+        }{% unless forloop.last %},{% endunless %}{% endfor %}]
+      </script>
+    {%- endif -%}
+  {%- endif -%}
+
+</section>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ── Helpers ─────────────────────────────────────────────────────── */
+  var sid   = {{ sid | json }};
+  var inner = document.getElementById(sid + '-inner');
+  if (!inner) return;
+
+  // Activate JS enhancements
+  inner.classList.remove('fq-no-js');
+
+  // Respect the OS-level reduced-motion preference for JS-driven scrolling
+  var reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var scrollBehavior = reduceMotion ? 'auto' : 'smooth';
+
+  /* ── Tabs ────────────────────────────────────────────────────────── */
+  var tabBtns  = Array.prototype.slice.call(inner.querySelectorAll('.fq-tab-btn'));
+  var panels   = Array.prototype.slice.call(inner.querySelectorAll('.fq-panel'));
+  var allItems = Array.prototype.slice.call(inner.querySelectorAll('details.fq-item'));
+
+  function setTab(idx) {
+    tabBtns.forEach(function(b, i) {
+      var on = i === idx;
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+      b.setAttribute('tabindex', on ? '0' : '-1');
+    });
+    panels.forEach(function(p, i) {
+      p.classList.toggle('is-active', i === idx);
+    });
+  }
+
+  tabBtns.forEach(function(btn, i) {
+    btn.addEventListener('click', function() { setTab(i); });
+    btn.addEventListener('keydown', function(e) {
+      if (e.key === 'ArrowRight') { setTab((i + 1) % tabBtns.length); tabBtns[(i + 1) % tabBtns.length].focus(); }
+      if (e.key === 'ArrowLeft')  { var p = (i - 1 + tabBtns.length) % tabBtns.length; setTab(p); tabBtns[p].focus(); }
+      if (e.key === 'Home') { setTab(0); tabBtns[0].focus(); }
+      if (e.key === 'End')  { var l = tabBtns.length - 1; setTab(l); tabBtns[l].focus(); }
+    });
+  });
+
+  /* ── Deep-link a tab via #tab-<slug> — e.g. footer policy buttons ──── */
+  function activateTabFromHash() {
+    var hash = window.location.hash.slice(1);
+    var m = hash.match(/^tab-(.+)$/i);
+    if (!m || !tabBtns.length) return false;
+    var slug = decodeURIComponent(m[1]).toLowerCase();
+    var idx = -1;
+    tabBtns.forEach(function(b, i) {
+      if ((b.getAttribute('data-slug') || '').toLowerCase() === slug) idx = i;
+    });
+    if (idx === -1) return false;
+    setTab(idx);
+    setTimeout(function() {
+      inner.scrollIntoView({ behavior: scrollBehavior, block: 'start' });
+    }, 100);
+    return true;
+  }
+  activateTabFromHash();
+  window.addEventListener('hashchange', activateTabFromHash);
+
+  /* ── Search ──────────────────────────────────────────────────────── */
+  var searchEl  = inner.querySelector('.fq-search');
+  var noResults = inner.querySelector('.fq-no-results');
+
+  if (searchEl) {
+    /* Pre-cache lowercased textContent per item once — policy bodies are
+       large; re-computing on every keystroke would be expensive */
+    var itemText = allItems.map(function(el) {
+      return el.textContent.toLowerCase();
+    });
+
+    var searchTimer;
+    searchEl.addEventListener('input', function() {
+      var val = this.value;
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(function() {
+        var q     = val.trim().toLowerCase();
+        var shown = 0;
+
+        allItems.forEach(function(el, i) {
+          var match = !q || itemText[i].indexOf(q) !== -1;
+          el.style.display = match ? '' : 'none';
+          if (match) { shown++; if (q) el.setAttribute('open', ''); }
+          else el.removeAttribute('open');
+        });
+
+        if (noResults) noResults.style.display = (shown === 0 && q) ? 'block' : 'none';
+
+        // Reveal all panels while searching; restore first-tab state on clear
+        panels.forEach(function(p)  { p.classList.toggle('is-active', !!q || panels.indexOf(p) === 0); });
+        tabBtns.forEach(function(b) { b.setAttribute('aria-selected', (!q && tabBtns.indexOf(b) === 0) ? 'true' : 'false'); });
+      }, 120);
+    });
+  }
+
+  /* ── URL-hash deep-link ──────────────────────────────────────────── */
+  (function() {
+    var hash = window.location.hash.slice(1);
+    if (!hash) return;
+    var target = document.getElementById(hash);
+    if (!target || !target.classList.contains('fq-item')) return;
+    target.setAttribute('open', '');
+    var panel = target.closest('.fq-panel');
+    if (panel) {
+      var pid  = panel.id;
+      var bidx = panels.indexOf(panel);
+      if (bidx > -1) setTab(bidx);
+    }
+    setTimeout(function() {
+      target.scrollIntoView({ behavior: scrollBehavior, block: 'start' });
+    }, 150);
+  })();
+
+  /* ── Social proof popup ──────────────────────────────────────────── */
+  var spEl  = document.getElementById(sid + '-sp');
+  var spdEl = document.getElementById(sid + '-spd');
+
+  if (spEl && spdEl) {
+    var spData;
+    try { spData = JSON.parse(spdEl.textContent || spdEl.innerHTML); } catch(e) { spData = []; }
+    if (!spData.length) return;
+
+    var spImg  = spEl.querySelector('.sp-img');
+    var spTxt  = spEl.querySelector('.sp-txt');
+    var spClose = spEl.querySelector('.sp-close');
+    var cur = 0;
+    var closed = false;
+
+    if (spClose) {
+      spClose.addEventListener('click', function() {
+        closed = true;
+        spEl.classList.remove('sp-on');
+      });
+    }
+
+    function showNext() {
+      if (closed) return;
+      var item = spData[cur % spData.length]; cur++;
+
+      // Image or placeholder
+      if (item.img) {
+        var img = document.createElement('img');
+        img.src = item.img;
+        img.alt = item.prod;
+        img.width = 44;
+        img.height = 56;
+        img.decoding = 'async';
+        img.className = 'sp-img';
+        spEl.replaceChild(img, spImg);
+        spImg = img;
+      }
+
+      // Text
+      var link = item.url
+        ? '<a href="' + item.url.replace(/"/g,'&quot;') + '">' + escH(item.prod) + '</a>'
+        : escH(item.prod);
+      spTxt.innerHTML = escH(item.loc) + ' just purchased ' + link + '. <em>' + escH(item.ago) + '</em>';
+
+      spEl.classList.add('sp-on');
+
+      // Hide after 5 s, show next after random 10–18 s gap
+      setTimeout(function() {
+        spEl.classList.remove('sp-on');
+        setTimeout(showNext, 10000 + Math.random() * 8000);
+      }, 5000);
+    }
+
+    function escH(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // First popup after 4 s
+    setTimeout(showNext, 4000);
+  }
+
+})();
+</script>
+
+{% schema %}
+{
+  "name": "FAQ Dynamic",
+  "tag": "section",
+  "class": "faq-dynamic-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading (leave blank for auto)",
+      "default": "SEE OUR FAQs BELOW"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_search",
+      "label": "Show live search bar",
+      "default": false,
+      "info": "Lets shoppers filter FAQs instantly — great for large FAQ lists."
+    },
+    {
+      "type": "text",
+      "id": "search_placeholder",
+      "label": "Search placeholder",
+      "default": "Search FAQs..."
+    },
+    {
+      "type": "header",
+      "content": "Social Proof"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_social_proof",
+      "label": "Enable purchase popup",
+      "default": true,
+      "info": "Rotates through your 'Purchase Notification' blocks. Appears 4 s after page load."
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Section background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "card_bg_color",
+      "label": "FAQ card background",
+      "default": "#f5f5f5"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent / banner color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Section heading",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "question_color",
+      "label": "Question text",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "answer_color",
+      "label": "Answer text",
+      "default": "#444444"
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Border / separator",
+      "default": "#e5e5e5"
+    },
+    {
+      "type": "color",
+      "id": "tab_active_bg",
+      "label": "Active tab background",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "tab_active_text",
+      "label": "Active tab text",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "tab_inactive_text",
+      "label": "Inactive tab text",
+      "default": "#666666"
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "max_width",
+      "label": "Content max-width (px)",
+      "min": 560,
+      "max": 1400,
+      "step": 20,
+      "default": 860
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "label": "Card corner radius (px)",
+      "min": 0,
+      "max": 24,
+      "step": 2,
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top (px)",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom (px)",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_sides",
+      "label": "Padding sides (px)",
+      "min": 0,
+      "max": 80,
+      "step": 4,
+      "default": 20
+    }
+  ],
+  "blocks": [
+    {
+      "type": "faq_tab",
+      "name": "📂 Tab Group",
+      "settings": [
+        {
+          "type": "text",
+          "id": "tab_label",
+          "label": "Tab label",
+          "default": "Shipping",
+          "info": "All FAQ Items below this block (until the next Tab Group) belong to this tab."
+        },
+        {
+          "type": "text",
+          "id": "tab_slug",
+          "label": "Deep-link slug (optional)",
+          "info": "Lets a button elsewhere on the site jump straight to this tab via a URL hash, e.g. a slug of 'privacy' opens this tab when the page loads at #tab-privacy. The footer's policy buttons use: privacy, refund, terms, shipping, subscription, contact."
+        }
+      ]
+    },
+    {
+      "type": "faq_item",
+      "name": "❓ FAQ Item",
+      "settings": [
+        {
+          "type": "text",
+          "id": "question",
+          "label": "Question",
+          "default": "How long will shipping take?"
+        },
+        {
+          "type": "select",
+          "id": "policy_source",
+          "label": "Auto-fill from Shopify policy",
+          "options": [
+            { "value": "", "label": "None — use Answer below" },
+            { "value": "privacy", "label": "Privacy Policy" },
+            { "value": "refund", "label": "Refund Policy" },
+            { "value": "terms", "label": "Terms of Service" },
+            { "value": "shipping", "label": "Shipping Policy" },
+            { "value": "subscription", "label": "Subscription Policy" },
+            { "value": "contact", "label": "Contact Information" }
+          ],
+          "default": "",
+          "info": "Pulls the body text straight from Settings → Policies in Shopify admin and keeps it in sync automatically. If that policy is empty, the Answer field below is shown instead."
+        },
+        {
+          "type": "richtext",
+          "id": "answer",
+          "label": "Answer",
+          "default": "<ul><li>All U.S. orders will be delivered within approximately one week. For international orders, shipping times will vary by country.</li></ul>",
+          "info": "Used as-is when Auto-fill is 'None', or as a fallback if the selected policy hasn't been filled in yet."
+        },
+        {
+          "type": "checkbox",
+          "id": "open_by_default",
+          "label": "Open by default",
+          "default": false
+        }
+      ]
+    },
+    {
+      "type": "shipping_banner",
+      "name": "🚚 Shipping Banner",
+      "limit": 4,
+      "settings": [
+        {
+          "type": "text",
+          "id": "line_1",
+          "label": "Line 1",
+          "default": "1-3 day shipping (U.S)"
+        },
+        {
+          "type": "text",
+          "id": "line_2",
+          "label": "Line 2",
+          "default": "5-10 days (international)"
+        }
+      ]
+    },
+    {
+      "type": "trust_badges",
+      "name": "✅ Trust Badges",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "badge_1",
+          "label": "Badge 1",
+          "default": "Free Returns",
+          "info": "Leave blank to hide."
+        },
+        {
+          "type": "text",
+          "id": "badge_2",
+          "label": "Badge 2",
+          "default": "Secure Checkout"
+        },
+        {
+          "type": "text",
+          "id": "badge_3",
+          "label": "Badge 3",
+          "default": "Fast Shipping"
+        },
+        {
+          "type": "text",
+          "id": "badge_4",
+          "label": "Badge 4",
+          "default": "Top Rated"
+        },
+        {
+          "type": "text",
+          "id": "badge_5",
+          "label": "Badge 5",
+          "default": "Satisfaction Guaranteed"
+        },
+        {
+          "type": "text",
+          "id": "badge_6",
+          "label": "Badge 6",
+          "default": "7"
+        }
+      ]
+    },
+    {
+      "type": "social_proof_item",
+      "name": "🛒 Purchase Notification",
+      "settings": [
+        {
+          "type": "text",
+          "id": "location",
+          "label": "Location text",
+          "default": "Someone from Bay City, Michigan",
+          "info": "e.g. 'Someone from Chicago, IL'"
+        },
+        {
+          "type": "text",
+          "id": "product_name",
+          "label": "Product name",
+          "default": "M.Y.D Baggy Sweat Pants"
+        },
+        {
+          "type": "url",
+          "id": "product_url",
+          "label": "Product URL (optional)"
+        },
+        {
+          "type": "image_picker",
+          "id": "product_image",
+          "label": "Product image (optional)"
+        },
+        {
+          "type": "text",
+          "id": "time_ago",
+          "label": "Time ago label",
+          "default": "Just now"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "FAQ Dynamic",
+      "settings": {
+        "heading": "Policies & Information",
+        "show_search": false,
+        "show_social_proof": false
+      },
+      "blocks": [
+        { "type": "faq_tab", "settings": { "tab_label": "Privacy Policy", "tab_slug": "privacy" } },
+        {
+          "type": "faq_item",
+          "settings": {
+            "question": "Privacy Policy",
+            "policy_source": "privacy",
+            "answer": "<p>Add your privacy policy content here, or set it under Settings → Policies in Shopify admin and it will autofill.</p>",
+            "open_by_default": true
+          }
+        },
+        { "type": "faq_tab", "settings": { "tab_label": "Refund Policy", "tab_slug": "refund" } },
+        {
+          "type": "faq_item",
+          "settings": {
+            "question": "Refund Policy",
+            "policy_source": "refund",
+            "answer": "<p>Add your refund policy content here, or set it under Settings → Policies in Shopify admin and it will autofill.</p>",
+            "open_by_default": true
+          }
+        },
+        { "type": "faq_tab", "settings": { "tab_label": "Terms of Service", "tab_slug": "terms" } },
+        {
+          "type": "faq_item",
+          "settings": {
+            "question": "Terms of Service",
+            "policy_source": "terms",
+            "answer": "<p>Add your terms of service content here, or set it under Settings → Policies in Shopify admin and it will autofill.</p>",
+            "open_by_default": true
+          }
+        },
+        { "type": "faq_tab", "settings": { "tab_label": "Shipping Policy", "tab_slug": "shipping" } },
+        {
+          "type": "faq_item",
+          "settings": {
+            "question": "Shipping Policy",
+            "policy_source": "shipping",
+            "answer": "<p>Add your shipping policy content here, or set it under Settings → Policies in Shopify admin and it will autofill.</p>",
+            "open_by_default": true
+          }
+        },
+        { "type": "faq_tab", "settings": { "tab_label": "Subscription Policy", "tab_slug": "subscription" } },
+        {
+          "type": "faq_item",
+          "settings": {
+            "question": "Subscription Policy",
+            "policy_source": "subscription",
+            "answer": "<p>Add your subscription policy content here, or set it under Settings → Policies in Shopify admin and it will autofill — remove this tab if you don't sell subscriptions.</p>",
+            "open_by_default": true
+          }
+        },
+        { "type": "faq_tab", "settings": { "tab_label": "Contact Information", "tab_slug": "contact" } },
+        {
+          "type": "faq_item",
+          "settings": {
+            "question": "Contact Information",
+            "policy_source": "contact",
+            "answer": "<p>Add your contact information here, or set a 'Contact information' policy under Settings → Policies in Shopify admin and it will autofill.</p>",
+            "open_by_default": true
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

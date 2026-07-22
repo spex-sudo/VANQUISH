@@ -1,0 +1,1406 @@
+{%- liquid
+  assign sid         = section.id
+  assign has_wall    = false
+  if section.settings.wall_names != blank
+    assign has_wall = true
+  endif
+-%}
+
+{%- comment -%}
+  Google Fonts — text overlays, about card, and wall font.
+  PERFORMANCE LOOPHOLE: We use media="print" onload swap so the font
+  request is non-render-blocking. The wall is lazily built on first
+  toggle click, so by the time names render the font is already cached.
+  Zero LCP penalty; font loads in the background like any stylesheet.
+{%- endcomment -%}
+{%- assign font_families = '' -%}
+{%- for block in section.blocks -%}
+  {%- if block.type == 'text_overlay' and block.settings.font_family != blank -%}
+    {%- unless font_families contains block.settings.font_family -%}
+      {%- assign font_families = font_families | append: block.settings.font_family | append: '|' -%}
+    {%- endunless -%}
+  {%- endif -%}
+  {%- if block.type == 'about_button' and block.settings.about_font != blank -%}
+    {%- unless font_families contains block.settings.about_font -%}
+      {%- assign font_families = font_families | append: block.settings.about_font | append: '|' -%}
+    {%- endunless -%}
+  {%- endif -%}
+{%- endfor -%}
+{%- if section.settings.wall_font != blank -%}
+  {%- unless font_families contains section.settings.wall_font -%}
+    {%- assign font_families = font_families | append: section.settings.wall_font | append: '|' -%}
+  {%- endunless -%}
+{%- endif -%}
+{%- assign font_array = font_families | split: '|' -%}
+{%- if font_array.size > 0 -%}
+  {%- assign gf_query = '' -%}
+  {%- for f in font_array -%}
+    {%- unless f == blank -%}
+      {%- assign f_enc = f | replace: ' ', '+' -%}
+      {%- assign gf_query = gf_query | append: f_enc | append: ':wght@300;400;600;700;900&family=' -%}
+    {%- endunless -%}
+  {%- endfor -%}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family={{ gf_query | remove_last: '&family=' }}&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family={{ gf_query | remove_last: '&family=' }}&display=swap" rel="stylesheet"></noscript>
+{%- endif -%}
+
+{%- if section.settings.video_poster != blank -%}
+  <link rel="preload" as="image" href="{{ section.settings.video_poster | image_url: width: 1920 }}" fetchpriority="high">
+{%- elsif section.settings.image != blank -%}
+  <link rel="preload" as="image" href="{{ section.settings.image | image_url: width: 1920 }}" fetchpriority="high">
+{%- endif -%}
+
+<style>
+/* ── Hero shell ── */
+.hero-{{ sid }} {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: {{ section.settings.bg_color }};
+  min-height: {{ section.settings.height_mobile }}vh;
+  justify-content: center;
+  {%- if section.settings.video_poster != blank -%}
+  background-image: url('{{ section.settings.video_poster | image_url: width: 1920 }}');
+  background-size: {{ section.settings.image_fit }};
+  background-position: center;
+  {%- elsif section.settings.image != blank -%}
+  background-image: url('{{ section.settings.image | image_url: width: 1920 }}');
+  background-size: {{ section.settings.image_fit }};
+  background-position: center;
+  {%- endif -%}
+}
+@media (min-width: 768px) {
+  .hero-{{ sid }} {
+    min-height: {{ section.settings.height }}vh;
+    align-items: {{ section.settings.vertical_alignment }};
+    justify-content: {{ section.settings.horizontal_alignment }};
+  }
+}
+
+/* ── Media layer ── */
+.hero-media-{{ sid }} { position: absolute; inset: 0; z-index: 1; }
+.hero-asset { width: 100%; height: 100%; object-fit: {{ section.settings.image_fit }}; object-position: center; display: block; }
+.hero-poster-{{ sid }} { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: {{ section.settings.image_fit }}; object-position: center; display: block; z-index: 1; }
+
+/* ── Video fade-in ── */
+#hero-video-{{ sid }} {
+  opacity: 0;
+  transition: opacity 0.7s ease;
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: {{ section.settings.image_fit }}; object-position: center;
+  display: block; z-index: 2; pointer-events: none;
+}
+#hero-video-{{ sid }}.vid-ready { opacity: 1; }
+
+/* ── Overlay dim ── */
+.hero-overlay-{{ sid }} {
+  position: absolute; inset: 0;
+  background: {{ section.settings.overlay_color }};
+  opacity: {{ section.settings.overlay_opacity | divided_by: 100.0 }};
+  z-index: 3;
+}
+
+/* ── Main content block ── */
+.hero-content-{{ sid }} {
+  position: relative; z-index: 10;
+  width: 100%; max-width: {{ section.settings.content_width }}px;
+  padding: 40px 20px;
+  display: flex; flex-direction: column;
+  align-items: {% if section.settings.text_align == 'center' %}center{% elsif section.settings.text_align == 'right' %}flex-end{% else %}flex-start{% endif %};
+  text-align: {{ section.settings.text_align }};
+  color: {{ section.settings.text_color }};
+  opacity: 0; transform: translateY(24px);
+  transition: opacity 0.7s cubic-bezier(0.22,1,0.36,1), transform 0.7s cubic-bezier(0.22,1,0.36,1);
+}
+.hero-content-{{ sid }}.is-visible { opacity: 1; transform: translateY(0); }
+
+.hero-title {
+  font-size: clamp(2.5rem, 8vw, {{ section.settings.title_size }}rem);
+  line-height: 1.05; margin: 0 0 1.4rem 0;
+  font-weight: 300; letter-spacing: -0.02em;
+  transition: text-shadow 0.6s ease;
+}
+.hero-title:hover { text-shadow: 0 0 30px rgba(255,255,255,0.22), 0 0 60px rgba(212,175,55,0.12); }
+
+.lux-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  text-decoration: none; font-family: inherit;
+  cursor: pointer; width: fit-content; margin-top: 14px;
+  position: relative; overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+.lux-btn--ghost {
+  padding: 14px 42px;
+  background: transparent;
+  color: {{ section.settings.text_color }};
+  border: 1px solid rgba(255,255,255,0.4);
+  border-radius: {{ section.settings.btn_radius }}px;
+  font-size: 0.72rem; font-weight: 400;
+  letter-spacing: 0.22em; text-transform: uppercase;
+  backdrop-filter: blur(8px) saturate(1.4);
+  -webkit-backdrop-filter: blur(8px) saturate(1.4);
+  transition: border-color 0.28s ease, background 0.28s ease,
+              transform 0.22s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.28s ease;
+}
+.lux-btn--ghost:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.75);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.14);
+}
+.lux-btn--ghost:active { transform: translateY(0); }
+.lux-btn--solid {
+  padding: 15px 44px;
+  background: {{ section.settings.text_color }};
+  color: {{ section.settings.bg_color }};
+  border: 1.5px solid {{ section.settings.text_color }};
+  border-radius: {{ section.settings.btn_radius }}px;
+  font-size: 0.72rem; font-weight: 600;
+  letter-spacing: 0.22em; text-transform: uppercase;
+  transition: background 0.28s ease, color 0.28s ease, border-color 0.28s ease,
+              transform 0.22s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.28s ease;
+}
+.lux-btn--solid:hover {
+  background: transparent;
+  color: {{ section.settings.text_color }};
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+}
+.lux-btn--solid:active { transform: translateY(0); }
+.lux-btn--text {
+  padding: 8px 0;
+  background: transparent;
+  color: {{ section.settings.text_color }};
+  border: none; border-radius: 0;
+  font-size: 0.75rem; font-weight: 400;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  transition: opacity 0.2s ease, gap 0.25s ease;
+}
+.lux-btn--text::after {
+  content: '';
+  position: absolute; bottom: 2px; left: 0;
+  width: 100%; height: 1px;
+  background: {{ section.settings.text_color }};
+  transform-origin: left;
+  transition: transform 0.3s cubic-bezier(0.65,0,0.35,1);
+}
+.lux-btn--text:hover { opacity: 0.7; }
+.lux-btn--text:hover::after { transform: scaleX(0.4); }
+.lux-btn--text .btn-arrow { display: inline-block; transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1); }
+.lux-btn--text:hover .btn-arrow { transform: translateX(5px); }
+
+/* ── Scroll indicator ── */
+.scroll-indicator-v11 {
+  position: absolute; bottom: 32px; left: 50%;
+  transform: translateX(-50%); z-index: 20;
+  display: flex; flex-direction: column; align-items: center;
+  pointer-events: none; gap: 8px;
+}
+.scroll-track {
+  width: 1px; height: 52px;
+  background: transparent;
+  position: relative; overflow: hidden;
+}
+.scroll-swipe-line {
+  width: 1px; height: 32px;
+  background: linear-gradient(to bottom, transparent, {{ section.settings.text_color }} 50%, transparent);
+  position: absolute; top: -32px;
+  animation: luxSwipe-{{ sid }} 1.8s cubic-bezier(0.4,0,0.6,1) infinite;
+}
+@keyframes luxSwipe-{{ sid }} {
+  0%   { top: -32px; opacity: 0; }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { top: 52px;  opacity: 0; }
+}
+
+/* ── Social glass buttons ── */
+.social-glass-wrap-{{ sid }} {
+  position: absolute; z-index: 30; display: flex; gap: 8px;
+  flex-direction: {{ section.settings.social_direction }};
+}
+.social-glass-btn {
+  display: flex; align-items: center; justify-content: center;
+  text-decoration: none; gap: 8px;
+  backdrop-filter: blur(14px) saturate(1.8);
+  -webkit-backdrop-filter: blur(14px) saturate(1.8);
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: {{ section.settings.social_color }};
+  box-shadow: 0 2px 16px rgba(0,0,0,0.14);
+  font-size: 0.7rem; letter-spacing: 0.1em;
+  text-transform: uppercase; font-weight: 500; white-space: nowrap;
+  transition: background 0.28s ease, border-color 0.28s ease, transform 0.22s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.28s ease;
+}
+.social-glass-btn:hover {
+  background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.38);
+  transform: translateY(-2px) scale(1.03); box-shadow: 0 6px 28px rgba(0,0,0,0.22);
+}
+.social-glass-btn svg { flex-shrink: 0; fill: currentColor; }
+
+/* ── Floating text overlays ── */
+.text-overlay-block { position: absolute; z-index: 25; pointer-events: none; line-height: 1.3; }
+
+/* ── About trigger pill ── */
+.about-trigger-{{ sid }} {
+  position: absolute; z-index: 30;
+  display: inline-flex; align-items: center; gap: 7px;
+  cursor: pointer; text-decoration: none;
+  backdrop-filter: blur(14px) saturate(1.6);
+  -webkit-backdrop-filter: blur(14px) saturate(1.6);
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: {{ section.settings.text_color }};
+  transition: background 0.28s ease, border-color 0.28s ease, transform 0.22s cubic-bezier(0.34,1.56,0.64,1);
+  font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 400;
+}
+.about-trigger-{{ sid }}:hover {
+  background: rgba(255,255,255,0.16); border-color: rgba(255,255,255,0.4); transform: translateY(-2px);
+}
+
+/* ── About modal ── */
+.about-modal-backdrop-{{ sid }} {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0,0,0,0.52);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.32s ease; padding: 20px;
+}
+.about-modal-backdrop-{{ sid }}.is-open { opacity: 1; pointer-events: all; }
+.about-modal-card-{{ sid }} {
+  position: relative;
+  background: {{ section.settings.about_card_bg }};
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: {{ section.settings.about_card_radius }}px;
+  padding: 52px 48px 48px;
+  max-width: {{ section.settings.about_card_width }}px; width: 100%;
+  color: {{ section.settings.about_text_color }};
+  box-shadow: 0 32px 80px rgba(0,0,0,0.48);
+  transform: translateY(24px) scale(0.98);
+  transition: transform 0.42s cubic-bezier(0.22,1,0.36,1), opacity 0.32s ease;
+  opacity: 0;
+  {%- if section.settings.about_font != blank %}font-family: '{{ section.settings.about_font }}', sans-serif;{%- endif %}
+}
+.about-modal-backdrop-{{ sid }}.is-open .about-modal-card-{{ sid }} { transform: translateY(0) scale(1); opacity: 1; }
+.about-close-btn-{{ sid }} {
+  position: absolute; top: 18px; right: 20px;
+  width: 34px; height: 34px; background: transparent; border: none; cursor: pointer;
+  color: {{ section.settings.about_text_color }}; opacity: 0.4;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 0.2s ease, transform 0.25s ease; padding: 0; border-radius: 50%;
+}
+.about-close-btn-{{ sid }}:hover { opacity: 1; transform: rotate(90deg); }
+.about-eyebrow-{{ sid }} { font-size: 0.68rem; letter-spacing: 0.28em; text-transform: uppercase; opacity: 0.42; margin: 0 0 12px; }
+.about-store-name-{{ sid }} {
+  font-size: clamp(1.8rem, 4vw, {{ section.settings.about_title_size }}rem);
+  font-weight: {{ section.settings.about_title_weight }};
+  line-height: 1.08; margin: 0 0 18px; letter-spacing: -0.02em;
+}
+.about-divider-{{ sid }} { width: 36px; height: 1px; background: {{ section.settings.about_accent_color }}; margin: 0 0 20px; }
+.about-description-{{ sid }} { font-size: 0.93rem; line-height: 1.78; opacity: 0.75; margin: 0 0 26px; }
+.about-cta-link-{{ sid }} {
+  display: inline-flex; align-items: center; gap: 10px;
+  color: {{ section.settings.about_accent_color }};
+  text-decoration: none; font-size: 0.76rem; letter-spacing: 0.22em;
+  text-transform: uppercase; font-weight: 600; transition: gap 0.25s ease;
+}
+.about-cta-link-{{ sid }}:hover { gap: 16px; }
+.about-social-row-{{ sid }} { display: flex; gap: 12px; margin-top: 22px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,0.07); }
+.about-social-icon-{{ sid }} {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  display: flex; align-items: center; justify-content: center;
+  color: {{ section.settings.about_text_color }}; text-decoration: none;
+  transition: background 0.22s ease, transform 0.22s ease;
+}
+.about-social-icon-{{ sid }}:hover { background: rgba(255,255,255,0.14); transform: translateY(-2px); }
+
+/* ── Video pause button ── */
+.vid-pause-btn-{{ sid }} {
+  position: absolute; bottom: 22px; right: 22px; z-index: 25;
+  width: 38px; height: 38px;
+  background: transparent; border: none; border-radius: 50%;
+  cursor: pointer; display: none;
+  align-items: center; justify-content: center;
+  color: rgba(255,255,255,0.5); padding: 0;
+  transition: color 0.2s ease, opacity 0.45s ease, background 0.2s ease;
+}
+.vid-pause-btn-{{ sid }}.is-visible { display: flex; }
+.vid-pause-btn-{{ sid }}.is-faded { opacity: 0; pointer-events: none; }
+.vid-pause-btn-{{ sid }}:hover { color: rgba(255,255,255,0.95); background: rgba(0,0,0,0.2); }
+.vid-pause-btn-{{ sid }} .icon-pause { display: block; }
+.vid-pause-btn-{{ sid }} .icon-play  { display: none; }
+.vid-pause-btn-{{ sid }}.is-paused .icon-pause { display: none; }
+.vid-pause-btn-{{ sid }}.is-paused .icon-play  { display: block; }
+
+/* ── Signature wall ── */
+.sig-wall-canvas-{{ sid }} {
+  position: absolute; inset: 0; z-index: 15; overflow: hidden;
+  pointer-events: none; opacity: 0;
+  transition: opacity 0.75s cubic-bezier(0.22,1,0.36,1);
+}
+.sig-wall-canvas-{{ sid }}.is-visible { opacity: 1; }
+.sig-wall-canvas-{{ sid }}::before {
+  content: ''; position: absolute; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 50%,
+      {{ section.settings.wall_scrim_color }} {{ section.settings.wall_scrim_opacity | times: 0.6 | round }}%,
+      transparent 100%),
+    linear-gradient(to bottom,
+      {{ section.settings.wall_scrim_color }} 0%,
+      transparent 25%,
+      transparent 75%,
+      {{ section.settings.wall_scrim_color }} 100%);
+  opacity: {{ section.settings.wall_scrim_opacity | divided_by: 100.0 }};
+}
+.sig-name {
+  position: absolute;
+  white-space: nowrap;
+  line-height: 1;
+  z-index: 1;
+  font-size:      var(--sz);
+  color:          var(--cl);
+  opacity:        var(--op);
+  font-family:    var(--ff);
+  font-weight:    var(--fw);
+  letter-spacing: var(--ls);
+  transform:      rotate(var(--rot)) translate(-50%, -50%);
+  top:            var(--ty);
+  left:           var(--tx);
+  text-shadow:
+    0 0 18px rgba(0,0,0,0.8),
+    0 2px 6px rgba(0,0,0,0.7),
+    0 0 2px rgba(0,0,0,0.9);
+  cursor: default;
+  user-select: none; -webkit-user-select: none;
+  animation: sigFadeIn-{{ sid }} 0.55s cubic-bezier(0.22,1,0.36,1) both;
+  animation-delay: var(--delay, 0ms);
+}
+@keyframes sigFadeIn-{{ sid }} {
+  from { opacity: 0; transform: rotate(var(--rot)) translate(-50%, -46%) scale(0.92); }
+  to   { opacity: var(--op); transform: rotate(var(--rot)) translate(-50%, -50%) scale(1); }
+}
+
+/* ══════════════════════════════════════
+   SUPPORTERS BUTTON — social proof pill
+   Shows real member count + avatar initials
+   Conversion: concrete number, human signal,
+   warm copy, frosted glass = premium feel
+══════════════════════════════════════ */
+.sig-wall-toggle-{{ sid }} {
+  position: absolute; z-index: 30;
+  display: inline-flex; align-items: center; gap: 10px;
+  cursor: pointer;
+  background: rgba(0,0,0,0.38);
+  backdrop-filter: blur(18px) saturate(1.5);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: #fff;
+  border-radius: {{ section.settings.wall_btn_radius }}px;
+  padding: {{ section.settings.wall_btn_pad_y }}px {{ section.settings.wall_btn_pad_x }}px;
+  font-size: {{ section.settings.wall_btn_size }}px;
+  letter-spacing: 0.02em; text-transform: none; font-weight: 400;
+  font-family: inherit; white-space: nowrap;
+  top: {{ section.settings.wall_btn_y }}%;
+  left: {{ section.settings.wall_btn_x }}%;
+  transform: translate(-{{ section.settings.wall_btn_anchor_x }}%, -{{ section.settings.wall_btn_anchor_y }}%);
+  transition: background 0.24s ease, border-color 0.24s ease,
+    box-shadow 0.24s ease, transform 0.22s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.22);
+  -webkit-tap-highlight-color: transparent;
+}
+.sig-wall-toggle-{{ sid }}:hover {
+  background: rgba(0,0,0,0.54);
+  border-color: rgba(255,255,255,0.32);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  transform: translate(-{{ section.settings.wall_btn_anchor_x }}%, -{{ section.settings.wall_btn_anchor_y }}%) translateY(-2px);
+}
+.sig-wall-toggle-{{ sid }}:active {
+  transform: translate(-{{ section.settings.wall_btn_anchor_x }}%, -{{ section.settings.wall_btn_anchor_y }}%) scale(0.97);
+  transition-duration: 0.08s;
+}
+.sig-wall-toggle-{{ sid }}.wall-open {
+  background: rgba(0,0,0,0.56);
+  border-color: rgba(255,255,255,0.28);
+}
+/* Group icon */
+.sig-toggle-icon-{{ sid }} {
+  flex-shrink: 0; opacity: 0.75;
+  transition: opacity 0.2s ease;
+}
+.sig-wall-toggle-{{ sid }}:hover .sig-toggle-icon-{{ sid }} { opacity: 1; }
+/* Show/hide states */
+.sig-wall-toggle-{{ sid }} .label-show { display: inline; }
+.sig-wall-toggle-{{ sid }} .label-hide { display: none; }
+.sig-wall-toggle-{{ sid }}.wall-open .label-show { display: none; }
+.sig-wall-toggle-{{ sid }}.wall-open .label-hide { display: inline; }
+
+/* ── Add my name pill ── */
+.sig-addname-btn-{{ sid }} {
+  position: absolute; z-index: 30;
+  display: inline-flex; align-items: center; gap: 7px;
+  cursor: pointer;
+  background: {{ section.settings.about_accent_color }};
+  border: none; color: #000;
+  font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 700;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  white-space: nowrap; padding: 10px 20px; border-radius: 50px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.22), 0 6px 24px rgba(0,0,0,0.18);
+  opacity: 0; pointer-events: none;
+  top: {{ section.settings.addname_pos_y }}%;
+  left: {{ section.settings.addname_pos_x }}%;
+  transform: translate(-{{ section.settings.addname_anchor_x }}%, -{{ section.settings.addname_anchor_y }}%);
+  transition: opacity 0.28s ease, box-shadow 0.22s ease,
+    transform 0.28s cubic-bezier(0.34,1.56,0.64,1);
+  -webkit-tap-highlight-color: transparent;
+}
+.sig-addname-btn-{{ sid }}.is-visible { opacity: 1; pointer-events: all; }
+.sig-addname-btn-{{ sid }}:hover {
+  box-shadow: 0 4px 14px rgba(0,0,0,0.3), 0 10px 32px rgba(0,0,0,0.24);
+  transform: translate(-{{ section.settings.addname_anchor_x }}%, -{{ section.settings.addname_anchor_y }}%) translateY(-2px) scale(1.04);
+}
+.sig-addname-btn-{{ sid }}:active {
+  transform: translate(-{{ section.settings.addname_anchor_x }}%, -{{ section.settings.addname_anchor_y }}%) scale(0.97);
+}
+.sig-addname-btn-{{ sid }} svg { transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1); }
+.sig-addname-btn-{{ sid }}:hover svg { transform: rotate(90deg); }
+
+/* ══════════════════════════════════════
+   ADD MY NAME POPOUT
+   FIX: Card + backdrop live on document.body — appended by JS on first open.
+   This escapes the hero's overflow:hidden + transform stacking context
+   which was trapping position:fixed children and pushing hero layout.
+══════════════════════════════════════ */
+.addname-backdrop-{{ sid }} {
+  position: fixed; inset: 0; z-index: 9998;
+  background: transparent;
+  display: none;
+}
+.addname-backdrop-{{ sid }}.is-open { display: block; }
+
+.addname-card-{{ sid }} {
+  /* position:absolute on document.body — JS sets top/left via scroll-aware coords */
+  position: absolute;
+  z-index: 9999;
+  background: linear-gradient(160deg,rgba(18,18,18,0.88) 0%,rgba(10,10,10,0.92) 100%);
+  backdrop-filter: blur(32px) saturate(2);
+  -webkit-backdrop-filter: blur(32px) saturate(2);
+  border: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.12),inset 0 -1px 0 rgba(0,0,0,0.3),
+    0 8px 32px rgba(0,0,0,0.4),0 24px 64px rgba(0,0,0,0.35),0 0 0 1px rgba(255,255,255,0.08);
+  border-radius: 20px;
+  padding: 22px 22px 20px;
+  width: 280px;
+  color: {{ section.settings.about_text_color }};
+  transform-origin: top center;
+  transform: scaleY(0.85) translateY(-8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.32s cubic-bezier(0.22,1,0.36,1), opacity 0.24s ease;
+}
+.addname-card-{{ sid }}::before {
+  content: '';
+  position: absolute; top: -7px; left: 50%; transform: translateX(-50%);
+  width: 14px; height: 14px;
+  background: rgba(22,22,22,0.92);
+  border-top: 1px solid rgba(255,255,255,0.1);
+  border-left: 1px solid rgba(255,255,255,0.1);
+  clip-path: polygon(0 100%, 50% 0, 100% 100%);
+}
+.addname-card-{{ sid }}.is-open {
+  transform: scaleY(1) translateY(0);
+  opacity: 1; pointer-events: all;
+}
+.addname-close-{{ sid }} {
+  position: absolute; top: 12px; right: 14px;
+  width: 28px; height: 28px; background: transparent; border: none; cursor: pointer;
+  color: rgba(255,255,255,0.35);
+  display: flex; align-items: center; justify-content: center;
+  transition: color 0.18s ease, transform 0.22s ease;
+  padding: 0; border-radius: 50%;
+}
+.addname-close-{{ sid }}:hover { color: rgba(255,255,255,0.9); transform: rotate(90deg); }
+.addname-heading-{{ sid }} {
+  font-size: 0.88rem; font-weight: 500; letter-spacing: 0.06em;
+  margin: 0 0 4px; color: rgba(255,255,255,0.9);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+}
+.addname-sub-{{ sid }} { font-size: 0.72rem; opacity: 0.42; margin: 0 0 16px; line-height: 1.5; }
+.addname-field-{{ sid }} {
+  width: 100%; box-sizing: border-box;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px; padding: 10px 12px;
+  color: {{ section.settings.about_text_color }};
+  font-size: 0.82rem; font-family: inherit; outline: none;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  margin-bottom: 10px; -webkit-appearance: none;
+}
+.addname-field-{{ sid }}::placeholder { opacity: 0.32; color: {{ section.settings.about_text_color }}; }
+.addname-field-{{ sid }}:focus { border-color: {{ section.settings.about_accent_color }}; background: rgba(255,255,255,0.1); }
+.addname-field-{{ sid }}.field-error { border-color: #e05c5c; }
+.addname-error-msg-{{ sid }} { font-size: 0.7rem; color: #e07a7a; margin: -6px 0 8px 2px; display: none; }
+.addname-error-msg-{{ sid }}.visible { display: block; }
+.addname-consent-{{ sid }} { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 14px; cursor: pointer; }
+.addname-consent-{{ sid }} input[type="checkbox"] {
+  flex-shrink: 0; width: 13px; height: 13px; margin-top: 2px;
+  accent-color: {{ section.settings.about_accent_color }}; cursor: pointer;
+}
+.addname-consent-label-{{ sid }} { font-size: 0.68rem; opacity: 0.4; line-height: 1.45; }
+.addname-consent-label-{{ sid }} a { color: {{ section.settings.about_accent_color }}; text-decoration: none; }
+.addname-submit-{{ sid }} {
+  width: 100%; padding: 12px;
+  background: {{ section.settings.about_accent_color }};
+  color: #000; border: none; border-radius: 10px;
+  font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase;
+  font-weight: 700; cursor: pointer; font-family: inherit;
+  transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+}
+.addname-submit-{{ sid }}:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+.addname-submit-{{ sid }}:active:not(:disabled) { transform: scale(0.97); }
+.addname-submit-{{ sid }}:disabled { opacity: 0.35; cursor: not-allowed; }
+.addname-success-{{ sid }} { display: none; text-align: center; padding: 8px 0 4px; }
+.addname-success-{{ sid }}.visible { display: block; }
+.addname-success-icon-{{ sid }} {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: {{ section.settings.about_accent_color }};
+  display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;
+}
+.addname-success-title-{{ sid }} { font-size: 1rem; font-weight: 400; margin: 0 0 6px; }
+.addname-success-body-{{ sid }} { font-size: 0.76rem; opacity: 0.45; line-height: 1.55; margin: 0; }
+.addname-form-{{ sid }} { transition: opacity 0.2s ease; }
+</style>
+
+<section class="hero-{{ sid }}" id="Hero-{{ sid }}">
+
+  <div class="hero-media-{{ sid }}">
+    {%- if section.settings.video_link != blank -%}
+      {%- if section.settings.video_poster != blank -%}
+        {%- assign poster_alt = section.settings.video_poster.alt | default: '' -%}
+        {%- assign poster_src = section.settings.video_poster | image_url: width: 1920 -%}
+        <img
+          id="hero-poster-img-{{ sid }}"
+          class="hero-poster-{{ sid }}"
+          src="{{ poster_src }}"
+          alt="{{ poster_alt }}"
+          loading="eager"
+          fetchpriority="high"
+          width="{{ section.settings.video_poster.width }}"
+          height="{{ section.settings.video_poster.height }}"
+        >
+      {%- endif -%}
+      <video id="hero-video-{{ sid }}" class="hero-asset"
+        src="{{ section.settings.video_link }}"
+        {%- if section.settings.video_poster != blank %} poster="{{ section.settings.video_poster | image_url: width: 1920 }}"{% endif %}
+        autoplay muted loop playsinline webkit-playsinline x5-playsinline
+        preload="none" disablepictureinpicture disableremoteplayback
+        controlslist="nodownload nofullscreen noremoteplayback"
+        x-webkit-airplay="deny">
+      </video>
+    {%- elsif section.settings.image != blank -%}
+      {{ section.settings.image | image_url: width: 3000 | image_tag: class: 'hero-asset', loading: 'eager', fetchpriority: 'high' }}
+    {%- endif -%}
+  </div>
+
+  <div class="hero-overlay-{{ sid }}"></div>
+
+  {%- if section.settings.wall_names != blank -%}
+    {%- assign wall_names_arr = section.settings.wall_names | split: ',' -%}
+    <div class="sig-wall-canvas-{{ sid }}" id="sig-wall-{{ sid }}" aria-hidden="true"></div>
+    <script id="sig-wall-data-{{ sid }}" type="application/json">[{%- for n in wall_names_arr -%}{%- assign t = n | strip | escape -%}{%- unless t == blank -%}"{{ t }}"{%- unless forloop.last -%},{%- endunless -%}{%- endunless -%}{%- endfor -%}]</script>
+  {%- endif -%}
+
+  <div class="hero-content-{{ sid }}" id="content-{{ sid }}">
+    {%- for block in section.blocks -%}
+      {%- if block.type == 'heading' or block.type == 'text' or block.type == 'button' -%}
+        <div style="width:100%;display:flex;flex-direction:column;align-items:inherit;">
+          {%- case block.type -%}
+            {%- when 'heading' -%}
+              <h1 class="hero-title" {{ block.shopify_attributes }}>{{ block.settings.title }}</h1>
+            {%- when 'text' -%}
+              <div style="margin-bottom:20px;font-size:1rem;line-height:1.7;opacity:0.8;" {{ block.shopify_attributes }}>{{ block.settings.subtext }}</div>
+            {%- when 'button' -%}
+              {%- assign bs = section.settings.btn_style -%}
+              <a href="{{ block.settings.link }}"
+                class="lux-btn {%- if bs == 'solid' %} lux-btn--solid{%- elsif bs == 'text' %} lux-btn--text{%- else %} lux-btn--ghost{%- endif %}"
+                {{ block.shopify_attributes }}>
+                {{- block.settings.label -}}
+                {%- if bs == 'text' -%}<span class="btn-arrow" aria-hidden="true"> →</span>{%- endif -%}
+              </a>
+          {%- endcase -%}
+        </div>
+      {%- endif -%}
+    {%- endfor -%}
+  </div>
+
+  {%- assign has_socials = false -%}
+  {%- for block in section.blocks -%}{%- if block.type == 'social_link' -%}{%- assign has_socials = true -%}{%- endif -%}{%- endfor -%}
+  {%- if has_socials -%}
+    <div class="social-glass-wrap-{{ sid }}" style="top:{{ section.settings.social_pos_y }}%;left:{{ section.settings.social_pos_x }}%;transform:translate(-{{ section.settings.social_anchor_x }}%,-{{ section.settings.social_anchor_y }}%);">
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'social_link' -%}
+          {%- assign bsz = block.settings.btn_size -%}
+          {%- assign icz = bsz | times: 0.42 | round -%}
+          <a href="{{ block.settings.url }}" class="social-glass-btn" target="_blank" rel="noopener" aria-label="{{ block.settings.platform }}"
+            style="width:{% if block.settings.show_label %}auto;padding:0 {{ bsz | divided_by: 2 }}px{% else %}{{ bsz }}px{% endif %};height:{{ bsz }}px;border-radius:{{ block.settings.pill_radius }}px;"
+            {{ block.shopify_attributes }}>
+            {%- case block.settings.platform -%}
+              {%- when 'instagram' -%}<svg width="{{ icz }}" height="{{ icz }}" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+              {%- when 'tiktok' -%}<svg width="{{ icz }}" height="{{ icz }}" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
+              {%- when 'twitter' -%}<svg width="{{ icz }}" height="{{ icz }}" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.259 5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              {%- when 'facebook' -%}<svg width="{{ icz }}" height="{{ icz }}" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+              {%- when 'youtube' -%}<svg width="{{ icz }}" height="{{ icz }}" viewBox="0 0 24 24"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
+              {%- when 'pinterest' -%}<svg width="{{ icz }}" height="{{ icz }}" viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.372 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 0 1 .083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.632-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>
+              {%- when 'linkedin' -%}<svg width="{{ icz }}" height="{{ icz }}" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+              {%- else -%}<svg width="{{ icz }}" height="{{ icz }}" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
+            {%- endcase -%}
+            {%- if block.settings.show_label and block.settings.platform != blank -%}<span>{{ block.settings.platform | capitalize }}</span>{%- endif -%}
+          </a>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+  {%- endif -%}
+
+  {%- for block in section.blocks -%}
+    {%- if block.type == 'text_overlay' -%}
+      <div class="text-overlay-block" style="top:{{ block.settings.pos_y }}%;left:{{ block.settings.pos_x }}%;font-size:{{ block.settings.font_size }}px;color:{{ block.settings.overlay_text_color }};opacity:{{ block.settings.text_opacity | divided_by: 100.0 }};font-weight:{{ block.settings.font_weight }};letter-spacing:{{ block.settings.letter_spacing | divided_by: 100.0 }}em;{%- if block.settings.uppercase %}text-transform:uppercase;{%- endif %}transform:rotate({{ block.settings.rotation }}deg) translate(-{{ block.settings.anchor_x }}%,-{{ block.settings.anchor_y }}%);max-width:{{ block.settings.max_width }}px;{%- if block.settings.font_family != blank %}font-family:'{{ block.settings.font_family }}',sans-serif;{%- endif %}line-height:{{ block.settings.line_height | divided_by: 10.0 }};" {{ block.shopify_attributes }}>{{ block.settings.overlay_text }}</div>
+    {%- endif -%}
+  {%- endfor -%}
+
+  {%- for block in section.blocks -%}
+    {%- if block.type == 'about_button' -%}
+      <button class="about-trigger-{{ sid }}" id="about-trigger-{{ sid }}-{{ block.id }}"
+        style="top:{{ block.settings.pos_y }}%;left:{{ block.settings.pos_x }}%;transform:translate(-{{ block.settings.anchor_x }}%,-{{ block.settings.anchor_y }}%);padding:{{ block.settings.btn_pad_y }}px {{ block.settings.btn_pad_x }}px;border-radius:{{ block.settings.btn_radius }}px;font-size:{{ block.settings.btn_font_size }}px;{%- if block.settings.about_font != blank %}font-family:'{{ block.settings.about_font }}',sans-serif;{%- endif %}"
+        {{ block.shopify_attributes }}>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+        {{ block.settings.btn_label }}
+      </button>
+      <div class="about-modal-backdrop-{{ sid }}" id="about-modal-{{ sid }}-{{ block.id }}" role="dialog" aria-modal="true">
+        <div class="about-modal-card-{{ sid }}">
+          <button class="about-close-btn-{{ sid }}" id="about-close-{{ sid }}-{{ block.id }}" aria-label="Close">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </button>
+          {%- if block.settings.eyebrow != blank -%}<p class="about-eyebrow-{{ sid }}">{{ block.settings.eyebrow }}</p>{%- endif -%}
+          <h2 class="about-store-name-{{ sid }}">{{ block.settings.store_name }}</h2>
+          <div class="about-divider-{{ sid }}"></div>
+          {%- if block.settings.about_description != blank -%}<p class="about-description-{{ sid }}">{{ block.settings.about_description }}</p>{%- endif -%}
+          {%- if block.settings.cta_label != blank and block.settings.cta_link != blank -%}
+            <a href="{{ block.settings.cta_link }}" class="about-cta-link-{{ sid }}">{{ block.settings.cta_label }}<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M16.01 11H4v2h12.01v3L20 12l-3.99-4z"/></svg></a>
+          {%- endif -%}
+          {%- assign modal_socials = section.blocks | where: 'type', 'social_link' -%}
+          {%- if modal_socials.size > 0 -%}
+            <div class="about-social-row-{{ sid }}">
+              {%- for s in modal_socials -%}
+                <a href="{{ s.settings.url }}" class="about-social-icon-{{ sid }}" target="_blank" rel="noopener" aria-label="{{ s.settings.platform }}">
+                  {%- assign ico = 15 -%}
+                  {%- case s.settings.platform -%}
+                    {%- when 'instagram' -%}<svg width="{{ ico }}" height="{{ ico }}" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                    {%- when 'tiktok' -%}<svg width="{{ ico }}" height="{{ ico }}" viewBox="0 0 24 24" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
+                    {%- when 'twitter' -%}<svg width="{{ ico }}" height="{{ ico }}" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.259 5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                    {%- when 'facebook' -%}<svg width="{{ ico }}" height="{{ ico }}" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                    {%- when 'youtube' -%}<svg width="{{ ico }}" height="{{ ico }}" viewBox="0 0 24 24" fill="currentColor"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
+                    {%- else -%}<svg width="{{ ico }}" height="{{ ico }}" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
+                  {%- endcase -%}
+                </a>
+              {%- endfor -%}
+            </div>
+          {%- endif -%}
+        </div>
+      </div>
+    {%- endif -%}
+  {%- endfor -%}
+
+  {%- if has_wall -%}
+    <button class="sig-wall-toggle-{{ sid }}"
+      id="sig-toggle-{{ sid }}"
+      aria-expanded="false"
+      aria-controls="sig-wall-{{ sid }}"
+      aria-label="{{ section.settings.wall_btn_label_show }}">
+      {%- comment -%} Group people icon — plural default profile silhouette {%- endcomment -%}
+      <svg class="sig-toggle-icon-{{ sid }}" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+      </svg>
+      <span class="label-show">{{ section.settings.wall_btn_label_show }}</span>
+      <span class="label-hide">{{ section.settings.wall_btn_label_hide }}</span>
+    </button>
+    <button class="sig-addname-btn-{{ sid }}" id="sig-addname-btn-{{ sid }}" aria-label="Add your name to the wall">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+      {{- section.settings.addname_btn_label | default: 'Add my name' -}}
+    </button>
+  {%- endif -%}
+
+  {%- if section.settings.video_link != blank -%}
+    <button class="vid-pause-btn-{{ sid }}" id="vid-pause-{{ sid }}" aria-label="Pause video">
+      <svg class="icon-pause" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+      <svg class="icon-play"  width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+    </button>
+  {%- endif -%}
+
+  {%- if section.settings.show_scroll -%}
+    <div class="scroll-indicator-v11"><div class="scroll-track"><div class="scroll-swipe-line"></div></div></div>
+  {%- endif -%}
+
+</section>
+
+{%- comment -%}
+  FIX: addname-backdrop and addname-card live OUTSIDE the <section>.
+  The hero section has overflow:hidden + CSS transforms which create a
+  stacking context that traps position:fixed children — causing the
+  backdrop to behave like position:absolute and pushing the hero layout
+  upward when opened. Outside the section, they render correctly.
+  JS also re-parents them to document.body on first open for safety.
+{%- endcomment -%}
+<div class="addname-backdrop-{{ sid }}" id="addname-modal-{{ sid }}"></div>
+<div class="addname-card-{{ sid }}" id="addname-card-{{ sid }}" role="dialog" aria-modal="true" aria-labelledby="addname-heading-{{ sid }}">
+  <button class="addname-close-{{ sid }}" id="addname-close-{{ sid }}" aria-label="Close">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+  </button>
+  <div class="addname-form-{{ sid }}" id="addname-form-wrap-{{ sid }}">
+    <h2 class="addname-heading-{{ sid }}" id="addname-heading-{{ sid }}">{{ section.settings.addname_heading }}</h2>
+    <p class="addname-sub-{{ sid }}">{{ section.settings.addname_subtext }}</p>
+    <form id="addname-form-{{ sid }}" novalidate>
+      <input type="hidden" name="form_type" value="contact">
+      <input type="hidden" name="utf8" value="✓">
+      <input type="hidden" name="contact[tags]" value="signature-wall">
+      <input type="text"  name="contact[body_nickname]" id="addname-nick-{{ sid }}"   class="addname-field-{{ sid }}" placeholder="{{ section.settings.addname_nick_placeholder }}"  autocomplete="nickname" maxlength="30" required>
+      <p class="addname-error-msg-{{ sid }}" id="addname-nick-err-{{ sid }}">Please enter a nickname (max 30 characters)</p>
+      <input type="email" name="contact[email]"         id="addname-email-{{ sid }}"  class="addname-field-{{ sid }}" placeholder="{{ section.settings.addname_email_placeholder }}" autocomplete="email" required>
+      <p class="addname-error-msg-{{ sid }}" id="addname-email-err-{{ sid }}">Please enter a valid email address</p>
+      <label class="addname-consent-{{ sid }}">
+        <input type="checkbox" id="addname-consent-{{ sid }}" required>
+        <span class="addname-consent-label-{{ sid }}">{{ section.settings.addname_consent_text }}{%- if section.settings.addname_privacy_url != blank -%} <a href="{{ section.settings.addname_privacy_url }}" target="_blank" rel="noopener">{{ section.settings.addname_privacy_label }}</a>.{%- endif -%}</span>
+      </label>
+      <button type="submit" class="addname-submit-{{ sid }}" id="addname-submit-{{ sid }}">{{ section.settings.addname_submit_label }}</button>
+    </form>
+  </div>
+  <div class="addname-success-{{ sid }}" id="addname-success-{{ sid }}" aria-live="polite">
+    <div class="addname-success-icon-{{ sid }}">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="#000"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+    </div>
+    <h3 class="addname-success-title-{{ sid }}">{{ section.settings.addname_success_title }}</h3>
+    <p class="addname-success-body-{{ sid }}">{{ section.settings.addname_success_body }}</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var ua          = navigator.userAgent || '';
+  var SID         = '{{ sid }}';
+  var heroSection = document.getElementById('Hero-' + SID);
+  var video       = document.getElementById('hero-video-' + SID);
+  var posterImg   = document.getElementById('hero-poster-img-' + SID);
+  var pauseBtn    = document.getElementById('vid-pause-' + SID);
+  var restricted  = /musical_ly|tiktok|bytedance|Instagram|FBAN|FBAV|FB_IAB|FBIOS|FBSS|Snapchat|TwitterAndroid|TwitteriPhone|LinkedInApp|MicroMessenger/i.test(ua);
+
+  /* ── Video engine ── */
+  if (video) {
+    if (restricted) {
+      video.style.display = 'none';
+    } else {
+      video.muted = video.defaultMuted = true;
+      video.autoplay = true;
+      var videoShown = false;
+      var fadeTimer  = null;
+
+      function showVideo() {
+        if (videoShown) return;
+        videoShown = true;
+        video.classList.add('vid-ready');
+        if (posterImg) { posterImg.style.transition = 'opacity 0.7s ease'; posterImg.style.opacity = '0'; }
+        if (pauseBtn) pauseBtn.classList.add('is-visible');
+        scheduleFade();
+      }
+      video.addEventListener('playing', showVideo, { once: true });
+
+      function scheduleFade() {
+        clearTimeout(fadeTimer);
+        if (!pauseBtn) return;
+        fadeTimer = setTimeout(function () {
+          if (pauseBtn && !pauseBtn.classList.contains('is-paused')) pauseBtn.classList.add('is-faded');
+        }, 3000);
+      }
+      function wakeBtn() {
+        if (!pauseBtn) return;
+        pauseBtn.classList.remove('is-faded');
+        scheduleFade();
+      }
+      if (heroSection) {
+        heroSection.addEventListener('mousemove', wakeBtn, { passive: true });
+        heroSection.addEventListener('touchstart', wakeBtn, { passive: true });
+      }
+      if (pauseBtn) {
+        pauseBtn.addEventListener('click', function () {
+          if (video.paused) {
+            video.play().catch(function () {});
+            pauseBtn.classList.remove('is-paused');
+            scheduleFade();
+          } else {
+            video.pause();
+            pauseBtn.classList.add('is-paused');
+            clearTimeout(fadeTimer);
+            pauseBtn.classList.remove('is-faded');
+          }
+        });
+        video.addEventListener('pause', function () {
+          if (pauseBtn) { pauseBtn.classList.add('is-paused'); clearTimeout(fadeTimer); pauseBtn.classList.remove('is-faded'); }
+        });
+        video.addEventListener('play', function () {
+          if (pauseBtn) { pauseBtn.classList.remove('is-paused'); scheduleFade(); }
+        });
+      }
+      function tryPlay() {
+        video.muted = true;
+        var p = video.play();
+        if (p && typeof p.then === 'function') {
+          p.then(showVideo).catch(function () {
+            var retry = function () { video.play().then(showVideo).catch(function () {}); };
+            document.addEventListener('touchstart', retry, { once: true, passive: true });
+            document.addEventListener('click', retry, { once: true });
+          });
+        } else { showVideo(); }
+      }
+      function startVideo() {
+        video.preload = 'auto';
+        if (video.readyState >= 3) {
+          tryPlay();
+        } else {
+          video.addEventListener('canplaythrough', function onCPT() {
+            video.removeEventListener('canplaythrough', onCPT);
+            tryPlay();
+          });
+          video.load();
+          setTimeout(function () { if (!videoShown) tryPlay(); }, 2500);
+        }
+      }
+      if ('IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function (entries, obs) {
+          if (entries[0].isIntersecting) { startVideo(); obs.disconnect(); }
+        }, { rootMargin: '200px' });
+        io.observe(heroSection || document.body);
+      } else { startVideo(); }
+
+      document.addEventListener('visibilitychange', function () {
+        if (document.hidden) {
+          video.pause();
+        } else if (video.paused && !(pauseBtn && pauseBtn.classList.contains('is-paused'))) {
+          video.play().catch(function () {});
+        }
+      });
+    }
+  }
+
+  /* ── Hero content reveal ── */
+  function revealContent() {
+    var el = document.getElementById('content-' + SID);
+    if (el) el.classList.add('is-visible');
+  }
+  document.readyState === 'loading'
+    ? document.addEventListener('DOMContentLoaded', revealContent)
+    : revealContent();
+
+
+  /* ── About modal ── */
+  document.querySelectorAll('[id^="about-trigger-' + SID + '-"]').forEach(function (btn) {
+    var blockId  = btn.id.replace('about-trigger-' + SID + '-', '');
+    var modal    = document.getElementById('about-modal-' + SID + '-' + blockId);
+    var closeBtn = document.getElementById('about-close-' + SID + '-' + blockId);
+    if (!modal) return;
+    var openM  = function () { modal.classList.add('is-open');    document.body.style.overflow = 'hidden'; };
+    var closeM = function () { modal.classList.remove('is-open'); document.body.style.overflow = ''; };
+    btn.addEventListener('click', openM);
+    if (closeBtn) closeBtn.addEventListener('click', closeM);
+    modal.addEventListener('click', function (e) { if (e.target === modal) closeM(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && modal.classList.contains('is-open')) closeM(); });
+  });
+
+  /* ── Signature wall ── */
+  var wallCanvas = document.getElementById('sig-wall-' + SID);
+  var wallToggle = document.getElementById('sig-toggle-' + SID);
+  var addNameBtn = document.getElementById('sig-addname-btn-' + SID);
+  var dataEl     = document.getElementById('sig-wall-data-' + SID);
+
+  if (wallCanvas && wallToggle && dataEl) {
+    var WALL_GF   = '{{ section.settings.wall_font }}';
+    var SYS_FONTS = [
+      '"Georgia","Times New Roman",serif','"Palatino Linotype","Book Antiqua",serif',
+      '"Garamond","Cochin",serif','"Helvetica Neue",Arial,sans-serif',
+      '"Trebuchet MS","Lucida Grande",sans-serif','Verdana,Geneva,sans-serif',
+      '"Courier New","Lucida Console",monospace','"Brush Script MT","Segoe Script",cursive',
+      '"Lucida Handwriting","Apple Chancery",cursive','Impact,Charcoal,fantasy',
+      '"Copperplate","Copperplate Gothic Light",fantasy'
+    ];
+    var FONT_POOL;
+    if (WALL_GF && WALL_GF.trim() !== '') {
+      FONT_POOL = [];
+      var gfStack = '"' + WALL_GF + '",' + SYS_FONTS[0];
+      for (var _i = 0; _i < 7; _i++) FONT_POOL.push(gfStack);
+      FONT_POOL.push(SYS_FONTS[0], SYS_FONTS[3], SYS_FONTS[7]);
+    } else { FONT_POOL = SYS_FONTS; }
+
+    var WALL_COLORS = [
+      '{{ section.settings.wall_color_1 }}','{{ section.settings.wall_color_2 }}',
+      '{{ section.settings.wall_color_3 }}','{{ section.settings.wall_color_4 }}',
+      '{{ section.settings.wall_color_5 }}'
+    ].filter(function (c) { return c && c.length > 3; });
+    if (!WALL_COLORS.length) WALL_COLORS = ['#fff','#f0f0f0','#d4af37','#cccccc','#e8e8e8'];
+
+    function h(str, range) {
+      var v = 0;
+      for (var i = 0; i < str.length; i++) v = (Math.imul(31, v) + str.charCodeAt(i)) | 0;
+      return Math.abs(v) % range;
+    }
+    var wallBuilt = false;
+
+    function buildWall(names) {
+      if (wallBuilt) return;
+      wallBuilt = true;
+      var count = names.length;
+      var minSz, maxSz;
+      if      (count < 50)  { minSz = 18; maxSz = 46; }
+      else if (count < 200) { minSz = 13; maxSz = 32; }
+      else if (count < 500) { minSz = 9;  maxSz = 22; }
+      else                  { minSz = 7;  maxSz = 16; }
+      var cw = wallCanvas.offsetWidth  || window.innerWidth  || 800;
+      var ch = wallCanvas.offsetHeight || window.innerHeight || 600;
+      var placed = [], PAD = 6, MAX_ATT = 24;
+      function collidePx(cx, cy, hw, hh) {
+        for (var i = 0; i < placed.length; i++) {
+          var p = placed[i];
+          if (Math.abs(cx-p[0]) < hw+p[2]+PAD && Math.abs(cy-p[1]) < hh+p[3]+PAD) return true;
+        }
+        return false;
+      }
+      var frag = document.createDocumentFragment();
+      var maxDelay = Math.min(count * 6, 1800);
+      for (var idx = 0; idx < count; idx++) {
+        var name = names[idx];
+        if (!name || !name.trim()) continue;
+        var s1=name+idx, s2=String(idx)+name, s3=name.split('').reverse().join('')+idx, s4=name.slice(0,4)+String(idx);
+        var fi = h(s1, FONT_POOL.length);
+        var ci = h(s3, WALL_COLORS.length);
+        var fontSize = minSz + h(s4, maxSz-minSz+1);
+        var opH = h(s2, 100);
+        var opacity = 0.65 + (opH/100)*0.35;
+        var fw = [300,400,400,500,600,700][h(s3,6)];
+        var rot = h(s1,21)-10;
+        var ls = h(s4,15)/100;
+        var approxW = name.trim().length*fontSize*0.58;
+        var approxH = fontSize*1.3;
+        var hw = approxW/2, hh = approxH/2;
+        var cx = cw*0.5, cy = ch*0.5;
+        var placed_ok = false;
+        for (var att=0; att < MAX_ATT; att++) {
+          cx=(4+h(s1+att,90))/100*cw; cy=(4+h(s2+att,90))/100*ch;
+          if (!collidePx(cx,cy,hw,hh)) { placed_ok=true; break; }
+        }
+        if (!placed_ok) {
+          var smallSz=Math.max(minSz,Math.round(fontSize*0.7));
+          var smallW=name.trim().length*smallSz*0.58/2, smallH=smallSz*1.3/2;
+          for (var att2=0; att2 < MAX_ATT; att2++) {
+            cx=(4+h(s1+att2+50,90))/100*cw; cy=(4+h(s2+att2+50,90))/100*ch;
+            if (!collidePx(cx,cy,smallW,smallH)) { fontSize=smallSz; hw=smallW; hh=smallH; break; }
+          }
+        }
+        placed.push([cx,cy,hw,hh]);
+        var tx=(cx/cw*100).toFixed(2), ty=(cy/ch*100).toFixed(2);
+        var span = document.createElement('span');
+        span.className='sig-name'; span.textContent=name.trim();
+        span.setAttribute('aria-hidden','true');
+        span.style.cssText=
+          '--sz:'+fontSize+'px;--cl:'+WALL_COLORS[ci]+';--op:'+opacity.toFixed(2)+
+          ';--ff:'+FONT_POOL[fi]+';--fw:'+fw+';--rot:'+rot+'deg;--tx:'+tx+'%;--ty:'+ty+
+          '%;--ls:'+ls+'em;--delay:'+Math.round((idx/count)*maxDelay)+'ms';
+        frag.appendChild(span);
+      }
+      wallCanvas.appendChild(frag);
+    }
+
+    var names = [];
+    try { names = JSON.parse(dataEl.textContent || dataEl.innerHTML || '[]'); } catch(e) {}
+    var wallOpen = false;
+
+    function openWall() {
+      buildWall(names); wallOpen=true;
+      wallCanvas.classList.add('is-visible');
+      wallToggle.classList.add('wall-open');
+      wallToggle.setAttribute('aria-expanded','true');
+      if (addNameBtn) addNameBtn.classList.add('is-visible');
+    }
+    function closeWall() {
+      wallOpen=false;
+      wallCanvas.classList.remove('is-visible');
+      wallToggle.classList.remove('wall-open');
+      wallToggle.setAttribute('aria-expanded','false');
+      if (addNameBtn) addNameBtn.classList.remove('is-visible');
+    }
+    wallToggle.addEventListener('click', function () { wallOpen ? closeWall() : openWall(); });
+  }
+
+  /* ══════════════════════════════════════
+     ADD MY NAME — INLINE POPOUT
+     FIX: Re-parent card + backdrop to document.body on first open.
+     The hero's overflow:hidden + transform creates a stacking context
+     that traps position:fixed, making backdrop behave like position:absolute
+     and pushing the hero section upward. On document.body there is no
+     such constraint — fixed and absolute both work correctly.
+  ══════════════════════════════════════ */
+  var addBackdrop = document.getElementById('addname-modal-' + SID);
+  var addCard     = document.getElementById('addname-card-'  + SID);
+  var addClose    = document.getElementById('addname-close-' + SID);
+  var addForm     = document.getElementById('addname-form-'  + SID);
+  var formWrap    = document.getElementById('addname-form-wrap-' + SID);
+  var successPnl  = document.getElementById('addname-success-'  + SID);
+  var nickField   = document.getElementById('addname-nick-'   + SID);
+  var emailField  = document.getElementById('addname-email-'  + SID);
+  var consentChk  = document.getElementById('addname-consent-'+ SID);
+  var submitBtn   = document.getElementById('addname-submit-' + SID);
+  var nickErr     = document.getElementById('addname-nick-err-'  + SID);
+  var emailErr    = document.getElementById('addname-email-err-' + SID);
+  var addNameBtn2 = document.getElementById('sig-addname-btn-' + SID);
+  var movedToBody = false;
+
+  if (addCard) {
+    function ensureOnBody() {
+      if (movedToBody) return;
+      movedToBody = true;
+      /* Move both elements to document.body, escaping any stacking context */
+      if (addCard     && !document.body.contains(addCard))     document.body.appendChild(addCard);
+      if (addBackdrop && !document.body.contains(addBackdrop)) document.body.appendChild(addBackdrop);
+    }
+
+    function positionCard() {
+      if (!addNameBtn2) return;
+      var btnR = addNameBtn2.getBoundingClientRect();
+      var cW   = 280;
+      /* Use viewport coords + scrollY/X for absolute-to-body positioning */
+      var top  = btnR.bottom + window.pageYOffset + 10;
+      var left = btnR.left + window.pageXOffset + (btnR.width / 2) - (cW / 2);
+      left = Math.max(12, Math.min(left, document.documentElement.clientWidth - cW - 12));
+      addCard.style.position = 'absolute';
+      addCard.style.top      = top  + 'px';
+      addCard.style.left     = left + 'px';
+    }
+
+    var popOpen = false;
+
+    var openAdd = function () {
+      if (popOpen) return;
+      ensureOnBody();
+      popOpen = true;
+      positionCard();
+      addCard.classList.add('is-open');
+      if (addBackdrop) addBackdrop.classList.add('is-open');
+      if (nickField) setTimeout(function () { nickField.focus(); }, 200);
+    };
+
+    var closeAdd = function () {
+      if (!popOpen) return;
+      popOpen = false;
+      addCard.classList.remove('is-open');
+      if (addBackdrop) addBackdrop.classList.remove('is-open');
+    };
+
+    if (addNameBtn2) addNameBtn2.addEventListener('click', function (e) {
+      e.stopPropagation();
+      popOpen ? closeAdd() : openAdd();
+    });
+    if (addClose)    addClose.addEventListener('click', closeAdd);
+    if (addBackdrop) addBackdrop.addEventListener('click', closeAdd);
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && popOpen) closeAdd();
+    });
+
+    function isEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()); }
+    function setErr(f, el, on) { if (f) f.classList.toggle('field-error', on); if (el) el.classList.toggle('visible', on); }
+
+    if (nickField)  nickField.addEventListener('input',  function () { if (this.value.trim()) setErr(this, nickErr, false); });
+    if (emailField) emailField.addEventListener('input', function () { if (isEmail(this.value)) setErr(this, emailErr, false); });
+
+    if (addForm) {
+      addForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var nick    = nickField  ? nickField.value.trim()  : '';
+        var email   = emailField ? emailField.value.trim() : '';
+        var consent = consentChk ? consentChk.checked      : false;
+        var ok      = true;
+        if (!nick)           { setErr(nickField,  nickErr,  true); ok = false; }
+        if (!isEmail(email)) { setErr(emailField, emailErr, true); ok = false; }
+        if (!consent)        { if (consentChk) consentChk.focus(); ok = false; }
+        if (!ok) return;
+        submitBtn.disabled    = true;
+        submitBtn.textContent = '{{ section.settings.addname_submit_loading }}';
+        var fd = new FormData(addForm);
+        fd.set('contact[email]',   email);
+        fd.set('contact[body]',    'Signature Wall — Nickname: ' + nick);
+        fd.set('contact[subject]', 'Wall Submission: ' + nick);
+        fetch('/contact#contact_form', {
+          method: 'POST',
+          headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+          body: fd
+        })
+        .then(function (r) { if (r.ok || r.redirected) showSuccess(); else throw 0; })
+        .catch(function () { showSuccess(); });
+      });
+    }
+
+    function showSuccess() {
+      if (formWrap) {
+        formWrap.style.opacity = '0';
+        setTimeout(function () {
+          formWrap.style.display = 'none';
+          if (successPnl) successPnl.classList.add('visible');
+        }, 220);
+      }
+    }
+  }
+
+}());
+</script>
+
+{% schema %}
+{
+  "name": "Ultimate Hero V11",
+  "settings": [
+    { "type": "header", "content": "── Media ──" },
+    { "type": "image_picker", "id": "image",        "label": "Image" },
+    { "type": "text",         "id": "video_link",   "label": "Video MP4 URL", "info": "Direct .mp4 CDN link. Autoplay is lazy-loaded for best Core Web Vitals." },
+    { "type": "image_picker", "id": "video_poster", "label": "Video Fallback Image", "info": "Shown while video loads and permanently on TikTok / Instagram / Facebook in-app browsers." },
+    { "type": "select",       "id": "image_fit",    "label": "Image Fitting",
+      "options": [{"value":"cover","label":"Cover"},{"value":"contain","label":"Contain"}], "default": "cover" },
+    { "type": "header", "content": "── Layout ──" },
+    { "type": "range", "id": "height",        "label": "Desktop Height (VH)", "min": 60,  "max": 100, "step": 1,  "default": 90 },
+    { "type": "range", "id": "height_mobile", "label": "Mobile Height (VH)",  "min": 50,  "max": 100, "step": 1,  "default": 80 },
+    { "type": "range", "id": "content_width", "label": "Content Max Width",   "min": 400, "max": 1200,"step": 10, "default": 800, "unit": "px" },
+    { "type": "select", "id": "horizontal_alignment", "label": "Horizontal Position",
+      "options": [{"value":"flex-start","label":"Left"},{"value":"center","label":"Center"},{"value":"flex-end","label":"Right"}], "default": "center" },
+    { "type": "select", "id": "vertical_alignment", "label": "Vertical Position",
+      "options": [{"value":"flex-start","label":"Top"},{"value":"center","label":"Middle"},{"value":"flex-end","label":"Bottom"}], "default": "center" },
+    { "type": "select", "id": "text_align", "label": "Text Alignment",
+      "options": [{"value":"left","label":"Left"},{"value":"center","label":"Center"},{"value":"right","label":"Right"}], "default": "center" },
+    { "type": "header", "content": "── Button Style ──" },
+    { "type": "select", "id": "btn_style", "label": "CTA Button Style",
+      "options": [
+        {"value":"ghost","label":"Ghost — Frosted hairline (default)"},
+        {"value":"solid","label":"Solid — Filled high-contrast"},
+        {"value":"text", "label":"Text Link — Animated underline"}
+      ], "default": "ghost" },
+    { "type": "range", "id": "btn_radius", "label": "Button Corner Radius", "min": 0, "max": 50, "step": 2, "default": 0, "unit": "px" },
+    { "type": "header", "content": "── Colors ──" },
+    { "type": "color", "id": "bg_color",       "label": "Background",          "default": "#000000" },
+    { "type": "color", "id": "text_color",     "label": "Text / Button Color", "default": "#ffffff" },
+    { "type": "color", "id": "overlay_color",  "label": "Overlay Color",       "default": "#000000" },
+    { "type": "range", "id": "overlay_opacity","label": "Overlay Darkness",    "min": 0, "max": 95, "step": 1, "default": 40, "unit": "%" },
+    { "type": "range", "id": "title_size",     "label": "Title Size",          "min": 2, "max": 12, "step": 1, "default": 6,  "unit": "rem" },
+    { "type": "checkbox", "id": "show_scroll", "label": "Show Scroll Indicator","default": true },
+    { "type": "header",   "content": "── Social Buttons ──" },
+    { "type": "color",  "id": "social_color",    "label": "Icon Color",       "default": "#ffffff" },
+    { "type": "range",  "id": "social_pos_x",    "label": "Left (%)",         "min": 0, "max": 95, "step": 1, "default": 90, "unit": "%" },
+    { "type": "range",  "id": "social_pos_y",    "label": "Top (%)",          "min": 0, "max": 95, "step": 1, "default": 50, "unit": "%" },
+    { "type": "range",  "id": "social_anchor_x", "label": "Anchor X",         "min": 0, "max": 100,"step": 1, "default": 50, "unit": "%" },
+    { "type": "range",  "id": "social_anchor_y", "label": "Anchor Y",         "min": 0, "max": 100,"step": 1, "default": 50, "unit": "%" },
+    { "type": "select", "id": "social_direction","label": "Direction",
+      "options": [{"value":"row","label":"Horizontal"},{"value":"column","label":"Vertical"}], "default": "column" },
+    { "type": "header", "content": "── About Modal ──" },
+    { "type": "color", "id": "about_card_bg",     "label": "Card Background", "default": "#0d0d0d" },
+    { "type": "color", "id": "about_text_color",  "label": "Card Text",       "default": "#ffffff" },
+    { "type": "color", "id": "about_accent_color","label": "Accent Color",    "default": "#fcfafdff" },
+    { "type": "range", "id": "about_card_radius", "label": "Card Radius",     "min": 0, "max": 30, "step": 1, "default": 12, "unit": "px" },
+    { "type": "range", "id": "about_card_width",  "label": "Card Max Width",  "min": 300,"max": 700,"step": 10,"default": 500, "unit": "px" },
+    { "type": "range", "id": "about_title_size",  "label": "Title Size",      "min": 1,  "max": 6,  "step": 1, "default": 3,  "unit": "rem" },
+    { "type": "select","id": "about_title_weight","label": "Title Weight",
+      "options": [{"value":"300","label":"Light"},{"value":"400","label":"Regular"},{"value":"600","label":"Semi-Bold"},{"value":"700","label":"Bold"}], "default": "300" },
+    { "type": "select", "id": "about_font", "label": "About Card Font", "options": [
+      {"value":"","label":"— Default —"},
+      {"value":"Cormorant Garamond","label":"Cormorant Garamond"},{"value":"Playfair Display","label":"Playfair Display"},
+      {"value":"DM Serif Display","label":"DM Serif Display"},{"value":"Bodoni Moda","label":"Bodoni Moda"},
+      {"value":"EB Garamond","label":"EB Garamond"},{"value":"Cinzel","label":"Cinzel"},
+      {"value":"Libre Baskerville","label":"Libre Baskerville"},{"value":"Italiana","label":"Italiana"},
+      {"value":"Raleway","label":"Raleway"},{"value":"Montserrat","label":"Montserrat"},
+      {"value":"Josefin Sans","label":"Josefin Sans"},{"value":"Jost","label":"Jost"},
+      {"value":"Outfit","label":"Outfit"},{"value":"Bebas Neue","label":"Bebas Neue"},
+      {"value":"Julius Sans One","label":"Julius Sans One"},{"value":"Tenor Sans","label":"Tenor Sans"}
+    ], "default": "" },
+    { "type": "header", "content": "── ✦ Signature Wall ──" },
+    { "type": "paragraph", "content": "Paste supporter names separated by commas. Handles 1,000+ names. Font sizes auto-scale with quantity so the wall always fills naturally." },
+    { "type": "textarea", "id": "wall_names", "label": "Supporter Names (comma-separated)",
+      "default": "Alex,Sam,Jordan,Riley,Morgan,Casey,Taylor,Jamie,Drew,Quinn,Avery,Blake,Cameron,Dakota,Emery,Finley,Harper,Indigo,Jesse,Kennedy,Logan,Marlowe,Nico,Oakley,Parker,Reese,Sage,Sloane,Stevie,Tatum,Uma,Val,Winter,Xander,Yael,Zuri,Ash,Bay,Cedar,Delta,Echo,Fern,Grey,Harbor,Iris,Juniper,Knox,Linden,Moss,North" },
+    { "type": "header", "content": "── Wall Font ──" },
+    { "type": "paragraph", "content": "The selected font loads non-blocking (media=print swap) — zero LCP impact. Names render with it on first wall open." },
+    { "type": "select", "id": "wall_font", "label": "Wall Name Font", "options": [
+      {"value":"","label":"— System Fonts (zero load) —"},
+      {"value":"Cormorant Garamond","label":"Cormorant Garamond — Elegant Serif"},
+      {"value":"Playfair Display","label":"Playfair Display — Classic Serif"},
+      {"value":"DM Serif Display","label":"DM Serif Display — Modern Serif"},
+      {"value":"Bodoni Moda","label":"Bodoni Moda — High Fashion"},
+      {"value":"EB Garamond","label":"EB Garamond — Old-Style Serif"},
+      {"value":"Cinzel","label":"Cinzel — Roman / Luxury"},
+      {"value":"Italiana","label":"Italiana — Refined Serif"},
+      {"value":"Raleway","label":"Raleway — Geometric Sans"},
+      {"value":"Montserrat","label":"Montserrat — Clean Sans"},
+      {"value":"Josefin Sans","label":"Josefin Sans — Thin Sans"},
+      {"value":"Outfit","label":"Outfit — Contemporary Sans"},
+      {"value":"Bebas Neue","label":"Bebas Neue — Bold Display"},
+      {"value":"Julius Sans One","label":"Julius Sans One — Luxury Display"},
+      {"value":"Tenor Sans","label":"Tenor Sans — Refined Display"},
+      {"value":"Dancing Script","label":"Dancing Script — Handwriting"},
+      {"value":"Sacramento","label":"Sacramento — Signature Script"},
+      {"value":"Pacifico","label":"Pacifico — Casual Script"}
+    ], "default": "" },
+    { "type": "header", "content": "── Wall Appearance ──" },
+    { "type": "color", "id": "wall_color_1", "label": "Name Color 1", "default": "#ffffff" },
+    { "type": "color", "id": "wall_color_2", "label": "Name Color 2", "default": "#d4af37" },
+    { "type": "color", "id": "wall_color_3", "label": "Name Color 3", "default": "#aaaaaa" },
+    { "type": "color", "id": "wall_color_4", "label": "Name Color 4", "default": "#e8e8e8" },
+    { "type": "color", "id": "wall_color_5", "label": "Name Color 5", "default": "#cccccc" },
+    { "type": "color", "id": "wall_scrim_color",   "label": "Scrim Color",    "default": "#000000" },
+    { "type": "range", "id": "wall_scrim_opacity", "label": "Scrim Darkness", "min": 0, "max": 75, "step": 5, "default": 30, "unit": "%" },
+    { "type": "header", "content": "── Supporters Toggle Button ──" },
+    { "type": "select", "id": "wall_btn_style", "label": "Button Style",
+      "options": [
+        {"value":"glass","label":"Liquid Glass (Apple-style)"},
+        {"value":"solid","label":"Solid (Filled)"},
+        {"value":"outline","label":"Outline (Ghost)"}
+      ], "default": "glass" },
+    { "type": "text", "id": "wall_btn_label_show", "label": "Show label", "default": "Supporters" },
+    { "type": "text", "id": "wall_btn_label_hide", "label": "Hide label", "default": "Hide wall" },
+    { "type": "range", "id": "wall_btn_size",    "label": "Font Size",     "min": 10, "max": 16, "step": 1, "default": 11, "unit": "px" },
+    { "type": "range", "id": "wall_btn_pad_x",   "label": "Padding H",     "min": 12, "max": 36, "step": 2, "default": 18, "unit": "px" },
+    { "type": "range", "id": "wall_btn_pad_y",   "label": "Padding V",     "min": 8,  "max": 20, "step": 1, "default": 11, "unit": "px" },
+    { "type": "range", "id": "wall_btn_radius",  "label": "Corner Radius", "min": 0,  "max": 50, "step": 2, "default": 50, "unit": "px" },
+    { "type": "range", "id": "wall_btn_x",       "label": "Left (%)",      "min": 0,  "max": 95, "step": 1, "default": 50, "unit": "%" },
+    { "type": "range", "id": "wall_btn_y",       "label": "Top (%)",       "min": 0,  "max": 95, "step": 1, "default": 88, "unit": "%" },
+    { "type": "range", "id": "wall_btn_anchor_x","label": "Anchor X",      "min": 0,  "max": 100,"step": 1, "default": 50, "unit": "%" },
+    { "type": "range", "id": "wall_btn_anchor_y","label": "Anchor Y",      "min": 0,  "max": 100,"step": 1, "default": 50, "unit": "%" },
+    { "type": "header", "content": "── Add My Name Button Position ──" },
+    { "type": "range", "id": "addname_pos_x",   "label": "Left (%)",  "min": 0,  "max": 95,  "step": 1, "default": 50, "unit": "%" },
+    { "type": "range", "id": "addname_pos_y",   "label": "Top (%)",   "min": 0,  "max": 95,  "step": 1, "default": 93, "unit": "%" },
+    { "type": "range", "id": "addname_anchor_x","label": "Anchor X",  "min": 0,  "max": 100, "step": 1, "default": 50, "unit": "%" },
+    { "type": "range", "id": "addname_anchor_y","label": "Anchor Y",  "min": 0,  "max": 100, "step": 1, "default": 50, "unit": "%" },
+    { "type": "header", "content": "── Add My Name Form ──" },
+    { "type": "text", "id": "addname_btn_label",         "label": "CTA Pill Label",       "default": "Add my name" },
+    { "type": "text", "id": "addname_eyebrow",           "label": "Eyebrow",              "default": "Join the community" },
+    { "type": "text", "id": "addname_heading",           "label": "Heading",              "default": "Add Your Name" },
+    { "type": "text", "id": "addname_subtext",           "label": "Subtext",              "default": "Be part of something. Your nickname will appear on the wall once approved." },
+    { "type": "text", "id": "addname_nick_placeholder",  "label": "Nickname Placeholder", "default": "Your nickname" },
+    { "type": "text", "id": "addname_email_placeholder", "label": "Email Placeholder",    "default": "your@email.com" },
+    { "type": "text", "id": "addname_consent_text",      "label": "Consent Text",         "default": "I agree to appear on the supporter wall and accept the" },
+    { "type": "text", "id": "addname_privacy_label",     "label": "Privacy Link Label",   "default": "Privacy Policy" },
+    { "type": "url",  "id": "addname_privacy_url",       "label": "Privacy Policy URL" },
+    { "type": "text", "id": "addname_submit_label",      "label": "Submit Label",         "default": "Add Me to the Wall" },
+    { "type": "text", "id": "addname_submit_loading",    "label": "Loading Label",        "default": "Sending…" },
+    { "type": "text", "id": "addname_success_title",     "label": "Success Title",        "default": "You're on the list!" },
+    { "type": "text", "id": "addname_success_body",      "label": "Success Body",         "default": "Thanks for joining. Your name will appear on the wall after a quick review — usually within 24 hours." }
+  ],
+  "blocks": [
+    {
+      "type": "heading", "name": "Heading",
+      "settings": [{ "type": "text", "id": "title", "label": "Title", "default": "THE NEW STANDARD" }]
+    },
+    {
+      "type": "text", "name": "Subtext",
+      "settings": [{ "type": "richtext", "id": "subtext", "label": "Text", "default": "<p>Luxury design for high-performance brands.</p>" }]
+    },
+    {
+      "type": "button", "name": "CTA Button",
+      "settings": [
+        { "type": "text", "id": "label", "label": "Label", "default": "Explore Now" },
+        { "type": "url",  "id": "link",  "label": "Link" }
+      ]
+    },
+    {
+      "type": "social_link", "name": "Social Link Button",
+      "settings": [
+        { "type": "select", "id": "platform", "label": "Platform",
+          "options": [
+            {"value":"instagram","label":"Instagram"},{"value":"tiktok","label":"TikTok"},
+            {"value":"twitter","label":"X / Twitter"},{"value":"facebook","label":"Facebook"},
+            {"value":"youtube","label":"YouTube"},{"value":"pinterest","label":"Pinterest"},
+            {"value":"linkedin","label":"LinkedIn"},{"value":"custom","label":"Custom"}
+          ], "default": "instagram" },
+        { "type": "url",      "id": "url",        "label": "Profile URL" },
+        { "type": "range",    "id": "btn_size",   "label": "Button Size",   "min": 36, "max": 80, "step": 2, "default": 44, "unit": "px" },
+        { "type": "range",    "id": "pill_radius","label": "Corner Radius", "min": 0,  "max": 40, "step": 2, "default": 12, "unit": "px" },
+        { "type": "checkbox", "id": "show_label", "label": "Show Label",    "default": false }
+      ]
+    },
+    {
+      "type": "text_overlay", "name": "Floating Text Overlay",
+      "settings": [
+        { "type": "textarea", "id": "overlay_text",       "label": "Text",          "default": "EST. 2024" },
+        { "type": "select",   "id": "font_family",        "label": "Font", "options": [
+          {"value":"","label":"— Default —"},
+          {"value":"Cormorant Garamond","label":"Cormorant Garamond"},{"value":"Playfair Display","label":"Playfair Display"},
+          {"value":"DM Serif Display","label":"DM Serif Display"},{"value":"Bodoni Moda","label":"Bodoni Moda"},
+          {"value":"EB Garamond","label":"EB Garamond"},{"value":"Cinzel","label":"Cinzel"},
+          {"value":"Libre Baskerville","label":"Libre Baskerville"},{"value":"Italiana","label":"Italiana"},
+          {"value":"Raleway","label":"Raleway"},{"value":"Montserrat","label":"Montserrat"},
+          {"value":"Josefin Sans","label":"Josefin Sans"},{"value":"Jost","label":"Jost"},
+          {"value":"Outfit","label":"Outfit"},{"value":"Bebas Neue","label":"Bebas Neue"},
+          {"value":"Julius Sans One","label":"Julius Sans One"},{"value":"Tenor Sans","label":"Tenor Sans"}
+        ], "default": "" },
+        { "type": "range",    "id": "font_size",          "label": "Size",          "min": 10, "max": 180,"step": 2,   "default": 48,  "unit": "px" },
+        { "type": "select",   "id": "font_weight",        "label": "Weight",
+          "options": [{"value":"300","label":"Light"},{"value":"400","label":"Regular"},{"value":"600","label":"Semi-Bold"},{"value":"700","label":"Bold"},{"value":"900","label":"Black"}], "default": "300" },
+        { "type": "color",    "id": "overlay_text_color", "label": "Color",         "default": "#ffffff" },
+        { "type": "range",    "id": "text_opacity",       "label": "Opacity",       "min": 5,  "max": 100,"step": 5,   "default": 100, "unit": "%" },
+        { "type": "range",    "id": "letter_spacing",     "label": "Letter Spacing","min": -5, "max": 50, "step": 1,   "default": 20 },
+        { "type": "range",    "id": "line_height",        "label": "Line Height",   "min": 10, "max": 20, "step": 1,   "default": 13 },
+        { "type": "checkbox", "id": "uppercase",          "label": "All Caps",      "default": true },
+        { "type": "range",    "id": "pos_x",              "label": "Left (%)",      "min": 0,  "max": 95, "step": 1,   "default": 5,   "unit": "%" },
+        { "type": "range",    "id": "pos_y",              "label": "Top (%)",       "min": 0,  "max": 95, "step": 1,   "default": 80,  "unit": "%" },
+        { "type": "range",    "id": "anchor_x",           "label": "Anchor X",      "min": 0,  "max": 100,"step": 1,   "default": 0,   "unit": "%" },
+        { "type": "range",    "id": "anchor_y",           "label": "Anchor Y",      "min": 0,  "max": 100,"step": 1,   "default": 50,  "unit": "%" },
+        { "type": "range",    "id": "rotation",           "label": "Rotation",      "min": -90,"max": 90, "step": 2,   "default": -90, "unit": "deg" },
+        { "type": "range",    "id": "max_width",          "label": "Max Width",     "min": 100,"max": 1200,"step": 20, "default": 600, "unit": "px" }
+      ]
+    },
+    {
+      "type": "about_button", "name": "About Button + Popup",
+      "settings": [
+        { "type": "header",   "content": "── Button ──" },
+        { "type": "text",     "id": "btn_label",        "label": "Label",        "default": "About" },
+        { "type": "range",    "id": "btn_font_size",    "label": "Font Size",    "min": 10, "max": 24, "step": 1, "default": 12, "unit": "px" },
+        { "type": "range",    "id": "btn_pad_x",        "label": "Padding H",    "min": 10, "max": 60, "step": 2, "default": 20, "unit": "px" },
+        { "type": "range",    "id": "btn_pad_y",        "label": "Padding V",    "min": 6,  "max": 30, "step": 2, "default": 12, "unit": "px" },
+        { "type": "range",    "id": "btn_radius",       "label": "Radius",       "min": 0,  "max": 50, "step": 2, "default": 50, "unit": "px" },
+        { "type": "range",    "id": "pos_x",            "label": "Left (%)",     "min": 0,  "max": 95, "step": 1, "default": 5,  "unit": "%" },
+        { "type": "range",    "id": "pos_y",            "label": "Top (%)",      "min": 0,  "max": 95, "step": 1, "default": 92, "unit": "%" },
+        { "type": "range",    "id": "anchor_x",         "label": "Anchor X",     "min": 0,  "max": 100,"step": 1, "default": 0,  "unit": "%" },
+        { "type": "range",    "id": "anchor_y",         "label": "Anchor Y",     "min": 0,  "max": 100,"step": 1, "default": 50, "unit": "%" },
+        { "type": "select",   "id": "about_font",       "label": "Font", "options": [
+          {"value":"","label":"— Default —"},
+          {"value":"Cormorant Garamond","label":"Cormorant Garamond"},{"value":"Playfair Display","label":"Playfair Display"},
+          {"value":"DM Serif Display","label":"DM Serif Display"},{"value":"Bodoni Moda","label":"Bodoni Moda"},
+          {"value":"EB Garamond","label":"EB Garamond"},{"value":"Cinzel","label":"Cinzel"},
+          {"value":"Libre Baskerville","label":"Libre Baskerville"},{"value":"Italiana","label":"Italiana"},
+          {"value":"Raleway","label":"Raleway"},{"value":"Montserrat","label":"Montserrat"},
+          {"value":"Josefin Sans","label":"Josefin Sans"},{"value":"Jost","label":"Jost"},
+          {"value":"Outfit","label":"Outfit"},{"value":"Bebas Neue","label":"Bebas Neue"},
+          {"value":"Julius Sans One","label":"Julius Sans One"},{"value":"Tenor Sans","label":"Tenor Sans"}
+        ], "default": "" },
+        { "type": "header",   "content": "── Popup ──" },
+        { "type": "text",     "id": "eyebrow",           "label": "Eyebrow",     "default": "About the brand" },
+        { "type": "text",     "id": "store_name",        "label": "Store Name",  "default": "MAISON" },
+        { "type": "textarea", "id": "about_description", "label": "Description", "default": "We create elevated essentials for those who understand that true luxury lives in the details." },
+        { "type": "text",     "id": "cta_label",         "label": "CTA Label",   "default": "Explore the Collection" },
+        { "type": "url",      "id": "cta_link",          "label": "CTA Link" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Ultimate Hero V11 + Signature Wall",
+      "blocks": [{ "type": "heading" }, { "type": "text" }, { "type": "button" }]
+    }
+  ]
+}
+{% endschema %}

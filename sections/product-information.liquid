@@ -1,0 +1,1864 @@
+{%- comment -%} sections/main-product-atelier.liquid — production-grade {%- endcomment -%}
+
+{%- liquid
+  assign current_variant = product.selected_or_first_available_variant
+  assign sid         = section.id
+  assign form_id     = 'pf-' | append: sid
+  assign media_count = product.media | size
+
+  assign hf = section.settings.heading_font
+  assign bf = section.settings.body_font
+  assign sf = section.settings.script_font
+
+  assign has_discount = false
+  if current_variant.compare_at_price > current_variant.price
+    assign has_discount = true
+    assign discount_pct = current_variant.compare_at_price | minus: current_variant.price | times: 100 | divided_by: current_variant.compare_at_price
+  endif
+
+  assign inv          = current_variant.inventory_quantity
+  assign low_stock_at = section.settings.low_stock_threshold | default: 5
+  assign is_low_stock = false
+  if section.settings.show_stock and current_variant.inventory_management == 'shopify' and inv > 0 and inv <= low_stock_at
+    assign is_low_stock = true
+  endif
+
+  assign bg_brightness = section.settings.bg_color | color_brightness
+  if bg_brightness > 50
+    assign card_bg  = section.settings.bg_color | color_darken: 2
+    assign hairline = section.settings.bg_color | color_darken: 11
+  else
+    assign card_bg  = section.settings.bg_color | color_lighten: 5
+    assign hairline = section.settings.bg_color | color_lighten: 14
+  endif
+
+  assign sg_label = 'Size Guide'
+  assign sg_content = ''
+  assign sg_image = nil
+  assign sg_redirect = ''
+  assign sh_label = 'Shipping & Returns'
+  assign sh_content = ''
+  assign sh_image = nil
+  assign sh_redirect = ''
+  for block in section.blocks
+    if block.type == 'size_guide_drawer'
+      assign sg_label    = block.settings.title | default: 'Size Guide'
+      assign sg_content  = block.settings.content
+      assign sg_image    = block.settings.image
+      assign sg_redirect = block.settings.redirect_url
+    endif
+    if block.type == 'shipping'
+      assign sh_label    = block.settings.title | default: 'Shipping & Returns'
+      assign sh_content  = block.settings.content
+      assign sh_image    = block.settings.image
+      assign sh_redirect = block.settings.redirect_url
+    endif
+  endfor
+  assign show_sg = false
+  if sg_content != blank or sg_redirect != blank
+    assign show_sg = true
+  endif
+  assign show_sh = false
+  if sh_content != blank or sh_redirect != blank
+    assign show_sh = true
+  endif
+
+  assign desc_mode = section.settings.description_mode | default: 'inline'
+  assign show_desc_drawer = false
+  if desc_mode == 'drawer' and product.description != blank
+    assign show_desc_drawer = true
+  endif
+  assign desc_label = section.settings.description_label | default: 'Description'
+
+  assign back_url   = section.settings.back_url
+  assign back_label = section.settings.back_label | default: 'Back'
+
+  assign show_pill = section.settings.show_pill
+  assign tags_str  = product.tags | join: ',' | downcase
+
+  assign duo_qty   = section.settings.duo_qty | default: 2
+  assign duo_discount_pct = section.settings.duo_discount_pct | default: 25
+  assign single_price = current_variant.price
+  assign single_compare = current_variant.compare_at_price
+  assign single_save = 0
+  if single_compare > single_price
+    assign single_save = single_compare | minus: single_price
+  endif
+  assign duo_full_raw = single_price | times: duo_qty
+  assign duo_compare_raw = single_compare | times: duo_qty
+  if duo_compare_raw <= 0
+    assign duo_compare_raw = duo_full_raw
+  endif
+  assign duo_disc_amt = duo_full_raw | times: duo_discount_pct | divided_by: 100
+  assign duo_price_raw = duo_full_raw | minus: duo_disc_amt
+  assign duo_save = duo_compare_raw | minus: duo_price_raw
+
+  assign duo_visible = false
+  if section.settings.duo_force_show
+    assign duo_tag = section.settings.duo_show_tag | downcase
+    if duo_tag != blank
+      if tags_str contains duo_tag
+        assign duo_visible = true
+      endif
+    else
+      assign duo_visible = true
+    endif
+  endif
+
+  assign triple_qty = section.settings.triple_qty | default: 3
+  assign triple_discount_pct = section.settings.triple_discount_pct | default: 35
+  assign triple_full_raw = single_price | times: triple_qty
+  assign triple_compare_raw = single_compare | times: triple_qty
+  if triple_compare_raw <= 0
+    assign triple_compare_raw = triple_full_raw
+  endif
+  assign triple_disc_amt = triple_full_raw | times: triple_discount_pct | divided_by: 100
+  assign triple_price_raw = triple_full_raw | minus: triple_disc_amt
+  assign triple_save = triple_compare_raw | minus: triple_price_raw
+
+  assign triple_visible = false
+  if section.settings.triple_force_show
+    assign triple_tag = section.settings.triple_show_tag | downcase
+    if triple_tag != blank
+      if tags_str contains triple_tag
+        assign triple_visible = true
+      endif
+    else
+      assign triple_visible = true
+    endif
+  endif
+
+  case section.settings.pill_thumb_source
+    when 'variant'
+      assign pill_thumb_img = current_variant.featured_image | default: product.featured_image
+    when 'first'
+      assign pill_thumb_img = product.images.first
+    when 'second'
+      assign pill_thumb_img = product.images[1]
+    when 'last'
+      assign pill_thumb_img = product.images.last
+    else
+      assign pill_thumb_img = product.featured_image
+  endcase
+  assign pill_thumb = pill_thumb_img | image_url: width: 120
+
+  assign first_media = product.media | first
+  assign first_image = product.featured_image | default: first_media.preview_image
+
+  assign brand_col_title = product.collections.first.title | default: product.vendor
+  assign brand_display   = section.settings.brand_name_override | default: brand_col_title
+-%}
+
+{%- comment -%} Performance: preconnect to Shopify CDN + preload first image (LCP) {%- endcomment -%}
+<link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
+{%- if first_image != blank -%}
+  <link rel="preload" as="image"
+    href="{{ first_image | image_url: width: 1400 }}"
+    imagesrcset="{{ first_image | image_url: width: 600 }} 600w, {{ first_image | image_url: width: 1000 }} 1000w, {{ first_image | image_url: width: 1400 }} 1400w"
+    imagesizes="(max-width:640px) 100vw, 44vw"
+    fetchpriority="high">
+{%- endif -%}
+
+<style>{{ hf | font_face: font_display: 'swap' }}{{ bf | font_face: font_display: 'swap' }}{%- if section.settings.show_brand_overlay -%}{{ sf | font_face: font_display: 'swap' }}{%- endif -%}</style>
+
+<style>
+#ap{{ sid }},#ap{{ sid }} *,#ap{{ sid }} *::before,#ap{{ sid }} *::after{box-sizing:border-box;margin:0;padding:0}
+.ap-bar{{ sid }} *,.ap-bar{{ sid }} *::before,.ap-bar{{ sid }} *::after{box-sizing:border-box;margin:0;padding:0}
+
+#ap{{ sid }},.ap-bar{{ sid }}{
+  --top:{{ section.settings.sticky_top }}px;
+  --bar-h:{{ section.settings.bar_height | default: 160 }}px;
+  --bg:{{ section.settings.bg_color }};
+  --ink:{{ section.settings.text_color }};
+  --sub:{{ section.settings.text_color | color_mix: section.settings.bg_color, 65 }};
+  --dim:{{ section.settings.text_color | color_mix: section.settings.bg_color, 35 }};
+  --ghost:{{ section.settings.bg_color | color_mix: section.settings.text_color, 95 }};
+  --line:{{ hairline }};
+  --acc:{{ section.settings.accent_color | default: '#b8865a' }};
+  --card:{{ card_bg }};
+  --pill-bg:{{ section.settings.pill_bg | default: '#f4f4f2' }};
+  --pill-bg-on:{{ section.settings.pill_bg_on | default: '#eaeae6' }};
+  --pill-text:{{ section.settings.pill_text | default: '#1a1a1a' }};
+  --pill-accent:{{ section.settings.pill_accent | default: '#1a1a1a' }};
+  --fh:{{ hf.family | default: "'Barlow Condensed'" }},{{ hf.fallback_families | default: 'Helvetica Neue' }},sans-serif;
+  --fb:{{ bf.family | default: 'Barlow' }},{{ bf.fallback_families | default: 'Helvetica' }},sans-serif;
+  --sf:{{ sf.family | default: 'Georgia' }},{{ sf.fallback_families | default: 'serif' }},cursive;
+}
+#ap{{ sid }}{
+  background:var(--bg);color:var(--ink);font-family:var(--fb);
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
+}
+
+/* ─── Grid (iOS-safe viewport) ─── */
+.ap-grid{{ sid }}{
+  display:grid;grid-template-columns:1fr 44% 1fr;grid-template-areas:"left center right";
+  height:calc(100vh - var(--top) - var(--bar-h));
+  height:calc(100svh - var(--top) - var(--bar-h));
+  height:calc(100dvh - var(--top) - var(--bar-h));
+  overflow:hidden;
+  contain:layout style;
+}
+.ap-left{{ sid }}{grid-area:left;display:flex;flex-direction:column;overflow:hidden}
+.ap-left-body{{ sid }}{
+  flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;
+  padding:42px {{ section.settings.panel_padding }}px;
+  display:flex;flex-direction:column;justify-content:center;
+}
+.ap-left-body{{ sid }}::-webkit-scrollbar{display:none}
+
+/* ─── Back link ─── */
+.ap-back{{ sid }}{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--fb);font-size:13px;font-weight:400;
+  color:var(--ink);text-decoration:none;
+  padding:4px 0;margin-bottom:28px;width:fit-content;
+  transition:opacity .18s;cursor:pointer;background:none;border:none;
+  touch-action:manipulation;
+}
+.ap-back{{ sid }}:hover{opacity:.55}
+.ap-back{{ sid }} svg{width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:1.8}
+
+/* ─── Title ─── */
+.ap-name{{ sid }}{
+  font-family:var(--fh);font-size:{{ section.settings.name_size }}px;
+  font-weight:900;letter-spacing:-.01em;text-transform:uppercase;line-height:.94;
+  color:var(--ink);margin-bottom:24px;
+  word-break: normal !important; 
+  overflow-wrap: normal !important;
+  max-width: 100% !important; 
+  width: 100% !important;
+  clip-path:inset(0 100% 0 0);
+  animation:_reveal{{ sid }} 1s cubic-bezier(.16,1,.3,1) .1s forwards;
+}
+@keyframes _reveal{{ sid }}{to{clip-path:inset(0 0% 0 0)}}
+
+/* ─── Bullets / description ─── */
+.ap-bullets{{ sid }}{list-style:disc;padding-left:18px;margin:0 0 18px;max-width:22ch}
+.ap-bullets{{ sid }} li{
+  font-family:var(--fb);font-size:{{ section.settings.bullet_size | default: 12 }}px;font-weight:400;
+  text-transform:uppercase;letter-spacing:.02em;line-height:1.5;
+  color:var(--ink);margin-bottom:1px;
+}
+.ap-bullets{{ sid }} li::marker{color:var(--ink)}
+.ap-narrative{{ sid }}{
+  font-family:var(--fb);font-size:{{ section.settings.bullet_size | default: 12 }}px;font-weight:400;
+  text-transform:uppercase;letter-spacing:.02em;line-height:1.5;color:var(--ink);max-width:22ch;
+}
+.ap-narrative{{ sid }} p{margin:0}
+.ap-desc{{ sid }}{
+  font-family:var(--fb);font-size:12.5px;line-height:1.55;color:var(--ink);
+  max-width:32ch;margin-top:16px;letter-spacing:.01em;
+}
+.ap-desc{{ sid }} p{margin:0 0 6px}
+.ap-desc{{ sid }} ul{list-style:disc;padding-left:18px;margin:0 0 8px}
+.ap-desc{{ sid }} em{font-style:italic}
+.ap-desc{{ sid }} strong{font-weight:500}
+
+/* ─── Center carousel (horizontal scroll, all viewports) ─── */
+.ap-center{{ sid }}{
+  grid-area:center;position:relative;overflow:hidden;background:var(--bg);
+  contain:layout paint;
+}
+.ap-scroll{{ sid }}{
+  display:flex;flex-direction:row;
+  width:100%;height:100%;
+  overflow-x:auto;overflow-y:hidden;
+  scroll-snap-type:x mandatory;scroll-behavior:smooth;
+  scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;
+  /* No explicit touch-action here — default "auto" is what actually lets the
+     browser chain an unhandled axis to the page. Explicitly declaring any
+     touch-action value (even "pan-x pan-y", even "pan-x" alone) makes some
+     WebKit/Chromium builds treat this element as fully owning the gesture,
+     and since overflow-y is hidden the vertical swipe has nowhere to go —
+     the touch gets swallowed instead of chaining to the document. */
+}
+.ap-scroll{{ sid }}::-webkit-scrollbar{display:none}
+.ap-slide{{ sid }}{
+  width:100%;height:100%;flex:0 0 100%;
+  display:flex;align-items:center;justify-content:center;
+  scroll-snap-align:start;scroll-snap-stop:always;
+  contain:layout paint;
+}
+.ap-slide{{ sid }} img,.ap-slide{{ sid }} video{
+  width:88%;height:88%;object-fit:contain;object-position:center;
+  display:block;pointer-events:none;
+  opacity:0;transition:opacity .4s ease;
+}
+.ap-slide{{ sid }} img.ap-loaded,.ap-slide{{ sid }} video.ap-loaded,
+.ap-slide{{ sid }} img[loading="eager"]{opacity:1}
+
+.ap-empty{{ sid }}{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  color:var(--dim);font-family:var(--fb);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+}
+
+.ap-arr{{ sid }}{
+  position:absolute;top:50%;transform:translateY(-50%);
+  background:transparent;border:none;cursor:pointer;
+  padding:18px 12px;z-index:3;
+  opacity:0;transition:opacity .2s;
+  display:flex;align-items:center;justify-content:center;
+  touch-action:manipulation;
+}
+.ap-center{{ sid }}:hover .ap-arr{{ sid }}{opacity:1}
+.ap-arr{{ sid }}:focus-visible{opacity:1;outline:1px solid var(--ink);outline-offset:2px}
+.ap-arr{{ sid }} svg{width:14px;height:14px;stroke:var(--ink);fill:none;stroke-width:1.3}
+.ap-arr{{ sid }}.p{left:0}.ap-arr{{ sid }}.n{right:0}
+.ap-arr{{ sid }}:disabled{opacity:.18 !important;cursor:default}
+@media (hover:none){.ap-arr{{ sid }}{display:none}}
+
+.ap-dots{{ sid }}{
+  position:absolute;left:50%;bottom:14px;transform:translateX(-50%);
+  display:flex;flex-direction:row;gap:6px;align-items:center;z-index:3;
+  background:{{ section.settings.bg_color | color_modify: 'alpha', 0.55 }};
+  padding:4px 8px;border-radius:100px;
+}
+.ap-dot{{ sid }}{
+  width:3px;height:3px;border-radius:3px;background:var(--dim);
+  border:none;padding:0;cursor:pointer;flex-shrink:0;
+  transition:background .3s,width .3s cubic-bezier(.16,1,.3,1);
+  touch-action:manipulation;
+}
+.ap-dot{{ sid }}.on{background:var(--ink);width:20px}
+.ap-dot{{ sid }}:focus-visible{outline:1px solid var(--ink);outline-offset:2px}
+
+/* ─── Brand overlay ─── */
+.ap-brand{{ sid }}{
+  position:absolute;
+  bottom:{{ section.settings.brand_bottom | default: 52 }}px;
+  left:{{ section.settings.brand_left | default: 16 }}px;
+  z-index:4;
+  display:flex;
+  align-items:center;
+  gap:{{ section.settings.brand_gap | default: 12 }}px;
+  pointer-events:none;
+  user-select:none;
+  -webkit-user-select:none;
+}
+.ap-brand-name{{ sid }}{
+  font-family:var(--sf);
+  font-size:{{ section.settings.brand_name_size | default: 30 }}px;
+  font-weight:{{ section.settings.brand_name_weight | default: 400 }};
+  font-style:{{ section.settings.brand_name_style | default: 'normal' }};
+  color:{{ section.settings.brand_text_color | default: '#111111' }};
+  line-height:1;
+  letter-spacing:{{ section.settings.brand_letter_spacing | default: 0 | append: 'em' }};
+  white-space:nowrap;
+}
+.ap-brand-sep{{ sid }}{
+  display:block;
+  width:1px;
+  height:{{ section.settings.brand_sep_height | default: 26 }}px;
+  background:{{ section.settings.brand_sep_color | default: '#111111' }};
+  opacity:{{ section.settings.brand_sep_opacity | default: 55 | divided_by: 100.0 }};
+  flex-shrink:0;
+}
+.ap-brand-logo{{ sid }}{
+  display:block;
+  height:{{ section.settings.brand_logo_height | default: 22 }}px;
+  width:auto;
+  object-fit:contain;
+  opacity:{{ section.settings.brand_logo_opacity | default: 90 | divided_by: 100.0 }};
+}
+@media (max-width:640px){
+  .ap-brand{{ sid }}{
+    bottom:{{ section.settings.brand_bottom_mobile | default: 46 }}px;
+    left:{{ section.settings.brand_left_mobile | default: 14 }}px;
+    gap:{{ section.settings.brand_gap_mobile | default: 9 }}px;
+  }
+  .ap-brand-name{{ sid }}{
+    font-size:{{ section.settings.brand_name_size_mobile | default: 22 }}px;
+  }
+  .ap-brand-logo{{ sid }}{
+    height:{{ section.settings.brand_logo_height_mobile | default: 18 }}px;
+  }
+  .ap-brand-sep{{ sid }}{
+    height:{{ section.settings.brand_sep_height_mobile | default: 20 }}px;
+  }
+}
+
+/* ─── Right column ─── */
+.ap-right{{ sid }}{
+  grid-area:right;display:flex;flex-direction:column;overflow:hidden;
+  padding:0 {{ section.settings.panel_padding }}px 0 28px;
+}
+.ap-right-body{{ sid }}{
+  flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;
+  padding:42px 0 20px;display:flex;flex-direction:column;justify-content:center;
+}
+.ap-right-body{{ sid }}::-webkit-scrollbar{display:none}
+
+.ap-price-row{{ sid }}{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:24px}
+.ap-price{{ sid }}{
+  font-family:var(--fh);font-size:{{ section.settings.price_size | default: 26 }}px;font-weight:800;letter-spacing:.005em;
+  color:var(--ink);transition:opacity .18s;text-transform:uppercase;
+}
+.ap-price{{ sid }}.flash{opacity:.25}
+.ap-was{{ sid }}{font-size:14px;font-weight:300;color:var(--dim);text-decoration:line-through;font-family:var(--fb)}
+.ap-badge{{ sid }}{font-family:var(--fb);font-size:8px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;background:var(--acc);color:#fff;padding:4px 8px;border-radius:2px;flex-shrink:0}
+
+/* Stock urgency */
+.ap-stock{{ sid }}{
+  display:none;align-items:center;gap:6px;margin-bottom:18px;
+  font-family:var(--fb);font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--acc);
+}
+.ap-stock{{ sid }}.show{display:inline-flex}
+.ap-stock{{ sid }}::before{
+  content:'';width:6px;height:6px;border-radius:50%;background:var(--acc);
+  animation:_pulse{{ sid }} 1.6s ease-in-out infinite;
+}
+@keyframes _pulse{{ sid }}{0%,100%{opacity:.55;transform:scale(1)}50%{opacity:1;transform:scale(1.25)}}
+
+.ap-opt-lbl{{ sid }}{display:block;font-family:var(--fb);font-size:13px;font-weight:400;color:var(--ink);margin-bottom:10px}
+.ap-stack{{ sid }}{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.ap-stack-btn{{ sid }}{
+  display:flex;align-items:center;justify-content:center;width:100%;
+  padding:15px 18px;background:transparent;
+  border:1px solid var(--line);border-radius:10px;
+  font-family:var(--fb);font-size:13.5px;font-weight:400;letter-spacing:.01em;
+  color:var(--ink);cursor:pointer;line-height:1;
+  transition:border-color .2s,background .2s,transform .12s cubic-bezier(.16,1,.3,1),color .2s;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+}
+.ap-stack-btn{{ sid }}:hover{border-color:var(--ink)}
+.ap-stack-btn{{ sid }}.on{border-color:var(--ink);border-width:1.5px;padding:14.5px 17.5px}
+.ap-stack-btn{{ sid }}:active{transform:scale(.992)}
+.ap-stack-btn{{ sid }}.unavail{opacity:.32;cursor:not-allowed;pointer-events:none;text-decoration:line-through;color:var(--dim)}
+.ap-stack-btn{{ sid }}:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+.ap-swatches{{ sid }}{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.ap-swatch{{ sid }}{
+  width:34px;height:34px;border-radius:50%;border:1px solid var(--line);
+  cursor:pointer;padding:0;position:relative;flex-shrink:0;
+  transition:transform .2s cubic-bezier(.16,1,.3,1);
+  touch-action:manipulation;
+}
+.ap-swatch{{ sid }}:hover{transform:scale(1.08)}
+.ap-swatch{{ sid }}::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:1.5px solid transparent;transition:border-color .18s}
+.ap-swatch{{ sid }}.on::after{border-color:var(--ink)}
+.ap-swatch{{ sid }}.unavail{opacity:.32;cursor:not-allowed;pointer-events:none}
+.ap-swatch{{ sid }}.unavail::before{
+  content:'';position:absolute;inset:0;border-radius:50%;
+  background:linear-gradient(to top right,transparent calc(50% - 1px),var(--dim) 50%,transparent calc(50% + 1px));
+}
+.ap-swatch{{ sid }}:focus-visible::after{border-color:var(--ink)}
+
+/* ─── Inline accordion links ─── */
+.ap-links{{ sid }}{margin-top:18px;display:flex;flex-direction:column;gap:16px}
+.ap-link-row{{ sid }}{display:flex;flex-direction:column}
+.ap-link-trig{{ sid }}{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:0;background:none;border:none;cursor:pointer;
+  font-family:var(--fb);font-size:14px;font-weight:400;
+  color:var(--ink);text-align:left;text-decoration:none;
+  width:fit-content;-webkit-tap-highlight-color:transparent;transition:opacity .18s;
+  touch-action:manipulation;
+}
+.ap-link-trig{{ sid }}:hover{opacity:.6}
+.ap-link-trig{{ sid }}:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:2px}
+.ap-link-trig{{ sid }} svg{width:16px;height:8px;stroke:currentColor;fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;transition:transform .25s cubic-bezier(.16,1,.3,1)}
+.ap-link-trig{{ sid }}:hover svg{transform:translateX(3px)}
+.ap-link-trig{{ sid }}.open svg{transform:rotate(90deg)}
+.ap-link-body{{ sid }}{display:grid;grid-template-rows:0fr;transition:grid-template-rows .42s cubic-bezier(.16,1,.3,1)}
+.ap-link-body{{ sid }}.open{grid-template-rows:1fr;margin-top:12px}
+.ap-link-inner{{ sid }}{overflow:hidden}
+.ap-link-content{{ sid }}{font-family:var(--fb);font-size:12.5px;line-height:1.65;color:var(--sub);max-width:36ch;padding-bottom:4px}
+.ap-link-content{{ sid }} p{margin:0 0 7px}
+.ap-link-content{{ sid }} p:last-child{margin:0}
+.ap-link-content{{ sid }} strong{color:var(--ink);font-weight:500}
+.ap-link-content{{ sid }} ul,.ap-link-content{{ sid }} ol{padding-left:18px;margin:0 0 8px}
+.ap-link-content{{ sid }} li{margin-bottom:3px}
+.ap-link-content{{ sid }} img{max-width:100%;width:200px;height:auto;border-radius:6px;margin:4px 0 10px;display:block}
+
+/* ══════════════════════════════════════
+   STICKY BAR — never moves, conversion-tuned
+══════════════════════════════════════ */
+.ap-bar{{ sid }}{
+  position:fixed !important;
+  bottom:0 !important;
+  left:0 !important;
+  right:0 !important;
+  z-index:99999 !important;
+  display:flex !important;
+  flex-direction:column;
+  gap:10px;
+  background:var(--card);
+  border-top:1px solid var(--line);
+  padding:12px 16px calc(14px + env(safe-area-inset-bottom,0px));
+  isolation:isolate;
+  transform:translate3d(0,0,0);
+  -webkit-transform:translate3d(0,0,0);
+  transition:transform .32s cubic-bezier(.4,0,.2,1);
+  font-family:var(--fb);color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  contain:layout style;
+}
+@supports ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .ap-bar{{ sid }}{
+    background:{{ card_bg | color_modify: 'alpha', 0.92 }};
+    backdrop-filter:blur(16px) saturate(180%);
+    -webkit-backdrop-filter:blur(16px) saturate(180%);
+  }
+}
+.ap-bar{{ sid }}.hide{transform:translate3d(0,calc(100% + 20px),0)}
+.ap-bar-inner{{ sid }}{display:flex;flex-direction:column;gap:10px;max-width:1280px;margin:0 auto;width:100%}
+
+/* Trust strip (optional, top of bar) */
+.ap-trust{{ sid }}{
+  display:none;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;
+  font-family:var(--fb);font-size:10px;font-weight:400;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--dim);
+  padding:2px 0 4px;
+}
+.ap-trust{{ sid }}.on{display:flex}
+.ap-trust-item{{ sid }}{display:inline-flex;align-items:center;gap:6px}
+.ap-trust-item{{ sid }} svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.6;flex-shrink:0}
+
+/* Pill row */
+.ap-pills{{ sid }}{
+  display:flex;gap:8px;
+  overflow-x:auto;overflow-y:hidden;
+  scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;
+  margin:0 -16px;padding:12px 16px 2px;
+  scroll-snap-type:x proximity;
+}
+.ap-pills{{ sid }}::-webkit-scrollbar{display:none}
+.ap-pill{{ sid }}{
+  position:relative;display:flex;align-items:center;gap:10px;
+  padding:8px 12px 8px 8px;flex-shrink:0;min-width:220px;
+  background:var(--pill-bg);color:var(--pill-text);
+  border:1.5px solid transparent;border-radius:10px;cursor:pointer;
+  scroll-snap-align:start;font-family:var(--fb);
+  transition:border-color .18s,background .18s,transform .12s cubic-bezier(.16,1,.3,1);
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+}
+.ap-pill{{ sid }}:hover{border-color:var(--pill-accent)}
+.ap-pill{{ sid }}.on{border-color:var(--pill-accent);background:var(--pill-bg-on)}
+.ap-pill{{ sid }}:active{transform:scale(.99)}
+.ap-pill{{ sid }}:focus-visible{outline:2px solid var(--pill-accent);outline-offset:2px}
+.ap-pill-img{{ sid }}{position:relative;width:42px;height:42px;border-radius:7px;flex-shrink:0;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.ap-pill-img{{ sid }} img{width:100%;height:100%;object-fit:contain;display:block}
+.ap-pill-qty{{ sid }}{
+  position:absolute;bottom:-3px;right:-3px;
+  background:var(--pill-accent);color:#fff;
+  font-family:var(--fb);font-size:8.5px;font-weight:700;letter-spacing:.02em;
+  padding:2px 5px;border-radius:100px;line-height:1;
+  border:1.5px solid var(--pill-bg);
+}
+.ap-pill-info{{ sid }}{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;line-height:1.2}
+.ap-pill-label{{ sid }}{font-family:var(--fh);font-size:14px;font-weight:800;letter-spacing:.02em;color:inherit;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ap-pill-sub{{ sid }}{font-size:9.5px;font-weight:400;letter-spacing:.04em;opacity:.7;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ap-pill-price{{ sid }}{flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:1px}
+.ap-pill-now{{ sid }}{font-family:var(--fh);font-size:14px;font-weight:800;line-height:1;color:inherit}
+.ap-pill-was{{ sid }}{font-size:9.5px;font-weight:300;text-decoration:line-through;opacity:.55;line-height:1}
+.ap-pill-ribbon{{ sid }}{
+  position:absolute;top:-9px;right:10px;
+  background:var(--pill-accent);color:#fff;
+  font-family:var(--fb);font-size:8px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;
+  padding:3px 8px;border-radius:100px;white-space:nowrap;line-height:1;z-index:1;
+}
+
+/* Variant selector row */
+.ap-vrow{{ sid }}{
+  display:flex;gap:8px;align-items:center;
+  overflow-x:auto;overflow-y:hidden;
+  scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;
+  margin:0 -16px;padding:2px 16px;
+}
+.ap-vrow{{ sid }}::-webkit-scrollbar{display:none}
+.ap-vgroup{{ sid }}{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.ap-vgroup{{ sid }}+.ap-vgroup{{ sid }}{padding-left:10px;border-left:1px solid var(--line)}
+.ap-vlabel{{ sid }}{
+  font-family:var(--fb);font-size:9.5px;font-weight:400;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--dim);
+  margin-right:4px;flex-shrink:0;
+}
+.ap-vsize{{ sid }}{
+  padding:7px 13px;border-radius:7px;background:transparent;border:1px solid var(--line);
+  font-family:var(--fb);font-size:12px;font-weight:400;color:var(--ink);
+  cursor:pointer;line-height:1;white-space:nowrap;flex-shrink:0;
+  transition:background .14s,border-color .14s,color .14s,transform .12s;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  min-width:38px;text-align:center;
+}
+.ap-vsize{{ sid }}:hover{border-color:var(--ink)}
+.ap-vsize{{ sid }}:active{transform:scale(.96)}
+.ap-vsize{{ sid }}.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.ap-vsize{{ sid }}.unavail{opacity:.32;pointer-events:none;text-decoration:line-through;color:var(--dim)}
+.ap-vsize{{ sid }}:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.ap-vsw{{ sid }}{
+  width:22px;height:22px;border-radius:50%;border:1px solid var(--line);
+  padding:0;cursor:pointer;flex-shrink:0;position:relative;
+  transition:transform .14s;-webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+}
+.ap-vsw{{ sid }}:active{transform:scale(.92)}
+.ap-vsw{{ sid }}::after{content:'';position:absolute;inset:-3px;border-radius:50%;border:1.5px solid transparent;transition:border-color .14s}
+.ap-vsw{{ sid }}.on::after{border-color:var(--ink)}
+.ap-vsw{{ sid }}.unavail{opacity:.32;pointer-events:none}
+.ap-vsw{{ sid }}.unavail::before{
+  content:'';position:absolute;inset:0;border-radius:50%;
+  background:linear-gradient(to top right,transparent calc(50% - 1px),var(--dim) 50%,transparent calc(50% + 1px));
+}
+
+/* Qty + ATC row */
+.ap-arow{{ sid }}{display:flex;align-items:stretch;gap:10px}
+.ap-qty{{ sid }}{
+  display:flex;align-items:center;background:transparent;
+  border:1px solid var(--line);border-radius:{{ section.settings.atc_radius }}px;
+  flex-shrink:0;overflow:hidden;
+}
+.ap-qty{{ sid }} button{
+  background:none;border:none;width:38px;height:100%;
+  font-size:17px;font-weight:300;color:var(--ink);cursor:pointer;padding:0;
+  display:flex;align-items:center;justify-content:center;
+  -webkit-tap-highlight-color:transparent;transition:background .15s;font-family:var(--fb);
+  touch-action:manipulation;
+}
+.ap-qty{{ sid }} button:active{background:var(--ghost)}
+.ap-qty{{ sid }} button:disabled{opacity:.3;cursor:not-allowed}
+.ap-qty{{ sid }} button:focus-visible{outline:1px solid var(--ink);outline-offset:-2px}
+.ap-qty{{ sid }} span{min-width:26px;text-align:center;font-family:var(--fb);font-size:12px;font-weight:400;color:var(--ink);line-height:1}
+.ap-atc{{ sid }}{
+  flex:1;min-width:0;background:var(--ink);color:var(--bg);
+  border:1.5px solid transparent;border-radius:{{ section.settings.atc_radius }}px;
+  padding:15px 18px;font-family:var(--fb);cursor:pointer;white-space:nowrap;
+  transition:background .22s,color .22s,border-color .22s,transform .12s,box-shadow .22s,opacity .22s;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  display:flex;align-items:center;justify-content:center;gap:10px;overflow:hidden;
+  position:relative;font-size:13.5px;font-weight:500;letter-spacing:.02em;
+  box-shadow:0 4px 14px {{ section.settings.text_color | color_modify: 'alpha', 0.12 }};
+}
+.ap-atc{{ sid }}:hover{box-shadow:0 6px 20px {{ section.settings.text_color | color_modify: 'alpha', 0.22 }}}
+.ap-atc{{ sid }}:active{transform:scale(.98)}
+.ap-atc{{ sid }}:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.ap-atc{{ sid }}:disabled{background:var(--line);color:var(--dim);cursor:not-allowed;box-shadow:none}
+.ap-atc{{ sid }}.added{background:transparent;border-color:var(--ink);color:var(--ink);box-shadow:none}
+.ap-atc{{ sid }}.error{animation:_shake{{ sid }} .42s}
+@keyframes _shake{{ sid }}{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+.ap-atc-bag{{ sid }}{width:15px;height:15px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.ap-atc-sep{{ sid }}{font-weight:400;opacity:.55;line-height:1}
+.ap-atc-price{{ sid }}{font-weight:600;letter-spacing:.02em;line-height:1;opacity:.92;transition:opacity .18s}
+.ap-atc-price{{ sid }}.flash{opacity:.3}
+.ap-atc{{ sid }} ._sp{display:none;width:11px;height:11px;flex-shrink:0;animation:_sp{{ sid }} .85s linear infinite}
+.ap-atc{{ sid }}.ld ._sp{display:block}
+.ap-atc{{ sid }}.added .ap-atc-sep{{ sid }},
+.ap-atc{{ sid }}.added .ap-atc-price{{ sid }},
+.ap-atc{{ sid }}.added .ap-atc-bag{{ sid }},
+.ap-atc{{ sid }}:disabled .ap-atc-sep{{ sid }},
+.ap-atc{{ sid }}:disabled .ap-atc-price{{ sid }}{display:none}
+@keyframes _sp{{ sid }}{to{transform:rotate(360deg)}}
+
+/* Reduced motion */
+@media (prefers-reduced-motion:reduce){
+  .ap-scroll{{ sid }}{scroll-behavior:auto}
+  .ap-name{{ sid }}{animation:none;clip-path:none}
+  .ap-bar{{ sid }}{transition:none}
+  .ap-stock{{ sid }}::before{animation:none}
+  .ap-slide{{ sid }} img,.ap-slide{{ sid }} video{transition:none;opacity:1}
+}
+
+/* Desktop bar: pills + variants on row 1, qty+atc on row 2 */
+@media (min-width:961px){
+  .ap-bar-inner{{ sid }}{flex-direction:row;flex-wrap:wrap;align-items:center;gap:12px}
+  .ap-trust{{ sid }}{flex-basis:100%;justify-content:flex-start;padding:0 0 4px}
+  .ap-pills{{ sid }}{flex:0 1 auto;margin:0;padding:10px 0 0;max-width:56%}
+  .ap-vrow{{ sid }}{flex:1;margin:0;padding:0;justify-content:flex-start;min-width:0}
+  .ap-arow{{ sid }}{flex-shrink:0;min-width:300px}
+}
+
+/* Mobile */
+@media (max-width:640px){
+  .ap-grid{{ sid }}{display:flex;flex-direction:column;height:auto;overflow:visible;background:var(--bg)}
+  .ap-center{{ sid }}{order:0;height:100vw;max-height:520px;flex-shrink:0;overflow:hidden}
+  .ap-slide{{ sid }} img,.ap-slide{{ sid }} video{width:90%;height:90%}
+  .ap-dots{{ sid }}{bottom:12px}
+  .ap-left{{ sid }}{order:1;overflow:visible}
+  .ap-left-body{{ sid }}{padding:24px 22px 6px;justify-content:flex-start}
+  .ap-right{{ sid }}{order:2;padding:0 22px;overflow:visible;display:block}
+  .ap-right-body{{ sid }}{overflow:visible;min-height:unset;padding:14px 0 calc(var(--bar-h) + 24px);justify-content:flex-start}
+  .ap-name{{ sid }}{font-size:{{ section.settings.name_size | times: 0.7 | round }}px;margin-bottom:16px;line-height:.98;max-width:9ch}
+  .ap-back{{ sid }}{margin-bottom:14px}
+  .ap-bullets{{ sid }}{max-width:100%}
+  .ap-narrative{{ sid }}{max-width:100%}
+  .ap-desc{{ sid }}{max-width:100%}
+  .ap-price{{ sid }}{font-size:{{ section.settings.price_size | default: 26 | times: 1.05 | round }}px}
+  .ap-price-row{{ sid }}{margin-bottom:18px}
+  .ap-stack-btn{{ sid }}{padding:14px 16px;font-size:13.5px}
+  .ap-stack-btn{{ sid }}.on{padding:13.5px 15.5px}
+  .ap-pill{{ sid }}{min-width:200px}
+  .ap-trust{{ sid }}{font-size:9px;gap:10px;padding:2px 0 2px}
+}
+@media (min-width:641px) and (max-width:960px){
+  .ap-grid{{ sid }}{grid-template-columns:1fr 48% 1fr}
+  .ap-name{{ sid }}{font-size:{{ section.settings.name_size | times: 0.82 | round }}px}
+}
+
+/* Theme editor: when section is inactive (deselected), don't take over screen */
+.shopify-section--apex-product{contain:layout style}
+</style>
+
+<div id="ap{{ sid }}" style="padding-top:var(--top)" data-product-id="{{ product.id }}">
+  <div class="ap-grid{{ sid }}">
+
+    <!-- LEFT -->
+    <div class="ap-left{{ sid }}">
+      <div class="ap-left-body{{ sid }}">
+
+        {%- if back_url != blank -%}
+          <a class="ap-back{{ sid }}" href="{{ back_url }}">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+            <span>{{ back_label }}</span>
+          </a>
+        {%- endif -%}
+
+        <h1 class="ap-name{{ sid }}">{{ product.title | escape }}</h1>
+
+        {%- assign bullet_count = 0 -%}
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'bullet' or block.type == 'highlight' -%}{%- assign bullet_count = bullet_count | plus: 1 -%}{%- endif -%}
+        {%- endfor -%}
+
+        {%- if bullet_count > 0 -%}
+          <ul class="ap-bullets{{ sid }}">
+            {%- for block in section.blocks -%}
+              {%- if block.type == 'bullet' or block.type == 'highlight' -%}
+                <li {{ block.shopify_attributes }}>{{ block.settings.label }}</li>
+              {%- endif -%}
+            {%- endfor -%}
+          </ul>
+        {%- endif -%}
+
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'narrative' and block.settings.text != blank -%}
+            <div class="ap-narrative{{ sid }}" {{ block.shopify_attributes }}>{{ block.settings.text }}</div>
+          {%- elsif block.type == 'tagline' and block.settings.text != blank -%}
+            <div class="ap-narrative{{ sid }}" {{ block.shopify_attributes }}>{{ block.settings.text }}</div>
+          {%- endif -%}
+        {%- endfor -%}
+
+        {%- if desc_mode == 'inline' and product.description != blank -%}
+          <div class="ap-desc{{ sid }}">{{ product.description }}</div>
+        {%- endif -%}
+
+      </div>
+    </div>
+
+    <!-- CENTER -->
+    <div class="ap-center{{ sid }}">
+      {%- if media_count > 0 -%}
+        <div class="ap-scroll{{ sid }}" id="ap-scroll{{ sid }}" aria-roledescription="carousel" aria-label="Product images">
+          {%- for media in product.media -%}
+            <div class="ap-slide{{ sid }}" data-index="{{ forloop.index0 }}" role="group" aria-roledescription="slide" aria-label="{{ forloop.index }} of {{ media_count }}">
+              {%- case media.media_type -%}
+              {%- when 'image' -%}
+                <img
+                  src="{{ media | image_url: width: 1400 }}"
+                  width="1400"
+                  height="{{ 1400 | divided_by: media.aspect_ratio | ceil }}"
+                  srcset="{{ media | image_url: width: 600 }} 600w,{{ media | image_url: width: 1000 }} 1000w,{{ media | image_url: width: 1400 }} 1400w"
+                  sizes="(max-width:640px) 100vw, 44vw"
+                  alt="{{ media.alt | default: product.title | escape }}"
+                  loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
+                  {% if forloop.first %}fetchpriority="high" decoding="sync"{% else %}decoding="async"{% endif %}
+                  draggable="false">
+              {%- when 'video' -%}
+                {%- assign vsrc = media.sources | where: "format","mp4" | first -%}
+                <video src="{{ vsrc.url | default: media.sources.first.url }}"
+                  poster="{{ media.preview_image | image_url: width: 1200 }}"
+                  muted loop playsinline autoplay preload="none"
+                  style="width:88%;height:88%;object-fit:contain;display:block;"></video>
+              {%- else -%}
+                <img src="{{ media.preview_image | image_url: width: 1000 }}"
+                  width="1000" height="{{ 1000 | divided_by: media.preview_image.aspect_ratio | ceil }}"
+                  alt="{{ media.alt | default: product.title | escape }}"
+                  loading="lazy" draggable="false" decoding="async">
+              {%- endcase -%}
+            </div>
+          {%- endfor -%}
+        </div>
+
+        {%- if media_count > 1 -%}
+          <button class="ap-arr{{ sid }} p" id="ap-prev{{ sid }}" aria-label="Previous image" type="button"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <button class="ap-arr{{ sid }} n" id="ap-next{{ sid }}" aria-label="Next image" type="button"><svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg></button>
+          <div class="ap-dots{{ sid }}" id="ap-dots{{ sid }}" role="tablist" aria-label="Image navigation">
+            {%- for media in product.media -%}
+              <button class="ap-dot{{ sid }}{% if forloop.first %} on{% endif %}"
+                data-index="{{ forloop.index0 }}" aria-label="Image {{ forloop.index }}" type="button" role="tab" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"></button>
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+
+        {%- if section.settings.show_brand_overlay and brand_display != blank or section.settings.show_brand_overlay and section.settings.brand_logo != blank -%}
+          <div class="ap-brand{{ sid }}" aria-hidden="true">
+            {%- if brand_display != blank -%}
+              <span class="ap-brand-name{{ sid }}">{{ brand_display }}</span>
+            {%- endif -%}
+            {%- if section.settings.brand_logo != blank -%}
+              {%- if brand_display != blank -%}
+                <span class="ap-brand-sep{{ sid }}"></span>
+              {%- endif -%}
+              <img class="ap-brand-logo{{ sid }}"
+                src="{{ section.settings.brand_logo | image_url: width: 300 }}"
+                alt="{{ shop.name | escape }}"
+                loading="lazy"
+                decoding="async"
+                width="150"
+                height="{{ section.settings.brand_logo_height | default: 22 }}">
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+
+      {%- else -%}
+        <div class="ap-empty{{ sid }}">No images</div>
+      {%- endif -%}
+    </div>
+
+    <!-- RIGHT -->
+    <div class="ap-right{{ sid }}">
+      <div class="ap-right-body{{ sid }}">
+
+        <div class="ap-price-row{{ sid }}">
+          <span class="ap-price{{ sid }}" id="ap-price{{ sid }}">{{ current_variant.price | money_without_trailing_zeros }}</span>
+          <span class="ap-was{{ sid }}" id="ap-was{{ sid }}"{% unless has_discount %} style="display:none"{% endunless %}>{% if has_discount %}{{ current_variant.compare_at_price | money_without_trailing_zeros }}{% endif %}</span>
+          <span class="ap-badge{{ sid }}" id="ap-badge{{ sid }}"{% unless has_discount %} style="display:none"{% endunless %}>{% if has_discount %}−{{ discount_pct }}%{% endif %}</span>
+        </div>
+
+        <div class="ap-stock{{ sid }}{% if is_low_stock %} show{% endif %}" id="ap-stock{{ sid }}" data-low="{{ low_stock_at }}">
+          {% if is_low_stock %}Only {{ inv }} left{% endif %}
+        </div>
+
+        {%- form 'product', product, id: form_id, novalidate: 'novalidate' -%}
+          <input type="hidden" name="id" id="ap-vid{{ sid }}" value="{{ current_variant.id }}">
+          <input type="hidden" name="quantity" id="ap-qty{{ sid }}" value="1">
+
+          {%- unless product.has_only_default_variant -%}
+            {%- for option in product.options_with_values -%}
+              {%- assign odn = option.name | downcase -%}
+              <label class="ap-opt-lbl{{ sid }}">{{ option.name }}</label>
+
+              {%- if odn == 'color' or odn == 'colour' -%}
+                <div class="ap-swatches{{ sid }}" data-opt="{{ forloop.index }}">
+                  {%- for val in option.values -%}
+                    <button type="button" data-vbtn class="ap-swatch{{ sid }}{% if option.selected_value == val %} on{% endif %}"
+                      data-val="{{ val }}" title="{{ val }}" aria-label="{{ val }}"
+                      style="background:{{ val | handle }};"></button>
+                  {%- endfor -%}
+                </div>
+              {%- else -%}
+                <div class="ap-stack{{ sid }}" data-opt="{{ forloop.index }}" role="radiogroup" aria-label="{{ option.name }}">
+                  {%- for val in option.values -%}
+                    <button type="button" data-vbtn
+                      class="ap-stack-btn{{ sid }}{% if option.selected_value == val %} on{% endif %}"
+                      data-val="{{ val }}" role="radio"
+                      aria-checked="{% if option.selected_value == val %}true{% else %}false{% endif %}">{{ val }}</button>
+                  {%- endfor -%}
+                </div>
+              {%- endif -%}
+            {%- endfor -%}
+          {%- endunless -%}
+
+          <input type="submit" id="ap-fsub{{ sid }}" style="display:none" tabindex="-1" aria-hidden="true">
+        {%- endform -%}
+
+        {%- if show_sg or show_sh or show_desc_drawer -%}
+          <div class="ap-links{{ sid }}">
+            {%- if show_desc_drawer -%}
+              <div class="ap-link-row{{ sid }}">
+                <button type="button" class="ap-link-trig{{ sid }}" data-link-toggle="desc{{ sid }}" aria-expanded="false">
+                  <span>{{ desc_label }}</span>
+                  <svg viewBox="0 0 24 12" aria-hidden="true"><line x1="1" y1="6" x2="22" y2="6"/><polyline points="17 1 22 6 17 11"/></svg>
+                </button>
+                <div class="ap-link-body{{ sid }}" id="desc{{ sid }}">
+                  <div class="ap-link-inner{{ sid }}"><div class="ap-link-content{{ sid }}">{{ product.description }}</div></div>
+                </div>
+              </div>
+            {%- endif -%}
+            {%- if show_sg -%}
+              <div class="ap-link-row{{ sid }}">
+                {%- if sg_redirect != blank -%}
+                  <a class="ap-link-trig{{ sid }}" href="{{ sg_redirect }}">
+                    <span>{{ sg_label }}</span>
+                    <svg viewBox="0 0 24 12" aria-hidden="true"><line x1="1" y1="6" x2="22" y2="6"/><polyline points="17 1 22 6 17 11"/></svg>
+                  </a>
+                {%- else -%}
+                  <button type="button" class="ap-link-trig{{ sid }}" data-link-toggle="sg{{ sid }}" aria-expanded="false">
+                    <span>{{ sg_label }}</span>
+                    <svg viewBox="0 0 24 12" aria-hidden="true"><line x1="1" y1="6" x2="22" y2="6"/><polyline points="17 1 22 6 17 11"/></svg>
+                  </button>
+                  <div class="ap-link-body{{ sid }}" id="sg{{ sid }}">
+                    <div class="ap-link-inner{{ sid }}"><div class="ap-link-content{{ sid }}">
+                      {%- if sg_image != blank -%}<img src="{{ sg_image | image_url: width: 600 }}" width="200" height="{{ 200 | divided_by: sg_image.aspect_ratio | ceil }}" alt="{{ sg_label | escape }}" loading="lazy" decoding="async">{%- endif -%}
+                      {{ sg_content }}
+                    </div></div>
+                  </div>
+                {%- endif -%}
+              </div>
+            {%- endif -%}
+            {%- if show_sh -%}
+              <div class="ap-link-row{{ sid }}">
+                {%- if sh_redirect != blank -%}
+                  <a class="ap-link-trig{{ sid }}" href="{{ sh_redirect }}">
+                    <span>{{ sh_label }}</span>
+                    <svg viewBox="0 0 24 12" aria-hidden="true"><line x1="1" y1="6" x2="22" y2="6"/><polyline points="17 1 22 6 17 11"/></svg>
+                  </a>
+                {%- else -%}
+                  <button type="button" class="ap-link-trig{{ sid }}" data-link-toggle="sh{{ sid }}" aria-expanded="false">
+                    <span>{{ sh_label }}</span>
+                    <svg viewBox="0 0 24 12" aria-hidden="true"><line x1="1" y1="6" x2="22" y2="6"/><polyline points="17 1 22 6 17 11"/></svg>
+                  </button>
+                  <div class="ap-link-body{{ sid }}" id="sh{{ sid }}">
+                    <div class="ap-link-inner{{ sid }}"><div class="ap-link-content{{ sid }}">
+                      {%- if sh_image != blank -%}<img src="{{ sh_image | image_url: width: 600 }}" width="200" height="{{ 200 | divided_by: sh_image.aspect_ratio | ceil }}" alt="{{ sh_label | escape }}" loading="lazy" decoding="async">{%- endif -%}
+                      {{ sh_content }}
+                    </div></div>
+                  </div>
+                {%- endif -%}
+              </div>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- STICKY BAR — portal'd to <body> on init -->
+<div class="ap-bar{{ sid }}" id="ap-bar{{ sid }}" data-section="{{ sid }}" role="region" aria-label="Add to cart">
+  <div class="ap-bar-inner{{ sid }}">
+
+    {%- if section.settings.show_trust_strip -%}
+      <div class="ap-trust{{ sid }} on">
+        {%- if section.settings.trust_1 != blank -%}
+          <span class="ap-trust-item{{ sid }}">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h13l-1 12H4L3 7z"/><path d="M14 7l5 4h2v8h-3"/></svg>
+            {{ section.settings.trust_1 }}
+          </span>
+        {%- endif -%}
+        {%- if section.settings.trust_2 != blank -%}
+          <span class="ap-trust-item{{ sid }}">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9"/><polyline points="3 4 3 12 11 12"/></svg>
+            {{ section.settings.trust_2 }}
+          </span>
+        {%- endif -%}
+        {%- if section.settings.trust_3 != blank -%}
+          <span class="ap-trust-item{{ sid }}">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L4 6v6c0 5 3.5 9.5 8 10 4.5-.5 8-5 8-10V6l-8-4z"/></svg>
+            {{ section.settings.trust_3 }}
+          </span>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    {%- if show_pill -%}
+      <div class="ap-pills{{ sid }}" id="ap-pills{{ sid }}" role="radiogroup" aria-label="Bundle">
+        <button type="button" class="ap-pill{{ sid }} on" data-pill-qty="1" role="radio" aria-checked="true">
+          <div class="ap-pill-img{{ sid }}">
+            {%- if pill_thumb != blank -%}<img src="{{ pill_thumb }}" alt="" loading="lazy" decoding="async" width="42" height="42">{%- endif -%}
+            <span class="ap-pill-qty{{ sid }}">×1</span>
+          </div>
+          <div class="ap-pill-info{{ sid }}">
+            <span class="ap-pill-label{{ sid }}">{{ section.settings.single_label | default: 'Single' }}</span>
+            <span class="ap-pill-sub{{ sid }}">
+              {%- if single_save > 0 -%}You save {{ single_save | money_without_trailing_zeros }}{%- else -%}{{ section.settings.single_sublabel }}{%- endif -%}
+            </span>
+          </div>
+          <div class="ap-pill-price{{ sid }}">
+            <span class="ap-pill-now{{ sid }}">{{ single_price | money_without_trailing_zeros }}</span>
+            {%- if single_compare > single_price -%}<span class="ap-pill-was{{ sid }}">{{ single_compare | money_without_trailing_zeros }}</span>{%- endif -%}
+          </div>
+        </button>
+
+        {%- if duo_visible -%}
+          <button type="button" class="ap-pill{{ sid }}" data-pill-qty="{{ duo_qty }}" role="radio" aria-checked="false">
+            {%- if section.settings.duo_ribbon != blank -%}<span class="ap-pill-ribbon{{ sid }}">{{ section.settings.duo_ribbon }}</span>{%- endif -%}
+            <div class="ap-pill-img{{ sid }}">
+              {%- if pill_thumb != blank -%}<img src="{{ pill_thumb }}" alt="" loading="lazy" decoding="async" width="42" height="42">{%- endif -%}
+              <span class="ap-pill-qty{{ sid }}">×{{ duo_qty }}</span>
+            </div>
+            <div class="ap-pill-info{{ sid }}">
+              <span class="ap-pill-label{{ sid }}">{{ section.settings.duo_label | default: 'Duo' }}</span>
+              <span class="ap-pill-sub{{ sid }}">
+                {%- if duo_save > 0 -%}You save {{ duo_save | money_without_trailing_zeros }}{%- else -%}{{ section.settings.duo_sublabel }}{%- endif -%}
+              </span>
+            </div>
+            <div class="ap-pill-price{{ sid }}">
+              <span class="ap-pill-now{{ sid }}">{{ duo_price_raw | money_without_trailing_zeros }}</span>
+              {%- if duo_compare_raw > duo_price_raw -%}<span class="ap-pill-was{{ sid }}">{{ duo_compare_raw | money_without_trailing_zeros }}</span>{%- endif -%}
+            </div>
+          </button>
+        {%- endif -%}
+
+        {%- if triple_visible -%}
+          <button type="button" class="ap-pill{{ sid }}" data-pill-qty="{{ triple_qty }}" role="radio" aria-checked="false">
+            {%- if section.settings.triple_ribbon != blank -%}<span class="ap-pill-ribbon{{ sid }}">{{ section.settings.triple_ribbon }}</span>{%- endif -%}
+            <div class="ap-pill-img{{ sid }}">
+              {%- if pill_thumb != blank -%}<img src="{{ pill_thumb }}" alt="" loading="lazy" decoding="async" width="42" height="42">{%- endif -%}
+              <span class="ap-pill-qty{{ sid }}">×{{ triple_qty }}</span>
+            </div>
+            <div class="ap-pill-info{{ sid }}">
+              <span class="ap-pill-label{{ sid }}">{{ section.settings.triple_label | default: 'Trio' }}</span>
+              <span class="ap-pill-sub{{ sid }}">
+                {%- if triple_save > 0 -%}You save {{ triple_save | money_without_trailing_zeros }}{%- else -%}{{ section.settings.triple_sublabel }}{%- endif -%}
+              </span>
+            </div>
+            <div class="ap-pill-price{{ sid }}">
+              <span class="ap-pill-now{{ sid }}">{{ triple_price_raw | money_without_trailing_zeros }}</span>
+              {%- if triple_compare_raw > triple_price_raw -%}<span class="ap-pill-was{{ sid }}">{{ triple_compare_raw | money_without_trailing_zeros }}</span>{%- endif -%}
+            </div>
+          </button>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    {%- unless product.has_only_default_variant -%}
+      <div class="ap-vrow{{ sid }}" id="ap-vrow{{ sid }}">
+        {%- for option in product.options_with_values -%}
+          {%- assign odn = option.name | downcase -%}
+          {%- unless odn == 'title' -%}
+            <div class="ap-vgroup{{ sid }}" data-opt="{{ forloop.index }}" aria-label="{{ option.name }}">
+              <span class="ap-vlabel{{ sid }}">{{ option.name }}</span>
+              {%- if odn == 'color' or odn == 'colour' -%}
+                {%- for val in option.values -%}
+                  <button type="button" data-vbtn
+                    class="ap-vsw{{ sid }}{% if option.selected_value == val %} on{% endif %}"
+                    data-val="{{ val }}" title="{{ val }}" aria-label="{{ val }}"
+                    style="background:{{ val | handle }};"></button>
+                {%- endfor -%}
+              {%- else -%}
+                {%- for val in option.values -%}
+                  <button type="button" data-vbtn
+                    class="ap-vsize{{ sid }}{% if option.selected_value == val %} on{% endif %}"
+                    data-val="{{ val }}"
+                    aria-pressed="{% if option.selected_value == val %}true{% else %}false{% endif %}">{{ val }}</button>
+                {%- endfor -%}
+              {%- endif -%}
+            </div>
+          {%- endunless -%}
+        {%- endfor -%}
+      </div>
+    {%- endunless -%}
+
+    <div class="ap-arow{{ sid }}">
+      <div class="ap-qty{{ sid }}" role="group" aria-label="Quantity">
+        <button type="button" id="ap-qty-dec{{ sid }}" aria-label="Decrease quantity">−</button>
+        <span id="ap-qty-val{{ sid }}" aria-live="polite">1</span>
+        <button type="button" id="ap-qty-inc{{ sid }}" aria-label="Increase quantity">+</button>
+      </div>
+      <button class="ap-atc{{ sid }}" id="ap-atc{{ sid }}"
+        data-bag-url="{{ section.settings.view_bag_url | default: '/cart' }}"
+        data-bag-text="{{ section.settings.view_bag_text | default: 'View Bag' }}"
+        data-atc-link="{{ section.settings.atc_link | default: '' }}"
+        data-loading-text="{{ section.settings.loading_text | default: 'Adding…' }}"
+        {% unless current_variant.available %}disabled{% endunless %}
+        aria-label="Add {{ product.title | escape }} to cart"
+        type="button">
+        <svg class="ap-atc-bag{{ sid }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12l-1 13H7L6 7z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg>
+        <span id="ap-atc-lbl{{ sid }}">{%- if current_variant.available -%}{{ section.settings.atc_text }}{%- else -%}{{ section.settings.soldout_text }}{%- endif -%}</span>
+        <span class="ap-atc-sep{{ sid }}" aria-hidden="true">·</span>
+        <span class="ap-atc-price{{ sid }}" id="ap-atc-price{{ sid }}">{{ current_variant.price | money_without_trailing_zeros }}</span>
+        <svg class="_sp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+        </svg>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org/","@type":"Product","name":{{ product.title | json }},"description":{{ product.description | strip_html | truncate: 500 | json }},"url":{{ shop.url | append: product.url | json }},"sku":{{ current_variant.sku | default: product.id | json }},"brand":{"@type":"Brand","name":{{ product.vendor | json }}},"image":[{% for img in product.images %}"{{ img | image_url: width: 1200 }}"{% unless forloop.last %},{% endunless %}{% endfor %}],"offers":{"@type":"AggregateOffer","priceCurrency":{{ cart.currency.iso_code | json }},"lowPrice":{{ product.price_min | divided_by: 100.0 }},"highPrice":{{ product.price_max | divided_by: 100.0 }},"offerCount":{{ product.variants | size }},"availability":"{% if product.available %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}"}}
+</script>
+
+<script>
+(function(){
+  'use strict';
+  var S='{{ sid }}';
+  var VARS={{ product.variants | json }};
+  var OPTS={{ product.options | json }};
+  var SYM={{ cart.currency.symbol | json }};
+  var COUNT={{ media_count }};
+  var LOW={{ low_stock_at | default: 5 }};
+  var SHOW_STOCK={{ section.settings.show_stock | json }};
+  var sel={};
+  var root=document.getElementById('ap'+S);
+  if(!root)return;
+
+  /* ── PORTAL bar to <body> (escape transform / overflow ancestors) ── */
+  var bar=document.getElementById('ap-bar'+S);
+  if(bar&&bar.parentNode!==document.body){
+    document.body.appendChild(bar);
+  }
+
+  var priceEl=document.getElementById('ap-price'+S);
+  var wasEl=document.getElementById('ap-was'+S);
+  var badgeEl=document.getElementById('ap-badge'+S);
+  var stockEl=document.getElementById('ap-stock'+S);
+  var atc=document.getElementById('ap-atc'+S);
+  var atcLbl=document.getElementById('ap-atc-lbl'+S);
+  var atcPrice=document.getElementById('ap-atc-price'+S);
+  var vid=document.getElementById('ap-vid'+S);
+  var qtyIn=document.getElementById('ap-qty'+S);
+  var qDec=document.getElementById('ap-qty-dec'+S);
+  var qInc=document.getElementById('ap-qty-inc'+S);
+  var qVal=document.getElementById('ap-qty-val'+S);
+  var fsub=document.getElementById('ap-fsub'+S);
+  var pillsWrap=document.getElementById('ap-pills'+S);
+  var pillEls=pillsWrap?Array.prototype.slice.call(pillsWrap.querySelectorAll('.ap-pill'+S)):[];
+  var scroller=document.getElementById('ap-scroll'+S);
+  var prevBtn=document.getElementById('ap-prev'+S);
+  var nextBtn=document.getElementById('ap-next'+S);
+
+  function $$(q){return Array.prototype.slice.call(document.querySelectorAll(q));}
+
+  /* Init selection state */
+  OPTS.forEach(function(_,i){
+    var oi=i+1;
+    var anyBtn=document.querySelector('[data-opt="'+oi+'"] [data-vbtn].on');
+    sel[oi]=anyBtn?anyBtn.dataset.val:'';
+  });
+
+  function findVariant(s){
+    s=s||sel;
+    return VARS.find(function(v){return OPTS.every(function(_,i){return v['option'+(i+1)]===s[i+1];});});
+  }
+  function money(c){return SYM+(c/100).toFixed(2).replace(/\.00$/,'').replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+  function curQty(){return qtyIn?Math.max(1,parseInt(qtyIn.value,10)||1):1;}
+
+  function renderPrice(v,q){
+    if(!v)return;
+    q=Math.max(1,q|0);
+    var total=v.price*q;
+    var totalCompare=(v.compare_at_price||0)*q;
+    if(priceEl){
+      priceEl.classList.add('flash');
+      setTimeout(function(){priceEl.textContent=money(total);priceEl.classList.remove('flash');},120);
+    }
+    var hasDis=v.compare_at_price&&v.compare_at_price>v.price;
+    if(wasEl){if(hasDis){wasEl.textContent=money(totalCompare);wasEl.style.display='';}else{wasEl.style.display='none';}}
+    if(badgeEl){if(hasDis){var pct=Math.round((v.compare_at_price-v.price)*100/v.compare_at_price);badgeEl.textContent='−'+pct+'%';badgeEl.style.display='';}else{badgeEl.style.display='none';}}
+    if(atcPrice){
+      atcPrice.classList.add('flash');
+      setTimeout(function(){atcPrice.textContent=money(total);atcPrice.classList.remove('flash');},120);
+    }
+  }
+
+  function renderStock(v){
+    if(!stockEl||!SHOW_STOCK)return;
+    if(v&&v.inventory_management==='shopify'&&v.inventory_quantity>0&&v.inventory_quantity<=LOW){
+      stockEl.textContent='Only '+v.inventory_quantity+' left';
+      stockEl.classList.add('show');
+    }else{
+      stockEl.classList.remove('show');
+    }
+  }
+
+  /* Carousel jump to variant's featured image */
+  var MEDIA_SRCS={};
+  {%- for media in product.media -%}
+    {%- if media.media_type == 'image' or media.media_type == nil -%}
+      MEDIA_SRCS[{{ media.id | json }}]={{ forloop.index0 }};
+    {%- endif -%}
+  {%- endfor -%}
+  function jumpToVariantImage(v){
+    if(!scroller||!v||!v.featured_media)return;
+    var idx=MEDIA_SRCS[v.featured_media.id];
+    if(idx===undefined||idx===null)return;
+    goTo(idx,true);
+  }
+
+  function updateUI(v){
+    if(!v){
+      if(atc)atc.disabled=true;
+      if(atcLbl)atcLbl.textContent='Unavailable';
+      return;
+    }
+    if(atc)atc.disabled=!v.available;
+    if(atcLbl)atcLbl.textContent=v.available?{{ section.settings.atc_text | json }}:{{ section.settings.soldout_text | json }};
+    if(vid)vid.value=v.id;
+    renderPrice(v,curQty());
+    renderStock(v);
+    jumpToVariantImage(v);
+    if(history.replaceState)history.replaceState({},'','?variant='+v.id);
+  }
+
+  /* Mark unavailable variant values based on current other selections */
+  function markUnavailable(){
+    OPTS.forEach(function(_,optIdx){
+      var oi=optIdx+1;
+      $$('[data-opt="'+oi+'"] [data-vbtn]').forEach(function(b){
+        var test={};
+        Object.keys(sel).forEach(function(k){test[k]=sel[k];});
+        test[oi]=b.dataset.val;
+        var match=VARS.find(function(v){return OPTS.every(function(_,i){
+          var k=i+1;
+          if(k===oi)return v['option'+k]===test[k];
+          return !test[k]||v['option'+k]===test[k];
+        });});
+        var unavail=!match||!match.available;
+        b.classList.toggle('unavail',unavail);
+      });
+    });
+  }
+
+  function syncOptionUI(oi,val){
+    $$('[data-opt="'+oi+'"] [data-vbtn]').forEach(function(b){
+      var m=b.dataset.val===val;
+      b.classList.toggle('on',m);
+      if(b.hasAttribute('aria-checked'))b.setAttribute('aria-checked',m?'true':'false');
+      if(b.hasAttribute('aria-pressed'))b.setAttribute('aria-pressed',m?'true':'false');
+    });
+    /* Scroll active variant into view within its own scroller (bar row) */
+    var activeInBar=document.querySelector('.ap-vrow'+S+' [data-opt="'+oi+'"] [data-vbtn].on');
+    if(activeInBar){
+      var p=activeInBar.parentElement;
+      while(p&&!p.classList.contains('ap-vrow'+S))p=p.parentElement;
+      if(p){
+        var pr=p.getBoundingClientRect();
+        var br=activeInBar.getBoundingClientRect();
+        if(br.right>pr.right||br.left<pr.left){
+          p.scrollTo({left:activeInBar.offsetLeft-p.offsetWidth/2+br.width/2,behavior:'smooth'});
+        }
+      }
+    }
+  }
+
+  function onChange(oi,val){
+    sel[oi]=val;
+    syncOptionUI(oi,val);
+    markUnavailable();
+    updateUI(findVariant());
+  }
+
+  /* Unified variant click handler (single delegated listener) */
+  document.addEventListener('click',function(e){
+    var b=e.target.closest('[data-vbtn]');
+    if(!b||b.classList.contains('unavail'))return;
+    var w=b.closest('[data-opt]');
+    if(w)onChange(+w.dataset.opt,b.dataset.val);
+  });
+
+  /* ── Horizontal carousel ── */
+  var slides=scroller?Array.prototype.slice.call(scroller.querySelectorAll('.ap-slide'+S)):[];
+  var dots=$$('.ap-dot'+S);
+  var cur=0;
+  function setActiveDot(i){
+    dots.forEach(function(d,k){
+      d.classList.toggle('on',k===i);
+      d.setAttribute('aria-selected',k===i?'true':'false');
+    });
+    if(prevBtn)prevBtn.disabled=(i<=0);
+    if(nextBtn)nextBtn.disabled=(i>=slides.length-1);
+  }
+  function goTo(i,instant){
+    if(!slides.length)return;
+    cur=Math.max(0,Math.min(slides.length-1,i));
+    var t=slides[cur];
+    if(t){
+      if(instant){
+        scroller.scrollTo({left:t.offsetLeft,behavior:'auto'});
+      }else{
+        t.scrollIntoView({behavior:'smooth',block:'nearest',inline:'start'});
+      }
+    }
+    setActiveDot(cur);
+  }
+  if(scroller&&COUNT>1){
+    if('IntersectionObserver' in window){
+      var ioCar=new IntersectionObserver(function(entries){
+        entries.forEach(function(en){
+          if(en.isIntersecting&&en.intersectionRatio>0.55){
+            cur=+en.target.dataset.index||0;
+            setActiveDot(cur);
+          }
+        });
+      },{root:scroller,threshold:[0.55,0.75]});
+      slides.forEach(function(s){ioCar.observe(s);});
+    }
+    dots.forEach(function(d){d.addEventListener('click',function(){goTo(+this.dataset.index);});});
+    if(prevBtn)prevBtn.addEventListener('click',function(){goTo(cur-1);});
+    if(nextBtn)nextBtn.addEventListener('click',function(){goTo(cur+1);});
+    setActiveDot(0);
+  }
+
+  /* Image fade-in on load */
+  $$('.ap-slide'+S+' img').forEach(function(img){
+    if(img.complete){img.classList.add('ap-loaded');}
+    else{img.addEventListener('load',function(){img.classList.add('ap-loaded');},{once:true});}
+  });
+
+  /* Keyboard nav for carousel */
+  if(scroller){
+    scroller.addEventListener('keydown',function(e){
+      if(e.key==='ArrowLeft'){e.preventDefault();goTo(cur-1);}
+      else if(e.key==='ArrowRight'){e.preventDefault();goTo(cur+1);}
+    });
+  }
+
+  /* ── Vault (recent viewed) ── */
+  var PD={id:{{ product.id }},title:{{ product.title | json }},handle:{{ product.handle | json }},vendor:{{ product.vendor | json }},variants:VARS,images:[{% for img in product.images %}"{{ img | image_url: width: 400 }}"{% unless forloop.last %},{% endunless %}{% endfor %}]};
+  function getV(){try{return JSON.parse(localStorage.getItem('apex_vault_data')||'[]');}catch(e){return[];}}
+  function setV(a){try{localStorage.setItem('apex_vault_data',JSON.stringify(a));window.dispatchEvent(new Event('vault:updated'));}catch(e){}}
+  function buildVI(v,li){
+    var p=[];VARS.forEach(function(x){if(x.id===v.id){if(x.option1&&x.option1!=='Default Title')p.push(x.option1);if(x.option2)p.push(x.option2);if(x.option3)p.push(x.option3);}});
+    return{id:v.id,title:PD.title,handle:PD.handle,vendor:PD.vendor,variant:p.length?p.join(' / '):'Default',image:(v.featured_image&&v.featured_image.src)?v.featured_image.src:(PD.images[0]||''),priceRaw:li?li.price:(v.price||0),priceStr:money(li?li.price:(v.price||0)),addedAt:Date.now()};
+  }
+
+  function toViewBag(){
+    if(!atc)return;
+    atc.classList.remove('ld');atc.classList.add('added');atc.disabled=false;
+    var txt=atc.getAttribute('data-bag-text')||'View Bag';
+    if(atcLbl)atcLbl.textContent=txt;
+    var dest=atc.getAttribute('data-atc-link')||atc.getAttribute('data-bag-url')||'/cart';
+    atc.onclick=function(e){e.preventDefault();window.location.href=dest;};
+    if({{ section.settings.redirect_on_add | json }})window.location.href=dest;
+  }
+
+  function doAdd(){
+    if(!findVariant()){
+      if(atc){atc.classList.add('error');setTimeout(function(){atc.classList.remove('error');},420);}
+      return;
+    }
+    var loadingText=atc.getAttribute('data-loading-text')||'Adding…';
+    var origText=atcLbl?atcLbl.textContent:'';
+    if(!{{ section.settings.ajax_cart | json }}){if(fsub)fsub.click();return;}
+    if(atc)atc.classList.add('ld');
+    if(atcLbl)atcLbl.textContent=loadingText;
+    var fe=document.getElementById('{{ form_id }}');
+    if(!fe){if(atc)atc.classList.remove('ld');return;}
+    fetch('/cart/add.js',{method:'POST',body:new FormData(fe)})
+      .then(function(r){if(!r.ok)throw 0;return r.json();})
+      .then(function(){return fetch('/cart.js').then(function(r){return r.json();});})
+      .then(function(cart){
+        document.querySelectorAll('[data-cart-count],[data-cart-bubble]').forEach(function(el){el.textContent=cart.item_count;if(el.dataset.cartCount!==undefined)el.dataset.cartCount=cart.item_count;});
+        var cvid=parseInt(vid?vid.value:0,10);
+        var mv=null;VARS.forEach(function(v){if(v.id===cvid)mv=v;});
+        if(mv){
+          var ml=null;if(cart.items)cart.items.forEach(function(i){if(i.variant_id===cvid)ml=i;});
+          var vi=buildVI(mv,ml);
+          var vd=getV();var idx=-1;
+          vd.forEach(function(x,i){if(x.id===cvid)idx=i;});
+          if(idx>-1)vd[idx]=vi;else vd.push(vi);
+          setV(vd);
+        }
+        document.dispatchEvent(new CustomEvent('cart:item-added',{bubbles:true,detail:{cart:cart}}));
+        document.dispatchEvent(new CustomEvent('cart:updated',{bubbles:true,detail:{cart:cart}}));
+        toViewBag();
+      })
+      .catch(function(){
+        if(atc)atc.classList.remove('ld');
+        if(atcLbl)atcLbl.textContent=origText;
+        if(fsub)fsub.click();
+      });
+  }
+
+  /* Pill ↔ Qty sync — "morphing pill" behavior (generalized to N tiers).
+     On an exact tier match (qty === a pill's data-pill-qty) that pill lights
+     up as-is. Off an exact match, the base (qty=1) pill rewrites its own
+     label + ×N badge to whichever tier is the current best fit, so the
+     display keeps scaling smoothly instead of jumping between static pills. */
+  var TIERS=pillEls.map(function(p){
+    var labelEl=p.querySelector('.ap-pill-label'+S);
+    var qtyBadgeEl=p.querySelector('.ap-pill-qty'+S);
+    return{
+      el:p,
+      qty:parseInt(p.getAttribute('data-pill-qty'),10)||1,
+      labelEl:labelEl,
+      qtyBadgeEl:qtyBadgeEl,
+      origLabel:labelEl?labelEl.textContent:''
+    };
+  }).sort(function(a,b){return a.qty-b.qty;});
+  var baseTier=TIERS[0];
+
+  function syncPillToQty(n){
+    if(!TIERS.length)return;
+    var exact=null,best=TIERS[0];
+    TIERS.forEach(function(t){
+      if(t.qty===n)exact=t;
+      if(t.qty<=n)best=t;
+    });
+    TIERS.forEach(function(t){t.el.classList.remove('on');t.el.setAttribute('aria-checked','false');});
+    if(exact){
+      exact.el.classList.add('on');
+      exact.el.setAttribute('aria-checked','true');
+      if(baseTier.labelEl)baseTier.labelEl.textContent=baseTier.origLabel;
+      if(baseTier.qtyBadgeEl)baseTier.qtyBadgeEl.textContent='×'+baseTier.qty;
+    }else if(best){
+      if(baseTier.labelEl)baseTier.labelEl.textContent=best.origLabel;
+      if(baseTier.qtyBadgeEl)baseTier.qtyBadgeEl.textContent='×'+n;
+      baseTier.el.classList.add('on');
+      baseTier.el.setAttribute('aria-checked','true');
+    }
+  }
+  function setQtyVal(n){
+    n=Math.max(1,n|0);
+    if(qtyIn)qtyIn.value=n;
+    if(qVal)qVal.textContent=n;
+    if(qDec)qDec.disabled=(n<=1);
+    var v=findVariant();
+    if(v)renderPrice(v,n);
+    syncPillToQty(n);
+  }
+  function bumpQty(d){setQtyVal(curQty()+d);}
+  if(qDec)qDec.addEventListener('click',function(){bumpQty(-1);});
+  if(qInc)qInc.addEventListener('click',function(){bumpQty(1);});
+  setQtyVal(1);
+
+  pillEls.forEach(function(p){
+    p.addEventListener('click',function(){
+      var q=parseInt(this.getAttribute('data-pill-qty'),10)||1;
+      setQtyVal(q);
+    });
+  });
+
+  if(atc)atc.addEventListener('click',function(){if(!this.classList.contains('added'))doAdd();});
+
+  /* Inline accordion toggles */
+  $$('[data-link-toggle]').forEach(function(t){
+    t.addEventListener('click',function(){
+      var id=this.getAttribute('data-link-toggle');
+      var body=document.getElementById(id);
+      if(!body)return;
+      var isOpen=this.classList.contains('open');
+      $$('[data-link-toggle]').forEach(function(o){o.classList.remove('open');o.setAttribute('aria-expanded','false');});
+      $$('.ap-link-body'+S).forEach(function(b){b.classList.remove('open');});
+      if(!isOpen){this.classList.add('open');this.setAttribute('aria-expanded','true');body.classList.add('open');}
+    });
+  });
+
+  /* ── Footer detection (with retry) — hide bar when footer enters view ── */
+  function findFooter(){
+    return document.querySelector('footer.site-footer')||
+           document.querySelector('footer[role="contentinfo"]')||
+           document.querySelector('footer')||
+           document.querySelector('[role="contentinfo"]')||
+           document.querySelector('.site-footer,#site-footer,.footer,#footer,#shopify-section-footer');
+  }
+  var fooObs=null;
+  function attachFooterObserver(){
+    if(fooObs||!('IntersectionObserver' in window))return;
+    var footer=findFooter();
+    if(!footer)return false;
+    fooObs=new IntersectionObserver(function(entries){
+      entries.forEach(function(en){bar&&bar.classList.toggle('hide',en.isIntersecting);});
+    },{threshold:0.01});
+    fooObs.observe(footer);
+    return true;
+  }
+  /* Retry several times in case footer is rendered after section script runs */
+  if(!attachFooterObserver()){
+    var tries=0,maxTries=10;
+    var iv=setInterval(function(){
+      tries++;
+      if(attachFooterObserver()||tries>=maxTries)clearInterval(iv);
+    },300);
+  }
+
+  /* ── Dynamic bar height: keep --bar-h in sync with actual rendered bar ──
+     rAF-batched so resize/orientation events don't force multiple synchronous
+     layout reads per frame. */
+  var syncRAF=null;
+  function syncBarHeight(){
+    if(syncRAF)return;
+    syncRAF=requestAnimationFrame(function(){
+      syncRAF=null;
+      if(!bar)return;
+      var h=bar.offsetHeight;
+      if(h>20){
+        root.style.setProperty('--bar-h',h+'px');
+        bar.style.setProperty('--bar-h',h+'px');
+      }
+    });
+  }
+  syncBarHeight();
+  if('ResizeObserver' in window){
+    var ro=new ResizeObserver(syncBarHeight);
+    ro.observe(bar);
+  }else{
+    window.addEventListener('resize',syncBarHeight,{passive:true});
+  }
+
+  /* Initial state for unavailable marking */
+  markUnavailable();
+
+  /* Initial vault entry on view (low priority, fire after a tick) */
+  setTimeout(function(){
+    var v=findVariant();if(!v)return;
+    var vi=buildVI(v,null);
+    var vd=getV();var idx=-1;
+    vd.forEach(function(x,i){if(x.id===v.id)idx=i;});
+    if(idx<0){vd.push(vi);setV(vd);}
+  },800);
+
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Maison Product",
+  "tag": "section",
+  "class": "maison-product-section",
+  "settings": [
+    { "type": "header", "content": "Back Link" },
+    { "type": "url",  "id": "back_url",   "label": "Back link destination" },
+    { "type": "text", "id": "back_label", "label": "Back link label", "default": "Back" },
+
+    { "type": "header", "content": "Layout & Spacing" },
+    { "type": "range", "id": "sticky_top",    "label": "Site header height", "min": 0, "max": 160, "step": 2, "unit": "px", "default": 44 },
+    { "type": "range", "id": "panel_padding", "label": "Left/right column padding", "min": 12, "max": 80,  "step": 2, "unit": "px", "default": 40 },
+    { "type": "range", "id": "bar_height",    "label": "Sticky bar reserved height (fallback)", "min": 80, "max": 220, "step": 2, "unit": "px", "default": 160, "info": "Auto-measured at runtime; this is the fallback used before measure completes." },
+
+    { "type": "header", "content": "Colors" },
+    { "type": "color", "id": "bg_color",     "label": "Background", "default": "#ffffff" },
+    { "type": "color", "id": "text_color",   "label": "Text",       "default": "#111111" },
+    { "type": "color", "id": "accent_color", "label": "Accent (discount badge / urgency)", "default": "#b8865a" },
+
+    { "type": "header", "content": "Typography" },
+    { "type": "font_picker", "id": "heading_font", "label": "Product name font", "default": "barlow_condensed_n9" },
+    { "type": "font_picker", "id": "body_font",    "label": "Body / UI font",    "default": "barlow_n3" },
+    { "type": "range", "id": "name_size",   "label": "Product name size", "min": 16, "max": 80, "step": 1, "unit": "px", "default": 38 },
+    { "type": "range", "id": "price_size",  "label": "Price size",        "min": 16, "max": 60, "step": 1, "unit": "px", "default": 26 },
+    { "type": "range", "id": "bullet_size", "label": "Bullet / narrative size", "min": 9, "max": 18, "step": 1, "unit": "px", "default": 12 },
+
+    { "type": "header", "content": "Product Description" },
+    { "type": "select", "id": "description_mode", "label": "Where to show description", "default": "inline",
+      "options": [
+        { "value": "inline", "label": "Show inline under bullets" },
+        { "value": "drawer", "label": "Show only in expandable drawer" },
+        { "value": "hide",   "label": "Hide completely" }
+      ]},
+    { "type": "text", "id": "description_label", "label": "Drawer link label", "default": "Description" },
+
+    { "type": "header", "content": "Stock Urgency" },
+    { "type": "checkbox", "id": "show_stock", "label": "Show low-stock indicator", "default": true, "info": "Shows 'Only N left' when inventory is at or below threshold." },
+    { "type": "range", "id": "low_stock_threshold", "label": "Low stock threshold", "min": 1, "max": 25, "step": 1, "default": 5 },
+
+    { "type": "header", "content": "Trust Strip (sticky bar)" },
+    { "type": "checkbox", "id": "show_trust_strip", "label": "Show trust strip above pills", "default": false },
+    { "type": "text", "id": "trust_1", "label": "Trust item 1", "default": "Free shipping over $80" },
+    { "type": "text", "id": "trust_2", "label": "Trust item 2", "default": "30-day returns" },
+    { "type": "text", "id": "trust_3", "label": "Trust item 3", "default": "Authentic" },
+
+    { "type": "header", "content": "Mini Product Pill (bundles)" },
+    { "type": "checkbox", "id": "show_pill", "label": "Show mini product pill row", "default": true },
+
+    { "type": "text",  "id": "single_label",    "label": "Single — label",    "default": "Single" },
+    { "type": "text",  "id": "single_sublabel", "label": "Single — subtitle", "default": "Best for trying it out" },
+
+    { "type": "text",  "id": "duo_label",       "label": "Duo — label",       "default": "Duo" },
+    { "type": "text",  "id": "duo_sublabel",    "label": "Duo — subtitle",    "default": "Best value" },
+    { "type": "text",  "id": "duo_ribbon",      "label": "Duo — ribbon",      "default": "Most Popular" },
+    { "type": "range", "id": "duo_qty",         "label": "Duo — quantity",    "min": 2, "max": 5,  "step": 1, "default": 2 },
+    { "type": "range", "id": "duo_discount_pct","label": "Duo — extra discount %", "min": 0, "max": 50, "step": 1, "unit": "%", "default": 25 },
+    { "type": "checkbox", "id": "duo_force_show", "label": "Show Duo pill", "default": true, "info": "Turn off to hide Duo for this product (e.g. no bundle discount available)." },
+    { "type": "text",  "id": "duo_show_tag",    "label": "Or restrict Duo to products with this tag (leave blank to ignore)" },
+
+    { "type": "text",  "id": "triple_label",       "label": "Triple — label",       "default": "Trio" },
+    { "type": "text",  "id": "triple_sublabel",    "label": "Triple — subtitle",    "default": "Best savings" },
+    { "type": "text",  "id": "triple_ribbon",      "label": "Triple — ribbon" },
+    { "type": "range", "id": "triple_qty",         "label": "Triple — quantity",    "min": 3, "max": 6,  "step": 1, "default": 3 },
+    { "type": "range", "id": "triple_discount_pct","label": "Triple — extra discount %", "min": 0, "max": 60, "step": 1, "unit": "%", "default": 35 },
+    { "type": "checkbox", "id": "triple_force_show", "label": "Show Trio pill", "default": true, "info": "Turn off to hide Trio for this product." },
+    { "type": "text",  "id": "triple_show_tag",    "label": "Or restrict Trio to products with this tag (leave blank to ignore)" },
+
+    { "type": "select", "id": "pill_thumb_source", "label": "Pill thumbnail source", "default": "featured",
+      "options": [
+        { "value": "featured", "label": "Featured image" },
+        { "value": "variant",  "label": "Selected variant image" },
+        { "value": "first",    "label": "First image" },
+        { "value": "second",   "label": "Second image" },
+        { "value": "last",     "label": "Last image" }
+      ]},
+    { "type": "color", "id": "pill_bg",     "label": "Pill background",            "default": "#f4f4f2" },
+    { "type": "color", "id": "pill_bg_on",  "label": "Pill background (selected)", "default": "#eaeae6" },
+    { "type": "color", "id": "pill_text",   "label": "Pill text",                  "default": "#1a1a1a" },
+    { "type": "color", "id": "pill_accent", "label": "Pill accent",                "default": "#1a1a1a" },
+
+    { "type": "header", "content": "Add to Cart Button" },
+    { "type": "text", "id": "atc_text",      "label": "Default label",   "default": "Add to cart" },
+    { "type": "text", "id": "soldout_text",  "label": "Sold out label",  "default": "Sold Out" },
+    { "type": "text", "id": "view_bag_text", "label": "After-add label", "default": "View Bag" },
+    { "type": "text", "id": "loading_text",  "label": "Loading label",   "default": "Adding…" },
+    { "type": "url",  "id": "atc_link",      "label": "After-add custom URL (optional)" },
+    { "type": "url",  "id": "view_bag_url",  "label": "View Bag URL", "info": "Defaults to /cart." },
+    { "type": "checkbox", "id": "redirect_on_add", "label": "Redirect immediately on add", "default": false },
+    { "type": "range", "id": "atc_radius", "label": "Button corner radius", "min": 0, "max": 60, "step": 1, "unit": "px", "default": 10 },
+
+    { "type": "header", "content": "Cart Behavior" },
+    { "type": "checkbox", "id": "ajax_cart", "label": "Add to cart without page reload", "default": true },
+
+    { "type": "header", "content": "Brand Overlay" },
+    {
+      "type": "checkbox",
+      "id": "show_brand_overlay",
+      "label": "Show brand overlay on carousel",
+      "default": true,
+      "info": "Displays the product's collection name + your logo over the bottom-left of the product images."
+    },
+    {
+      "type": "font_picker",
+      "id": "script_font",
+      "label": "Collection name font",
+      "default": "assistant_n4",
+      "info": "Choose any font from the picker — select an italic or script style to match the Ray-Ban reference look."
+    },
+    {
+      "type": "text",
+      "id": "brand_name_override",
+      "label": "Override collection name",
+      "info": "Leave blank to auto-use the product's first collection name."
+    },
+    {
+      "type": "image_picker",
+      "id": "brand_logo",
+      "label": "Logo image",
+      "info": "Displayed to the right of the separator. Upload a PNG with transparent background for best results."
+    },
+    {
+      "type": "color",
+      "id": "brand_text_color",
+      "label": "Collection name color",
+      "default": "#111111"
+    },
+    {
+      "type": "color",
+      "id": "brand_sep_color",
+      "label": "Separator color",
+      "default": "#111111"
+    },
+    {
+      "type": "select",
+      "id": "brand_name_style",
+      "label": "Font style",
+      "default": "italic",
+      "options": [
+        { "value": "normal", "label": "Normal" },
+        { "value": "italic", "label": "Italic" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "brand_name_weight",
+      "label": "Font weight",
+      "default": "400",
+      "options": [
+        { "value": "300", "label": "Light" },
+        { "value": "400", "label": "Regular" },
+        { "value": "500", "label": "Medium" },
+        { "value": "600", "label": "Semibold" },
+        { "value": "700", "label": "Bold" }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "brand_name_size",
+      "label": "Collection name size (desktop)",
+      "min": 14, "max": 64, "step": 1, "unit": "px",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "brand_name_size_mobile",
+      "label": "Collection name size (mobile)",
+      "min": 12, "max": 48, "step": 1, "unit": "px",
+      "default": 22
+    },
+    {
+      "type": "range",
+      "id": "brand_logo_height",
+      "label": "Logo height (desktop)",
+      "min": 10, "max": 60, "step": 1, "unit": "px",
+      "default": 22
+    },
+    {
+      "type": "range",
+      "id": "brand_logo_height_mobile",
+      "label": "Logo height (mobile)",
+      "min": 8, "max": 48, "step": 1, "unit": "px",
+      "default": 18
+    },
+    {
+      "type": "range",
+      "id": "brand_logo_opacity",
+      "label": "Logo opacity",
+      "min": 20, "max": 100, "step": 5, "unit": "%",
+      "default": 90
+    },
+    {
+      "type": "range",
+      "id": "brand_sep_height",
+      "label": "Separator height (desktop)",
+      "min": 10, "max": 60, "step": 1, "unit": "px",
+      "default": 26
+    },
+    {
+      "type": "range",
+      "id": "brand_sep_height_mobile",
+      "label": "Separator height (mobile)",
+      "min": 8, "max": 48, "step": 1, "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "brand_sep_opacity",
+      "label": "Separator opacity",
+      "min": 10, "max": 100, "step": 5, "unit": "%",
+      "default": 55
+    },
+    {
+      "type": "range",
+      "id": "brand_gap",
+      "label": "Gap between elements (desktop)",
+      "min": 4, "max": 32, "step": 1, "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "brand_gap_mobile",
+      "label": "Gap between elements (mobile)",
+      "min": 4, "max": 24, "step": 1, "unit": "px",
+      "default": 9
+    },
+    {
+      "type": "range",
+      "id": "brand_bottom",
+      "label": "Distance from bottom (desktop)",
+      "min": 8, "max": 140, "step": 2, "unit": "px",
+      "default": 52
+    },
+    {
+      "type": "range",
+      "id": "brand_bottom_mobile",
+      "label": "Distance from bottom (mobile)",
+      "min": 8, "max": 120, "step": 2, "unit": "px",
+      "default": 46
+    },
+    {
+      "type": "range",
+      "id": "brand_left",
+      "label": "Distance from left (desktop)",
+      "min": 4, "max": 80, "step": 1, "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "brand_left_mobile",
+      "label": "Distance from left (mobile)",
+      "min": 4, "max": 60, "step": 1, "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "text",
+      "id": "brand_letter_spacing",
+      "label": "Letter spacing (em units)",
+      "default": "0em",
+      "info": "e.g. 0em, 0.02em, -0.01em"
+    }
+  ],
+  "blocks": [
+    { "type": "bullet", "name": "Feature bullet", "settings": [
+      { "type": "text", "id": "label", "label": "Bullet text (auto-uppercased)", "default": "Quilted bomba" }
+    ]},
+    { "type": "narrative", "name": "Narrative (under bullets)", "limit": 1, "settings": [
+      { "type": "richtext", "id": "text", "label": "Text (auto-uppercased; each paragraph = new line)",
+        "default": "<p>This one man.</p><p>It's just incredible.</p><p>I love wearing it.</p>" }
+    ]},
+    { "type": "size_guide_drawer", "name": "Size Guide", "limit": 1, "settings": [
+      { "type": "text",         "id": "title",        "label": "Link label",     "default": "Size Guide" },
+      { "type": "richtext",     "id": "content",      "label": "Content",
+        "default": "<p>S — Chest 88–92cm</p><p>M — Chest 93–99cm</p><p>L — Chest 100–106cm</p><p>XL — Chest 107–114cm</p>" },
+      { "type": "image_picker", "id": "image",        "label": "Optional image" },
+      { "type": "url",          "id": "redirect_url", "label": "Optional redirect URL" }
+    ]},
+    { "type": "shipping", "name": "Shipping & Returns", "limit": 1, "settings": [
+      { "type": "text",         "id": "title",        "label": "Link label",     "default": "Shipping & Returns" },
+      { "type": "richtext",     "id": "content",      "label": "Content",
+        "default": "<p>Free standard shipping on orders over $80.</p><p>30-day returns — items must be unworn with original tags.</p>" },
+      { "type": "image_picker", "id": "image",        "label": "Optional image" },
+      { "type": "url",          "id": "redirect_url", "label": "Optional redirect URL" }
+    ]},
+    { "type": "highlight", "name": "Highlight (as bullet)", "settings": [
+      { "type": "text", "id": "label", "label": "Bullet text", "default": "Premium" },
+      { "type": "text", "id": "icon",  "label": "Icon (ignored)" }
+    ]},
+    { "type": "tagline", "name": "Tagline  (narrative)", "limit": 1, "settings": [
+      { "type": "text", "id": "text", "label": "Tagline text" }
+    ]},
+    { "type": "atc",          "name": "ATC (not rendered)",          "limit": 1, "settings": [] },
+    { "type": "dyn_checkout", "name": "Dynamic checkout ", "limit": 1, "settings": [] },
+    { "type": "spec_row",     "name": "Spec row (not rendered)", "settings": [
+      { "type": "text", "id": "label", "label": "Label" },
+      { "type": "text", "id": "value", "label": "Value" }
+    ]},
+    { "type": "size_fit",     "name": "Size & Fit (not rendered)",  "limit": 1, "settings": [
+      { "type": "richtext", "id": "content",     "label": "Content" },
+      { "type": "text",     "id": "model_note",  "label": "Model note" },
+      { "type": "text",     "id": "popular_size","label": "Popular size" },
+      { "type": "checkbox", "id": "show_finder", "label": "Show finder", "default": false }
+    ]},
+    { "type": "material",     "name": "Composition", "limit": 1, "settings": [
+      { "type": "richtext", "id": "content", "label": "Content" }
+    ]},
+    { "type": "care",         "name": "Care (not rendered)",        "limit": 1, "settings": [
+      { "type": "richtext", "id": "content", "label": "Content" }
+    ]},
+    { "type": "details",      "name": " Full Details ","limit": 1, "settings": [
+      { "type": "richtext", "id": "content", "label": "Content" }
+    ]},
+    { "type": "accordion",    "name": "Custom section ", "settings": [
+      { "type": "text",     "id": "title",   "label": "Label" },
+      { "type": "richtext", "id": "content", "label": "Content" }
+    ]}
+  ],
+  "presets": [{
+    "name": "VANQUISH PRODUCT3",
+    "settings": {
+      "back_label": "Back",
+      "bg_color": "#ffffff", "text_color": "#111111", "accent_color": "#b8865a",
+      "heading_font": "barlow_condensed_n9", "body_font": "barlow_n3",
+      "name_size": 38, "price_size": 26, "bullet_size": 12, "bar_height": 160,
+      "description_mode": "inline", "description_label": "Description",
+      "show_stock": true, "low_stock_threshold": 5,
+      "show_trust_strip": false, "trust_1": "Free shipping over $80", "trust_2": "30-day returns", "trust_3": "Authentic",
+      "show_pill": true,
+      "single_label": "Single", "single_sublabel": "Best for trying it out",
+      "duo_label": "Duo", "duo_sublabel": "Best value", "duo_ribbon": "Most Popular",
+      "duo_qty": 2, "duo_discount_pct": 25, "duo_force_show": true,
+      "triple_label": "Trio", "triple_sublabel": "Best savings",
+      "triple_qty": 3, "triple_discount_pct": 35, "triple_force_show": true,
+      "pill_thumb_source": "featured",
+      "pill_bg": "#f4f4f2", "pill_bg_on": "#eaeae6", "pill_text": "#1a1a1a", "pill_accent": "#1a1a1a",
+      "ajax_cart": true, "atc_text": "Add to cart", "soldout_text": "Sold Out",
+      "view_bag_text": "View Bag", "loading_text": "Adding…", "redirect_on_add": false, "atc_radius": 10,
+      "show_brand_overlay": true, "script_font": "assistant_n4",
+      "brand_name_size": 30, "brand_name_size_mobile": 22,
+      "brand_logo_height": 22, "brand_logo_height_mobile": 18,
+      "brand_text_color": "#111111", "brand_sep_color": "#111111",
+      "brand_name_style": "italic", "brand_name_weight": "400",
+      "brand_gap": 12, "brand_gap_mobile": 9,
+      "brand_bottom": 52, "brand_bottom_mobile": 46,
+      "brand_left": 16, "brand_left_mobile": 14,
+      "brand_sep_height": 26, "brand_sep_height_mobile": 20,
+      "brand_sep_opacity": 55, "brand_logo_opacity": 90,
+      "brand_letter_spacing": "0em"
+    },
+    "blocks": [
+      { "type": "bullet", "settings": { "label": "Quilted bomba" } },
+      { "type": "bullet", "settings": { "label": "Boxy fit" } },
+      { "type": "bullet", "settings": { "label": "YKK metal zipper" } },
+      { "type": "bullet", "settings": { "label": "100% poly" } },
+      { "type": "bullet", "settings": { "label": "Spike embroidery on collar" } },
+      { "type": "bullet", "settings": { "label": "Ribbed collar, cuffs and hem" } },
+      { "type": "bullet", "settings": { "label": "Made in Turkey" } },
+      { "type": "narrative" },
+      { "type": "size_guide_drawer" },
+      { "type": "shipping" }
+    ]
+  }],
+  "disabled_on": { "groups": ["header","footer"] }
+}
+{% endschema %}

@@ -1,0 +1,2223 @@
+{% comment %}theme-check-disable RemoteAsset{% endcomment %}
+{%- liquid
+  assign sid = section.id
+  assign s   = section.settings
+-%}
+
+{%- liquid
+  assign side          = s.side | default: 'right'
+  assign vertical_pos  = s.vertical_position | default: 50
+  assign accent        = s.accent_color | default: '#0071e3'
+  assign bg_color      = s.bg_color | default: '#1d1d1f'
+  assign fg_color      = s.fg_color | default: '#ffffff'
+  assign muted_color   = s.muted_color | default: '#86868b'
+  assign expand_on     = s.expand_behavior | default: 'hover'
+
+  assign scale_pct     = s.master_scale | default: 100
+  assign scale_factor  = scale_pct | divided_by: 100.0
+  assign btn_size_raw  = s.button_size | default: 44
+  assign btn_size      = btn_size_raw | times: scale_factor | round
+  assign icon_size_raw = s.icon_size | default: 18
+  assign icon_size     = icon_size_raw | times: scale_factor | round
+  assign btn_gap_raw   = s.button_gap | default: 6
+  assign btn_gap       = btn_gap_raw | times: scale_factor | round
+
+  assign show_cart      = s.show_cart
+  assign cart_mode      = s.cart_mode | default: 'drawer'
+  assign show_favorites = s.show_favorites
+  assign favorites_url  = s.favorites_url | default: '/pages/favorites'
+  assign favs_mode      = s.favs_mode | default: 'drawer'
+
+  assign show_audio  = s.show_audio
+  assign audio_url   = s.audio_url   | strip | default: ''
+  assign audio_label = s.audio_label | default: 'Music'
+  assign audio_loop  = s.audio_loop
+  assign audio_vol   = s.audio_volume | default: 80
+-%}
+
+{%- style -%}
+  .apex-notch-{{ sid }} {
+    --notch-bg:        {{ bg_color }};
+    --notch-fg:        {{ fg_color }};
+    --notch-muted:     {{ muted_color }};
+    --notch-accent:    {{ accent }};
+    --notch-hairline:  {{ fg_color }}1f;
+    --notch-pill-r:    {{ s.pill_radius | default: 100 }}px;
+    --notch-icon-size: {{ icon_size }}px;
+    --notch-btn-size:  {{ btn_size }}px;
+    --notch-gap:       {{ btn_gap }}px;
+    --notch-offset:    {{ s.edge_offset | default: 16 }}px;
+    --notch-spring:    cubic-bezier(0.22, 1, 0.36, 1);
+    --notch-spring-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .apex-favs-{{ sid }} {
+    --drawer-bg:       {{ s.drawer_bg | default: '#ffffff' }};
+    --drawer-fg:       {{ s.drawer_fg | default: '#1d1d1f' }};
+    --drawer-muted:    {{ s.drawer_fg | default: '#1d1d1f' }}99;
+    --drawer-hairline: {{ s.drawer_fg | default: '#1d1d1f' }}14;
+    --drawer-accent:   {{ accent }};
+    --drawer-r:        {{ s.drawer_radius | default: 0 }}px;
+    --drawer-spring:   cubic-bezier(0.22, 1, 0.36, 1);
+  }
+{%- endstyle -%}
+
+<style>
+.apex-notch-{{ sid }} {
+  position: fixed;
+  {% if side == 'left' %}left: var(--notch-offset);{% else %}right: var(--notch-offset);{% endif %}
+  top: {{ vertical_pos }}vh;
+  top: {{ vertical_pos }}svh;
+  z-index: 998;
+  display: flex;
+  flex-direction: column;
+  gap: var(--notch-gap);
+  padding: 6px;
+  background: var(--notch-bg);
+  border-radius: var(--notch-pill-r);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.18), 0 1px 0 0 var(--notch-hairline) inset;
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  transform: translate3d(0, -50%, 0);
+  will-change: transform;
+  transition: opacity 0.32s var(--notch-spring), visibility 0s linear 0.32s;
+  contain: layout paint;
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.apex-notch-{{ sid }}.is-ready {
+  opacity: 1; pointer-events: auto; visibility: visible;
+  transition: opacity 0.32s var(--notch-spring), transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ── PEEK (double-tap to hide) ──────────────────────────────────
+   Slides the pill off the viewport edge leaving a 9px rounded
+   bump — the natural curve of the pill's border-radius.
+   Single-tap the bump to restore. Hover nudges it out a touch.
+───────────────────────────────────────────────────────────────── */
+{%- if side == 'right' -%}
+  {%- assign _peek_sign = '' -%}
+{%- else -%}
+  {%- assign _peek_sign = '-' -%}
+{%- endif -%}
+.apex-notch-{{ sid }}.is-peeking {
+  transform: translate3d({{ _peek_sign }}calc(100% + var(--notch-offset) - 9px), -50%, 0);
+  cursor: pointer;
+  /* Dim buttons behind the edge — bump is the only affordance */
+  box-shadow: 0 4px 18px rgba(0,0,0,0.22), 0 1px 0 0 var(--notch-hairline) inset;
+}
+@media (hover: hover) and (pointer: fine) {
+  .apex-notch-{{ sid }}.is-peeking:hover {
+    transform: translate3d({{ _peek_sign }}calc(100% + var(--notch-offset) - 20px), -50%, 0);
+  }
+}
+.apex-notch-{{ sid }} .notch-btn {
+  position: relative;
+  display: flex; align-items: center;
+  width: var(--notch-btn-size); min-width: var(--notch-btn-size);
+  height: var(--notch-btn-size);
+  padding: 0; border: none;
+  border-radius: var(--notch-pill-r);
+  background: transparent;
+  color: var(--notch-fg);
+  cursor: pointer;
+  font-family: inherit; font-size: 13px; font-weight: 500;
+  text-decoration: none;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  transition: width 0.32s var(--notch-spring), background 0.18s, color 0.18s;
+}
+.apex-notch-{{ sid }} .notch-btn .notch-icon-wrap {
+  width: var(--notch-btn-size); height: var(--notch-btn-size);
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+  transform: translateZ(0);
+}
+.apex-notch-{{ sid }} .notch-btn svg {
+  width: var(--notch-icon-size); height: var(--notch-icon-size);
+  stroke: currentColor; stroke-width: 1.8; fill: none;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+.apex-notch-{{ sid }} .notch-btn .notch-label {
+  white-space: nowrap;
+  opacity: 0; transform: translateX(-4px);
+  transition: opacity 0.2s var(--notch-spring), transform 0.25s var(--notch-spring);
+  padding-right: 14px; pointer-events: none;
+}
+.apex-notch-{{ sid }} .notch-btn:hover  { background: {{ fg_color }}14; }
+.apex-notch-{{ sid }} .notch-btn:active { transform: scale(0.96); }
+@media (hover: hover) and (pointer: fine) {
+  .apex-notch-{{ sid }}:hover .notch-btn { width: 100%; }
+  .apex-notch-{{ sid }}:hover .notch-btn .notch-label { opacity: 1; transform: translateX(0); }
+}
+{%- if expand_on == 'always' -%}
+.apex-notch-{{ sid }} .notch-btn { width: 100%; }
+.apex-notch-{{ sid }} .notch-btn .notch-label { opacity: 1; transform: translateX(0); }
+{%- endif -%}
+
+.apex-notch-{{ sid }} .notch-count {
+  position: absolute; top: 4px; right: 4px;
+  min-width: 18px; height: 18px;
+  padding: 0 5px;
+  border-radius: 100px;
+  background: var(--notch-accent);
+  color: #fff;
+  font-size: 10px; font-weight: 600; letter-spacing: -0.02em;
+  display: none; align-items: center; justify-content: center;
+  line-height: 1; font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+.apex-notch-{{ sid }} .notch-count.is-visible { display: flex; }
+
+.apex-notch-{{ sid }} .notch-btn[data-active="true"] { color: var(--notch-accent); }
+.apex-notch-{{ sid }} .notch-btn[data-active="true"]:hover {
+  background: var(--notch-accent); color: #fff;
+}
+.apex-notch-{{ sid }} .notch-btn[data-active="true"]:hover .notch-count {
+  background: #fff; color: var(--notch-accent);
+}
+.apex-notch-{{ sid }} .notch-btn[data-favs-active="true"] svg {
+  fill: var(--notch-accent); stroke: var(--notch-accent);
+}
+
+@keyframes apex-notch-pulse-{{ sid }} {
+  0%   { transform: scale(1) translateZ(0); }
+  40%  { transform: scale(1.18) translateZ(0); }
+  70%  { transform: scale(0.95) translateZ(0); }
+  100% { transform: scale(1) translateZ(0); }
+}
+.apex-notch-{{ sid }} .notch-btn.is-pulsing .notch-icon-wrap {
+  animation: apex-notch-pulse-{{ sid }} 0.55s var(--notch-spring-pop);
+}
+
+@media (max-width: 480px) {
+  .apex-notch-{{ sid }} { --notch-offset: 10px; --notch-btn-size: 40px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .apex-notch-{{ sid }} *, .apex-notch-{{ sid }} { transition: none !important; animation: none !important; }
+}
+
+/* ════════════ AUDIO BUTTON ════════════
+   The music icon (SVG) fades out and the waveform bars fade
+   in when the button is in the active/playing state.
+   Both live inside the same notch-icon-wrap (position:relative)
+   so the swap is purely visual with no layout shift.
+═══════════════════════════════════════ */
+{%- if show_audio and audio_url != blank -%}
+.apex-notch-{{ sid }} .notch-audio .ap-aud-ico-{{ sid }} {
+  transition: opacity 0.25s ease;
+  flex-shrink: 0;
+}
+.apex-notch-{{ sid }} .notch-audio .ap-aud-bars-{{ sid }} {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2.5px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.apex-notch-{{ sid }} .notch-audio[data-active="true"] .ap-aud-ico-{{ sid }} { opacity: 0; }
+.apex-notch-{{ sid }} .notch-audio[data-active="true"] .ap-aud-bars-{{ sid }} { opacity: 1; }
+.apex-notch-{{ sid }} .ap-aud-bar-{{ sid }} {
+  display: block;
+  width: 2.5px;
+  height: 3px;
+  border-radius: 2px;
+  background: currentColor;
+  flex-shrink: 0;
+}
+.apex-notch-{{ sid }} .notch-audio[data-active="true"] .ap-aud-bar-{{ sid }} {
+  animation: ap-aud-wave-{{ sid }} 1s ease-in-out infinite;
+}
+.apex-notch-{{ sid }} .notch-audio[data-active="true"] .ap-aud-bar-{{ sid }}:nth-child(1) { animation-delay: 0.00s; animation-duration: 1.00s; }
+.apex-notch-{{ sid }} .notch-audio[data-active="true"] .ap-aud-bar-{{ sid }}:nth-child(2) { animation-delay: 0.17s; animation-duration: 0.82s; }
+.apex-notch-{{ sid }} .notch-audio[data-active="true"] .ap-aud-bar-{{ sid }}:nth-child(3) { animation-delay: 0.07s; animation-duration: 1.18s; }
+.apex-notch-{{ sid }} .notch-audio[data-active="true"] .ap-aud-bar-{{ sid }}:nth-child(4) { animation-delay: 0.24s; animation-duration: 0.92s; }
+@keyframes ap-aud-wave-{{ sid }} {
+  0%, 100% { height: 2px;  }
+  50%      { height: 12px; }
+}
+{%- endif -%}
+
+/* ════════════ FAVORITES DRAWER ════════════ */
+.apex-favs-{{ sid }} {
+  position: fixed; inset: 0; z-index: 9999;
+  visibility: hidden; pointer-events: none;
+}
+.apex-favs-{{ sid }}.is-open { visibility: visible; pointer-events: auto; }
+.apex-favs-{{ sid }} .drawer-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.42);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  transition: opacity 0.32s var(--drawer-spring);
+}
+.apex-favs-{{ sid }}.is-open .drawer-backdrop { opacity: 1; }
+.apex-favs-{{ sid }} .drawer-panel {
+  position: absolute;
+  {% if side == 'left' %}left: 16px;{% else %}right: 16px;{% endif %}
+  top: 50%;
+  transform: translateY(-50%) translateX({% if side == 'left' %}-{% endif %}calc(100% + 32px));
+  width: 400px; max-width: calc(100vw - 32px);
+  max-height: 80vh;
+  max-height: 80svh;
+  background: var(--drawer-bg);
+  color: var(--drawer-fg);
+  display: flex; flex-direction: column;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: transform 0.4s var(--drawer-spring);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.25), 0 0 1px rgba(0,0,0,0.05);
+}
+.apex-favs-{{ sid }}.is-open .drawer-panel {
+  transform: translateY(-50%) translateX(0);
+}
+.apex-favs-{{ sid }} .drawer-head {
+  flex-shrink: 0;
+  padding: 22px 22px 16px;
+  border-bottom: 1px solid var(--drawer-hairline);
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 14px;
+}
+.apex-favs-{{ sid }} .drawer-head-text { flex: 1; min-width: 0; }
+.apex-favs-{{ sid }} .drawer-subtitle {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: var(--drawer-muted);
+  text-transform: none;
+}
+.apex-favs-{{ sid }} .drawer-foot {
+  flex-shrink: 0;
+  padding: 14px 22px 18px;
+  padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--drawer-hairline);
+  background: var(--drawer-bg);
+}
+.apex-favs-{{ sid }} .drawer-foot[hidden] { display: none; }
+.apex-favs-{{ sid }} .drawer-bulk-cta {
+  width: 100%;
+  padding: 14px 18px;
+  background: var(--drawer-fg);
+  color: var(--drawer-bg);
+  border: none;
+  border-radius: 100px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: opacity 0.18s, background 0.18s, transform 0.12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.apex-favs-{{ sid }} .drawer-bulk-cta:hover  { opacity: 0.9; }
+.apex-favs-{{ sid }} .drawer-bulk-cta:active { transform: scale(0.98); }
+.apex-favs-{{ sid }} .drawer-bulk-cta:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+.apex-favs-{{ sid }} .drawer-bulk-cta.is-loading .bulk-cta-text { opacity: 0.5; }
+.apex-favs-{{ sid }} .bulk-cta-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 100px;
+  background: rgba(255,255,255,0.16);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 600px) {
+  .apex-favs-{{ sid }} .drawer-panel {
+    left: 0; right: 0;
+    width: 100vw;
+    max-width: 100vw;
+    max-height: 90vh;
+    border-radius: 18px 18px 0 0;
+    top: auto;
+    bottom: 0;
+    transform: translateY(100%);
+  }
+  .apex-favs-{{ sid }}.is-open .drawer-panel { transform: translateY(0); }
+  .apex-favs-{{ sid }} .drawer-head::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 38px;
+    height: 4px;
+    background: var(--drawer-hairline);
+    border-radius: 100px;
+  }
+  .apex-favs-{{ sid }} .drawer-head { position: relative; padding-top: 26px; }
+}
+.apex-favs-{{ sid }} .drawer-title {
+  font-size: 14px; font-weight: 700;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  margin: 0;
+}
+.apex-favs-{{ sid }} .drawer-close {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: var(--drawer-hairline);
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.apex-favs-{{ sid }} .drawer-close svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+.apex-favs-{{ sid }} .drawer-body {
+  flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: 8px 22px 22px;
+}
+.apex-favs-{{ sid }} .fav-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 14px;
+  padding: 14px 38px 14px 0;
+  border-bottom: 1px solid var(--drawer-hairline);
+  align-items: start;
+}
+.apex-favs-{{ sid }} .fav-item:last-child { border-bottom: none; }
+.apex-favs-{{ sid }} .fav-thumb {
+  width: 72px; height: 72px;
+  border-radius: 8px;
+  background: var(--drawer-hairline);
+  background-size: cover; background-position: center;
+  flex-shrink: 0; display: block;
+}
+.apex-favs-{{ sid }} .fav-info { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.apex-favs-{{ sid }} .fav-title {
+  font-size: 13px; font-weight: 500; line-height: 1.3;
+  color: var(--drawer-fg); text-decoration: none;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.apex-favs-{{ sid }} .fav-title:hover { text-decoration: underline; text-underline-offset: 2px; }
+.apex-favs-{{ sid }} .fav-price { font-size: 12px; font-weight: 600; color: var(--drawer-fg); }
+.apex-favs-{{ sid }} .fav-price-was {
+  font-size: 11px; color: var(--drawer-muted);
+  text-decoration: line-through; margin-left: 6px;
+}
+.apex-favs-{{ sid }} .fav-price-row { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px; }
+.apex-favs-{{ sid }} .fav-add {
+  align-self: flex-start;
+  margin-top: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px 7px 10px;
+  border-radius: 100px;
+  background: var(--drawer-fg);
+  color: var(--drawer-bg);
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1;
+  transition: opacity 0.16s, background 0.16s, transform 0.12s;
+  -webkit-tap-highlight-color: transparent;
+  width: fit-content;
+}
+.apex-favs-{{ sid }} .fav-add:hover  { opacity: 0.9; }
+.apex-favs-{{ sid }} .fav-add:active { transform: scale(0.96); }
+.apex-favs-{{ sid }} .fav-add svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2.4; }
+.apex-favs-{{ sid }} .fav-add.is-loading { opacity: 0.5; pointer-events: none; }
+.apex-favs-{{ sid }} .fav-add.is-added { background: #2d6a4f; }
+.apex-favs-{{ sid }} .fav-oos {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 4px 10px;
+  border-radius: 100px;
+  background: var(--drawer-hairline);
+  color: var(--drawer-muted);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  line-height: 1;
+  width: fit-content;
+}
+.apex-favs-{{ sid }} .fav-remove {
+  position: absolute;
+  top: 12px;
+  right: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--drawer-hairline);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--drawer-fg);
+  opacity: 0.7;
+  transition: background 0.16s, color 0.16s, opacity 0.16s, transform 0.12s;
+  -webkit-tap-highlight-color: transparent;
+  z-index: 2;
+}
+.apex-favs-{{ sid }} .fav-remove:hover {
+  background: var(--drawer-fg);
+  color: var(--drawer-bg);
+  opacity: 1;
+}
+.apex-favs-{{ sid }} .fav-remove:active { transform: scale(0.9); }
+.apex-favs-{{ sid }} .fav-remove svg {
+  width: 11px; height: 11px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2.4;
+}
+.apex-favs-{{ sid }} .drawer-empty {
+  padding: 60px 22px;
+  text-align: center;
+  color: var(--drawer-muted);
+}
+.apex-favs-{{ sid }} .drawer-empty svg {
+  width: 36px; height: 36px;
+  stroke: currentColor; fill: none; stroke-width: 1.5;
+  margin-bottom: 14px; opacity: 0.4;
+}
+.apex-favs-{{ sid }} .drawer-empty-text { font-size: 13px; line-height: 1.5; }
+.apex-favs-{{ sid }} .fav-skel {
+  height: 92px;
+  margin: 6px 0;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--drawer-hairline) 25%, transparent 50%, var(--drawer-hairline) 75%);
+  background-size: 200% 100%;
+  animation: apex-favs-shimmer-{{ sid }} 1.4s infinite;
+}
+@keyframes apex-favs-shimmer-{{ sid }} {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .apex-favs-{{ sid }} *, .apex-favs-{{ sid }} .drawer-panel, .apex-favs-{{ sid }} .drawer-backdrop {
+    transition: none !important; animation: none !important;
+  }
+}
+body.apex-favs-open-{{ sid }} { overflow: hidden; }
+
+/* ════════════ CART DRAWER ════════════ */
+.apex-cart-{{ sid }} {
+  position: fixed; inset: 0; z-index: 9999;
+  visibility: hidden; pointer-events: none;
+  --drawer-bg:       {{ s.drawer_bg | default: '#ffffff' }};
+  --drawer-fg:       {{ s.drawer_fg | default: '#1d1d1f' }};
+  --drawer-muted:    {{ s.drawer_fg | default: '#1d1d1f' }}99;
+  --drawer-hairline: {{ s.drawer_fg | default: '#1d1d1f' }}14;
+  --drawer-accent:   {{ accent }};
+  --drawer-spring:   cubic-bezier(0.22, 1, 0.36, 1);
+}
+.apex-cart-{{ sid }}.is-open { visibility: visible; pointer-events: auto; }
+.apex-cart-{{ sid }} .drawer-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.42);
+  -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+  opacity: 0;
+  transition: opacity 0.32s var(--drawer-spring);
+}
+.apex-cart-{{ sid }}.is-open .drawer-backdrop { opacity: 1; }
+.apex-cart-{{ sid }} .drawer-panel {
+  position: absolute;
+  {% if side == 'left' %}left: 16px;{% else %}right: 16px;{% endif %}
+  top: 50%;
+  transform: translateY(-50%) translateX({% if side == 'left' %}-{% endif %}calc(100% + 32px));
+  width: 400px; max-width: calc(100vw - 32px);
+  max-height: 80vh;
+  max-height: 80svh;
+  background: var(--drawer-bg);
+  color: var(--drawer-fg);
+  display: flex; flex-direction: column;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: transform 0.4s var(--drawer-spring);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.25), 0 0 1px rgba(0,0,0,0.05);
+}
+.apex-cart-{{ sid }}.is-open .drawer-panel {
+  transform: translateY(-50%) translateX(0);
+}
+.apex-cart-{{ sid }} .drawer-head {
+  flex-shrink: 0;
+  padding: 22px 22px 16px;
+  border-bottom: 1px solid var(--drawer-hairline);
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 14px;
+  position: relative;
+}
+.apex-cart-{{ sid }} .drawer-head-text { flex: 1; min-width: 0; }
+.apex-cart-{{ sid }} .drawer-title {
+  font-size: 14px; font-weight: 700;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  margin: 0;
+}
+.apex-cart-{{ sid }} .drawer-subtitle {
+  display: block; margin-top: 4px;
+  font-size: 11px; font-weight: 400;
+  color: var(--drawer-muted);
+}
+.apex-cart-{{ sid }} .drawer-close {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: var(--drawer-hairline);
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.apex-cart-{{ sid }} .drawer-close svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+.apex-cart-{{ sid }} .drawer-body {
+  flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: 8px 22px 22px;
+}
+.apex-cart-{{ sid }} .cart-ship {
+  margin-bottom: 6px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--drawer-hairline);
+}
+.apex-cart-{{ sid }} .cart-ship[hidden] { display: none; }
+.apex-cart-{{ sid }} .cart-ship-text {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--drawer-fg);
+  margin-bottom: 8px;
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+.apex-cart-{{ sid }} .cart-ship-text strong { color: var(--drawer-accent); font-weight: 700; }
+.apex-cart-{{ sid }} .cart-ship-bar {
+  height: 4px;
+  background: var(--drawer-hairline);
+  border-radius: 100px;
+  overflow: hidden;
+  position: relative;
+}
+.apex-cart-{{ sid }} .cart-ship-fill {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: 0%;
+  background: linear-gradient(90deg, var(--drawer-accent), var(--drawer-accent));
+  border-radius: 100px;
+  transition: width 0.45s var(--drawer-spring);
+}
+.apex-cart-{{ sid }} .cart-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 14px;
+  padding: 16px 38px 16px 0;
+  border-bottom: 1px solid var(--drawer-hairline);
+  align-items: start;
+}
+.apex-cart-{{ sid }} .cart-item:last-child { border-bottom: none; }
+.apex-cart-{{ sid }} .cart-thumb {
+  width: 72px; height: 72px;
+  border-radius: 8px;
+  background: var(--drawer-hairline);
+  background-size: cover; background-position: center;
+  flex-shrink: 0; display: block;
+  text-decoration: none;
+}
+.apex-cart-{{ sid }} .cart-info { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.apex-cart-{{ sid }} .cart-title {
+  font-size: 13px; font-weight: 500; line-height: 1.3;
+  color: var(--drawer-fg); text-decoration: none;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.apex-cart-{{ sid }} .cart-title:hover { text-decoration: underline; text-underline-offset: 2px; }
+.apex-cart-{{ sid }} .cart-variant {
+  font-size: 11px;
+  color: var(--drawer-muted);
+  letter-spacing: 0.04em;
+}
+.apex-cart-{{ sid }} .cart-line-bottom {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 8px;
+}
+.apex-cart-{{ sid }} .cart-qty {
+  display: inline-flex; align-items: center;
+  background: var(--drawer-hairline);
+  border-radius: 100px;
+  padding: 2px;
+  height: 28px;
+}
+.apex-cart-{{ sid }} .cart-qty button {
+  width: 22px; height: 22px;
+  border: none; border-radius: 50%;
+  background: transparent;
+  color: var(--drawer-fg);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 500;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.16s;
+  padding: 0;
+}
+.apex-cart-{{ sid }} .cart-qty button:hover { background: var(--drawer-bg); }
+.apex-cart-{{ sid }} .cart-qty button:disabled { opacity: 0.35; cursor: not-allowed; }
+.apex-cart-{{ sid }} .cart-qty-val {
+  min-width: 22px;
+  text-align: center;
+  font-size: 12px; font-weight: 600;
+  color: var(--drawer-fg);
+  font-variant-numeric: tabular-nums;
+}
+.apex-cart-{{ sid }} .cart-line-price { font-size: 12.5px; font-weight: 600; }
+.apex-cart-{{ sid }} .cart-line-price-was {
+  font-size: 11px;
+  color: var(--drawer-muted);
+  text-decoration: line-through;
+  margin-right: 6px;
+}
+.apex-cart-{{ sid }} .cart-remove {
+  position: absolute;
+  top: 14px;
+  right: 0;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--drawer-hairline);
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--drawer-fg);
+  opacity: 0.7;
+  transition: background 0.16s, color 0.16s, opacity 0.16s, transform 0.12s;
+  -webkit-tap-highlight-color: transparent;
+  z-index: 2;
+}
+.apex-cart-{{ sid }} .cart-remove:hover {
+  background: var(--drawer-fg); color: var(--drawer-bg); opacity: 1;
+}
+.apex-cart-{{ sid }} .cart-remove:active { transform: scale(0.9); }
+.apex-cart-{{ sid }} .cart-remove svg { width: 11px; height: 11px; stroke: currentColor; fill: none; stroke-width: 2.4; }
+.apex-cart-{{ sid }} .drawer-foot {
+  flex-shrink: 0;
+  padding: 16px 22px 18px;
+  padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--drawer-hairline);
+  background: var(--drawer-bg);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.apex-cart-{{ sid }} .drawer-foot[hidden] { display: none; }
+.apex-cart-{{ sid }} .cart-totals {
+  display: flex; justify-content: space-between; align-items: baseline;
+}
+.apex-cart-{{ sid }} .cart-totals-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--drawer-muted);
+}
+.apex-cart-{{ sid }} .cart-totals-amount {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--drawer-fg);
+}
+.apex-cart-{{ sid }} .cart-view-link {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--drawer-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-align: center;
+  align-self: center;
+}
+.apex-cart-{{ sid }} .cart-view-link:hover { color: var(--drawer-fg); }
+.apex-cart-{{ sid }} .cart-checkout {
+  width: 100%;
+  padding: 14px 18px;
+  background: var(--drawer-fg); color: var(--drawer-bg);
+  border: none; border-radius: 100px;
+  font-family: inherit; font-size: 12px; font-weight: 700;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  transition: opacity 0.18s, transform 0.12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.apex-cart-{{ sid }} .cart-checkout:hover  { opacity: 0.9; }
+.apex-cart-{{ sid }} .cart-checkout:active { transform: scale(0.98); }
+.apex-cart-{{ sid }} .cart-checkout:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.apex-cart-{{ sid }} .cart-checkout.is-loading .bulk-cta-text { opacity: 0.4; }
+.apex-cart-{{ sid }} .cart-skel {
+  height: 96px;
+  margin: 6px 0;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--drawer-hairline) 25%, transparent 50%, var(--drawer-hairline) 75%);
+  background-size: 200% 100%;
+  animation: apex-cart-shimmer-{{ sid }} 1.4s infinite;
+}
+@keyframes apex-cart-shimmer-{{ sid }} {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.apex-cart-{{ sid }} .drawer-empty {
+  padding: 60px 22px;
+  text-align: center;
+  color: var(--drawer-muted);
+}
+.apex-cart-{{ sid }} .drawer-empty svg {
+  width: 36px; height: 36px;
+  stroke: currentColor; fill: none; stroke-width: 1.5;
+  margin-bottom: 14px; opacity: 0.4;
+}
+.apex-cart-{{ sid }} .drawer-empty-text { font-size: 13px; line-height: 1.5; }
+.apex-cart-{{ sid }} .drawer-empty .empty-cta {
+  display: inline-block; margin-top: 16px;
+  padding: 10px 22px;
+  background: var(--drawer-fg); color: var(--drawer-bg);
+  border-radius: 100px;
+  text-decoration: none;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase;
+}
+@media (max-width: 600px) {
+  .apex-cart-{{ sid }} .drawer-panel {
+    left: 0; right: 0;
+    width: 100vw; max-width: 100vw;
+    max-height: 90vh;
+    border-radius: 18px 18px 0 0;
+    top: auto; bottom: 0;
+    transform: translateY(100%);
+  }
+  .apex-cart-{{ sid }}.is-open .drawer-panel { transform: translateY(0); }
+  .apex-cart-{{ sid }} .drawer-head::before {
+    content: '';
+    position: absolute;
+    top: 8px; left: 50%;
+    transform: translateX(-50%);
+    width: 38px; height: 4px;
+    background: var(--drawer-hairline);
+    border-radius: 100px;
+  }
+  .apex-cart-{{ sid }} .drawer-head { padding-top: 26px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .apex-cart-{{ sid }} *, .apex-cart-{{ sid }} .drawer-panel, .apex-cart-{{ sid }} .drawer-backdrop {
+    transition: none !important; animation: none !important;
+  }
+}
+body.apex-cart-open-{{ sid }} { overflow: hidden; }
+</style>
+
+<!-- ════════════════════════ NOTCH ════════════════════════ -->
+
+<aside id="apex-notch-{{ sid }}" class="apex-notch-{{ sid }}"
+       data-apex-notch
+       data-side="{{ side }}"
+       data-expand="{{ expand_on }}"
+       aria-label="Quick actions"
+       role="navigation">
+
+  {%- if show_cart -%}
+    {%- if cart_mode == 'drawer' -%}
+      <button type="button"
+              class="notch-btn notch-cart"
+              data-notch-cart
+              data-cart-mode="drawer"
+              {% if cart.item_count > 0 %}data-active="true"{% endif %}
+              aria-label="View cart">
+        <span class="notch-icon-wrap">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 6h2l2.5 12.5a1 1 0 0 0 1 .8h9a1 1 0 0 0 1-.8L21 9H6"/>
+            <circle cx="9" cy="21" r="1.4" fill="currentColor" stroke="none"/>
+            <circle cx="18" cy="21" r="1.4" fill="currentColor" stroke="none"/>
+          </svg>
+          <span class="notch-count" data-notch-cart-count
+                {% if cart.item_count > 0 %}style="display:flex;"{% endif %}>{{ cart.item_count }}</span>
+        </span>
+        <span class="notch-label">{{ s.cart_label | default: 'Cart' | escape }}</span>
+      </button>
+    {%- else -%}
+      <a href="{{ routes.cart_url }}"
+         class="notch-btn notch-cart"
+         data-notch-cart
+         data-cart-mode="redirect"
+         {% if cart.item_count > 0 %}data-active="true"{% endif %}
+         aria-label="View cart">
+        <span class="notch-icon-wrap">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 6h2l2.5 12.5a1 1 0 0 0 1 .8h9a1 1 0 0 0 1-.8L21 9H6"/>
+            <circle cx="9" cy="21" r="1.4" fill="currentColor" stroke="none"/>
+            <circle cx="18" cy="21" r="1.4" fill="currentColor" stroke="none"/>
+          </svg>
+          <span class="notch-count" data-notch-cart-count
+                {% if cart.item_count > 0 %}style="display:flex;"{% endif %}>{{ cart.item_count }}</span>
+        </span>
+        <span class="notch-label">{{ s.cart_label | default: 'Cart' | escape }}</span>
+      </a>
+    {%- endif -%}
+  {%- endif -%}
+
+  {%- if show_favorites -%}
+    <button type="button"
+            class="notch-btn notch-favorites"
+            data-notch-favorites
+            aria-label="View favorites">
+      <span class="notch-icon-wrap">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9z"/>
+        </svg>
+        <span class="notch-count" data-notch-favs-count></span>
+      </span>
+      <span class="notch-label">{{ s.favorites_label | default: 'Saved' | escape }}</span>
+    </button>
+  {%- endif -%}
+
+  {%- if show_audio and audio_url != blank -%}
+    <!-- ── MUSIC BUTTON ───────────────────────────────── -->
+    <!--
+      Icon swap: music note (idle) ↔ animated waveform bars (playing).
+      Both live inside notch-icon-wrap (position:relative).
+      CSS transitions handle the opacity crossfade.
+      data-active="true" drives both the accent colour and the swap.
+    -->
+    <button type="button"
+            class="notch-btn notch-audio"
+            id="ap-audio-btn-{{ sid }}"
+            data-notch-audio
+            aria-label="{{ audio_label | escape }}"
+            aria-pressed="false">
+      <span class="notch-icon-wrap">
+        <!-- Music note icon: visible when idle -->
+        <svg class="ap-aud-ico-{{ sid }}" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9 18V5l12-2v13"/>
+          <circle cx="6" cy="18" r="3"/>
+          <circle cx="18" cy="16" r="3"/>
+        </svg>
+        <!-- Waveform bars: visible when playing -->
+        <span class="ap-aud-bars-{{ sid }}" aria-hidden="true">
+          <b class="ap-aud-bar-{{ sid }}"></b>
+          <b class="ap-aud-bar-{{ sid }}"></b>
+          <b class="ap-aud-bar-{{ sid }}"></b>
+          <b class="ap-aud-bar-{{ sid }}"></b>
+        </span>
+      </span>
+      <span class="notch-label">{{ audio_label | escape }}</span>
+    </button>
+  {%- endif -%}
+
+</aside>
+
+<!-- ════════════ FAVORITES DRAWER ════════════ -->
+{%- if show_favorites and favs_mode == 'drawer' -%}
+<div id="apex-favs-{{ sid }}" class="apex-favs-{{ sid }}" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="apex-favs-title-{{ sid }}">
+  <div class="drawer-backdrop" data-favs-backdrop></div>
+  <div class="drawer-panel">
+    <div class="drawer-head">
+      <div class="drawer-head-text">
+        <h2 class="drawer-title" id="apex-favs-title-{{ sid }}">{{ s.favorites_drawer_title | default: 'Saved for later' | escape }}</h2>
+        <span class="drawer-subtitle" data-favs-subtitle></span>
+      </div>
+      <button type="button" class="drawer-close" data-favs-close aria-label="Close">
+        <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="drawer-body" data-favs-body></div>
+    <div class="drawer-foot" data-favs-foot hidden>
+      <button type="button" class="drawer-bulk-cta" data-favs-bulk-add>
+        <span class="bulk-cta-text">{{ s.bulk_label | default: 'Add all to cart' | escape }}</span>
+        <span class="bulk-cta-count" data-favs-bulk-count></span>
+      </button>
+    </div>
+  </div>
+</div>
+{%- endif -%}
+
+<!-- ════════════ CART DRAWER ════════════ -->
+{%- if show_cart and cart_mode == 'drawer' -%}
+<div id="apex-cart-{{ sid }}" class="apex-cart-{{ sid }}" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="apex-cart-title-{{ sid }}">
+  <div class="drawer-backdrop" data-cart-backdrop></div>
+  <div class="drawer-panel">
+    <div class="drawer-head">
+      <div class="drawer-head-text">
+        <h2 class="drawer-title" id="apex-cart-title-{{ sid }}">{{ s.cart_drawer_title | default: 'Your bag' | escape }}</h2>
+        <span class="drawer-subtitle" data-cart-subtitle></span>
+      </div>
+      <button type="button" class="drawer-close" data-cart-close aria-label="Close">
+        <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="drawer-body" data-cart-body></div>
+    <div class="drawer-foot" data-cart-foot hidden>
+      {%- if s.show_shipping_bar -%}
+        <div class="cart-ship" data-cart-ship hidden>
+          <div class="cart-ship-text" data-cart-ship-text></div>
+          <div class="cart-ship-bar"><div class="cart-ship-fill" data-cart-ship-fill></div></div>
+        </div>
+      {%- endif -%}
+      <div class="cart-totals">
+        <span class="cart-totals-label">{{ s.subtotal_label | default: 'Subtotal' | escape }}</span>
+        <span class="cart-totals-amount" data-cart-subtotal></span>
+      </div>
+      <a href="{{ routes.cart_url }}" class="cart-view-link" data-cart-view-link>{{ s.view_cart_label | default: 'View cart' | escape }}</a>
+      <button type="button" class="drawer-bulk-cta cart-checkout" data-cart-checkout>
+        <span class="bulk-cta-text">{{ s.checkout_label | default: 'Checkout' | escape }}</span>
+      </button>
+    </div>
+  </div>
+</div>
+{%- endif -%}
+
+<!-- ════════════ HIDDEN YOUTUBE PLAYER HOST ════════════
+     Kept off-screen and invisible. aria-hidden prevents it
+     from appearing in any accessibility tree.
+     Uses contain:strict so it never affects page layout or paint.
+════════════════════════════════════════════════════════ -->
+{%- if show_audio and audio_url != blank -%}
+<div id="ap-yt-wrap-{{ sid }}"
+     aria-hidden="true"
+     style="position:fixed;top:-9999px;left:-9999px;
+            width:1px!important;height:1px!important;
+            overflow:hidden!important;
+            clip:rect(0 0 0 0)!important;
+            clip-path:inset(50%)!important;
+            opacity:0.001;pointer-events:none!important;
+            z-index:-9999;contain:strict;visibility:hidden;">
+  <div id="ap-yt-node-{{ sid }}"></div>
+</div>
+{%- endif -%}
+
+<!-- ════════════ NOTCH CORE SCRIPT ════════════ -->
+<script>
+(function () {
+  'use strict';
+  var SID = '{{ sid }}';
+  var moneyFmt = {{ shop.money_format | json }};
+  var notch = document.getElementById('apex-notch-' + SID);
+  if (!notch) return;
+
+  function showNotch() { notch.classList.add('is-ready'); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', showNotch);
+  else requestAnimationFrame(showNotch);
+
+  /* ── PEEK: hold 480ms to hide / tap bump to restore ────────────
+     Long-press never conflicts with button taps. Works on Safari,
+     Chrome, Firefox — mobile and desktop.
+  ─────────────────────────────────────────────────────────────── */
+  var SK_PEEK      = 'apex_notch_peek_' + SID;
+  var holdTimer    = null;
+  var holdX        = 0;
+  var holdY        = 0;
+  var HOLD_MS      = 480;
+
+  function setPeek(on) {
+    notch.classList.toggle('is-peeking', on);
+    notch.querySelectorAll('.notch-btn').forEach(function (b) {
+      b.setAttribute('tabindex', on ? '-1' : '0');
+    });
+    try { localStorage.setItem(SK_PEEK, on ? '1' : '0'); } catch (e) {}
+  }
+
+  function startHold(x, y) {
+    clearTimeout(holdTimer);
+    holdX = x; holdY = y;
+    holdTimer = setTimeout(function () {
+      setPeek(true);
+      if (navigator.vibrate) try { navigator.vibrate(18); } catch (e) {}
+    }, HOLD_MS);
+  }
+  function cancelHold() { clearTimeout(holdTimer); holdTimer = null; }
+
+  /* Touch — mobile & Safari */
+  notch.addEventListener('touchstart', function (e) {
+    if (notch.classList.contains('is-peeking') || e.touches.length !== 1) return;
+    startHold(e.touches[0].clientX, e.touches[0].clientY);
+  }, { passive: true });
+  notch.addEventListener('touchmove', function (e) {
+    if (!holdTimer) return;
+    if (Math.abs(e.touches[0].clientX - holdX) > 8 ||
+        Math.abs(e.touches[0].clientY - holdY) > 8) cancelHold();
+  }, { passive: true });
+  notch.addEventListener('touchend',    cancelHold, { passive: true });
+  notch.addEventListener('touchcancel', cancelHold, { passive: true });
+
+  /* Mouse — desktop */
+  notch.addEventListener('mousedown', function (e) {
+    if (notch.classList.contains('is-peeking') || e.button !== 0) return;
+    startHold(e.clientX, e.clientY);
+  });
+  notch.addEventListener('mousemove', function (e) {
+    if (!holdTimer) return;
+    if (Math.abs(e.clientX - holdX) > 8 || Math.abs(e.clientY - holdY) > 8) cancelHold();
+  });
+  notch.addEventListener('mouseup',    cancelHold);
+  notch.addEventListener('mouseleave', cancelHold);
+
+  /* Tap bump to restore */
+  notch.addEventListener('click', function (e) {
+    if (notch.classList.contains('is-peeking')) { setPeek(false); e.stopPropagation(); }
+  });
+
+  /* Restore across pages */
+  try { if (localStorage.getItem(SK_PEEK) === '1') setPeek(true); } catch (e) {}
+
+  /* Cart sync */
+  var cartBtn   = notch.querySelector('[data-notch-cart]');
+  var cartCount = notch.querySelector('[data-notch-cart-count]');
+  function setCartCount(n) {
+    if (!cartCount || !cartBtn) return;
+    n = parseInt(n, 10) || 0;
+    cartCount.textContent = n;
+    cartCount.classList.toggle('is-visible', n > 0);
+    cartCount.style.display = n > 0 ? 'flex' : 'none';
+    if (n > 0) cartBtn.setAttribute('data-active', 'true');
+    else       cartBtn.removeAttribute('data-active');
+  }
+  function pulseCart() {
+    if (!cartBtn) return;
+    cartBtn.classList.remove('is-pulsing');
+    void cartBtn.offsetWidth;
+    cartBtn.classList.add('is-pulsing');
+    setTimeout(function () { if (cartBtn) cartBtn.classList.remove('is-pulsing'); }, 600);
+  }
+  function refreshCart() {
+    fetch('/cart.js', { credentials: 'same-origin' })
+      .then(function (r) { return r.json(); })
+      .then(function (cart) {
+        setCartCount(cart.item_count);
+        if (cartDrawer && cartDrawer.classList.contains('is-open')) renderCart(cart);
+      })
+      .catch(function () {});
+  }
+  if (cartBtn) {
+    document.addEventListener('cart:item-added', function () { pulseCart(); refreshCart(); });
+    document.addEventListener('cart:refresh', refreshCart);
+    document.addEventListener('cart:updated',  refreshCart);
+    document.addEventListener('cart:change',   refreshCart);
+    document.addEventListener('apex:added',    function () { pulseCart(); refreshCart(); });
+  }
+
+  /* ─── Cart drawer ─── */
+  var CART_MODE      = {{ cart_mode | json }};
+  var SHIP_THRESHOLD = {{ s.shipping_threshold | default: 0 }};
+  {%- assign ship_before  = s.shipping_before_text  | default: 'Spend {amount} more for free shipping' -%}
+  {%- assign ship_reached = s.shipping_reached_text | default: '✓ You qualify for free shipping' -%}
+  {%- assign empty_text   = s.cart_empty_text       | default: 'Your bag is empty.' -%}
+  {%- assign empty_cta    = s.cart_empty_cta        | default: 'Continue shopping' -%}
+  {%- assign empty_href   = s.cart_empty_href       | default: '/collections/all' -%}
+  var SHIP_BEFORE      = {{ ship_before  | json }};
+  var SHIP_REACHED     = {{ ship_reached | json }};
+  var EMPTY_CART_TEXT  = {{ empty_text   | json }};
+  var EMPTY_CART_CTA   = {{ empty_cta    | json }};
+  var EMPTY_CART_HREF  = {{ empty_href   | json }};
+
+  var cartDrawer      = document.getElementById('apex-cart-' + SID);
+  var cartBody        = cartDrawer && cartDrawer.querySelector('[data-cart-body]');
+  var cartBackdrop    = cartDrawer && cartDrawer.querySelector('[data-cart-backdrop]');
+  var cartClose       = cartDrawer && cartDrawer.querySelector('[data-cart-close]');
+  var cartFoot        = cartDrawer && cartDrawer.querySelector('[data-cart-foot]');
+  var cartSubtitle    = cartDrawer && cartDrawer.querySelector('[data-cart-subtitle]');
+  var cartSubtotal    = cartDrawer && cartDrawer.querySelector('[data-cart-subtotal]');
+  var cartCheckoutBtn = cartDrawer && cartDrawer.querySelector('[data-cart-checkout]');
+  var cartShip        = cartDrawer && cartDrawer.querySelector('[data-cart-ship]');
+  var cartShipText    = cartDrawer && cartDrawer.querySelector('[data-cart-ship-text]');
+  var cartShipFill    = cartDrawer && cartDrawer.querySelector('[data-cart-ship-fill]');
+  var cartLastFocus   = null;
+
+  function emptyCartHTML() {
+    return '<div class="drawer-empty">' +
+      '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+        '<path d="M3 6h2l2.5 12.5a1 1 0 0 0 1 .8h9a1 1 0 0 0 1-.8L21 9H6"/>' +
+        '<circle cx="9" cy="21" r="1.4" fill="currentColor" stroke="none"/>' +
+        '<circle cx="18" cy="21" r="1.4" fill="currentColor" stroke="none"/>' +
+      '</svg>' +
+      '<div class="drawer-empty-text">' + escapeHTML(EMPTY_CART_TEXT) + '</div>' +
+      '<a href="' + escapeHTML(EMPTY_CART_HREF) + '" class="empty-cta">' + escapeHTML(EMPTY_CART_CTA) + '</a>' +
+    '</div>';
+  }
+
+  function renderCart(cart) {
+    if (!cartBody) return;
+    if (!cart || !cart.items || cart.items.length === 0) {
+      cartBody.innerHTML = emptyCartHTML();
+      if (cartFoot) cartFoot.hidden = true;
+      if (cartShip) cartShip.hidden = true;
+      if (cartSubtitle) cartSubtitle.textContent = '0 items';
+      return;
+    }
+    if (cartSubtitle) {
+      var ic = cart.item_count;
+      cartSubtitle.textContent = ic + ' ' + (ic === 1 ? 'item' : 'items');
+    }
+    var html = '';
+    cart.items.forEach(function (item) {
+      var img = item.image || (item.featured_image && item.featured_image.url) || '';
+      var sale = item.original_line_price && item.original_line_price > item.final_line_price;
+      html += '<div class="cart-item" data-cart-key="' + escapeHTML(item.key) + '">' +
+        '<a href="' + escapeHTML(item.url) + '" class="cart-thumb"' +
+          (img ? ' style="background-image:url(' + escapeHTML(img) + ')"' : '') +
+          ' aria-label="' + escapeHTML(item.product_title) + '"></a>' +
+        '<div class="cart-info">' +
+          '<a href="' + escapeHTML(item.url) + '" class="cart-title">' + escapeHTML(item.product_title) + '</a>' +
+          (item.variant_title && item.variant_title !== 'Default Title' ? '<span class="cart-variant">' + escapeHTML(item.variant_title) + '</span>' : '') +
+          '<div class="cart-line-bottom">' +
+            '<div class="cart-qty">' +
+              '<button type="button" data-cart-qty-down="' + escapeHTML(item.key) + '" aria-label="Decrease">−</button>' +
+              '<span class="cart-qty-val">' + item.quantity + '</span>' +
+              '<button type="button" data-cart-qty-up="' + escapeHTML(item.key) + '" aria-label="Increase">+</button>' +
+            '</div>' +
+            '<div>' +
+              (sale ? '<span class="cart-line-price-was">' + formatMoney(item.original_line_price) + '</span>' : '') +
+              '<span class="cart-line-price">' + formatMoney(item.final_line_price) + '</span>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<button type="button" class="cart-remove" data-cart-remove="' + escapeHTML(item.key) + '" aria-label="Remove">' +
+          '<svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>' +
+        '</button>' +
+      '</div>';
+    });
+    cartBody.innerHTML = html;
+    if (cartFoot)     cartFoot.hidden = false;
+    if (cartSubtotal) cartSubtotal.textContent = formatMoney(cart.total_price);
+    if (cartShip && SHIP_THRESHOLD > 0) {
+      cartShip.hidden = false;
+      var pct = Math.min(100, (cart.total_price / SHIP_THRESHOLD) * 100);
+      if (cartShipFill) cartShipFill.style.width = pct + '%';
+      if (cartShipText) {
+        if (cart.total_price >= SHIP_THRESHOLD) {
+          cartShipText.textContent = SHIP_REACHED;
+        } else {
+          var remaining = SHIP_THRESHOLD - cart.total_price;
+          cartShipText.innerHTML = SHIP_BEFORE.replace('{amount}', '<strong>' + formatMoney(remaining) + '</strong>');
+        }
+      }
+    } else if (cartShip) {
+      cartShip.hidden = true;
+    }
+  }
+
+  function openCart() {
+    if (!cartDrawer) return;
+    cartLastFocus = document.activeElement;
+    if (cartBody && !cartBody.querySelector('.cart-item')) {
+      cartBody.innerHTML = '<div class="cart-skel"></div><div class="cart-skel"></div>';
+    }
+    cartDrawer.classList.add('is-open');
+    cartDrawer.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('apex-cart-open-' + SID);
+    if (navigator.vibrate) try { navigator.vibrate(8); } catch (e) {}
+    refreshCart();
+    setTimeout(function () { if (cartClose) try { cartClose.focus({ preventScroll: true }); } catch (e) {} }, 380);
+  }
+  function closeCart() {
+    if (!cartDrawer) return;
+    cartDrawer.classList.remove('is-open');
+    cartDrawer.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('apex-cart-open-' + SID);
+    if (cartLastFocus && cartLastFocus.focus) {
+      try { cartLastFocus.focus({ preventScroll: true }); } catch (e) {}
+    }
+  }
+
+  if (CART_MODE === 'drawer') {
+    notch.addEventListener('click', function (e) {
+      var trigger = e.target.closest('[data-notch-cart]');
+      if (!trigger) return;
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
+      e.preventDefault();
+      e.stopPropagation();
+      openCart();
+    }, true);
+  }
+  if (cartClose)    cartClose.addEventListener('click', closeCart);
+  if (cartBackdrop) cartBackdrop.addEventListener('click', closeCart);
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && cartDrawer && cartDrawer.classList.contains('is-open')) closeCart();
+  });
+
+  if (cartDrawer) {
+    cartDrawer.addEventListener('keydown', function (e) {
+      if (e.key !== 'Tab' || !cartDrawer.classList.contains('is-open')) return;
+      var focusable = cartDrawer.querySelectorAll('button:not(:disabled), [href]:not([tabindex="-1"]), input, select, textarea');
+      if (!focusable.length) return;
+      var first = focusable[0];
+      var last  = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    });
+  }
+
+  (function setupCartDrag() {
+    if (!cartDrawer) return;
+    var panel = cartDrawer.querySelector('.drawer-panel');
+    if (!panel) return;
+    var head = panel.querySelector('.drawer-head');
+    if (!head) return;
+    var startY = 0, deltaY = 0, dragging = false;
+    head.addEventListener('touchstart', function (e) {
+      if (!window.matchMedia('(max-width: 600px)').matches) return;
+      if (e.touches.length !== 1) return;
+      startY = e.touches[0].clientY; deltaY = 0; dragging = true;
+      panel.style.transition = 'none';
+    }, { passive: true });
+    head.addEventListener('touchmove', function (e) {
+      if (!dragging) return;
+      deltaY = Math.max(0, e.touches[0].clientY - startY);
+      panel.style.transform = 'translateY(' + deltaY + 'px)';
+    }, { passive: true });
+    var onEnd = function () {
+      if (!dragging) return;
+      dragging = false;
+      panel.style.transition = '';
+      if (deltaY > 90) {
+        closeCart();
+        setTimeout(function () { panel.style.transform = ''; }, 360);
+      } else { panel.style.transform = ''; }
+      deltaY = 0;
+    };
+    head.addEventListener('touchend',    onEnd, { passive: true });
+    head.addEventListener('touchcancel', onEnd, { passive: true });
+  })();
+
+  if (cartBody) {
+    cartBody.addEventListener('click', function (e) {
+      var rm = e.target.closest('[data-cart-remove]');
+      if (rm) { e.preventDefault(); cartChange(rm.getAttribute('data-cart-remove'), 0); return; }
+      var up = e.target.closest('[data-cart-qty-up]');
+      if (up) {
+        e.preventDefault();
+        var key = up.getAttribute('data-cart-qty-up');
+        var item = up.closest('.cart-item');
+        var val = parseInt(item.querySelector('.cart-qty-val').textContent, 10) || 0;
+        cartChange(key, val + 1);
+        return;
+      }
+      var dn = e.target.closest('[data-cart-qty-down]');
+      if (dn) {
+        e.preventDefault();
+        var key2 = dn.getAttribute('data-cart-qty-down');
+        var item2 = dn.closest('.cart-item');
+        var val2 = parseInt(item2.querySelector('.cart-qty-val').textContent, 10) || 0;
+        cartChange(key2, Math.max(0, val2 - 1));
+      }
+    });
+  }
+
+  function cartChange(key, qty) {
+    var fd = new FormData();
+    fd.append('id', key);
+    fd.append('quantity', qty);
+    var row = cartBody && cartBody.querySelector('[data-cart-key="' + (CSS && CSS.escape ? CSS.escape(key) : key) + '"]');
+    if (row) row.style.opacity = '0.5';
+    fetch('/cart/change.js', {
+      method: 'POST',
+      headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      body: fd
+    }).then(function (r) {
+      if (!r.ok) throw new Error('change failed');
+      return r.json();
+    }).then(function (cart) {
+      setCartCount(cart.item_count);
+      renderCart(cart);
+      document.dispatchEvent(new CustomEvent('cart:updated', { detail: cart }));
+      if (navigator.vibrate) try { navigator.vibrate(qty === 0 ? [4, 8, 4] : 6); } catch (e) {}
+    }).catch(function () {
+      if (row) row.style.opacity = '';
+    });
+  }
+
+  if (cartCheckoutBtn) {
+    cartCheckoutBtn.addEventListener('click', function () {
+      if (cartCheckoutBtn.classList.contains('is-loading')) return;
+      cartCheckoutBtn.classList.add('is-loading');
+      cartCheckoutBtn.disabled = true;
+      window.location.href = '/checkout';
+    });
+  }
+
+  /* ─── Favorites ─── */
+  var favBtn       = notch.querySelector('[data-notch-favorites]');
+  var favCount     = notch.querySelector('[data-notch-favs-count]');
+  var favsDrawer   = document.getElementById('apex-favs-' + SID);
+  var favsBody     = favsDrawer && favsDrawer.querySelector('[data-favs-body]');
+  var favsBackdrop = favsDrawer && favsDrawer.querySelector('[data-favs-backdrop]');
+  var favsClose    = favsDrawer && favsDrawer.querySelector('[data-favs-close]');
+  var FAV_KEY      = 'apex_favs_v1';
+  var FAV_URL      = {{ favorites_url | json }};
+  var FAVS_MODE    = {{ favs_mode | json }};
+  var EMPTY_TEXT   = {{ s.favorites_empty_text | default: 'No favorites yet — tap any heart on a product to save it here.' | json }};
+
+  function readFavs() {
+    try {
+      var raw = localStorage.getItem(FAV_KEY);
+      if (!raw) return [];
+      var arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) { return []; }
+  }
+  function writeFavs(arr) {
+    try { localStorage.setItem(FAV_KEY, JSON.stringify(arr)); } catch (e) {}
+  }
+  function syncFavBtn() {
+    if (!favBtn) return;
+    var n = readFavs().length;
+    if (favCount) {
+      favCount.textContent = n;
+      favCount.classList.toggle('is-visible', n > 0);
+      favCount.style.display = n > 0 ? 'flex' : 'none';
+    }
+    if (n > 0) {
+      favBtn.setAttribute('data-favs-active', 'true');
+      favBtn.setAttribute('data-active', 'true');
+    } else {
+      favBtn.removeAttribute('data-favs-active');
+      favBtn.removeAttribute('data-active');
+    }
+  }
+  syncFavBtn();
+
+  window.ApexFavorites = window.ApexFavorites || {
+    list:   readFavs,
+    has:    function (h) { return readFavs().indexOf(h) !== -1; },
+    add:    function (h) {
+      if (!h) return;
+      var f = readFavs(); if (f.indexOf(h) === -1) f.push(h); writeFavs(f);
+      if (navigator.vibrate) try { navigator.vibrate(10); } catch (e) {}
+      document.dispatchEvent(new CustomEvent('apex:favorites-changed', { detail: { handle: h, action: 'add' }}));
+    },
+    remove: function (h) {
+      writeFavs(readFavs().filter(function (x) { return x !== h; }));
+      if (navigator.vibrate) try { navigator.vibrate([4,8,4]); } catch (e) {}
+      document.dispatchEvent(new CustomEvent('apex:favorites-changed', { detail: { handle: h, action: 'remove' }}));
+    },
+    toggle: function (h) { if (this.has(h)) this.remove(h); else this.add(h); },
+    count:  function ()  { return readFavs().length; },
+    clear:  function ()  {
+      writeFavs([]);
+      document.dispatchEvent(new CustomEvent('apex:favorites-changed', { detail: { action: 'clear' }}));
+    }
+  };
+
+  document.addEventListener('apex:favorites-changed', function () {
+    syncFavBtn();
+    if (favsDrawer && favsDrawer.classList.contains('is-open')) renderFavs();
+  });
+  window.addEventListener('storage', function (e) {
+    if (e.key === FAV_KEY) {
+      syncFavBtn();
+      if (favsDrawer && favsDrawer.classList.contains('is-open')) renderFavs();
+    }
+  });
+
+  function formatMoney(cents) {
+    var n = (cents / 100).toFixed(2);
+    return moneyFmt
+      .replace(/\{\{\s*amount\s*\}\}/g, n)
+      .replace(/\{\{\s*amount_no_decimals\s*\}\}/g, Math.round(cents / 100))
+      .replace(/\{\{\s*amount_with_comma_separator\s*\}\}/g, n.replace('.', ','))
+      .replace(/\{\{\s*amount_no_decimals_with_comma_separator\s*\}\}/g, Math.round(cents / 100));
+  }
+  function escapeHTML(str) {
+    return String(str == null ? '' : str).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  var productCache = {};
+  function fetchProduct(handle) {
+    if (productCache[handle]) return Promise.resolve(productCache[handle]);
+    return fetch('/products/' + encodeURIComponent(handle) + '.js', { headers: { 'Accept': 'application/json' }})
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (p) { if (p) productCache[handle] = p; return p; })
+      .catch(function () { return null; });
+  }
+
+  function emptyHTML() {
+    return '<div class="drawer-empty">' +
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9z"/></svg>' +
+      '<div class="drawer-empty-text">' + escapeHTML(EMPTY_TEXT) + '</div>' +
+    '</div>';
+  }
+
+  var favsSubtitle = favsDrawer && favsDrawer.querySelector('[data-favs-subtitle]');
+  var favsFoot     = favsDrawer && favsDrawer.querySelector('[data-favs-foot]');
+  var bulkBtn      = favsDrawer && favsDrawer.querySelector('[data-favs-bulk-add]');
+  var bulkCount    = favsDrawer && favsDrawer.querySelector('[data-favs-bulk-count]');
+
+  function updateFavsMeta(products) {
+    var inStock = (products || []).filter(function (p) { return p && p.available; });
+    if (favsSubtitle) {
+      var n = readFavs().length;
+      if (n === 0) favsSubtitle.textContent = '';
+      else if (products) favsSubtitle.textContent = n + ' saved · ' + inStock.length + ' in stock';
+      else favsSubtitle.textContent = n + ' saved';
+    }
+    if (favsFoot && bulkCount) {
+      var addable = inStock.filter(function (p) { return p.variants && p.variants.length === 1; });
+      if (addable.length > 0) { favsFoot.hidden = false; bulkCount.textContent = addable.length; }
+      else { favsFoot.hidden = true; }
+    }
+  }
+
+  function renderFavs() {
+    if (!favsBody) return;
+    var favs = readFavs();
+    if (favs.length === 0) { favsBody.innerHTML = emptyHTML(); updateFavsMeta(null); return; }
+    favsBody.innerHTML = favs.map(function () { return '<div class="fav-skel"></div>'; }).join('');
+    updateFavsMeta(null);
+    Promise.all(favs.map(fetchProduct)).then(function (products) {
+      var html = '';
+      var stale = [];
+      products.forEach(function (p, idx) {
+        var handle = favs[idx];
+        if (!p) { stale.push(handle); return; }
+        var img   = p.featured_image || (p.images && p.images[0]) || '';
+        var first = (p.variants && p.variants[0]) || null;
+        var avail = p.available;
+        var sale  = p.compare_at_price && p.compare_at_price > p.price;
+        html += '<div class="fav-item" data-fav-handle="' + escapeHTML(handle) + '">' +
+          '<a href="' + escapeHTML(p.url || ('/products/' + handle)) + '" class="fav-thumb"' +
+            (img ? ' style="background-image:url(' + escapeHTML(img) + ')"' : '') +
+            ' aria-label="' + escapeHTML(p.title) + '"></a>' +
+          '<div class="fav-info">' +
+            '<a href="' + escapeHTML(p.url || ('/products/' + handle)) + '" class="fav-title">' + escapeHTML(p.title) + '</a>' +
+            '<div class="fav-price-row"><span class="fav-price">' + formatMoney(p.price) + '</span>' +
+              (sale ? '<span class="fav-price-was">' + formatMoney(p.compare_at_price) + '</span>' : '') +
+            '</div>' +
+            (!avail ? '<span class="fav-oos">Sold out</span>' : '') +
+            (avail && first ?
+              '<button type="button" class="fav-add" data-fav-add="' + first.id + '" data-fav-multi="' + (p.variants.length > 1 ? '1' : '0') + '" data-fav-handle="' + escapeHTML(handle) + '" aria-label="Add to cart">' +
+                '<svg viewBox="0 0 24 24" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
+                '<span>Add</span>' +
+              '</button>' : '') +
+          '</div>' +
+          '<button type="button" class="fav-remove" data-fav-remove="' + escapeHTML(handle) + '" aria-label="Remove from favorites" title="Remove">' +
+            '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>' +
+          '</button>' +
+        '</div>';
+      });
+      if (stale.length) {
+        var current = readFavs().filter(function (h) { return stale.indexOf(h) === -1; });
+        writeFavs(current);
+        document.dispatchEvent(new CustomEvent('apex:favorites-changed'));
+      }
+      favsBody.innerHTML = html || emptyHTML();
+      var validProducts = products.filter(function (p, idx) { return p && stale.indexOf(favs[idx]) === -1; });
+      updateFavsMeta(validProducts);
+    });
+  }
+
+  if (bulkBtn) {
+    bulkBtn.addEventListener('click', function () {
+      if (bulkBtn.classList.contains('is-loading')) return;
+      var favs = readFavs();
+      Promise.all(favs.map(fetchProduct)).then(function (products) {
+        var items = [];
+        products.forEach(function (p) {
+          if (p && p.available && p.variants && p.variants.length === 1) {
+            items.push({ id: p.variants[0].id, quantity: 1 });
+          }
+        });
+        if (!items.length) return;
+        bulkBtn.classList.add('is-loading');
+        bulkBtn.disabled = true;
+        fetch('/cart/add.js', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+          body: JSON.stringify({ items: items })
+        }).then(function (r) {
+          if (!r.ok) throw new Error('bulk add failed');
+          return r.json();
+        }).then(function () {
+          bulkBtn.classList.remove('is-loading');
+          bulkBtn.disabled = false;
+          if (navigator.vibrate) try { navigator.vibrate(15); } catch (e) {}
+          document.dispatchEvent(new CustomEvent('cart:refresh'));
+          document.dispatchEvent(new CustomEvent('apex:added'));
+          var origText = bulkBtn.querySelector('.bulk-cta-text');
+          if (origText) {
+            var saved = origText.textContent;
+            origText.textContent = '✓ Added';
+            setTimeout(function () { origText.textContent = saved; }, 1600);
+          }
+        }).catch(function () {
+          bulkBtn.classList.remove('is-loading');
+          bulkBtn.disabled = false;
+        });
+      });
+    });
+  }
+
+  var favsLastFocus = null;
+  function openFavs() {
+    if (!favsDrawer) return;
+    favsLastFocus = document.activeElement;
+    renderFavs();
+    favsDrawer.classList.add('is-open');
+    favsDrawer.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('apex-favs-open-' + SID);
+    setTimeout(function () { if (favsClose) try { favsClose.focus({ preventScroll: true }); } catch (e) {} }, 380);
+    if (navigator.vibrate) try { navigator.vibrate(8); } catch (e) {}
+  }
+  function closeFavs() {
+    if (!favsDrawer) return;
+    favsDrawer.classList.remove('is-open');
+    favsDrawer.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('apex-favs-open-' + SID);
+    if (favsLastFocus && favsLastFocus.focus) {
+      try { favsLastFocus.focus({ preventScroll: true }); } catch (e) {}
+    }
+  }
+
+  if (favsDrawer) {
+    favsDrawer.addEventListener('keydown', function (e) {
+      if (e.key !== 'Tab' || !favsDrawer.classList.contains('is-open')) return;
+      var focusable = favsDrawer.querySelectorAll('button:not(:disabled), [href]:not([tabindex="-1"]), input, select, textarea');
+      if (!focusable.length) return;
+      var first = focusable[0];
+      var last  = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    });
+  }
+
+  (function setupFavsDrag() {
+    if (!favsDrawer) return;
+    var panel = favsDrawer.querySelector('.drawer-panel');
+    if (!panel) return;
+    var head = panel.querySelector('.drawer-head');
+    if (!head) return;
+    var startY = 0, deltaY = 0, dragging = false;
+    head.addEventListener('touchstart', function (e) {
+      if (!window.matchMedia('(max-width: 600px)').matches) return;
+      if (e.touches.length !== 1) return;
+      startY = e.touches[0].clientY; deltaY = 0; dragging = true; panel.style.transition = 'none';
+    }, { passive: true });
+    head.addEventListener('touchmove', function (e) {
+      if (!dragging) return;
+      deltaY = Math.max(0, e.touches[0].clientY - startY);
+      panel.style.transform = 'translateY(' + deltaY + 'px)';
+    }, { passive: true });
+    var onEnd = function () {
+      if (!dragging) return;
+      dragging = false; panel.style.transition = '';
+      if (deltaY > 90) { closeFavs(); setTimeout(function () { panel.style.transform = ''; }, 360); }
+      else panel.style.transform = '';
+      deltaY = 0;
+    };
+    head.addEventListener('touchend',    onEnd, { passive: true });
+    head.addEventListener('touchcancel', onEnd, { passive: true });
+  })();
+
+  if (favBtn) {
+    favBtn.addEventListener('click', function (e) {
+      if (FAVS_MODE === 'redirect') { window.location.href = FAV_URL; }
+      else { e.preventDefault(); openFavs(); }
+    });
+  }
+  if (favsClose)    favsClose.addEventListener('click', closeFavs);
+  if (favsBackdrop) favsBackdrop.addEventListener('click', closeFavs);
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && favsDrawer && favsDrawer.classList.contains('is-open')) closeFavs();
+  });
+
+  if (favsBody) {
+    favsBody.addEventListener('click', function (e) {
+      var rm = e.target.closest('[data-fav-remove]');
+      if (rm) { e.preventDefault(); window.ApexFavorites.remove(rm.getAttribute('data-fav-remove')); return; }
+      var add = e.target.closest('[data-fav-add]');
+      if (add) {
+        e.preventDefault();
+        if (add.classList.contains('is-loading')) return;
+        var vid    = add.getAttribute('data-fav-add');
+        var multi  = add.getAttribute('data-fav-multi') === '1';
+        var handle = add.getAttribute('data-fav-handle');
+        if (multi) { window.location.href = '/products/' + handle; return; }
+        add.classList.add('is-loading');
+        var fd = new FormData();
+        fd.append('id', vid);
+        fd.append('quantity', 1);
+        fetch('/cart/add.js', {
+          method: 'POST',
+          headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+          body: fd
+        }).then(function (r) {
+          if (!r.ok) throw new Error('add failed');
+          return r.json();
+        }).then(function () {
+          add.classList.remove('is-loading');
+          add.classList.add('is-added');
+          setTimeout(function () { add.classList.remove('is-added'); }, 1800);
+          document.dispatchEvent(new CustomEvent('cart:refresh'));
+          document.dispatchEvent(new CustomEvent('apex:added'));
+        }).catch(function () { add.classList.remove('is-loading'); });
+      }
+    });
+  }
+})();
+</script>
+
+<!-- ════════════ AUDIO MODULE ════════════
+  Self-contained. Handles:
+  • YouTube iFrame API (audio-only playback)
+  • HTML5 Audio (MP3 / direct URLs)
+  • Cross-page resume via sessionStorage + localStorage
+  • Autoplay policy on iOS Safari, Chrome, Firefox
+  • TikTok / Instagram / Snapchat / WeChat webview detection
+  • M key global shortcut
+  • pagehide persistence (works on iOS unlike beforeunload)
+  • AudioContext unlock for iOS Safari
+  • Chained onYouTubeIframeAPIReady — safe to run alongside other YT consumers
+════════════════════════════════════════ -->
+{%- if show_audio and audio_url != blank -%}
+<script>
+(function () {
+  'use strict';
+
+  /* ── Config (injected at render time) */
+  var SID       = '{{ sid }}';
+  var AUDIO_URL = {{ audio_url | json }};
+  var LOOP      = {{ audio_loop | json }};
+  var DEF_VOL   = {{ audio_vol }};
+
+  if (!AUDIO_URL) return;
+
+  /* ── DOM ready helper */
+  function ready(fn) {
+    if (document.readyState !== 'loading') fn();
+    else document.addEventListener('DOMContentLoaded', fn);
+  }
+
+  ready(function () {
+
+    var notch = document.getElementById('apex-notch-' + SID);
+    if (!notch) return;
+    var btn = notch.querySelector('[data-notch-audio]');
+    if (!btn) return;
+
+    /* ── Namespaced storage keys (safe if multiple notch instances exist) */
+    var SK_PLAY = 'ap_nch_' + SID + '_p';
+    var SK_VOL  = 'ap_nch_' + SID + '_v';
+
+    /* ── Runtime state */
+    var isPlaying   = false;
+    var playerReady = false;
+    var apiInjected = false;
+    var currentVol  = DEF_VOL;
+    var ytPlayer    = null;
+    var mp3Audio    = null;
+
+    /* Detect URL type once */
+    var IS_YT = /youtube\.com|youtu\.be/i.test(AUDIO_URL);
+
+    /* ─────────────────────────────────────────────
+       STORAGE HELPERS
+       sessionStorage survives Shopify's same-tab
+       page navigations; localStorage is the fallback
+       for browsers that reset sessionStorage on nav.
+    ───────────────────────────────────────────── */
+    function safeGet(k) {
+      var v;
+      try { v = sessionStorage.getItem(k); if (v !== null) return v; } catch (e) {}
+      try { v = localStorage.getItem(k);   if (v !== null) return v; } catch (e) {}
+      return null;
+    }
+    function safeSet(k, v) {
+      try { sessionStorage.setItem(k, v); } catch (e) {}
+      try { localStorage.setItem(k, v);   } catch (e) {}
+    }
+    function safeRemove(k) {
+      try { sessionStorage.removeItem(k); } catch (e) {}
+      try { localStorage.removeItem(k);   } catch (e) {}
+    }
+
+    /* ── Load persisted volume preference */
+    var sv = parseInt(safeGet(SK_VOL), 10);
+    if (!isNaN(sv) && sv >= 0 && sv <= 100) currentVol = sv;
+
+    /* ─────────────────────────────────────────────
+       ENVIRONMENT DETECTION
+    ───────────────────────────────────────────── */
+    function isBot() {
+      if (navigator.webdriver) return true;
+      if (!navigator.languages || !navigator.languages.length) return true;
+      var ua = (navigator.userAgent || '').toLowerCase();
+      return /bot|crawl|spider|slurp/.test(ua) || !screen.width;
+    }
+
+    /*
+      These in-app browsers block YouTube iFrame embedding or intercept
+      postMessage in ways that silently break the YT API. We detect them
+      and use a graceful pulse (no harmful errors or infinite spinners).
+      MP3 playback via HTML5 Audio still works in all of these.
+    */
+    function isRestrictedBrowser() {
+      return /TikTok|musical_ly|BytedanceWebview|Instagram|FBAN|FBAV|Snapchat|MicroMessenger|Line\//i
+        .test(navigator.userAgent || '');
+    }
+
+    /* ─────────────────────────────────────────────
+       VISUAL STATE
+       data-active="true" drives both the CSS accent
+       colour and the music-note → waveform-bars swap.
+    ───────────────────────────────────────────── */
+    function setActive(on) {
+      isPlaying = on;
+      if (on) {
+        btn.setAttribute('data-active', 'true');
+        btn.setAttribute('aria-pressed', 'true');
+      } else {
+        btn.removeAttribute('data-active');
+        btn.setAttribute('aria-pressed', 'false');
+      }
+    }
+
+    /* ── Tracks whether YT confirmed actual playback (vs optimistic state) */
+    var ytConfirmed   = false;
+    var confirmTimer  = null;
+
+    function startConfirmTimer() {
+      clearTimeout(confirmTimer);
+      confirmTimer = setTimeout(function () {
+        /* YT never confirmed PLAYING — autoplay was blocked. Reset to idle. */
+        if (!ytConfirmed) { setActive(false); safeRemove(SK_PLAY); }
+      }, 3500);
+    }
+
+    function extractVideoID(url) {
+      var m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|v\/))([A-Za-z0-9_-]{11})/);
+      return m ? m[1] : null;
+    }
+
+    function injectYTAPI() {
+      if (apiInjected) return;
+      apiInjected = true;
+      var tag = document.createElement('script');
+      tag.src   = 'https://www.youtube.com/iframe_api';
+      tag.async = true;
+      document.head.appendChild(tag);
+      /*
+        Chain the global callback safely: other sections (or the audio
+        widget v2) may also use onYouTubeIframeAPIReady. We save any
+        existing handler and call it first before running our own init.
+      */
+      var prev = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = function () {
+        if (typeof prev === 'function') prev();
+        initYTPlayer();
+      };
+    }
+
+    function initYTPlayer() {
+      if (typeof YT === 'undefined' || typeof YT.Player === 'undefined') return;
+      var videoId = extractVideoID(AUDIO_URL);
+      if (!videoId) return;
+      var wasPlaying = safeGet(SK_PLAY) === '1';
+      /*
+        THE RESUME FIX: autoplay:1 is passed when wasPlaying is true.
+        This tells YouTube to begin buffering the moment the iframe is
+        created — before onReady fires — drastically cutting the gap
+        between page load and audible sound. The browser permits it
+        because the user interacted with the origin on the previous page.
+      */
+      ytPlayer = new YT.Player('ap-yt-node-' + SID, {
+        height: '1', width: '1',
+        videoId: videoId,
+        playerVars: {
+          autoplay:       wasPlaying ? 1 : 0,
+          controls:       0,
+          disablekb:      1,
+          fs:             0,
+          iv_load_policy: 3,
+          loop:           LOOP ? 1 : 0,
+          modestbranding: 1,
+          /*
+            playsinline:1 is critical on iOS.
+            Without it, YouTube's default behaviour is to hijack the
+            viewport and play the video full-screen — exactly the bug
+            mentioned for TikTok browser-style environments.
+          */
+          playsinline:    1,
+          rel:            0,
+          origin:         window.location.origin,
+          playlist:       LOOP ? videoId : undefined
+        },
+        events: {
+          onReady: function (e) {
+            playerReady = true;
+            e.target.setVolume(currentVol);
+            if (currentVol === 0) e.target.mute(); else e.target.unMute();
+          },
+          onStateChange: function (ev) {
+            var S = YT.PlayerState;
+            if (ev.data === S.PLAYING) {
+              ytConfirmed = true;
+              clearTimeout(confirmTimer);
+              setActive(true);
+              safeSet(SK_PLAY, '1');
+            } else if (ev.data === S.ENDED) {
+              if (LOOP) { ytPlayer.seekTo(0); ytPlayer.playVideo(); }
+              else      { setActive(false); safeRemove(SK_PLAY); }
+            } else if (ev.data === S.PAUSED || ev.data === S.CUED) {
+              setActive(false);
+              safeRemove(SK_PLAY);
+            } else if (ev.data === -1) {
+              /* UNSTARTED: fires on init. If we're in optimistic-playing state
+                 and YT hasn't confirmed yet, the confirm timer will reset us.
+                 Nothing to do here — let the timer handle it. */
+            }
+            /* BUFFERING (3): leave current visual state unchanged */
+          },
+          onError: function () {
+            /* Covers: video unavailable, embedding disabled, network error */
+            setActive(false);
+            safeRemove(SK_PLAY);
+          }
+        }
+      });
+    }
+
+    /* ─────────────────────────────────────────────
+       HTML5 AUDIO FLOW (MP3 / direct URL)
+       Works in TikTok, Instagram, and all browsers.
+       preload:'none' avoids downloading until needed.
+    ───────────────────────────────────────────── */
+
+    function initMP3() {
+      if (mp3Audio) return;
+      mp3Audio         = new Audio();
+      mp3Audio.src     = AUDIO_URL;
+      mp3Audio.loop    = LOOP;
+      mp3Audio.preload = 'none';
+      mp3Audio.volume  = Math.max(0, Math.min(1, currentVol / 100));
+
+      mp3Audio.addEventListener('playing', function () {
+        setActive(true);
+        safeSet(SK_PLAY, '1');
+      });
+      mp3Audio.addEventListener('pause', function () {
+        /* Don't reset on natural loop-end (loop fires 'pause' momentarily) */
+        if (!mp3Audio.ended) { setActive(false); safeRemove(SK_PLAY); }
+      });
+      mp3Audio.addEventListener('ended', function () {
+        if (!LOOP) { setActive(false); safeRemove(SK_PLAY); }
+      });
+      mp3Audio.addEventListener('error', function () {
+        setActive(false);
+        safeRemove(SK_PLAY);
+      });
+    }
+
+    function playMP3() {
+      initMP3();
+      mp3Audio.volume = Math.max(0, Math.min(1, currentVol / 100));
+      var p = mp3Audio.play();
+      /*
+        play() returns a Promise in all modern browsers.
+        On iOS / some Android, it rejects if called without a user gesture.
+        The rejection handler resets the UI cleanly — no errors thrown.
+        The 'playing' event fires on success and calls setActive(true).
+      */
+      if (p && typeof p.then === 'function') {
+        p.catch(function () {
+          setActive(false);
+          safeRemove(SK_PLAY);
+        });
+      }
+    }
+
+    /* ─────────────────────────────────────────────
+       TOGGLE (called by click and M key)
+    ───────────────────────────────────────────── */
+
+    function toggle() {
+      if (IS_YT) {
+        if (isRestrictedBrowser()) {
+          /*
+            YouTube iframe is blocked in TikTok / Instagram / Snapchat / WeChat.
+            Acknowledge the tap with the existing pulse animation.
+            We do NOT show an error — the button stays in its current state.
+          */
+          btn.classList.remove('is-pulsing');
+          void btn.offsetWidth; /* Force reflow so animation restarts cleanly */
+          btn.classList.add('is-pulsing');
+          setTimeout(function () { btn.classList.remove('is-pulsing'); }, 600);
+          return;
+        }
+        if (!apiInjected) {
+          /* First tap: inject API. Second tap (once ready) will play. */
+          injectYTAPI();
+          return;
+        }
+        if (!playerReady) return;
+        /* Read actual player state — don't rely solely on isPlaying flag,
+           which may be stale if optimistic UI got ahead of reality. */
+        var state = -2;
+        try { state = ytPlayer.getPlayerState(); } catch (e) {}
+        var actuallyPlaying = (state === 1 || state === 3); /* PLAYING or BUFFERING */
+        if (actuallyPlaying) {
+          ytPlayer.pauseVideo();
+        } else {
+          ytPlayer.unMute();
+          ytPlayer.setVolume(currentVol);
+          ytPlayer.playVideo();
+        }
+      } else {
+        /* MP3 path — works everywhere including restricted browsers */
+        initMP3();
+        if (isPlaying) mp3Audio.pause();
+        else playMP3();
+      }
+    }
+
+    /* ─────────────────────────────────────────────
+       BUTTON CLICK
+       stopPropagation keeps the notch's own click
+       delegation from double-firing.
+    ───────────────────────────────────────────── */
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      toggle();
+    });
+
+    /* ─────────────────────────────────────────────
+       KEYBOARD SHORTCUT: M
+    ───────────────────────────────────────────── */
+    document.addEventListener('keydown', function (e) {
+      if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+      var tag = document.activeElement ? document.activeElement.tagName : '';
+      if (/^(INPUT|TEXTAREA|SELECT)$/.test(tag)) return;
+      if (e.key === 'm' || e.key === 'M') { e.preventDefault(); toggle(); }
+    });
+
+    /* ─────────────────────────────────────────────
+       PAGE HIDE
+       Persists play state before Shopify navigation.
+       pagehide is reliable on iOS (unlike beforeunload).
+    ───────────────────────────────────────────── */
+    window.addEventListener('pagehide', function () {
+      /* Only persist "was playing" for same-tab navigations, NOT hard refreshes.
+         After a refresh the browser blocks autoplay, so persisting '1' causes
+         the stuck-optimistic-UI bug. performance.getEntriesByType is the
+         modern non-deprecated way to detect reload vs navigate. */
+      var navType = '';
+      try { navType = (performance.getEntriesByType('navigation')[0] || {}).type || ''; } catch (e) {}
+      safeSet(SK_PLAY, (navType !== 'reload' && isPlaying) ? '1' : '0');
+      safeSet(SK_VOL,  String(currentVol));
+    });
+
+    /* ─────────────────────────────────────────────
+       iOS SAFARI AUDIO CONTEXT UNLOCK
+       Safari on iOS requires a Web Audio context to
+       be created and resumed inside a user gesture
+       handler before any programmatic audio will work.
+       This touchend listener fires once on the first
+       touch anywhere, which "unlocks" audio globally
+       for that session.
+    ───────────────────────────────────────────── */
+    document.addEventListener('touchend', function safariUnlock() {
+      var Ctx = window.AudioContext || window.webkitAudioContext;
+      if (Ctx) {
+        try { var c = new Ctx(); c.resume().catch(function () {}); c.close(); } catch (e) {}
+      }
+      document.removeEventListener('touchend', safariUnlock);
+    }, { once: true, passive: true });
+
+    /* ─────────────────────────────────────────────
+       INITIALISATION
+    ───────────────────────────────────────────── */
+    (function init() {
+      if (isBot()) return;
+
+      var wasPlaying = safeGet(SK_PLAY) === '1';
+
+      if (IS_YT) {
+        if (isRestrictedBrowser()) {
+          /* YouTube is blocked here. Don't inject API or show optimistic state. */
+          return;
+        }
+
+        if (wasPlaying) {
+          setActive(true); /* Optimistic UI */
+          startConfirmTimer(); /* Reset if YT doesn't confirm within 3.5s */
+          injectYTAPI();
+        } else {
+          /*
+            WARM LOAD: inject the YT API on the first human interaction —
+            before the user has tapped the audio button. This eliminates
+            the ~300ms API-injection delay from the first tap, making the
+            button feel instantaneous.
+          */
+          var warmed = false;
+          var warmEvents = ['mousemove', 'touchstart', 'scroll', 'pointerdown'];
+          var warmHandler = function () {
+            if (warmed) return;
+            warmed = true;
+            injectYTAPI();
+            warmEvents.forEach(function (ev) { window.removeEventListener(ev, warmHandler); });
+          };
+          warmEvents.forEach(function (ev) {
+            window.addEventListener(ev, warmHandler, { passive: true });
+          });
+        }
+
+      } else {
+        /*
+          MP3 PATH
+          Pre-instantiate the Audio element so it's ready on first tap
+          (object creation itself doesn't download anything with preload:'none').
+        */
+        initMP3();
+
+        if (wasPlaying) {
+          /*
+            Try to resume. On desktop Chrome, Firefox, and Safari this
+            succeeds if the user previously interacted with the origin.
+            On iOS it will be blocked by autoplay policy — the catch
+            in playMP3 handles this cleanly, resetting the UI to idle.
+            The user can then tap the button to start manually.
+          */
+          playMP3();
+        }
+      }
+    })();
+
+  }); /* end ready() */
+
+})();
+</script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Apex Notch v4",
+  "limit": 1,
+  "settings": [
+    { "type": "header", "content": "Position" },
+    { "type": "select", "id": "side", "label": "Edge", "default": "right",
+      "options": [{ "value": "right", "label": "Right" }, { "value": "left", "label": "Left" }]
+    },
+    { "type": "range", "id": "vertical_position", "label": "Vertical position", "min": 20, "max": 80, "step": 5, "unit": "%", "default": 50 },
+    { "type": "range", "id": "edge_offset",       "label": "Edge offset",       "min": 6,  "max": 40, "step": 2, "unit": "px", "default": 16 },
+
+    { "type": "header", "content": "Sizing" },
+    { "type": "range", "id": "master_scale", "label": "Master scale", "min": 60, "max": 140, "step": 5, "unit": "%", "default": 100 },
+    { "type": "range", "id": "button_size",  "label": "Button size",  "min": 36, "max": 56, "step": 2, "unit": "px", "default": 44 },
+    { "type": "range", "id": "icon_size",    "label": "Icon size",    "min": 14, "max": 22, "step": 1, "unit": "px", "default": 18 },
+    { "type": "range", "id": "button_gap",   "label": "Button gap",   "min": 2,  "max": 12, "step": 1, "unit": "px", "default": 6 },
+    { "type": "range", "id": "pill_radius",  "label": "Pill rounding","min": 12, "max": 100,"step": 2, "unit": "px", "default": 100 },
+
+    { "type": "header", "content": "Colors" },
+    { "type": "color", "id": "bg_color",     "label": "Background",          "default": "#1d1d1f" },
+    { "type": "color", "id": "fg_color",     "label": "Icons",               "default": "#ffffff" },
+    { "type": "color", "id": "muted_color",  "label": "Muted",               "default": "#86868b" },
+    { "type": "color", "id": "accent_color", "label": "Accent (count badge)","default": "#0071e3" },
+    { "type": "color", "id": "drawer_bg",    "label": "Drawer background",   "default": "#ffffff" },
+    { "type": "color", "id": "drawer_fg",    "label": "Drawer text",         "default": "#1d1d1f" },
+    { "type": "range", "id": "drawer_radius","label": "Drawer corner radius","min": 0, "max": 32, "step": 2, "unit": "px", "default": 0 },
+
+    { "type": "header", "content": "Cart" },
+    { "type": "checkbox", "id": "show_cart",  "label": "Show cart button", "default": true },
+    { "type": "text",     "id": "cart_label", "label": "Cart label",       "default": "Cart" },
+    { "type": "select",   "id": "cart_mode",  "label": "Cart click action","default": "drawer",
+      "options": [
+        { "value": "drawer",   "label": "Open drawer (recommended)" },
+        { "value": "redirect", "label": "Go to /cart page" }
+      ]
+    },
+    { "type": "text", "id": "cart_drawer_title", "label": "Drawer title",          "default": "Your bag" },
+    { "type": "text", "id": "subtotal_label",    "label": "Subtotal label",         "default": "Subtotal" },
+    { "type": "text", "id": "view_cart_label",   "label": "View cart link label",   "default": "View cart" },
+    { "type": "text", "id": "checkout_label",    "label": "Checkout button label",  "default": "Checkout" },
+    { "type": "text", "id": "cart_empty_text",   "label": "Empty cart text",        "default": "Your bag is empty." },
+    { "type": "text", "id": "cart_empty_cta",    "label": "Empty cart CTA",         "default": "Continue shopping" },
+    { "type": "text", "id": "cart_empty_href",   "label": "Empty cart CTA link",    "default": "/collections/all" },
+    { "type": "checkbox", "id": "show_shipping_bar",   "label": "Show free-shipping progress bar", "default": false },
+    { "type": "number",   "id": "shipping_threshold",  "label": "Free shipping threshold (cents)", "default": 10000,
+      "info": "e.g. 10000 = $100.00. Only used when the free-shipping bar is enabled." },
+    { "type": "text", "id": "shipping_before_text",  "label": "Before-threshold text", "default": "Spend {amount} more for free shipping",
+      "info": "Use {amount} as the placeholder." },
+    { "type": "text", "id": "shipping_reached_text", "label": "Reached text",          "default": "✓ You qualify for free shipping" },
+
+    { "type": "header", "content": "Favorites" },
+    { "type": "checkbox", "id": "show_favorites",  "label": "Show favorites button", "default": true },
+    { "type": "text",     "id": "favorites_label", "label": "Favorites label",       "default": "Saved" },
+    { "type": "select",   "id": "favs_mode",       "label": "Favorites click action","default": "drawer",
+      "options": [
+        { "value": "drawer",   "label": "Open drawer (recommended)" },
+        { "value": "redirect", "label": "Go to favorites page" }
+      ]
+    },
+    { "type": "text", "id": "favorites_drawer_title", "label": "Drawer title",      "default": "Saved for later" },
+    { "type": "text", "id": "favorites_empty_text",   "label": "Empty state text",  "default": "No favorites yet — tap any heart on a product to save it here." },
+    { "type": "text", "id": "bulk_label",             "label": "Bulk add button",   "default": "Add all to cart",
+      "info": "Shown only when saved single-variant products are in stock." },
+    { "type": "text", "id": "favorites_url",          "label": "Favorites page URL (redirect mode only)", "default": "/pages/favorites" },
+
+    { "type": "header", "content": "Music" },
+    {
+      "type": "checkbox",
+      "id": "show_audio",
+      "label": "Show music button",
+      "default": false,
+      "info": "Adds a music toggle below the other notch buttons. Requires an Audio source URL below."
+    },
+    {
+      "type": "text",
+      "id": "audio_url",
+      "label": "Audio source URL",
+      "default": "https://www.youtube.com/watch?v=5qap5aO4i9A",
+      "info": "YouTube URL (e.g. https://youtu.be/xxxxx) — recommended for reliable streaming. Or a direct MP3/OGG link. Leave blank to hide the button even if the toggle above is on."
+    },
+    {
+      "type": "text",
+      "id": "audio_label",
+      "label": "Button label",
+      "default": "Music"
+    },
+    {
+      "type": "checkbox",
+      "id": "audio_loop",
+      "label": "Loop continuously",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "audio_volume",
+      "label": "Default volume",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 80,
+      "info": "Applied when the user first plays audio. If they change volume via M+←/→ keys, their preference persists across pages."
+    },
+
+    { "type": "header", "content": "Behavior" },
+    { "type": "select", "id": "expand_behavior", "label": "Expand on", "default": "hover",
+      "options": [
+        { "value": "hover",  "label": "Hover (desktop)" },
+        { "value": "always", "label": "Always expanded" }
+      ]
+    }
+  ],
+  "presets": [
+    { "name": "Apex Notch v4" }
+  ]
+}
+{% endschema %}

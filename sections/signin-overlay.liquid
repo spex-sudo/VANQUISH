@@ -1,0 +1,1720 @@
+{%- liquid
+  assign section_mode = section.settings.section_mode | default: 'popup'
+
+  # ── POPUP ASSIGNS ─────────────────────────────────────────────────────
+  assign enabled           = section.settings.enabled
+  assign headline          = section.settings.headline        | default: 'Stay in the loop.'
+  assign subheadline       = section.settings.subheadline     | default: 'New arrivals, early access and members-only offers — straight to your inbox.'
+  assign cta_label         = section.settings.cta_label       | default: 'Join the list'
+  assign trust_text        = section.settings.trust_text      | default: 'No spam. Unsubscribe any time.'
+  assign offer_code        = section.settings.offer_code
+  assign email_placeholder = section.settings.email_placeholder | default: 'your@email.com'
+  assign collect_name      = section.settings.collect_name
+  assign drawer_trigger    = section.settings.drawer_trigger  | default: 'Members & Partners'
+  assign success_headline  = section.settings.success_headline | default: "You're in."
+  assign success_message   = section.settings.success_message | default: 'Your welcome code is ready to use at checkout.'
+  assign success_cta       = section.settings.success_cta     | default: 'Start shopping'
+  assign auto_close_ms     = section.settings.auto_close_seconds | default: 8 | times: 1000
+  assign drawer_headline   = section.settings.drawer_headline | default: 'Account access'
+  assign drawer_cust_lbl   = section.settings.drawer_cust_lbl | default: 'Customer'
+  assign drawer_cust_desc  = section.settings.drawer_cust_desc | default: 'Shop, track orders and manage returns.'
+  assign drawer_biz_lbl    = section.settings.drawer_biz_lbl  | default: 'Business / Trade'
+  assign drawer_biz_desc   = section.settings.drawer_biz_desc | default: 'Wholesale access and bulk orders.'
+  assign drawer_biz_url    = section.settings.drawer_biz_url
+  assign popup_image       = section.settings.popup_image
+  assign popup_image_height = section.settings.popup_image_height | default: 200
+  assign popup_image_pos   = section.settings.popup_image_pos | default: 'center'
+  assign bg_type           = section.settings.bg_type         | default: 'storefront'
+  assign bg_color          = section.settings.bg_color        | default: '#000000'
+  assign bg_image          = section.settings.bg_image
+  assign overlay_opacity   = section.settings.overlay_opacity | default: 65
+  assign blur_strength     = section.settings.blur_strength   | default: 8
+  assign overlay_alpha     = overlay_opacity | divided_by: 100.0
+  assign surface_color     = section.settings.surface_color   | default: '#111111'
+  assign text_color        = section.settings.text_color      | default: '#f0ede8'
+  assign accent_color      = section.settings.accent_color    | default: '#d4b896'
+  assign modal_radius      = section.settings.modal_radius    | default: 16
+  assign button_radius     = section.settings.button_radius   | default: 8
+  assign input_radius      = section.settings.input_radius    | default: 8
+  assign font_heading      = section.settings.font_heading
+  assign font_body         = section.settings.font_body
+  assign trigger_type      = section.settings.trigger_type    | default: 'delay'
+  assign trigger_delay     = section.settings.trigger_delay   | default: 2
+  assign scroll_percent    = section.settings.scroll_percent  | default: 25
+  assign dismiss_days      = section.settings.dismiss_days    | default: 30
+  assign show_on_routes    = section.settings.show_on_routes  | default: 'home'
+  assign popup_position    = section.settings.popup_position  | default: 'bottom-right'
+
+  assign current_route = 'other'
+  if template.name == 'index'
+    assign current_route = 'home'
+  elsif template.name == 'product' or template.name == 'collection'
+    assign current_route = 'shop'
+  endif
+
+  assign route_allowed = false
+  if show_on_routes == 'all'
+    assign route_allowed = true
+  elsif show_on_routes == 'home' and current_route == 'home'
+    assign route_allowed = true
+  elsif show_on_routes == 'home_shop' and current_route != 'other'
+    assign route_allowed = true
+  endif
+
+  if template.name == 'customers/login' or template.name == 'customers/register' or template.name == 'customers/account' or template.name == 'customers/reset_password' or template.name == 'customers/activate_account' or template.name == 'password'
+    assign route_allowed = false
+  endif
+
+  # ── LINK-IN-BIO ASSIGNS ───────────────────────────────────────────────
+  assign lib_hero_image      = section.settings.lib_hero_image
+  assign lib_hero_height     = section.settings.lib_hero_height     | default: 240
+  assign lib_hero_overlay    = section.settings.lib_hero_overlay    | default: 50
+  assign lib_avatar          = section.settings.lib_avatar
+  assign lib_avatar_shape    = section.settings.lib_avatar_shape    | default: 'circle'
+  assign lib_avatar_size     = section.settings.lib_avatar_size     | default: 88
+  assign lib_name            = section.settings.lib_name            | default: shop.name
+  assign lib_tagline         = section.settings.lib_tagline
+  assign lib_address         = section.settings.lib_address
+  assign lib_instagram       = section.settings.lib_instagram
+  assign lib_tiktok          = section.settings.lib_tiktok
+  assign lib_whatsapp        = section.settings.lib_whatsapp
+  assign lib_facebook        = section.settings.lib_facebook
+  assign lib_twitter         = section.settings.lib_twitter
+  assign lib_youtube         = section.settings.lib_youtube
+  assign lib_bg              = section.settings.lib_bg              | default: '#0d0d0d'
+  assign lib_text            = section.settings.lib_text            | default: '#f5f1ea'
+  assign lib_accent          = section.settings.lib_accent          | default: '#ffffff'
+  assign lib_btn_bg          = section.settings.lib_btn_bg          | default: '#1c1c1c'
+  assign lib_btn_text        = section.settings.lib_btn_text        | default: '#f5f1ea'
+  assign lib_btn_border      = section.settings.lib_btn_border      | default: '#2e2e2e'
+  assign lib_btn_radius      = section.settings.lib_btn_radius      | default: 12
+  assign lib_max_width       = section.settings.lib_max_width       | default: 480
+  assign lib_font            = section.settings.lib_font
+  assign lib_footer_text     = section.settings.lib_footer_text
+  assign lib_hero_overlay_alpha = lib_hero_overlay | divided_by: 100.0
+-%}
+
+{%- comment -%} Font loading — only load what's needed for active mode {%- endcomment -%}
+{%- if section_mode == 'popup' -%}
+  {%- if font_heading or font_body -%}
+    <style>
+      {%- if font_heading -%}{{ font_heading | font_face: font_display: 'swap' }}{%- endif -%}
+      {%- if font_body -%}{{ font_body | font_face: font_display: 'swap' }}{%- endif -%}
+    </style>
+  {%- endif -%}
+{%- elsif section_mode == 'linkinbio' -%}
+  {%- if lib_font -%}
+    <style>{{ lib_font | font_face: font_display: 'swap' }}</style>
+  {%- endif -%}
+{%- endif -%}
+
+{%- comment -%} Persist logged-in state so popup never re-fires after session expiry {%- endcomment -%}
+{%- if customer != null -%}
+  <script>try{localStorage.setItem('sp_v1','1');localStorage.setItem('sp_d',''+Date.now());}catch(e){}</script>
+{%- endif -%}
+
+{%- if section_mode == 'popup' and enabled and customer == null and route_allowed -%}
+
+<style>
+  /* ── TOKENS — scoped to :root so drawer & overlay inherit them ── */
+  :root {
+    --sp-surface:  {{ surface_color }};
+    --sp-text:     {{ text_color }};
+    --sp-accent:   {{ accent_color }};
+    --sp-r:        {{ modal_radius }}px;
+    --sp-r-btn:    {{ button_radius }}px;
+    --sp-r-input:  {{ input_radius }}px;
+    --sp-img-h:    {{ popup_image_height }}px;
+    --sp-img-pos:  {{ popup_image_pos }};
+    --sp-fh: {% if font_heading %}{{ font_heading.family }},{{ font_heading.fallback_families }}{% else %}'Georgia','Times New Roman',serif{% endif %};
+    --sp-fh-w: {% if font_heading %}{{ font_heading.weight }}{% else %}400{% endif %};
+    --sp-fb: {% if font_body %}{{ font_body.family }},{{ font_body.fallback_families }}{% else %}-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif{% endif %};
+    --sp-fb-w: {% if font_body %}{{ font_body.weight }}{% else %}400{% endif %};
+    /* Derived tokens */
+    --sp-surface-raised: color-mix(in srgb, var(--sp-surface) 88%, var(--sp-text));
+    --sp-border: color-mix(in srgb, var(--sp-text) 12%, transparent);
+    --sp-border-strong: color-mix(in srgb, var(--sp-text) 22%, transparent);
+    --sp-muted: color-mix(in srgb, var(--sp-text) 52%, transparent);
+  }
+
+  /* ── OVERLAY ROOT ───────────────────────────────────── */
+  #sp-root {
+    position: fixed;
+    z-index: 2147483000;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 280ms ease, visibility 0s 280ms;
+    font-family: var(--sp-fb);
+    font-weight: var(--sp-fb-w);
+    -webkit-font-smoothing: antialiased;
+  }
+  /* ── Centered (default): small card, page visible around all corners ── */
+  #sp-root[data-pos="center"] {
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(20px, 5vw, 48px);
+    /* Semi-transparent — page visible in all corners through it */
+    background: rgba(0, 0, 0, 0.46);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+  /* ── Corner variants ── */
+  #sp-root[data-pos="bottom-right"] {
+    bottom: clamp(16px, 3vw, 28px);
+    right: clamp(16px, 3vw, 28px);
+    width: min(400px, calc(100vw - 32px));
+  }
+  #sp-root[data-pos="bottom-left"] {
+    bottom: clamp(16px, 3vw, 28px);
+    left: clamp(16px, 3vw, 28px);
+    width: min(400px, calc(100vw - 32px));
+  }
+  #sp-root[data-pos="bottom-center"] {
+    bottom: clamp(16px, 3vw, 28px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(440px, calc(100vw - 32px));
+  }
+  #sp-root[data-open="true"] {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+    transition: opacity 280ms ease;
+  }
+  /* Scroll lock only when center mode covers the page */
+  body.sp-locked-center { overflow: hidden; }
+
+  /* ── MODAL CARD ─────────────────────────────────────── */
+  .sp-card {
+    width: 100%;
+    max-width: 400px;
+    background: var(--sp-surface);
+    border-radius: var(--sp-r);
+    overflow: hidden;
+    box-shadow:
+      0 2px 4px rgba(0,0,0,.1),
+      0 8px 24px -4px rgba(0,0,0,.32),
+      0 32px 64px -16px rgba(0,0,0,.44),
+      0 0 0 1px rgba(255,255,255,.06) inset;
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+    transition:
+      transform 360ms cubic-bezier(.32,.72,0,1),
+      opacity 280ms ease;
+    /* Constrain height so the page is visible above & below in center mode */
+    max-height: min(86svh, 640px);
+    color: var(--sp-text);
+    contain: content;
+  }
+  #sp-root[data-open="true"] .sp-card {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  /* ── CLOSE BUTTON ───────────────────────────────────── */
+  .sp-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 10;
+    width: 32px;
+    height: 32px;
+    border: 1px solid rgba(255,255,255,.14);
+    background: rgba(0,0,0,.28);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    color: #fff;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: background 200ms ease, transform 200ms ease;
+  }
+  .sp-close:hover { background: rgba(0,0,0,.5); transform: rotate(90deg); }
+  .sp-close svg { display: block; }
+
+  /* ── HERO IMAGE + TICKET CUT ────────────────────────── */
+  .sp-img-wrap { position: relative; }
+  .sp-img {
+    display: block;
+    width: 100%;
+    height: var(--sp-img-h);
+    object-fit: cover;
+    object-position: var(--sp-img-pos);
+  }
+  .sp-ticket {
+    display: block;
+    width: 100%;
+    height: 16px;
+    margin-top: -8px;
+    position: relative;
+    z-index: 1;
+  }
+  .sp-ticket__path { fill: var(--sp-surface); }
+
+  /* ── CARD BODY ──────────────────────────────────────── */
+  .sp-body {
+    padding: 28px 28px 32px;
+    overflow-y: auto;
+    max-height: calc(100svh - 24px - var(--sp-img-h) - 8px);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,.1) transparent;
+  }
+  .sp-body[data-no-img="true"] { padding-top: 48px; }
+
+  /* ── VIEWS ──────────────────────────────────────────── */
+  .sp-view { display: none; }
+  .sp-view[data-active] {
+    display: block;
+    animation: sp-in 340ms cubic-bezier(.32,.72,0,1) both;
+  }
+  @keyframes sp-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── TYPOGRAPHY ─────────────────────────────────────── */
+  .sp-headline {
+    font-family: var(--sp-fh);
+    font-weight: var(--sp-fh-w);
+    font-size: clamp(26px,5vw,34px);
+    line-height: 1.08;
+    letter-spacing: -.02em;
+    margin: 0 0 10px;
+    color: var(--sp-text);
+  }
+  .sp-sub {
+    font-size: 14px;
+    line-height: 1.55;
+    color: color-mix(in srgb, var(--sp-text) 68%, transparent);
+    margin: 0 0 24px;
+  }
+
+  /* ── OFFER CODE STRIP ───────────────────────────────── */
+  .sp-offer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid color-mix(in srgb, var(--sp-accent) 32%, transparent);
+    border-radius: calc(var(--sp-r-btn) * .7);
+    background: color-mix(in srgb, var(--sp-accent) 8%, transparent);
+    margin-bottom: 22px;
+    font-size: 13px;
+  }
+  .sp-offer__code {
+    font-weight: 700;
+    letter-spacing: .1em;
+    color: var(--sp-accent);
+    font-size: 14px;
+  }
+  .sp-copy {
+    background: transparent;
+    border: 1px solid color-mix(in srgb, var(--sp-accent) 45%, transparent);
+    color: var(--sp-accent);
+    padding: 5px 11px;
+    font-size: 11px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: calc(var(--sp-r-btn) * .5);
+    transition: all 180ms ease;
+    white-space: nowrap;
+    font-family: inherit;
+  }
+  .sp-copy:hover, .sp-copy[data-copied] {
+    background: var(--sp-accent);
+    color: var(--sp-surface);
+  }
+
+  /* ── INPUTS ─────────────────────────────────────────── */
+  .sp-field { margin-bottom: 10px; }
+  .sp-input {
+    display: block;
+    width: 100%;
+    padding: 14px 16px;
+    background: color-mix(in srgb, var(--sp-text) 4%, transparent);
+    border: 1px solid color-mix(in srgb, var(--sp-text) 14%, transparent);
+    border-radius: var(--sp-r-input);
+    color: var(--sp-text);
+    font-family: inherit;
+    font-size: 15px;
+    transition: border-color 200ms ease, box-shadow 200ms ease;
+    -webkit-appearance: none;
+    appearance: none;
+    box-sizing: border-box;
+  }
+  .sp-input::placeholder { color: color-mix(in srgb, var(--sp-text) 38%, transparent); }
+  .sp-input:focus {
+    outline: none;
+    border-color: var(--sp-accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--sp-accent) 14%, transparent);
+  }
+  .sp-input:-webkit-autofill {
+    -webkit-text-fill-color: var(--sp-text);
+    -webkit-box-shadow: 0 0 0 1000px var(--sp-surface) inset;
+    caret-color: var(--sp-text);
+  }
+
+  /* ── BUTTONS ─────────────────────────────────────────── */
+  .sp-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 15px 20px;
+    border: none;
+    font-family: inherit;
+    font-size: 12.5px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: var(--sp-r-btn);
+    transition: all 220ms ease;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    margin-top: 14px;
+  }
+  .sp-btn--primary {
+    background: var(--sp-accent);
+    color: var(--sp-surface);
+  }
+  .sp-btn--primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
+  .sp-btn--primary:active { transform: translateY(0); filter: brightness(.96); }
+  .sp-btn[data-loading] {
+    opacity: .7;
+    pointer-events: none;
+  }
+  .sp-btn[data-loading]::after {
+    content: '';
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    margin-top: -7px;
+    width: 14px;
+    height: 14px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: sp-spin .65s linear infinite;
+  }
+  @keyframes sp-spin { to { transform: rotate(360deg); } }
+
+  /* ── TRUST TEXT ─────────────────────────────────────── */
+  .sp-trust {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    font-size: 11.5px;
+    color: color-mix(in srgb, var(--sp-text) 45%, transparent);
+    margin: 12px 0 0;
+    letter-spacing: .01em;
+  }
+  .sp-trust svg { width: 11px; height: 11px; flex-shrink: 0; color: var(--sp-accent); }
+
+  /* ── DRAWER TRIGGER LINK ────────────────────────────── */
+  .sp-drawer-link {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid color-mix(in srgb, var(--sp-text) 8%, transparent);
+  }
+  #sp-drawer-btn {
+    background: none;
+    border: none;
+    font-family: inherit;
+    font-size: 12px;
+    color: color-mix(in srgb, var(--sp-text) 50%, transparent);
+    cursor: pointer;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 4px 0;
+    position: relative;
+    transition: color 200ms ease;
+  }
+  #sp-drawer-btn::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 2px;
+    width: 100%;
+    height: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transition: transform 240ms ease;
+    transform-origin: left;
+  }
+  #sp-drawer-btn:hover { color: var(--sp-text); }
+  #sp-drawer-btn:hover::after { transform: scaleX(1); }
+
+  /* ── HONEYPOT ───────────────────────────────────────── */
+  .sp-hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* ── ERROR MESSAGE ──────────────────────────────────── */
+  .sp-error-msg {
+    padding: 11px 13px;
+    border-radius: calc(var(--sp-r-input) * .8);
+    font-size: 12.5px;
+    line-height: 1.4;
+    margin-bottom: 14px;
+    background: color-mix(in srgb, #e85858 12%, transparent);
+    color: #ffa8a8;
+    border: 1px solid color-mix(in srgb, #e85858 24%, transparent);
+    display: none;
+  }
+  .sp-error-msg[data-show] { display: block; }
+
+  /* ── SUCCESS VIEW ───────────────────────────────────── */
+  .sp-success-icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 16px;
+    color: var(--sp-accent);
+  }
+  .sp-success-icon svg { display: block; width: 100%; height: 100%; }
+  .sp-s-ring {
+    stroke-dasharray: 151;
+    stroke-dashoffset: 151;
+    animation: sp-ring 560ms cubic-bezier(.22,1,.36,1) forwards;
+  }
+  .sp-s-check {
+    stroke-dasharray: 42;
+    stroke-dashoffset: 42;
+    animation: sp-chk 340ms cubic-bezier(.22,1,.36,1) 420ms forwards;
+  }
+  @keyframes sp-ring { to { stroke-dashoffset: 0; } }
+  @keyframes sp-chk  { to { stroke-dashoffset: 0; } }
+
+  .sp-success-h {
+    font-family: var(--sp-fh);
+    font-weight: var(--sp-fh-w);
+    font-size: 28px;
+    text-align: center;
+    margin: 0 0 8px;
+    letter-spacing: -.015em;
+  }
+  .sp-success-msg {
+    font-size: 14px;
+    line-height: 1.5;
+    text-align: center;
+    color: color-mix(in srgb, var(--sp-text) 70%, transparent);
+    margin: 0 0 20px;
+  }
+  .sp-countdown {
+    text-align: center;
+    font-size: 11.5px;
+    color: color-mix(in srgb, var(--sp-text) 38%, transparent);
+    margin-top: 12px;
+  }
+
+  /* ── DRAWER OVERLAY ─────────────────────────────────── */
+  #sp-doverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483001;
+    background: rgba(0,0,0,.5);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 280ms ease, visibility 0s 280ms;
+  }
+  #sp-doverlay[data-open] {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition: opacity 280ms ease;
+  }
+
+  /* ── DRAWER PANEL ───────────────────────────────────── */
+  #sp-drawer {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%) translateY(100%);
+    z-index: 2147483002;
+    width: 100%;
+    max-width: 440px;
+    /* Solid surface — slightly raised from card for visual hierarchy */
+    background: var(--sp-surface-raised);
+    border-radius: 18px 18px 0 0;
+    /* Accent line at top of drawer */
+    border-top: 2px solid var(--sp-accent);
+    box-shadow: 0 -4px 40px rgba(0,0,0,.5), 0 -1px 0 var(--sp-border);
+    transition: transform 380ms cubic-bezier(.32,.72,0,1);
+    color: var(--sp-text);
+    font-family: var(--sp-fb);
+    font-weight: var(--sp-fb-w);
+    -webkit-font-smoothing: antialiased;
+    max-height: 80svh;
+    overflow-y: auto;
+    padding: 0 0 max(28px, env(safe-area-inset-bottom));
+  }
+  #sp-drawer[data-open] { transform: translateX(-50%) translateY(0); }
+
+  /* Handle bar */
+  .sp-dhandle {
+    width: 32px;
+    height: 3px;
+    background: var(--sp-border-strong);
+    border-radius: 2px;
+    margin: 14px auto 0;
+  }
+
+  /* Drawer header */
+  .sp-dhead {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 20px 22px 0;
+    margin-bottom: 6px;
+  }
+  .sp-dtitle {
+    font-family: var(--sp-fh);
+    font-weight: var(--sp-fh-w);
+    font-size: 20px;
+    letter-spacing: -.015em;
+    line-height: 1.2;
+    color: var(--sp-text);
+    margin: 0;
+  }
+  .sp-dsub {
+    font-size: 13px;
+    color: var(--sp-muted);
+    margin: 4px 0 20px;
+    line-height: 1.45;
+    padding: 0 22px;
+  }
+  .sp-dclose {
+    flex-shrink: 0;
+    margin-left: 12px;
+    margin-top: 2px;
+    background: var(--sp-border);
+    border: 1px solid var(--sp-border-strong);
+    color: var(--sp-text);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: background 180ms ease, transform 180ms ease;
+  }
+  .sp-dclose:hover {
+    background: var(--sp-border-strong);
+    transform: rotate(90deg);
+  }
+
+  /* ── ACCOUNT TYPE LIST (vertical radio-style) ────────── */
+  .sp-acct-list {
+    margin: 0 22px 20px;
+    border: 1px solid var(--sp-border-strong);
+    border-radius: var(--sp-r-input);
+    overflow: hidden;
+  }
+  .sp-acct {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 15px 16px;
+    background: color-mix(in srgb, var(--sp-text) 4%, transparent);
+    border: none;
+    border-bottom: 1px solid var(--sp-border);
+    color: var(--sp-text);
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    font-size: 14px;
+    transition: background 160ms ease;
+    position: relative;
+  }
+  .sp-acct:last-child { border-bottom: none; }
+  .sp-acct:hover { background: color-mix(in srgb, var(--sp-text) 8%, transparent); }
+  .sp-acct[data-sel] {
+    background: color-mix(in srgb, var(--sp-accent) 10%, transparent);
+  }
+
+  /* Radio indicator */
+  .sp-acct__radio {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1.5px solid var(--sp-border-strong);
+    flex-shrink: 0;
+    position: relative;
+    transition: border-color 180ms ease;
+  }
+  .sp-acct[data-sel] .sp-acct__radio { border-color: var(--sp-accent); }
+  .sp-acct[data-sel] .sp-acct__radio::after {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border-radius: 50%;
+    background: var(--sp-accent);
+  }
+
+  /* Text block */
+  .sp-acct__body { flex: 1; min-width: 0; }
+  .sp-acct__name {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--sp-text);
+    line-height: 1.3;
+    margin-bottom: 2px;
+  }
+  .sp-acct__desc {
+    display: block;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--sp-muted);
+  }
+
+  /* Chevron */
+  .sp-acct__arr {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: var(--sp-muted);
+    transition: color 180ms ease, transform 180ms ease;
+  }
+  .sp-acct:hover .sp-acct__arr { transform: translateX(2px); }
+  .sp-acct[data-sel] .sp-acct__arr { color: var(--sp-accent); }
+
+  /* ── DRAWER FORM ────────────────────────────────────── */
+  #sp-dform {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 340ms cubic-bezier(.32,.72,0,1);
+    padding: 0 22px;
+  }
+  #sp-dform[data-show] { max-height: 260px; }
+  #sp-dform .sp-field { margin-top: 0; }
+  #sp-dform .sp-btn { margin-top: 12px; }
+
+  /* ── REDUCED MOTION ─────────────────────────────────── */
+  @media (prefers-reduced-motion: reduce) {
+    #sp-root, .sp-card, #sp-drawer, .sp-view, .sp-s-ring, .sp-s-check {
+      transition: none !important;
+      animation: none !important;
+    }
+    #sp-root { transition: opacity 0ms !important; }
+  }
+
+  /* ── MOBILE ──────────────────────────────────────────── */
+  @media (max-width: 480px) {
+    /* Center mode: comfortable full-width card, leave visible space top & bottom */
+    #sp-root[data-pos="center"] {
+      align-items: flex-end;
+      padding: 0;
+    }
+    #sp-root[data-pos="center"] .sp-card {
+      max-width: 100%;
+      border-radius: var(--sp-r) var(--sp-r) 0 0;
+      max-height: 92svh;
+    }
+    /* Corner modes: pin full-width to bottom */
+    #sp-root[data-pos="bottom-right"],
+    #sp-root[data-pos="bottom-left"],
+    #sp-root[data-pos="bottom-center"] {
+      bottom: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      transform: none;
+    }
+    #sp-root[data-pos="bottom-right"] .sp-card,
+    #sp-root[data-pos="bottom-left"] .sp-card,
+    #sp-root[data-pos="bottom-center"] .sp-card {
+      max-width: 100%;
+      border-radius: var(--sp-r) var(--sp-r) 0 0;
+      max-height: 92svh;
+    }
+    #sp-drawer {
+      left: 0;
+      transform: translateY(100%);
+      max-width: 100%;
+    }
+    #sp-drawer[data-open] { transform: translateY(0); }
+  }
+</style>
+
+<div
+  id="sp-root"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="sp-headline"
+  data-open="false"
+  data-pos="{{ popup_position }}"
+  data-trigger="{{ trigger_type }}"
+  data-delay="{{ trigger_delay }}"
+  data-scroll="{{ scroll_percent }}"
+  data-dismiss="{{ dismiss_days }}"
+>
+  {%- comment -%}── Card ──{%- endcomment -%}
+  <div class="sp-card" role="document">
+
+    <button type="button" class="sp-close" data-sp="close" aria-label="Close popup">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+        <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    {%- if popup_image -%}
+      <div class="sp-img-wrap">
+        <img class="sp-img"
+             src="{{ popup_image | image_url: width: 800 }}"
+             srcset="{{ popup_image | image_url: width: 400 }} 400w, {{ popup_image | image_url: width: 800 }} 800w"
+             sizes="(max-width:440px) 100vw, 400px"
+             alt=""
+             loading="eager"
+             decoding="async"
+             width="800"
+             height="{{ popup_image_height }}">
+        <svg class="sp-ticket" viewBox="0 0 400 16" preserveAspectRatio="none"
+             width="100%" height="16" aria-hidden="true" focusable="false">
+          <path class="sp-ticket__path"
+                d="M0,16 V8 A8,8,0,0,1,16,8 A8,8,0,0,1,32,8 A8,8,0,0,1,48,8 A8,8,0,0,1,64,8 A8,8,0,0,1,80,8 A8,8,0,0,1,96,8 A8,8,0,0,1,112,8 A8,8,0,0,1,128,8 A8,8,0,0,1,144,8 A8,8,0,0,1,160,8 A8,8,0,0,1,176,8 A8,8,0,0,1,192,8 A8,8,0,0,1,208,8 A8,8,0,0,1,224,8 A8,8,0,0,1,240,8 A8,8,0,0,1,256,8 A8,8,0,0,1,272,8 A8,8,0,0,1,288,8 A8,8,0,0,1,304,8 A8,8,0,0,1,320,8 A8,8,0,0,1,336,8 A8,8,0,0,1,352,8 A8,8,0,0,1,368,8 A8,8,0,0,1,384,8 A8,8,0,0,1,400,8 V16 Z"/>
+        </svg>
+      </div>
+    {%- endif -%}
+
+    <div class="sp-body" id="sp-body" data-no-img="{% unless popup_image %}true{% endunless %}">
+
+      {%- comment -%}── Form view ──{%- endcomment -%}
+      <div class="sp-view" id="sp-vform" data-active>
+        <h2 id="sp-headline" class="sp-headline">{{ headline | escape }}</h2>
+        <p class="sp-sub">{{ subheadline | escape }}</p>
+
+        {%- if offer_code != blank -%}
+          <div class="sp-offer">
+            <div>
+              <span style="font-size:12.5px;color:color-mix(in srgb, var(--sp-text) 65%, transparent)">Members get</span><br>
+              <span class="sp-offer__code">{{ offer_code | upcase | escape }}</span>
+            </div>
+            <button type="button" class="sp-copy" data-code="{{ offer_code | escape }}">Copy</button>
+          </div>
+        {%- endif -%}
+
+        {%- form 'customer', id: 'sp-form', novalidate: 'novalidate' -%}
+          {%- if form.posted_successfully? -%}
+            <div id="sp-sig-ok" hidden></div>
+          {%- elsif form.errors -%}
+            <div id="sp-sig-err" hidden></div>
+          {%- endif -%}
+
+          <div class="sp-error-msg" id="sp-error-msg">
+            {%- if form.errors -%}
+              {%- for field in form.errors -%}
+                {{ form.errors.messages[field] }}{% unless forloop.last %} &middot; {% endunless %}
+              {%- endfor -%}
+            {%- endif -%}
+          </div>
+
+          <input type="hidden" name="contact[tags]"             value="newsletter-popup">
+          <input type="hidden" name="contact[accepts_marketing]" value="1">
+
+          {%- if collect_name -%}
+            <div class="sp-field">
+              <input class="sp-input" type="text" name="contact[first_name]"
+                     placeholder="First name" autocomplete="given-name">
+            </div>
+          {%- endif -%}
+
+          <div class="sp-field">
+            <input class="sp-input" type="email" name="contact[email]"
+                   id="sp-email"
+                   placeholder="{{ email_placeholder | escape }}"
+                   autocomplete="email"
+                   inputmode="email"
+                   required
+                   value="{{ form.email | escape }}">
+          </div>
+
+          <div class="sp-hp" aria-hidden="true">
+            <label>Leave blank<input type="text" name="contact[website]" tabindex="-1" autocomplete="off"></label>
+          </div>
+
+          <button type="submit" class="sp-btn sp-btn--primary" id="sp-submit">
+            <span>{{ cta_label | escape }}</span>
+          </button>
+
+          {%- if trust_text != blank -%}
+            <p class="sp-trust">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+                <path d="M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6l8-4z"/>
+              </svg>
+              {{ trust_text | escape }}
+            </p>
+          {%- endif -%}
+        {%- endform -%}
+
+        <p class="sp-drawer-link">
+          <button type="button" id="sp-drawer-btn">{{ drawer_trigger | escape }}</button>
+        </p>
+      </div>
+
+      {%- comment -%}── Success view ──{%- endcomment -%}
+      <div class="sp-view" id="sp-vsuccess">
+        <div class="sp-success-icon" aria-hidden="true">
+          <svg viewBox="0 0 52 52" fill="none" stroke="currentColor"
+               stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="26" cy="26" r="24" class="sp-s-ring"/>
+            <path d="M14 27l8 8 16-18" class="sp-s-check"/>
+          </svg>
+        </div>
+        <h3 class="sp-success-h">{{ success_headline | escape }}</h3>
+        <p class="sp-success-msg">{{ success_message | escape }}</p>
+        {%- if offer_code != blank -%}
+          <div class="sp-offer" style="margin-bottom:0">
+            <div>
+              <span style="font-size:12px;color:color-mix(in srgb, var(--sp-text) 60%, transparent)">Your code</span><br>
+              <span class="sp-offer__code">{{ offer_code | upcase | escape }}</span>
+            </div>
+            <button type="button" class="sp-copy" data-code="{{ offer_code | escape }}">Copy</button>
+          </div>
+        {%- endif -%}
+        <button type="button" class="sp-btn sp-btn--primary" data-sp="close">
+          <span>{{ success_cta | escape }}</span>
+        </button>
+        <p class="sp-countdown">Closing in <span id="sp-count">{{ section.settings.auto_close_seconds | default: 8 }}</span>s</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{%- comment -%}── Drawer overlay ──{%- endcomment -%}
+<div id="sp-doverlay" aria-hidden="true"></div>
+
+{%- comment -%}── Login / account drawer ──{%- endcomment -%}
+<div id="sp-drawer" role="dialog" aria-modal="true" aria-labelledby="sp-dlbl">
+  <div class="sp-dhandle" aria-hidden="true"></div>
+
+  <div class="sp-dhead">
+    <div>
+      <h3 class="sp-dtitle" id="sp-dlbl">{{ drawer_headline | escape }}</h3>
+    </div>
+    <button type="button" class="sp-dclose" id="sp-dclose" aria-label="Close">
+      <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+        <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+  <p class="sp-dsub">Select your account type to continue.</p>
+
+  <div class="sp-acct-list" role="group" aria-label="Account type">
+    <button class="sp-acct" type="button" data-type="customer">
+      <span class="sp-acct__radio" aria-hidden="true"></span>
+      <span class="sp-acct__body">
+        <span class="sp-acct__name">{{ drawer_cust_lbl | escape }}</span>
+        <span class="sp-acct__desc">{{ drawer_cust_desc | escape }}</span>
+      </span>
+      <svg class="sp-acct__arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <path d="M9 18l6-6-6-6"/>
+      </svg>
+    </button>
+    <button class="sp-acct" type="button" data-type="business">
+      <span class="sp-acct__radio" aria-hidden="true"></span>
+      <span class="sp-acct__body">
+        <span class="sp-acct__name">{{ drawer_biz_lbl | escape }}</span>
+        <span class="sp-acct__desc">{{ drawer_biz_desc | escape }}</span>
+      </span>
+      <svg class="sp-acct__arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <path d="M9 18l6-6-6-6"/>
+      </svg>
+    </button>
+  </div>
+
+  <div id="sp-dform">
+    <form id="sp-login" action="{{ routes.account_login_url }}" method="get" novalidate>
+      <div class="sp-field">
+        <input class="sp-input" type="email" name="email"
+               id="sp-login-email"
+               placeholder="{{ email_placeholder | escape }}"
+               autocomplete="email"
+               inputmode="email"
+               required>
+      </div>
+      <button type="submit" class="sp-btn sp-btn--primary">
+        <span>Continue</span>
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var root      = document.getElementById('sp-root');
+  var doverlay  = document.getElementById('sp-doverlay');
+  var drawer    = document.getElementById('sp-drawer');
+  var form      = document.getElementById('sp-form');
+  var loginForm = document.getElementById('sp-login');
+  if (!root) return;
+
+  var SK = 'sp_d', VK = 'sp_v1';
+  var dismissDays = parseInt(root.dataset.dismiss, 10) || 30;
+  var trigger     = root.dataset.trigger || 'delay';
+  var delay       = (parseFloat(root.dataset.delay) || 2) * 1000;
+  var scrollPct   = parseInt(root.dataset.scroll, 10) || 25;
+  var bizUrl      = {{ drawer_biz_url | json }};
+  var autoCloseMs = {{ auto_close_ms }};
+  var countInterval, countDisplay;
+
+  /* ── Storage helpers ── */
+  function get(k) { try { return localStorage.getItem(k); } catch(e) { return null; } }
+  function set(k,v) { try { localStorage.setItem(k,v); } catch(e) {} }
+
+  function isDismissed() {
+    if (get(VK)) return true;
+    var raw = get(SK);
+    if (!raw) return false;
+    return (Date.now() - parseInt(raw,10)) / 86400000 < dismissDays;
+  }
+
+  /* ── Views ── */
+  function showView(id) {
+    root.querySelectorAll('.sp-view').forEach(function(v) {
+      if (v.id === id) { v.setAttribute('data-active',''); }
+      else { v.removeAttribute('data-active'); }
+    });
+  }
+
+  /* ── Open / close popup ── */
+  var isCenterMode = root.dataset.pos === 'center';
+
+  function openPopup(viewId) {
+    if (viewId) showView(viewId);
+    root.setAttribute('data-open', 'true');
+    /* Only lock scroll in center mode (it covers the whole page) */
+    if (isCenterMode) document.body.classList.add('sp-locked-center');
+  }
+
+  function closePopup() {
+    root.setAttribute('data-open', 'false');
+    document.body.classList.remove('sp-locked-center');
+    clearInterval(countInterval);
+  }
+
+  function dismiss(permanent) {
+    set(SK, String(Date.now()));
+    if (permanent) set(VK, '1');
+    closePopup();
+  }
+
+  /* ── Countdown ── */
+  function startCountdown() {
+    countDisplay = document.getElementById('sp-count');
+    var start = Date.now();
+    var tick = function() {
+      var rem = Math.max(0, Math.ceil((autoCloseMs - (Date.now() - start)) / 1000));
+      if (countDisplay) countDisplay.textContent = rem;
+      if (Date.now() - start >= autoCloseMs) {
+        clearInterval(countInterval);
+        dismiss(false);
+      }
+    };
+    countInterval = setInterval(tick, 250);
+    tick();
+  }
+
+  /* ── Drawer ── */
+  function openDrawer() {
+    doverlay.setAttribute('data-open','');
+    drawer.setAttribute('data-open','');
+    var firstInput = drawer.querySelector('input[type="email"]');
+    setTimeout(function() { if (firstInput) firstInput.focus(); }, 400);
+  }
+  function closeDrawer() {
+    doverlay.removeAttribute('data-open');
+    drawer.removeAttribute('data-open');
+    /* Reset selection */
+    drawer.querySelectorAll('.sp-acct').forEach(function(c) { c.removeAttribute('data-sel'); });
+    document.getElementById('sp-dform').removeAttribute('data-show');
+  }
+
+  /* ── Account type selection ── */
+  drawer.querySelectorAll('.sp-acct').forEach(function(card) {
+    card.addEventListener('click', function() {
+      drawer.querySelectorAll('.sp-acct').forEach(function(c) { c.removeAttribute('data-sel'); });
+      card.setAttribute('data-sel','');
+      document.getElementById('sp-dform').setAttribute('data-show','');
+      var email = document.getElementById('sp-login-email');
+      setTimeout(function() { if (email) email.focus(); }, 360);
+    });
+  });
+
+  /* ── Login form submit ── */
+  if (loginForm) {
+    loginForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var email = document.getElementById('sp-login-email');
+      if (!email || !email.value.trim()) { if (email) email.focus(); return; }
+      set(VK,'1'); set(SK, String(Date.now()));
+      var selected = drawer.querySelector('.sp-acct[data-sel]');
+      var type = selected ? selected.dataset.type : 'customer';
+      var url = '/account/login?email=' + encodeURIComponent(email.value.trim());
+      if (type === 'business' && bizUrl) url = bizUrl;
+      window.location.href = url;
+    });
+  }
+
+  /* ── Newsletter form submit ── */
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      var hp = form.querySelector('input[name="contact[website]"]');
+      if (hp && hp.value) { e.preventDefault(); return; }
+      set(VK,'1'); set(SK, String(Date.now()));
+      var btn = document.getElementById('sp-submit');
+      if (btn) { btn.setAttribute('data-loading',''); btn.querySelector('span').textContent = 'Sending…'; }
+    });
+  }
+
+  /* ── Copy buttons ── */
+  function bindCopy() {
+    document.querySelectorAll('[data-code]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var code = btn.dataset.code;
+        if (!navigator.clipboard) return;
+        navigator.clipboard.writeText(code).then(function() {
+          btn.setAttribute('data-copied','');
+          btn.textContent = 'Copied';
+          setTimeout(function() { btn.removeAttribute('data-copied'); btn.textContent = 'Copy'; }, 2000);
+        });
+      });
+    });
+  }
+  bindCopy();
+
+  /* ── Click handling ── */
+  root.addEventListener('click', function(e) {
+    var t = e.target.closest('[data-sp]');
+    if (t && t.dataset.sp === 'close') dismiss(false);
+    /* Center mode: click dim overlay to close */
+    if (isCenterMode && e.target === root) dismiss(false);
+  });
+  /* Corner modes: click anywhere outside the card to close */
+  document.addEventListener('click', function(e) {
+    if (root.getAttribute('data-open') !== 'true') return;
+    if (isCenterMode) return;
+    if (drawer.hasAttribute('data-open')) return;
+    if (!e.target.closest('#sp-root') && !e.target.closest('#sp-drawer') && !e.target.closest('#sp-doverlay')) {
+      dismiss(false);
+    }
+  }, true);
+  document.getElementById('sp-drawer-btn') && document.getElementById('sp-drawer-btn').addEventListener('click', openDrawer);
+  document.getElementById('sp-dclose') && document.getElementById('sp-dclose').addEventListener('click', closeDrawer);
+  doverlay.addEventListener('click', closeDrawer);
+
+  /* ── ESC key ── */
+  document.addEventListener('keydown', function(e) {
+    if (e.key !== 'Escape') return;
+    if (drawer.hasAttribute('data-open')) { closeDrawer(); return; }
+    if (root.getAttribute('data-open') === 'true') dismiss(false);
+  });
+
+  /* ── Detect success / error (page reloaded after form post) ── */
+  if (document.getElementById('sp-sig-ok')) {
+    set(VK,'1'); set(SK, String(Date.now()));
+    openPopup('sp-vsuccess');
+    startCountdown();
+    return;
+  }
+  if (document.getElementById('sp-sig-err')) {
+    var errEl = document.getElementById('sp-error-msg');
+    if (errEl) errEl.setAttribute('data-show','');
+    openPopup('sp-vform');
+    return;
+  }
+
+  /* ── Normal trigger logic ── */
+  if (isDismissed()) return;
+
+  function go() { openPopup('sp-vform'); }
+
+  function init() {
+    if (trigger === 'immediate') {
+      go();
+    } else if (trigger === 'delay') {
+      setTimeout(go, delay);
+    } else if (trigger === 'scroll') {
+      var onScroll = function() {
+        var d = document.documentElement;
+        if ((d.scrollTop / (d.scrollHeight - d.clientHeight)) * 100 >= scrollPct) {
+          window.removeEventListener('scroll', onScroll);
+          go();
+        }
+      };
+      window.addEventListener('scroll', onScroll, { passive: true });
+    } else if (trigger === 'exit') {
+      var onLeave = function(e) {
+        if (e.clientY <= 0) { document.removeEventListener('mouseleave', onLeave); go(); }
+      };
+      document.addEventListener('mouseleave', onLeave);
+      /* Mobile fallback */
+      setTimeout(function() { if (root.getAttribute('data-open') !== 'true' && !isDismissed()) go(); }, 15000);
+    }
+  }
+
+  if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); }
+  else { init(); }
+})();
+</script>
+
+{%- elsif section_mode == 'linkinbio' -%}
+
+{%- liquid
+  assign lib_avatar_radius = '50%'
+  if lib_avatar_shape == 'rounded'
+    assign lib_avatar_radius = '20%'
+  elsif lib_avatar_shape == 'square'
+    assign lib_avatar_radius = '0'
+  endif
+  assign has_social = false
+  if lib_instagram != blank or lib_tiktok != blank or lib_whatsapp != blank or lib_facebook != blank or lib_twitter != blank or lib_youtube != blank
+    assign has_social = true
+  endif
+-%}
+
+<style>
+  /* ── LIB TOKENS ─────────────────────────────────────── */
+  #sp-lib {
+    --lib-bg:       {{ lib_bg }};
+    --lib-text:     {{ lib_text }};
+    --lib-accent:   {{ lib_accent }};
+    --lib-btn-bg:   {{ lib_btn_bg }};
+    --lib-btn-text: {{ lib_btn_text }};
+    --lib-btn-bdr:  {{ lib_btn_border }};
+    --lib-r-btn:    {{ lib_btn_radius }}px;
+    --lib-av-size:  {{ lib_avatar_size }}px;
+    --lib-hero-h:   {{ lib_hero_height }}px;
+    --lib-max-w:    {{ lib_max_width }}px;
+    --lib-font: {% if lib_font %}{{ lib_font.family }},{{ lib_font.fallback_families }}{% else %}-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif{% endif %};
+    --lib-font-w: {% if lib_font %}{{ lib_font.weight }}{% else %}400{% endif %};
+  }
+
+  /* ── SECTION ROOT ───────────────────────────────────── */
+  #sp-lib {
+    min-height: 100svh;
+    background: var(--lib-bg);
+    font-family: var(--lib-font);
+    font-weight: var(--lib-font-w);
+    color: var(--lib-text);
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── HERO ────────────────────────────────────────────── */
+  .lib-hero {
+    position: relative;
+    height: var(--lib-hero-h);
+    background: var(--lib-bg);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .lib-hero__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+  .lib-hero__ov {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      transparent 30%,
+      var(--lib-bg) 100%
+    );
+    opacity: {{ lib_hero_overlay_alpha }};
+  }
+
+  /* ── CONTENT AREA ────────────────────────────────────── */
+  .lib-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 clamp(16px,4vw,28px) 56px;
+    max-width: var(--lib-max-w);
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* ── AVATAR ──────────────────────────────────────────── */
+  .lib-av {
+    width: var(--lib-av-size);
+    height: var(--lib-av-size);
+    border-radius: {{ lib_avatar_radius }};
+    border: 3px solid var(--lib-bg);
+    background: var(--lib-btn-bg);
+    overflow: hidden;
+    flex-shrink: 0;
+    margin-top: calc(var(--lib-av-size) / -2);
+    margin-bottom: 14px;
+    box-shadow: 0 2px 20px rgba(0,0,0,.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+  }
+  .lib-av__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .lib-av--text {
+    font-size: calc(var(--lib-av-size) * .38);
+    font-weight: 700;
+    color: var(--lib-text);
+    letter-spacing: -.02em;
+  }
+
+  /* ── STORE INFO ──────────────────────────────────────── */
+  .lib-name {
+    font-size: clamp(20px,5vw,26px);
+    font-weight: 700;
+    letter-spacing: -.02em;
+    text-align: center;
+    margin: 0 0 6px;
+    color: var(--lib-text);
+    line-height: 1.15;
+  }
+  .lib-tagline {
+    font-size: 13.5px;
+    text-align: center;
+    color: color-mix(in srgb, var(--lib-text) 65%, transparent);
+    line-height: 1.5;
+    margin: 0 0 4px;
+    max-width: 34ch;
+  }
+  .lib-address {
+    font-size: 12.5px;
+    text-align: center;
+    color: color-mix(in srgb, var(--lib-text) 50%, transparent);
+    margin: 0 0 20px;
+    line-height: 1.4;
+  }
+
+  /* ── SOCIAL ICONS ────────────────────────────────────── */
+  .lib-socials {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .lib-social {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--lib-text) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--lib-text) 10%, transparent);
+    color: var(--lib-text);
+    text-decoration: none;
+    transition: background 200ms ease, transform 200ms ease;
+  }
+  .lib-social svg { width: 18px; height: 18px; display: block; }
+  @media (hover: hover) {
+    .lib-social:hover { background: color-mix(in srgb, var(--lib-text) 15%, transparent); transform: translateY(-2px); }
+  }
+
+  /* ── LINK BUTTONS ────────────────────────────────────── */
+  .lib-links {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+  .lib-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 16px;
+    background: var(--lib-btn-bg);
+    border: 1px solid var(--lib-btn-bdr);
+    border-radius: var(--lib-r-btn);
+    color: var(--lib-btn-text);
+    text-decoration: none;
+    transition: background 200ms ease, transform 200ms ease, box-shadow 200ms ease;
+    position: relative;
+    overflow: hidden;
+  }
+  @media (hover: hover) {
+    .lib-link:hover {
+      background: color-mix(in srgb, var(--lib-btn-bg) 70%, var(--lib-text));
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px rgba(0,0,0,.25);
+    }
+  }
+  .lib-link:active { transform: translateY(0); }
+  .lib-link__thumb {
+    width: 38px;
+    height: 38px;
+    border-radius: calc(var(--lib-r-btn) * .55);
+    overflow: hidden;
+    flex-shrink: 0;
+    background: color-mix(in srgb, var(--lib-text) 6%, transparent);
+  }
+  .lib-link__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .lib-link__thumb--empty { background: color-mix(in srgb, var(--lib-text) 6%, transparent); }
+  .lib-link__label {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: .01em;
+  }
+  .lib-link__arr {
+    flex-shrink: 0;
+    opacity: .4;
+    color: var(--lib-btn-text);
+  }
+
+  /* ── FOOTER ──────────────────────────────────────────── */
+  .lib-footer {
+    text-align: center;
+    font-size: 11px;
+    color: color-mix(in srgb, var(--lib-text) 30%, transparent);
+    margin-top: 32px;
+    line-height: 1.4;
+  }
+  .lib-footer a { color: inherit; text-decoration: none; }
+  .lib-footer a:hover { color: color-mix(in srgb, var(--lib-text) 55%, transparent); }
+</style>
+
+<section id="sp-lib">
+  {%- comment -%}── Hero image ──{%- endcomment -%}
+  <div class="lib-hero">
+    {%- if lib_hero_image -%}
+      <img class="lib-hero__img"
+           src="{{ lib_hero_image | image_url: width: 800 }}"
+           srcset="{{ lib_hero_image | image_url: width: 600 }} 600w, {{ lib_hero_image | image_url: width: 1200 }} 1200w"
+           sizes="100vw"
+           width="{{ lib_hero_image.width }}"
+           height="{{ lib_hero_image.height }}"
+           alt=""
+           loading="lazy"
+           decoding="async">
+    {%- endif -%}
+    <div class="lib-hero__ov"></div>
+  </div>
+
+  <div class="lib-content">
+    {%- comment -%}── Avatar ──{%- endcomment -%}
+    {%- if lib_avatar -%}
+      <div class="lib-av">
+        <img class="lib-av__img"
+             src="{{ lib_avatar | image_url: width: 200 }}"
+             srcset="{{ lib_avatar | image_url: width: 100 }} 1x, {{ lib_avatar | image_url: width: 200 }} 2x"
+             alt="{{ lib_name | escape }}"
+             loading="lazy"
+             width="{{ lib_avatar_size }}"
+             height="{{ lib_avatar_size }}">
+      </div>
+    {%- else -%}
+      <div class="lib-av lib-av--text" aria-hidden="true">{{ lib_name | slice: 0 | upcase }}</div>
+    {%- endif -%}
+
+    {%- comment -%}── Store info ──{%- endcomment -%}
+    <h1 class="lib-name">{{ lib_name | escape }}</h1>
+    {%- if lib_tagline != blank -%}
+      <p class="lib-tagline">{{ lib_tagline | escape }}</p>
+    {%- endif -%}
+    {%- if lib_address != blank -%}
+      <p class="lib-address"><span aria-hidden="true">📍</span> {{ lib_address | escape }}</p>
+    {%- endif -%}
+
+    {%- comment -%}── Social links ──{%- endcomment -%}
+    {%- if has_social -%}
+      <nav class="lib-socials" aria-label="Social media links">
+
+        {%- if lib_instagram != blank -%}
+          <a class="lib-social" href="{{ lib_instagram | escape }}" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/>
+              <circle cx="17.5" cy="6.5" r=".7" fill="currentColor" stroke="none"/>
+            </svg>
+          </a>
+        {%- endif -%}
+
+        {%- if lib_tiktok != blank -%}
+          <a class="lib-social" href="{{ lib_tiktok | escape }}" target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 106.33 6.34V9.82a8.12 8.12 0 004.77 1.52V7.89a4.85 4.85 0 01-1-.2z"/>
+            </svg>
+          </a>
+        {%- endif -%}
+
+        {%- if lib_whatsapp != blank -%}
+          <a class="lib-social" href="{{ lib_whatsapp | escape }}" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.36 5.07L2 22l5.1-1.33A9.955 9.955 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2z"/>
+            </svg>
+          </a>
+        {%- endif -%}
+
+        {%- if lib_facebook != blank -%}
+          <a class="lib-social" href="{{ lib_facebook | escape }}" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073c0 6.027 4.388 11.023 10.125 11.927v-8.437H7.078v-3.49h3.047V9.43c0-3.007 1.792-4.67 4.533-4.67 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.49h-2.796v8.437C19.612 23.096 24 18.1 24 12.073z"/>
+            </svg>
+          </a>
+        {%- endif -%}
+
+        {%- if lib_twitter != blank -%}
+          <a class="lib-social" href="{{ lib_twitter | escape }}" target="_blank" rel="noopener noreferrer" aria-label="X / Twitter">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.738l7.73-8.835L1.254 2.25H8.08l4.259 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            </svg>
+          </a>
+        {%- endif -%}
+
+        {%- if lib_youtube != blank -%}
+          <a class="lib-social" href="{{ lib_youtube | escape }}" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136C4.495 20.455 12 20.455 12 20.455s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+            </svg>
+          </a>
+        {%- endif -%}
+
+      </nav>
+    {%- endif -%}
+
+    {%- comment -%}── Link buttons (blocks) ──{%- endcomment -%}
+    {%- if section.blocks.size > 0 -%}
+      <div class="lib-links">
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'link_item' and block.settings.url != blank -%}
+            <a class="lib-link"
+               href="{{ block.settings.url | escape }}"
+               {{ block.shopify_attributes }}
+               {%- if block.settings.new_tab %} target="_blank" rel="noopener noreferrer"{%- endif -%}>
+              {%- if block.settings.thumb -%}
+                <div class="lib-link__thumb">
+                  <img src="{{ block.settings.thumb | image_url: width: 80 }}"
+                       alt=""
+                       loading="lazy"
+                       width="40"
+                       height="40">
+                </div>
+              {%- else -%}
+                <div class="lib-link__thumb lib-link__thumb--empty" aria-hidden="true"></div>
+              {%- endif -%}
+              <span class="lib-link__label">{{ block.settings.label | escape }}</span>
+              <svg class="lib-link__arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                <path d="M9 18l6-6-6-6"/>
+              </svg>
+            </a>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+    {%- if lib_footer_text != blank -%}
+      <p class="lib-footer">{{ lib_footer_text | escape }}</p>
+    {%- else -%}
+      <p class="lib-footer"><a href="{{ shop.url }}">{{ shop.name | escape }}</a></p>
+    {%- endif -%}
+
+  </div>
+</section>
+
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Popup & Link-in-Bio",
+  "tag": "section",
+  "class": "sp-section",
+  "blocks": [
+    {
+      "type": "link_item",
+      "name": "Link Button",
+      "settings": [
+        { "type": "text",         "id": "label",   "label": "Label",           "default": "Visit our store" },
+        { "type": "url",          "id": "url",     "label": "Destination URL" },
+        { "type": "image_picker", "id": "thumb",   "label": "Thumbnail image" },
+        { "type": "checkbox",     "id": "new_tab", "label": "Open in new tab", "default": false }
+      ]
+    }
+  ],
+  "max_blocks": 8,
+  "settings": [
+    { "type": "header", "content": "Section Mode" },
+    {
+      "type": "select",
+      "id": "section_mode",
+      "label": "Mode",
+      "info": "Popup = newsletter overlay. Link-in-Bio = full standalone page section.",
+      "options": [
+        { "value": "popup",     "label": "Newsletter Popup (overlay)" },
+        { "value": "linkinbio", "label": "Link-in-Bio (full section)" }
+      ],
+      "default": "popup"
+    },
+
+    { "type": "header", "content": "Popup — Visibility" },
+    { "type": "checkbox", "id": "enabled",        "label": "Enable popup",   "default": true },
+    {
+      "type": "select",  "id": "show_on_routes", "label": "Show on",
+      "options": [
+        { "value": "home",      "label": "Home page only" },
+        { "value": "home_shop", "label": "Home + shop pages" },
+        { "value": "all",       "label": "All pages" }
+      ],
+      "default": "home"
+    },
+    {
+      "type": "select", "id": "popup_position", "label": "Position",
+      "info": "Corner modes let visitors see and inte",
+      "options": [
+        { "value": "center",        "label": "Centered  (recommended)" },
+        { "value": "bottom-right",  "label": "Bottom right" },
+        { "value": "bottom-left",   "label": "Bottom left" },
+        { "value": "bottom-center", "label": "Bottom center" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "select",  "id": "trigger_type",   "label": "Trigger",
+      "options": [
+        { "value": "immediate", "label": "Immediate" },
+        { "value": "delay",     "label": "After delay" },
+        { "value": "scroll",    "label": "On scroll" },
+        { "value": "exit",      "label": "Exit intent" }
+      ],
+      "default": "delay"
+    },
+    { "type": "range", "id": "trigger_delay",  "label": "Delay",            "min": 0,  "max": 30, "step": 1,  "default": 2,  "unit": "s" },
+    { "type": "range", "id": "scroll_percent", "label": "Scroll threshold", "min": 5,  "max": 90, "step": 5,  "default": 25, "unit": "%" },
+    { "type": "range", "id": "dismiss_days",   "label": "Re-show after",    "min": 1,  "max": 90, "step": 1,  "default": 30, "unit": "d" },
+
+    { "type": "header", "content": "Popup — Hero Image" },
+    { "type": "image_picker", "id": "popup_image",        "label": "Top image",           "info": "Recommended: 800×400px minimum. Enables ticket-cut edge." },
+    { "type": "range",        "id": "popup_image_height", "label": "Image height",        "min": 120, "max": 340, "step": 10, "default": 200, "unit": "px" },
+    {
+      "type": "select", "id": "popup_image_pos", "label": "Image focal point",
+      "options": [
+        { "value": "top",    "label": "Top" },
+        { "value": "center", "label": "Center" },
+        { "value": "bottom", "label": "Bottom" }
+      ],
+      "default": "center"
+    },
+
+    { "type": "header", "content": "Popup — Content" },
+    { "type": "text",     "id": "headline",          "label": "Headline",         "default": "Stay in the loop." },
+    { "type": "textarea", "id": "subheadline",       "label": "Subheadline",      "default": "New arrivals, early access and members-only offers — straight to your inbox." },
+    { "type": "text",     "id": "cta_label",         "label": "CTA button text",  "default": "Join the list" },
+    { "type": "text",     "id": "trust_text",        "label": "Trust microcopy",  "default": "No spam. Unsubscribe any time." },
+    { "type": "text",     "id": "offer_code",        "label": "Discount code",    "info": "Must exist in Shopify admin. Leave blank to hide the offer strip." },
+    { "type": "text",     "id": "email_placeholder", "label": "Email placeholder","default": "your@email.com" },
+    { "type": "checkbox", "id": "collect_name",      "label": "Ask for first name (reduces conversion)", "default": false },
+    { "type": "text",     "id": "drawer_trigger",    "label": "Login link text",  "default": "Members & Partners", "info": "Shown beneath the form — opens the login drawer." },
+
+    { "type": "header", "content": "Popup — Success State" },
+    { "type": "text",     "id": "success_headline",   "label": "Headline",     "default": "You're in." },
+    { "type": "textarea", "id": "success_message",    "label": "Message",      "default": "Your welcome code is ready to use at checkout." },
+    { "type": "text",     "id": "success_cta",        "label": "Button text",  "default": "Start shopping" },
+    { "type": "range",    "id": "auto_close_seconds", "label": "Auto-close",   "min": 3, "max": 30, "step": 1, "default": 8, "unit": "s" },
+
+    { "type": "header", "content": "Popup — Login Drawer" },
+    { "type": "text", "id": "drawer_headline",  "label": "Drawer title",         "default": "Account access" },
+    { "type": "text", "id": "drawer_cust_lbl",  "label": "Customer card label",  "default": "Customer" },
+    { "type": "text", "id": "drawer_cust_desc", "label": "Customer description", "default": "Shop, track orders and manage returns." },
+    { "type": "text", "id": "drawer_biz_lbl",   "label": "Business card label",  "default": "Business / Trade" },
+    { "type": "text", "id": "drawer_biz_desc",  "label": "Business description", "default": "Wholesale access and bulk orders." },
+    { "type": "url",  "id": "drawer_biz_url",   "label": "Business login URL",   "info": "Custom destination for business accounts. Defaults to /account/login if blank." },
+
+    { "type": "header", "content": "Popup — Style" },
+    { "type": "color",       "id": "surface_color", "label": "Card background", "default": "#111111" },
+    { "type": "color",       "id": "text_color",    "label": "Text color",      "default": "#f0ede8" },
+    { "type": "color",       "id": "accent_color",  "label": "Accent color",    "default": "#d4b896", "info": "Used for buttons, links and highlights." },
+    { "type": "range",       "id": "modal_radius",  "label": "Card radius",     "min": 0, "max": 40, "step": 2, "default": 16, "unit": "px" },
+    { "type": "range",       "id": "button_radius", "label": "Button radius",   "min": 0, "max": 40, "step": 2, "default": 8,  "unit": "px" },
+    { "type": "range",       "id": "input_radius",  "label": "Input radius",    "min": 0, "max": 30, "step": 2, "default": 8,  "unit": "px" },
+    { "type": "font_picker", "id": "font_heading",  "label": "Heading font",    "default": "assistant_n4" },
+    { "type": "font_picker", "id": "font_body",     "label": "Body font",       "default": "assistant_n4" },
+
+    { "type": "header", "content": "Link-in-Bio — Brand" },
+    { "type": "image_picker", "id": "lib_hero_image",   "label": "Hero background image" },
+    { "type": "range",        "id": "lib_hero_height",  "label": "Hero height",          "min": 120, "max": 480, "step": 10, "default": 240, "unit": "px" },
+    { "type": "range",        "id": "lib_hero_overlay", "label": "Hero overlay strength","min": 0,   "max": 100, "step": 5,  "default": 50,  "unit": "%" },
+    { "type": "image_picker", "id": "lib_avatar",       "label": "Avatar / logo image",  "info": "Displays overlapping the hero bottom edge." },
+    {
+      "type": "select", "id": "lib_avatar_shape", "label": "Avatar shape",
+      "options": [
+        { "value": "circle",  "label": "Circle" },
+        { "value": "rounded", "label": "Rounded square" },
+        { "value": "square",  "label": "Square" }
+      ],
+      "default": "circle"
+    },
+    { "type": "range", "id": "lib_avatar_size", "label": "Avatar size", "min": 56, "max": 140, "step": 4, "default": 88, "unit": "px" },
+    { "type": "text",  "id": "lib_name",        "label": "Store / profile name", "info": "Defaults to shop name if blank." },
+    { "type": "textarea", "id": "lib_tagline",  "label": "Tagline / bio" },
+    { "type": "text",     "id": "lib_address",  "label": "Address line",         "info": "Shown with a 📍 pin. E.g. Rua Piratinins, 354 – Tupã/SP" },
+
+    { "type": "header", "content": "Link-in-Bio — Social Links", "info": "Leave blank to hide that icon." },
+    { "type": "url", "id": "lib_instagram", "label": "Instagram URL" },
+    { "type": "url", "id": "lib_tiktok",   "label": "TikTok URL" },
+    { "type": "url", "id": "lib_whatsapp", "label": "WhatsApp URL", "info": "Use https://wa.me/YOURNUMBER format." },
+    { "type": "url", "id": "lib_facebook", "label": "Facebook URL" },
+    { "type": "url", "id": "lib_twitter",  "label": "X / Twitter URL" },
+    { "type": "url", "id": "lib_youtube",  "label": "YouTube URL" },
+
+    { "type": "header", "content": "Link-in-Bio — Style" },
+    { "type": "color",       "id": "lib_bg",         "label": "Page background",  "default": "#0d0d0d" },
+    { "type": "color",       "id": "lib_text",        "label": "Text color",       "default": "#f5f1ea" },
+    { "type": "color",       "id": "lib_accent",      "label": "Accent color",     "default": "#ffffff" },
+    { "type": "color",       "id": "lib_btn_bg",      "label": "Button background","default": "#1c1c1c" },
+    { "type": "color",       "id": "lib_btn_text",    "label": "Button text",      "default": "#f5f1ea" },
+    { "type": "color",       "id": "lib_btn_border",  "label": "Button border",    "default": "#2e2e2e" },
+    { "type": "range",       "id": "lib_btn_radius",  "label": "Button radius",    "min": 0, "max": 40, "step": 2, "default": 12, "unit": "px" },
+    { "type": "range",       "id": "lib_max_width",   "label": "Content max width","min": 320, "max": 680, "step": 10, "default": 480, "unit": "px" },
+    { "type": "font_picker", "id": "lib_font",        "label": "Font",             "default": "assistant_n4" },
+    { "type": "text",        "id": "lib_footer_text", "label": "Footer text",      "info": "Leave blank to show store name. Use for copyright, shipping note, etc." }
+  ],
+  "presets": [
+    {
+      "name": "Newsletter Popup",
+      "settings": { "section_mode": "popup" }
+    },
+    {
+      "name": "Link-in-Bio Page",
+      "settings": { "section_mode": "linkinbio" },
+      "blocks": [
+        { "type": "link_item", "settings": { "label": "WhatsApp Loja" } },
+        { "type": "link_item", "settings": { "label": "Loja Online" } },
+        { "type": "link_item", "settings": { "label": "Grupo Exclusivo" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

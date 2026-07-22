@@ -1,0 +1,1911 @@
+{% comment %}theme-check-disable TemplateLength,RemoteAsset{% endcomment %}
+{%- liquid
+  assign sid = section.id
+  assign s   = section.settings
+-%}
+
+{%- comment -%}
+  ╔════════════════════════════════════════════════════════════════╗
+  ║  APEX — Featured Product (Apple-style)                         ║
+  ║                                                                ║
+  ║  Modes: single | showcase (dual marquee) | grid                ║
+  ║                                                                ║
+  ║  Grid mode design philosophy (Nike / Zara / Adidas):           ║
+  ║   • Flat editorial grid — no card shadows or borders.          ║
+  ║   • Portrait 3:4 default (industry-standard apparel ratio).    ║
+  ║   • Second-image cross-fade on hover (primary conversion lift).║
+  ║   • Quick-add slides up from image bottom as overlay.         ║
+  ║   • Multi-variant → "Choose Options" → PDP (no wrong-variant). ║
+  ║   • Hero first card spans 2 cols — Von Restorff effect.        ║
+  ║   • Discount % badge — loss aversion (not just "SALE").        ║
+  ║   • Low-stock nudge — scarcity without dark patterns.          ║
+  ║   • Stagger entrance animation on IntersectionObserver.        ║
+  ║   • View All CTA — choice architecture, preserves flow.        ║
+  ║   • Sold-out overlay — desaturation signals without hiding.    ║
+  ║                                                                ║
+  ║  Psychology (Cialdini + behavioural economics):                ║
+  ║   • Mere-exposure: marquee 2x fluent glances (Zajonc 1968).    ║
+  ║   • Peak-end rule: ATC success animation rewards decision.     ║
+  ║   • Hick's Law: grid capped, clear CTA preserves speed.        ║
+  ║   • Social proof hook: vendor / brand label (authority).       ║
+  ║   • Anchoring: compare price shown (willingness-to-pay lift).  ║
+  ║   • Scarcity: low-stock text (mild urgency, not anxiety).      ║
+  ║   • Self-reference: 'CURATED FOR YOU' eyebrow copy.            ║
+  ╚════════════════════════════════════════════════════════════════╝
+{%- endcomment -%}
+
+{%- liquid
+  # ── Resolve display mode
+  assign p_blocks = section.blocks | where: 'type', 'product_card'
+  assign mode     = s.display_mode
+
+  # ── Source detection
+  assign source_kind = 'none'
+  if s.source_mode == 'collection' and s.source_collection != blank and s.source_collection.products_count > 0
+    assign source_kind = 'collection'
+  elsif p_blocks.size > 0
+    assign source_kind = 'blocks'
+  endif
+
+  if mode == 'auto'
+    if source_kind == 'collection' or p_blocks.size > 1
+      assign mode = 'showcase'
+    else
+      assign mode = 'single'
+    endif
+  endif
+
+  # ── Single-mode product
+  if mode == 'single'
+    assign solo = p_blocks | first
+    if solo != blank and solo.settings.product != blank
+      assign product = solo.settings.product
+    else
+      assign product = s.product
+    endif
+    if product != blank
+      assign cv          = product.selected_or_first_available_variant
+      assign first_image = product.media | first
+      if cv.featured_media != null
+        assign first_image = cv.featured_media
+      endif
+    endif
+  endif
+
+  # ── Card width with merchant scale multiplier (showcase)
+  assign scale_factor   = s.card_scale | default: 100 | divided_by: 100.0
+  assign computed_width = s.card_width | times: scale_factor | round
+  assign scroll_speed   = s.scroll_speed | default: 60
+
+  # ── Showcase max products
+  assign max_products = s.max_products | default: 8
+  assign item_count   = 0
+  if source_kind == 'collection'
+    assign item_count = s.source_collection.products_count
+    if item_count > max_products
+      assign item_count = max_products
+    endif
+  elsif source_kind == 'blocks'
+    assign item_count = p_blocks.size
+  endif
+
+  # ── Grid max products (separate, up to 20)
+  assign grid_max = s.grid_max_products | default: 8
+
+  # ── Grid hero product (merchant-selected or auto-rotate)
+  assign grid_hero_product = s.grid_hero_product
+  assign grid_hero_auto    = true
+  if grid_hero_product != blank
+    assign grid_hero_auto = false
+  endif
+
+  # ── Grid mobile row cap: hide cards beyond (cols × rows) on mobile
+  assign mobile_cols      = s.grid_cols_mobile | default: '2' | plus: 0
+  assign mobile_rows      = s.grid_mobile_rows | default: 4
+  assign mobile_cap_start = mobile_cols | times: mobile_rows | plus: 1
+-%}
+
+<style>
+  .shopify-section-selected > #shopify-section-{{ sid }},
+  #shopify-section-{{ sid }}.shopify-section-selected { outline-color: #000 !important; }
+  [data-section-id="{{ sid }}"] .section-overlay { --section-overlay-color: #000 !important; }
+</style>
+
+{%- style -%}
+  #shopify-section-{{ sid }} {
+    --apex-card-w:        {{ computed_width }}px;
+    --apex-scroll:        {{ scroll_speed }}s;
+    --apex-r-card:        {{ s.card_radius }}px;
+    --apex-r-btn:         {{ s.btn_radius }}px;
+    --apex-accent:        {{ s.accent_color }};
+    --apex-fg:            {{ s.text_color }};
+    --apex-fg-muted:      {{ s.text_color }}99;
+    --apex-fg-soft:       {{ s.text_color }}66;
+    --apex-card-bg:       {{ s.card_bg_color }};
+    --apex-hairline:      {{ s.text_color }}14;
+    --apex-bg:            {{ s.section_bg_color }};
+    --apex-img-bg:        {{ s.img_placeholder_bg }};
+    --apex-ease:          cubic-bezier(0.22, 1, 0.36, 1);
+    --apex-ease-out:      cubic-bezier(0.16, 1, 0.3, 1);
+    --apex-grid-aspect:   {{ s.grid_aspect | default: '3 / 4' }};
+    --apex-grid-hero-asp: {{ s.grid_hero_aspect | default: '1 / 1' }};
+    --apex-grid-gap:      {{ s.grid_gap | default: 12 }}px;
+    --apex-grid-cols-d:   {{ s.grid_cols_desktop | default: '4' }};
+    --apex-grid-cols-t:   {{ s.grid_cols_tablet | default: '2' }};
+    --apex-grid-cols-m:   {{ s.grid_cols_mobile | default: '2' }};
+  }
+
+  .apex-{{ sid }} {
+    padding: {{ s.padding_top | divided_by: 1.4 | round }}px 0 {{ s.padding_bottom | divided_by: 1.4 | round }}px;
+  }
+  @media (min-width: 750px) {
+    .apex-{{ sid }} {
+      padding: {{ s.padding_top }}px 0 {{ s.padding_bottom }}px;
+    }
+  }
+
+  {%- if s.enable_section_bg -%}
+  #shopify-section-{{ sid }} {
+    background: {{ s.section_bg_color }} !important;
+    margin: 0 !important;
+  }
+  {%- if s.section_bg_radius > 0 -%}
+  #shopify-section-{{ sid }} {
+    border-radius: {{ s.section_bg_radius }}px;
+    overflow: hidden;
+  }
+  {%- endif -%}
+  {%- endif -%}
+{%- endstyle -%}
+
+<style>
+/* ══════════════════════════════════════════════════════════════
+   BASE
+══════════════════════════════════════════════════════════════ */
+.apex-{{ sid }} {
+  color: var(--apex-fg);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.apex-wrap-{{ sid }} {
+  max-width: {{ s.max_content_width }}px;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 3vw, 24px);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SECTION HEADER (shared by showcase + grid)
+══════════════════════════════════════════════════════════════ */
+.apex-head-{{ sid }} {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 0 clamp(20px, 3vw, 32px);
+}
+.apex-head-{{ sid }} .apex-eyebrow {
+  display: block;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--apex-accent);
+  font-weight: 500;
+  margin: 0 0 8px;
+}
+.apex-head-{{ sid }} h2 {
+  font-size: clamp(24px, 3.5vw, {{ s.title_size }}px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+  margin: 0;
+  color: var(--apex-fg);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SHOWCASE — MARQUEE
+══════════════════════════════════════════════════════════════ */
+.apex-marquee-{{ sid }} {
+  position: relative;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 5%, #000 95%, transparent 100%);
+          mask-image: linear-gradient(90deg, transparent 0, #000 5%, #000 95%, transparent 100%);
+  content-visibility: auto;
+  contain-intrinsic-size: 0 460px;
+}
+.apex-marquee-{{ sid }} + .apex-marquee-{{ sid }} {
+  margin-top: {{ s.row_gap | default: 16 }}px;
+}
+.apex-track-{{ sid }} {
+  display: flex;
+  gap: {{ s.card_gap }}px;
+  width: max-content;
+  will-change: transform;
+}
+
+{%- if s.autoscroll_enabled -%}
+@keyframes apex-l-{{ sid }} {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+@keyframes apex-r-{{ sid }} {
+  from { transform: translate3d(-50%, 0, 0); }
+  to   { transform: translate3d(0, 0, 0); }
+}
+.apex-track-{{ sid }}.is-left  { animation: apex-l-{{ sid }} var(--apex-scroll) linear infinite; }
+.apex-track-{{ sid }}.is-right { animation: apex-r-{{ sid }} var(--apex-scroll) linear infinite; }
+.apex-marquee-{{ sid }}:hover .apex-track-{{ sid }},
+.apex-marquee-{{ sid }}:focus-within .apex-track-{{ sid }},
+.apex-marquee-{{ sid }}.is-paused .apex-track-{{ sid }} { animation-play-state: paused; }
+{%- else -%}
+.apex-marquee-{{ sid }} {
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.apex-marquee-{{ sid }}::-webkit-scrollbar { display: none; }
+.apex-track-{{ sid }} { width: auto; }
+{%- endif -%}
+
+@media (prefers-reduced-motion: reduce) {
+  .apex-track-{{ sid }} { animation: none !important; }
+  .apex-marquee-{{ sid }} { overflow-x: auto; -webkit-mask-image: none; mask-image: none; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SHOWCASE — CARD
+══════════════════════════════════════════════════════════════ */
+.apex-card-{{ sid }} {
+  flex: 0 0 var(--apex-card-w);
+  width: var(--apex-card-w);
+  background: var(--apex-card-bg);
+  border-radius: var(--apex-r-card);
+  border: 1px solid var(--apex-hairline);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  scroll-snap-align: start;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.04);
+  transition: transform 0.4s var(--apex-ease), box-shadow 0.4s var(--apex-ease);
+}
+.apex-card-{{ sid }}:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 12px 32px rgba(0,0,0,.08);
+  z-index: 2;
+}
+.apex-card-img-{{ sid }} {
+  width: 100%;
+  aspect-ratio: {{ s.card_aspect }};
+  overflow: hidden;
+  position: relative;
+  background: var(--apex-img-bg);
+  display: block;
+  text-decoration: none;
+}
+.apex-card-img-{{ sid }} img,
+.apex-card-img-{{ sid }} svg {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  transition: transform 0.7s var(--apex-ease-out);
+}
+.apex-card-{{ sid }}:hover .apex-card-img-{{ sid }} img { transform: scale(1.03); }
+
+.apex-sale-{{ sid }} {
+  position: absolute; top: 12px; left: 12px;
+  font-size: 10px; letter-spacing: 0.06em; font-weight: 600;
+  padding: 5px 10px; border-radius: 100px;
+  background: var(--apex-accent); color: #fff;
+  z-index: 2; line-height: 1;
+}
+.apex-badge-{{ sid }} {
+  position: absolute; top: 12px; right: 12px;
+  font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 500;
+  padding: 5px 10px; border-radius: 100px;
+  background: var(--apex-card-bg); color: var(--apex-fg);
+  border: 1px solid var(--apex-hairline);
+  z-index: 2; line-height: 1;
+}
+.apex-card-info-{{ sid }} {
+  padding: 16px 18px 18px;
+  display: flex; flex-direction: column; gap: 10px; flex: 1;
+}
+.apex-card-name-{{ sid }} {
+  font-size: 15px; font-weight: 500; letter-spacing: -0.01em; line-height: 1.35;
+  margin: 0; overflow: hidden;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  color: var(--apex-fg);
+}
+.apex-card-name-{{ sid }} a { color: inherit; text-decoration: none; }
+.apex-card-name-{{ sid }} a:hover { color: var(--apex-fg-muted); }
+.apex-card-price-{{ sid }} {
+  display: flex; align-items: baseline; gap: 8px;
+  font-variant-numeric: tabular-nums;
+}
+.apex-card-price-{{ sid }} .price-current { font-size: 14px; font-weight: 500; color: var(--apex-fg); }
+.apex-card-price-{{ sid }} .price-compare { font-size: 13px; color: var(--apex-fg-soft); text-decoration: line-through; }
+
+.apex-swatches-{{ sid }} { display: flex; gap: 6px; flex-wrap: wrap; }
+.apex-swatch-{{ sid }} {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 1px solid var(--apex-hairline); position: relative; flex-shrink: 0;
+}
+.apex-swatch-{{ sid }}.active { outline: 1.5px solid var(--apex-fg); outline-offset: 2px; }
+.apex-swatch-more-{{ sid }} { font-size: 11px; color: var(--apex-fg-soft); align-self: center; }
+
+/* ══════════════════════════════════════════════════════════════
+   SHARED QUICK-ADD BUTTON (showcase)
+══════════════════════════════════════════════════════════════ */
+.apex-atc-{{ sid }} {
+  width: 100%; padding: 11px 16px;
+  border-radius: var(--apex-r-btn);
+  border: 1px solid var(--apex-hairline);
+  background: transparent; color: var(--apex-fg);
+  font-size: 13px; font-weight: 500; letter-spacing: -0.005em;
+  cursor: pointer;
+  transition: background 0.25s var(--apex-ease), border-color 0.25s var(--apex-ease),
+              color 0.25s var(--apex-ease), transform 0.18s var(--apex-ease);
+  margin-top: auto; font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+  position: relative; overflow: hidden;
+}
+.apex-atc-{{ sid }}:hover:not(:disabled):not([data-state]) {
+  background: var(--apex-fg); color: var(--apex-card-bg); border-color: var(--apex-fg);
+}
+.apex-atc-{{ sid }}:active:not(:disabled) { transform: scale(0.98); }
+.apex-atc-{{ sid }}:focus-visible { outline: 2px solid var(--apex-accent); outline-offset: 2px; }
+.apex-atc-{{ sid }}[data-state="loading"] { opacity: 0.6; cursor: wait; }
+.apex-atc-{{ sid }}[data-state="added"] {
+  background: var(--apex-accent); color: #fff; border-color: var(--apex-accent);
+  animation: apex-pop-{{ sid }} 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes apex-pop-{{ sid }} {
+  0%   { transform: scale(0.96); }
+  50%  { transform: scale(1.025); }
+  100% { transform: scale(1); }
+}
+.apex-atc-{{ sid }}:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.apex-controls-{{ sid }} { display: flex; align-items: center; gap: 8px; }
+.apex-pause-{{ sid }} {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 1px solid var(--apex-hairline);
+  background: var(--apex-card-bg); color: var(--apex-fg);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s var(--apex-ease), border-color 0.2s var(--apex-ease);
+  outline: none; font-family: inherit; -webkit-tap-highlight-color: transparent;
+}
+.apex-pause-{{ sid }}:hover { background: var(--apex-fg); color: var(--apex-card-bg); border-color: var(--apex-fg); }
+.apex-pause-{{ sid }}:focus-visible { outline: 2px solid var(--apex-accent); outline-offset: 2px; }
+.apex-pause-{{ sid }} svg { width: 11px; height: 11px; fill: currentColor; }
+.apex-pause-{{ sid }} .apex-icon-play  { display: none; }
+.apex-pause-{{ sid }}[data-paused="true"] .apex-icon-play  { display: block; }
+.apex-pause-{{ sid }}[data-paused="true"] .apex-icon-pause { display: none; }
+
+@media (max-width: 749px) {
+  .apex-card-{{ sid }} { flex: 0 0 calc(var(--apex-card-w) * 0.82); width: calc(var(--apex-card-w) * 0.82); }
+  .apex-marquee-{{ sid }} { contain-intrinsic-size: 0 380px; }
+}
+@media (max-width: 480px) {
+  .apex-card-{{ sid }} { flex: 0 0 70vw; width: 70vw; max-width: 320px; }
+  .apex-marquee-{{ sid }} {
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 4%, #000 96%, transparent 100%);
+            mask-image: linear-gradient(90deg, transparent 0, #000 4%, #000 96%, transparent 100%);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   GRID MODE — Layout
+══════════════════════════════════════════════════════════════ */
+.apex-grid-{{ sid }} {
+  display: grid;
+  grid-template-columns: repeat({{ s.grid_cols_desktop | default: 4 }}, 1fr);
+  gap: var(--apex-grid-gap);
+}
+@media (max-width: 1023px) {
+  .apex-grid-{{ sid }} {
+    grid-template-columns: repeat({{ s.grid_cols_tablet | default: 2 }}, 1fr);
+  }
+}
+@media (max-width: 599px) {
+  .apex-grid-{{ sid }} {
+    grid-template-columns: repeat({{ s.grid_cols_mobile | default: 2 }}, 1fr);
+    gap: calc(var(--apex-grid-gap) * 0.75);
+  }
+  .apex-gc-{{ sid }}:nth-child(n + {{ mobile_cap_start }}) { display: none; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   GRID MODE — Card
+══════════════════════════════════════════════════════════════ */
+.apex-gc-{{ sid }} {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity   0.5s var(--apex-ease) calc(var(--apex-stagger, 0) * 1ms),
+    transform 0.55s var(--apex-ease) calc(var(--apex-stagger, 0) * 1ms);
+}
+/* Once grid is visible, clear stagger delay so hero switches have no lag */
+.apex-grid-{{ sid }}.is-visible .apex-gc-{{ sid }} {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0ms;
+}
+/* Hero switch fade — JS adds/removes .is-switching briefly */
+.apex-gc-{{ sid }}.is-switching {
+  opacity: 0 !important;
+  transition: opacity 0.22s ease !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .apex-gc-{{ sid }} { opacity: 1; transform: none; transition: none; }
+}
+
+/* Hero first card */
+{%- if s.grid_hero_first -%}
+.apex-gc-{{ sid }}.is-hero {
+  grid-column: span 2;
+}
+@media (max-width: 599px) {
+  .apex-gc-{{ sid }}.is-hero {
+    grid-column: span {{ s.grid_cols_mobile | default: 2 }};
+  }
+}
+{%- endif -%}
+
+/* Sold-out state */
+.apex-gc-{{ sid }}.is-sold-out .apex-gi-{{ sid }} { opacity: 0.55; }
+
+/* ══════════════════════════════════════════════════════════════
+   GRID MODE — Image container
+══════════════════════════════════════════════════════════════ */
+.apex-gi-{{ sid }} {
+  position: relative;
+  overflow: hidden;
+  background: var(--apex-img-bg);
+  border-radius: var(--apex-r-card);
+  aspect-ratio: var(--apex-grid-aspect);
+}
+.apex-gi-{{ sid }}.is-hero {
+  aspect-ratio: var(--apex-grid-hero-asp);
+}
+.apex-glink-{{ sid }} {
+  position: absolute;
+  inset: 0;
+  display: block;
+  text-decoration: none;
+}
+
+/* Primary & secondary images */
+.apex-gi-{{ sid }} .img-p,
+.apex-gi-{{ sid }} .img-s {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: opacity 0.55s ease, transform 0.65s var(--apex-ease-out);
+}
+.apex-gi-{{ sid }} .img-p { z-index: 1; opacity: 1; }
+.apex-gi-{{ sid }} .img-s { z-index: 2; opacity: 0; }
+.apex-gc-{{ sid }}:hover .apex-gi-{{ sid }} .img-s { opacity: 1; }
+.apex-gc-{{ sid }}:hover .apex-gi-{{ sid }} .img-p { transform: scale(1.04); }
+
+/* Placeholder SVG */
+.apex-gi-{{ sid }} svg {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   GRID MODE — Badges
+══════════════════════════════════════════════════════════════ */
+.apex-gbadge-{{ sid }} {
+  position: absolute;
+  top: 10px;
+  z-index: 10;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 4px 9px;
+  border-radius: 100px;
+  line-height: 1.4;
+  pointer-events: none;
+}
+.apex-gbadge-{{ sid }}.is-sale {
+  left: 10px;
+  background: {{ s.sale_badge_bg | default: '#111' }};
+  color: {{ s.sale_badge_fg | default: '#fff' }};
+}
+.apex-gbadge-{{ sid }}.is-new {
+  right: 10px;
+  background: var(--apex-accent);
+  color: #fff;
+}
+.apex-gbadge-{{ sid }}.is-custom {
+  right: 10px;
+  background: var(--apex-card-bg);
+  color: var(--apex-fg);
+  border: 1px solid var(--apex-hairline);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   GRID MODE — Sold-out overlay
+══════════════════════════════════════════════════════════════ */
+.apex-gsold-{{ sid }} {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.35);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--apex-fg);
+  pointer-events: none;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   GRID MODE — Quick-add overlay (slides up from image bottom)
+══════════════════════════════════════════════════════════════ */
+.apex-gqa-{{ sid }} {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  z-index: 9;
+  padding: 8px;
+  transform: translateY(105%);
+  transition: transform 0.32s var(--apex-ease);
+  will-change: transform;
+}
+.apex-gc-{{ sid }}:hover .apex-gqa-{{ sid }},
+.apex-gc-{{ sid }}:focus-within .apex-gqa-{{ sid }} {
+  transform: translateY(0);
+}
+.apex-gqabtn-{{ sid }} {
+  display: block;
+  width: 100%;
+  /* Padding and font scale down proportionally in narrow 4-col cards */
+  padding: clamp(7px, 0.75vw, 11px) clamp(8px, 1vw, 14px);
+  border-radius: var(--apex-r-btn);
+  border: none;
+  background: rgba(255,255,255,0.94);
+  color: #111;
+  font-size: clamp(11px, 0.85vw, 13px);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease, transform 0.14s ease;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+  text-align: center;
+  text-decoration: none;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  box-shadow: 0 1px 12px rgba(0,0,0,0.12);
+  box-sizing: border-box;
+}
+.apex-gqabtn-{{ sid }}:hover:not(:disabled):not([data-state]) {
+  background: #111;
+  color: #fff;
+}
+.apex-gqabtn-{{ sid }}:active:not(:disabled) { transform: scale(0.98); }
+.apex-gqabtn-{{ sid }}:focus-visible { outline: 2px solid var(--apex-accent); outline-offset: 2px; }
+.apex-gqabtn-{{ sid }}[data-state="loading"] { opacity: 0.6; cursor: wait; pointer-events: none; }
+.apex-gqabtn-{{ sid }}[data-state="added"] {
+  background: var(--apex-accent); color: #fff;
+  animation: apex-pop-{{ sid }} 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.apex-gqabtn-{{ sid }}:disabled { opacity: 0.45; cursor: not-allowed; }
+
+@media (hover: none) {
+  /* Touch devices: always show quick-add */
+  .apex-gqa-{{ sid }} { transform: translateY(0); }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   GRID MODE — Card info
+══════════════════════════════════════════════════════════════ */
+.apex-ginfo-{{ sid }} {
+  padding: {{ s.grid_info_padding | default: 12 }}px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0; /* prevent flex blowout */
+}
+.apex-gvendor-{{ sid }} {
+  font-size: clamp(9px, 0.7vw, 11px);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--apex-fg-muted);
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.apex-gtitle-{{ sid }} {
+  font-size: clamp(12px, 0.95vw, 14px);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  margin: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  color: var(--apex-fg);
+}
+.apex-gtitle-{{ sid }} a { color: inherit; text-decoration: none; }
+.apex-gtitle-{{ sid }} a:hover { color: var(--apex-fg-muted); }
+
+.apex-gswatches-{{ sid }} { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; margin-top: 2px; }
+.apex-gswatch-{{ sid }} {
+  width: clamp(10px, 0.8vw, 13px);
+  height: clamp(10px, 0.8vw, 13px);
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.12); flex-shrink: 0;
+  cursor: pointer;
+}
+.apex-gswatch-more-{{ sid }} { font-size: clamp(9px, 0.7vw, 11px); color: var(--apex-fg-soft); }
+
+.apex-gprice-{{ sid }} {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 5px;
+  font-variant-numeric: tabular-nums;
+  margin-top: 2px;
+}
+.apex-gprice-{{ sid }} .gp-current {
+  font-size: clamp(12px, 0.95vw, 14px);
+  font-weight: 500;
+  color: var(--apex-fg);
+}
+.apex-gprice-{{ sid }} .gp-compare {
+  font-size: clamp(11px, 0.85vw, 13px);
+  color: var(--apex-fg-soft);
+  text-decoration: line-through;
+}
+.apex-gprice-{{ sid }} .gp-low-stock {
+  font-size: clamp(9px, 0.7vw, 10px);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: #c0392b;
+  background: rgba(192,57,43,0.08);
+  padding: 2px 6px;
+  border-radius: 100px;
+  align-self: center;
+  white-space: nowrap;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   GRID MODE — View All CTA
+══════════════════════════════════════════════════════════════ */
+.apex-gviewall-{{ sid }} {
+  display: flex;
+  justify-content: center;
+  margin-top: clamp(24px, 3vw, 44px);
+}
+.apex-gviewall-{{ sid }} a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 36px;
+  border: 1.5px solid var(--apex-fg);
+  border-radius: var(--apex-r-btn);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--apex-fg);
+  text-decoration: none;
+  transition: background 0.22s var(--apex-ease), color 0.22s var(--apex-ease);
+  font-family: inherit;
+}
+.apex-gviewall-{{ sid }} a:hover {
+  background: var(--apex-fg);
+  color: var(--apex-card-bg);
+}
+.apex-gviewall-{{ sid }} a:focus-visible { outline: 2px solid var(--apex-accent); outline-offset: 3px; }
+.apex-gviewall-{{ sid }} a .arrow {
+  transition: transform 0.22s var(--apex-ease);
+  display: inline-block;
+}
+.apex-gviewall-{{ sid }} a:hover .arrow { transform: translateX(4px); }
+
+/* ══════════════════════════════════════════════════════════════
+   SINGLE PRODUCT MODE
+══════════════════════════════════════════════════════════════ */
+.apex-single-{{ sid }} {
+  display: grid;
+  gap: clamp(20px, 3vw, 40px);
+}
+@media (min-width: 750px) {
+  .apex-single-{{ sid }} { grid-template-columns: 1fr 1fr; align-items: start; }
+  .apex-single-{{ sid }}.is-text-first .apex-single-media-{{ sid }} { order: 2; }
+}
+.apex-single-media-{{ sid }} img {
+  width: 100%; height: auto; display: block; border-radius: var(--apex-r-card);
+}
+.apex-single-info-{{ sid }} h1 {
+  font-size: clamp(28px, 4vw, 44px); font-weight: 600; letter-spacing: -0.02em;
+  line-height: 1.05; margin: 0 0 12px;
+}
+.apex-single-price-{{ sid }} {
+  font-size: 22px; font-weight: 500; margin: 0 0 24px;
+}
+.apex-single-price-{{ sid }} .price-compare {
+  font-size: 16px; color: var(--apex-fg-soft); text-decoration: line-through; margin-left: 10px;
+}
+.apex-single-desc-{{ sid }} {
+  font-size: 16px; line-height: 1.55; color: var(--apex-fg-muted); margin: 0 0 24px;
+}
+.apex-single-buy-{{ sid }} {
+  display: block; width: 100%; padding: 14px 20px;
+  background: var(--apex-fg); color: var(--apex-card-bg);
+  border: 0; border-radius: var(--apex-r-btn);
+  font-size: 15px; font-weight: 500; cursor: pointer;
+  transition: background 0.2s var(--apex-ease), transform 0.18s var(--apex-ease);
+  font-family: inherit; text-align: center; text-decoration: none;
+}
+.apex-single-buy-{{ sid }}:hover { background: var(--apex-accent); }
+.apex-single-buy-{{ sid }}:active { transform: scale(0.99); }
+.apex-single-buy-{{ sid }}:disabled { opacity: 0.5; cursor: not-allowed; }
+</style>
+
+<div class="apex-{{ sid }}">
+  <div class="apex-wrap-{{ sid }}">
+
+  {%- if mode == 'single' -%}
+    {%- if product != blank -%}
+      <div class="apex-single-{{ sid }}{% if s.layout == 'text_first' %} is-text-first{% endif %}">
+        <div class="apex-single-media-{{ sid }}">
+          {%- if first_image -%}
+            <img
+              src="{{ first_image | image_url: width: 1100 }}"
+              srcset="{{ first_image | image_url: width: 550 }} 550w, {{ first_image | image_url: width: 1100 }} 1100w, {{ first_image | image_url: width: 1500 }} 1500w"
+              sizes="(min-width: 750px) 50vw, 100vw"
+              alt="{{ first_image.alt | default: product.title | escape }}"
+              loading="eager" fetchpriority="high"
+              width="{{ first_image.width | default: 1100 }}"
+              height="{{ first_image.height | default: 1100 }}">
+          {%- else -%}
+            {{ 'product-1' | placeholder_svg_tag: 'placeholder' }}
+          {%- endif -%}
+        </div>
+        <div class="apex-single-info-{{ sid }}">
+          <h1>{{ product.title | escape }}</h1>
+          <div class="apex-single-price-{{ sid }}">
+            <span>{{ cv.price | money }}</span>
+            {%- if cv.compare_at_price > cv.price -%}
+              <span class="price-compare">{{ cv.compare_at_price | money }}</span>
+            {%- endif -%}
+          </div>
+          {%- if product.description != blank -%}
+            <div class="apex-single-desc-{{ sid }}">
+              {{ product.description | strip_html | truncate: 280 }}
+            </div>
+          {%- endif -%}
+          {%- if cv.available -%}
+            <form action="{{ routes.cart_add_url }}" method="post" class="apex-atc-form-{{ sid }}"
+              data-orig="{{ 'products.product.add_to_cart' | t | escape }}">
+              <input type="hidden" name="id"       value="{{ cv.id }}">
+              <input type="hidden" name="quantity" value="1">
+              <button type="submit" class="apex-single-buy-{{ sid }}">
+                {{ 'products.product.add_to_cart' | t }}
+              </button>
+            </form>
+          {%- else -%}
+            <button class="apex-single-buy-{{ sid }}" disabled>
+              {{ 'products.product.sold_out' | t }}
+            </button>
+          {%- endif -%}
+          <a href="{{ product.url }}" style="display:inline-block;margin-top:14px;color:var(--apex-accent);text-decoration:none;font-size:14px;font-weight:500;">
+            {{ 'products.product.view_full_details' | t | default: 'View full details' }} &rarr;
+          </a>
+        </div>
+      </div>
+    {%- else -%}
+      <p style="text-align:center;color:var(--apex-fg-muted);">Add a product in the section settings.</p>
+    {%- endif -%}
+
+  {%- elsif mode == 'grid' -%}
+  {%- comment -%} ═══ GRID MODE ═══ {%- endcomment -%}
+
+    {%- if s.title != blank or s.eyebrow != blank -%}
+      <div class="apex-head-{{ sid }}">
+        <div>
+          {%- if s.eyebrow != blank -%}<span class="apex-eyebrow">{{ s.eyebrow | escape }}</span>{%- endif -%}
+          {%- if s.title != blank -%}<h2>{{ s.title | escape }}</h2>{%- endif -%}
+        </div>
+        {%- if s.show_view_all and source_kind == 'collection' and s.source_collection != blank -%}
+          <a href="{{ s.source_collection.url }}" style="font-size:14px;font-weight:500;color:var(--apex-accent);text-decoration:none;white-space:nowrap;">
+            {{ s.view_all_text | default: 'View all' }} &rarr;
+          </a>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    {%- liquid
+      assign grid_has_items = false
+      if source_kind == 'collection' and s.source_collection.products_count > 0
+        assign grid_has_items = true
+      elsif source_kind == 'blocks' and p_blocks.size > 0
+        assign grid_has_items = true
+      endif
+    -%}
+
+    {%- if grid_has_items -%}
+      <div class="apex-grid-{{ sid }}" data-apex-grid{% if s.grid_hero_first and grid_hero_auto %} data-apex-hero-auto="true"{% endif %}>
+
+        {%- if source_kind == 'collection' -%}
+          {%- if grid_hero_product != blank -%}
+            {%- liquid
+              assign p    = grid_hero_product
+              assign pcv  = p.first_available_variant
+              if pcv == nil
+                assign pcv = p.selected_or_first_available_variant
+              endif
+              if pcv == nil
+                assign pcv = p.variants.first
+              endif
+              assign pimg  = nil
+              assign pimg2 = nil
+              if pcv != nil
+                assign pimg = pcv.featured_image
+              endif
+              if pimg == nil
+                assign pimg = p.featured_image
+              endif
+              if pimg == nil and p.images.size > 0
+                assign pimg = p.images.first
+              endif
+              if p.images.size > 1
+                assign pimg2 = p.images[1]
+              endif
+              assign on_sale  = false
+              assign disc_pct = 0
+              if pcv != nil and pcv.compare_at_price > pcv.price
+                assign on_sale  = true
+                assign disc_pct = pcv.compare_at_price | minus: pcv.price | times: 100 | divided_by: pcv.compare_at_price
+              endif
+              assign is_new = false
+              if s.new_tag != blank and p.tags contains s.new_tag
+                assign is_new = true
+              endif
+              assign low_stock = false
+              if s.show_low_stock and pcv != nil and pcv.inventory_management != blank and pcv.inventory_quantity > 0 and pcv.inventory_quantity <= s.low_stock_threshold
+                assign low_stock = true
+              endif
+            -%}
+            <div class="apex-gc-{{ sid }} is-hero{% unless pcv.available %} is-sold-out{% endunless %}"
+              style="--apex-stagger:0" data-apex-gcard>
+              <div class="apex-gi-{{ sid }} is-hero">
+                <a href="{{ p.url }}" class="apex-glink-{{ sid }}" aria-label="{{ p.title | escape }}" tabindex="0">
+                  {%- if pimg -%}
+                    <img class="img-p"
+                      src="{{ pimg | image_url: width: 800 }}"
+                      srcset="{{ pimg | image_url: width: 400 }} 400w, {{ pimg | image_url: width: 800 }} 800w, {{ pimg | image_url: width: 1200 }} 1200w"
+                      sizes="(min-width: 1024px) calc({{ 100 | divided_by: s.grid_cols_desktop | default: 25 }}vw - 24px), 48vw"
+                      alt="{{ pimg.alt | default: p.title | escape }}"
+                      loading="lazy" decoding="async"
+                      width="{{ pimg.width }}" height="{{ pimg.height }}">
+                    {%- if s.grid_second_image and pimg2 != nil -%}
+                      <img class="img-s"
+                        src="{{ pimg2 | image_url: width: 800 }}"
+                        srcset="{{ pimg2 | image_url: width: 400 }} 400w, {{ pimg2 | image_url: width: 800 }} 800w"
+                        sizes="48vw"
+                        alt="{{ pimg2.alt | default: p.title | escape }}"
+                        loading="lazy" decoding="async"
+                        width="{{ pimg2.width }}" height="{{ pimg2.height }}">
+                    {%- endif -%}
+                  {%- else -%}
+                    {{ 'product-1' | placeholder_svg_tag: 'placeholder' }}
+                  {%- endif -%}
+                </a>
+                {%- unless pcv.available -%}<div class="apex-gsold-{{ sid }}">{{ 'products.product.sold_out' | t }}</div>{%- endunless -%}
+                {%- if on_sale -%}
+                  <span class="apex-gbadge-{{ sid }} is-sale">{%- if s.show_discount_pct and disc_pct > 0 -%}-{{ disc_pct }}%{%- else -%}{{ 'products.product.on_sale' | t | default: 'Sale' }}{%- endif -%}</span>
+                {%- endif -%}
+                {%- if is_new -%}<span class="apex-gbadge-{{ sid }} is-new">{{ s.new_tag_label | default: 'New' | escape }}</span>{%- endif -%}
+                {%- if s.show_quick_add -%}
+                  <div class="apex-gqa-{{ sid }}">
+                    {%- if pcv.available -%}
+                      {%- if p.has_only_default_variant -%}
+                        <form action="{{ routes.cart_add_url }}" method="post" class="apex-atc-form-{{ sid }}" data-orig="{{ 'products.product.add_to_cart' | t | escape }}">
+                          <input type="hidden" name="id" value="{{ pcv.id }}">
+                          <input type="hidden" name="quantity" value="1">
+                          <button type="submit" class="apex-gqabtn-{{ sid }}">{{ 'products.product.add_to_cart' | t }}</button>
+                        </form>
+                      {%- else -%}
+                        <a href="{{ p.url }}" class="apex-gqabtn-{{ sid }}">{{ s.options_text | default: 'Choose Options' | escape }}</a>
+                      {%- endif -%}
+                    {%- else -%}
+                      <button class="apex-gqabtn-{{ sid }}" disabled>{{ 'products.product.sold_out' | t }}</button>
+                    {%- endif -%}
+                  </div>
+                {%- endif -%}
+              </div>
+              <div class="apex-ginfo-{{ sid }}">
+                {%- if s.show_vendor and p.vendor != blank -%}<span class="apex-gvendor-{{ sid }}">{{ p.vendor | escape }}</span>{%- endif -%}
+                <p class="apex-gtitle-{{ sid }}"><a href="{{ p.url }}">{{ p.title | escape }}</a></p>
+                {%- unless p.has_only_default_variant -%}
+                  {%- for opt in p.options_with_values -%}
+                    {%- assign dn = opt.name | downcase -%}
+                    {%- if dn == 'color' or dn == 'colour' -%}
+                      <div class="apex-gswatches-{{ sid }}">
+                        {%- for val in opt.values limit: 6 -%}<span class="apex-gswatch-{{ sid }}" title="{{ val | escape }}" style="background:{{ val | handle }};"></span>{%- endfor -%}
+                        {%- if opt.values.size > 6 -%}<span class="apex-gswatch-more-{{ sid }}">+{{ opt.values.size | minus: 6 }}</span>{%- endif -%}
+                      </div>
+                      {%- break -%}
+                    {%- endif -%}
+                  {%- endfor -%}
+                {%- endunless -%}
+                <div class="apex-gprice-{{ sid }}">
+                  <span class="gp-current">{% if pcv != nil %}{{ pcv.price | money }}{% else %}{{ p.price | money }}{% endif %}</span>
+                  {%- if on_sale -%}<span class="gp-compare">{{ pcv.compare_at_price | money }}</span>{%- endif -%}
+                  {%- if low_stock -%}<span class="gp-low-stock">{{ s.low_stock_text | default: 'Low stock' | escape }}</span>{%- endif -%}
+                </div>
+              </div>
+            </div>
+          {%- endif -%}
+
+          {%- for p in s.source_collection.products limit: grid_max -%}
+            {%- liquid
+              # Skip if this is the manually-set hero (already rendered above)
+              assign skip = false
+              if grid_hero_product != blank and p.id == grid_hero_product.id
+                assign skip = true
+              endif
+            -%}
+            {%- unless skip -%}
+            {%- liquid
+              assign pcv = p.first_available_variant
+              if pcv == nil
+                assign pcv = p.selected_or_first_available_variant
+              endif
+              if pcv == nil
+                assign pcv = p.variants.first
+              endif
+
+              assign pimg  = nil
+              assign pimg2 = nil
+              if pcv != nil
+                assign pimg = pcv.featured_image
+              endif
+              if pimg == nil
+                assign pimg = p.featured_image
+              endif
+              if pimg == nil and p.images.size > 0
+                assign pimg = p.images.first
+              endif
+              if p.images.size > 1
+                assign pimg2 = p.images[1]
+              endif
+
+              assign on_sale = false
+              assign disc_pct = 0
+              if pcv != nil and pcv.compare_at_price > pcv.price
+                assign on_sale = true
+                assign disc_pct = pcv.compare_at_price | minus: pcv.price | times: 100 | divided_by: pcv.compare_at_price
+              endif
+
+              assign is_new = false
+              if s.new_tag != blank and p.tags contains s.new_tag
+                assign is_new = true
+              endif
+
+              assign low_stock = false
+              if s.show_low_stock and pcv != nil and pcv.inventory_management != blank and pcv.inventory_quantity > 0 and pcv.inventory_quantity <= s.low_stock_threshold
+                assign low_stock = true
+              endif
+
+              assign stagger_delay = forloop.index0 | times: 55
+              if stagger_delay > 440
+                assign stagger_delay = 440
+              endif
+
+              assign is_hero = false
+              if s.grid_hero_first and grid_hero_auto and forloop.first
+                assign is_hero = true
+              endif
+            -%}
+            <div class="apex-gc-{{ sid }}{% if is_hero %} is-hero{% endif %}{% unless pcv.available %} is-sold-out{% endunless %}"
+              style="--apex-stagger:{{ stagger_delay }}" data-apex-gcard>
+              <div class="apex-gi-{{ sid }}{% if is_hero %} is-hero{% endif %}">
+                <a href="{{ p.url }}" class="apex-glink-{{ sid }}" aria-label="{{ p.title | escape }}" tabindex="0">
+                  {%- if pimg -%}
+                    <img class="img-p"
+                      src="{{ pimg | image_url: width: 800 }}"
+                      srcset="{{ pimg | image_url: width: 400 }} 400w, {{ pimg | image_url: width: 800 }} 800w, {{ pimg | image_url: width: 1200 }} 1200w"
+                      sizes="(min-width: 1024px) calc({{ 100 | divided_by: s.grid_cols_desktop | default: 25 }}vw - 24px), (min-width: 600px) calc({{ 100 | divided_by: s.grid_cols_tablet | default: 50 }}vw - 20px), 48vw"
+                      alt="{{ pimg.alt | default: p.title | escape }}"
+                      loading="lazy" decoding="async"
+                      width="{{ pimg.width }}" height="{{ pimg.height }}">
+                    {%- if s.grid_second_image and pimg2 != nil -%}
+                      <img class="img-s"
+                        src="{{ pimg2 | image_url: width: 800 }}"
+                        srcset="{{ pimg2 | image_url: width: 400 }} 400w, {{ pimg2 | image_url: width: 800 }} 800w"
+                        sizes="(min-width: 1024px) calc({{ 100 | divided_by: s.grid_cols_desktop | default: 25 }}vw - 24px), 48vw"
+                        alt="{{ pimg2.alt | default: p.title | escape }}"
+                        loading="lazy" decoding="async"
+                        width="{{ pimg2.width }}" height="{{ pimg2.height }}">
+                    {%- endif -%}
+                  {%- else -%}
+                    {{ 'product-1' | placeholder_svg_tag: 'placeholder' }}
+                  {%- endif -%}
+                </a>
+
+                {%- unless pcv.available -%}
+                  <div class="apex-gsold-{{ sid }}">{{ 'products.product.sold_out' | t }}</div>
+                {%- endunless -%}
+
+                {%- if on_sale -%}
+                  <span class="apex-gbadge-{{ sid }} is-sale">
+                    {%- if s.show_discount_pct and disc_pct > 0 -%}-{{ disc_pct }}%{%- else -%}{{ 'products.product.on_sale' | t | default: 'Sale' }}{%- endif -%}
+                  </span>
+                {%- endif -%}
+                {%- if is_new -%}
+                  <span class="apex-gbadge-{{ sid }} is-new">{{ s.new_tag_label | default: 'New' | escape }}</span>
+                {%- endif -%}
+
+                {%- if s.show_quick_add -%}
+                  <div class="apex-gqa-{{ sid }}">
+                    {%- if pcv.available -%}
+                      {%- if p.has_only_default_variant -%}
+                        <form action="{{ routes.cart_add_url }}" method="post" class="apex-atc-form-{{ sid }}"
+                          data-orig="{{ 'products.product.add_to_cart' | t | escape }}">
+                          <input type="hidden" name="id"       value="{{ pcv.id }}">
+                          <input type="hidden" name="quantity" value="1">
+                          <button type="submit" class="apex-gqabtn-{{ sid }}">
+                            {{ 'products.product.add_to_cart' | t }}
+                          </button>
+                        </form>
+                      {%- else -%}
+                        <a href="{{ p.url }}" class="apex-gqabtn-{{ sid }}">
+                          {{ s.options_text | default: 'Choose Options' | escape }}
+                        </a>
+                      {%- endif -%}
+                    {%- else -%}
+                      <button class="apex-gqabtn-{{ sid }}" disabled>{{ 'products.product.sold_out' | t }}</button>
+                    {%- endif -%}
+                  </div>
+                {%- endif -%}
+              </div>
+
+              <div class="apex-ginfo-{{ sid }}">
+                {%- if s.show_vendor and p.vendor != blank -%}
+                  <span class="apex-gvendor-{{ sid }}">{{ p.vendor | escape }}</span>
+                {%- endif -%}
+                <p class="apex-gtitle-{{ sid }}"><a href="{{ p.url }}">{{ p.title | escape }}</a></p>
+                {%- unless p.has_only_default_variant -%}
+                  {%- for opt in p.options_with_values -%}
+                    {%- assign dn = opt.name | downcase -%}
+                    {%- if dn == 'color' or dn == 'colour' -%}
+                      <div class="apex-gswatches-{{ sid }}">
+                        {%- for val in opt.values limit: 6 -%}
+                          <span class="apex-gswatch-{{ sid }}" title="{{ val | escape }}" style="background:{{ val | handle }};"></span>
+                        {%- endfor -%}
+                        {%- if opt.values.size > 6 -%}
+                          <span class="apex-gswatch-more-{{ sid }}">+{{ opt.values.size | minus: 6 }}</span>
+                        {%- endif -%}
+                      </div>
+                      {%- break -%}
+                    {%- endif -%}
+                  {%- endfor -%}
+                {%- endunless -%}
+                <div class="apex-gprice-{{ sid }}">
+                  <span class="gp-current">{% if pcv != nil %}{{ pcv.price | money }}{% else %}{{ p.price | money }}{% endif %}</span>
+                  {%- if on_sale -%}<span class="gp-compare">{{ pcv.compare_at_price | money }}</span>{%- endif -%}
+                  {%- if low_stock -%}<span class="gp-low-stock">{{ s.low_stock_text | default: 'Low stock' | escape }}</span>{%- endif -%}
+                </div>
+              </div>
+            </div>
+            {%- endunless -%}
+          {%- endfor -%}
+
+        {%- elsif source_kind == 'blocks' -%}
+          {%- for block in p_blocks limit: grid_max -%}
+            {%- assign p = block.settings.product -%}
+            {%- if p != blank -%}
+              {%- liquid
+                assign pcv = p.first_available_variant
+                if pcv == nil
+                  assign pcv = p.selected_or_first_available_variant
+                endif
+                if pcv == nil
+                  assign pcv = p.variants.first
+                endif
+                assign pimg  = nil
+                assign pimg2 = nil
+                if pcv != nil
+                  assign pimg = pcv.featured_image
+                endif
+                if pimg == nil
+                  assign pimg = p.featured_image
+                endif
+                if pimg == nil and p.images.size > 0
+                  assign pimg = p.images.first
+                endif
+                if p.images.size > 1
+                  assign pimg2 = p.images[1]
+                endif
+                assign on_sale = false
+                assign disc_pct = 0
+                if pcv != nil and pcv.compare_at_price > pcv.price
+                  assign on_sale = true
+                  assign disc_pct = pcv.compare_at_price | minus: pcv.price | times: 100 | divided_by: pcv.compare_at_price
+                endif
+                assign is_new = false
+                if s.new_tag != blank and p.tags contains s.new_tag
+                  assign is_new = true
+                endif
+                assign low_stock = false
+                if s.show_low_stock and pcv != nil and pcv.inventory_management != blank and pcv.inventory_quantity > 0 and pcv.inventory_quantity <= s.low_stock_threshold
+                  assign low_stock = true
+                endif
+                assign stagger_delay = forloop.index0 | times: 55
+                if stagger_delay > 440
+                  assign stagger_delay = 440
+                endif
+                assign is_hero = false
+                if s.grid_hero_first and grid_hero_auto and forloop.first
+                  assign is_hero = true
+                endif
+              -%}
+              <div class="apex-gc-{{ sid }}{% if is_hero %} is-hero{% endif %}{% unless pcv.available %} is-sold-out{% endunless %}"
+                style="--apex-stagger:{{ stagger_delay }}" {{ block.shopify_attributes }} data-apex-gcard>
+                <div class="apex-gi-{{ sid }}{% if is_hero %} is-hero{% endif %}">
+                  <a href="{{ p.url }}" class="apex-glink-{{ sid }}" aria-label="{{ p.title | escape }}" tabindex="0">
+                    {%- if pimg -%}
+                      <img class="img-p"
+                        src="{{ pimg | image_url: width: 800 }}"
+                        srcset="{{ pimg | image_url: width: 400 }} 400w, {{ pimg | image_url: width: 800 }} 800w, {{ pimg | image_url: width: 1200 }} 1200w"
+                        sizes="(min-width: 1024px) calc({{ 100 | divided_by: s.grid_cols_desktop | default: 25 }}vw - 24px), (min-width: 600px) calc({{ 100 | divided_by: s.grid_cols_tablet | default: 50 }}vw - 20px), 48vw"
+                        alt="{{ pimg.alt | default: p.title | escape }}"
+                        loading="lazy" decoding="async"
+                        width="{{ pimg.width }}" height="{{ pimg.height }}">
+                      {%- if s.grid_second_image and pimg2 != nil -%}
+                        <img class="img-s"
+                          src="{{ pimg2 | image_url: width: 800 }}"
+                          srcset="{{ pimg2 | image_url: width: 400 }} 400w, {{ pimg2 | image_url: width: 800 }} 800w"
+                          sizes="48vw"
+                          alt="{{ pimg2.alt | default: p.title | escape }}"
+                          loading="lazy" decoding="async"
+                          width="{{ pimg2.width }}" height="{{ pimg2.height }}">
+                      {%- endif -%}
+                    {%- else -%}
+                      {{ 'product-1' | placeholder_svg_tag: 'placeholder' }}
+                    {%- endif -%}
+                  </a>
+
+                  {%- unless pcv.available -%}
+                    <div class="apex-gsold-{{ sid }}">{{ 'products.product.sold_out' | t }}</div>
+                  {%- endunless -%}
+
+                  {%- if on_sale -%}
+                    <span class="apex-gbadge-{{ sid }} is-sale">
+                      {%- if s.show_discount_pct and disc_pct > 0 -%}-{{ disc_pct }}%{%- else -%}{{ 'products.product.on_sale' | t | default: 'Sale' }}{%- endif -%}
+                    </span>
+                  {%- endif -%}
+                  {%- if is_new -%}
+                    <span class="apex-gbadge-{{ sid }} is-new">{{ s.new_tag_label | default: 'New' | escape }}</span>
+                  {%- endif -%}
+                  {%- if block.settings.badge != blank -%}
+                    <span class="apex-gbadge-{{ sid }} is-custom">{{ block.settings.badge | escape }}</span>
+                  {%- endif -%}
+
+                  {%- if s.show_quick_add -%}
+                    <div class="apex-gqa-{{ sid }}">
+                      {%- if pcv.available -%}
+                        {%- if p.has_only_default_variant -%}
+                          <form action="{{ routes.cart_add_url }}" method="post" class="apex-atc-form-{{ sid }}"
+                            data-orig="{{ 'products.product.add_to_cart' | t | escape }}">
+                            <input type="hidden" name="id"       value="{{ pcv.id }}">
+                            <input type="hidden" name="quantity" value="1">
+                            <button type="submit" class="apex-gqabtn-{{ sid }}">{{ 'products.product.add_to_cart' | t }}</button>
+                          </form>
+                        {%- else -%}
+                          <a href="{{ p.url }}" class="apex-gqabtn-{{ sid }}">{{ s.options_text | default: 'Choose Options' | escape }}</a>
+                        {%- endif -%}
+                      {%- else -%}
+                        <button class="apex-gqabtn-{{ sid }}" disabled>{{ 'products.product.sold_out' | t }}</button>
+                      {%- endif -%}
+                    </div>
+                  {%- endif -%}
+                </div>
+
+                <div class="apex-ginfo-{{ sid }}">
+                  {%- if s.show_vendor and p.vendor != blank -%}
+                    <span class="apex-gvendor-{{ sid }}">{{ p.vendor | escape }}</span>
+                  {%- endif -%}
+                  <p class="apex-gtitle-{{ sid }}"><a href="{{ p.url }}">{{ p.title | escape }}</a></p>
+                  {%- unless p.has_only_default_variant -%}
+                    {%- for opt in p.options_with_values -%}
+                      {%- assign dn = opt.name | downcase -%}
+                      {%- if dn == 'color' or dn == 'colour' -%}
+                        <div class="apex-gswatches-{{ sid }}">
+                          {%- for val in opt.values limit: 6 -%}
+                            <span class="apex-gswatch-{{ sid }}" title="{{ val | escape }}" style="background:{{ val | handle }};"></span>
+                          {%- endfor -%}
+                          {%- if opt.values.size > 6 -%}
+                            <span class="apex-gswatch-more-{{ sid }}">+{{ opt.values.size | minus: 6 }}</span>
+                          {%- endif -%}
+                        </div>
+                        {%- break -%}
+                      {%- endif -%}
+                    {%- endfor -%}
+                  {%- endunless -%}
+                  <div class="apex-gprice-{{ sid }}">
+                    <span class="gp-current">{% if pcv != nil %}{{ pcv.price | money }}{% else %}{{ p.price | money }}{% endif %}</span>
+                    {%- if on_sale -%}<span class="gp-compare">{{ pcv.compare_at_price | money }}</span>{%- endif -%}
+                    {%- if low_stock -%}<span class="gp-low-stock">{{ s.low_stock_text | default: 'Low stock' | escape }}</span>{%- endif -%}
+                  </div>
+                </div>
+              </div>
+            {%- endif -%}
+          {%- endfor -%}
+        {%- endif -%}
+
+      </div>{%- comment -%}/apex-grid{%- endcomment -%}
+
+      {%- if s.show_view_all and source_kind == 'collection' and s.source_collection != blank -%}
+        <div class="apex-gviewall-{{ sid }}">
+          <a href="{{ s.source_collection.url }}">
+            {{ s.view_all_text | default: 'View all' | escape }}
+            <span class="arrow" aria-hidden="true">&rarr;</span>
+          </a>
+        </div>
+      {%- endif -%}
+
+    {%- else -%}
+      <p style="text-align:center;color:var(--apex-fg-muted);padding:40px 0;">
+        Pick a collection or add Product blocks in the section settings.
+      </p>
+    {%- endif -%}
+
+  {%- else -%}
+  {%- comment -%} ═══ SHOWCASE (dual-row marquee) ═══ {%- endcomment -%}
+
+    {%- if s.title != blank or s.eyebrow != blank or s.autoscroll_enabled -%}
+      <div class="apex-head-{{ sid }}">
+        <div>
+          {%- if s.eyebrow != blank -%}<span class="apex-eyebrow">{{ s.eyebrow | escape }}</span>{%- endif -%}
+          {%- if s.title != blank -%}<h2>{{ s.title | escape }}</h2>{%- endif -%}
+        </div>
+        {%- if s.autoscroll_enabled and s.show_pause_button -%}
+          <div class="apex-controls-{{ sid }}">
+            <button type="button" class="apex-pause-{{ sid }}" data-apex-pause data-paused="false"
+              aria-label="Pause auto-scroll">
+              <svg class="apex-icon-pause" viewBox="0 0 12 12" aria-hidden="true">
+                <rect x="3" y="2" width="2" height="8" rx="0.5"/>
+                <rect x="7" y="2" width="2" height="8" rx="0.5"/>
+              </svg>
+              <svg class="apex-icon-play" viewBox="0 0 12 12" aria-hidden="true">
+                <path d="M3 2 L10 6 L3 10 Z"/>
+              </svg>
+            </button>
+          </div>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    {%- capture cards -%}
+      {%- if source_kind == 'collection' -%}
+        {%- for p in s.source_collection.products limit: max_products -%}
+          {%- liquid
+            assign pcv = p.first_available_variant
+            if pcv == nil
+              assign pcv = p.selected_or_first_available_variant
+            endif
+            if pcv == nil
+              assign pcv = p.variants.first
+            endif
+            assign pimg = nil
+            if pcv != nil
+              assign pimg = pcv.featured_image
+            endif
+            if pimg == nil
+              assign pimg = p.featured_image
+            endif
+            if pimg == nil and p.images.size > 0
+              assign pimg = p.images.first
+            endif
+            assign on_sale = false
+            if pcv != nil and pcv.compare_at_price > pcv.price
+              assign on_sale = true
+            endif
+          -%}
+          <div class="apex-card-{{ sid }}">
+            <a href="{{ p.url }}" class="apex-card-img-{{ sid }}" aria-label="{{ p.title | escape }}" tabindex="-1">
+              {%- if pimg -%}
+                <img
+                  src="{{ pimg | image_url: width: 600 }}"
+                  srcset="{{ pimg | image_url: width: 300 }} 300w, {{ pimg | image_url: width: 600 }} 600w, {{ pimg | image_url: width: 900 }} 900w"
+                  sizes="{{ computed_width }}px"
+                  alt="{{ pimg.alt | default: p.title | escape }}"
+                  loading="lazy" decoding="async"
+                  width="{{ pimg.width }}" height="{{ pimg.height }}">
+              {%- else -%}
+                {{ 'product-1' | placeholder_svg_tag: 'placeholder' }}
+              {%- endif -%}
+              {%- if on_sale -%}<span class="apex-sale-{{ sid }}">{{ 'products.product.on_sale' | t | default: 'Sale' }}</span>{%- endif -%}
+            </a>
+            <div class="apex-card-info-{{ sid }}">
+              <p class="apex-card-name-{{ sid }}"><a href="{{ p.url }}">{{ p.title | escape }}</a></p>
+              <div class="apex-card-price-{{ sid }}">
+                <span class="price-current">{% if pcv != nil %}{{ pcv.price | money }}{% else %}{{ p.price | money }}{% endif %}</span>
+                {%- if on_sale -%}<span class="price-compare">{{ pcv.compare_at_price | money }}</span>{%- endif -%}
+              </div>
+              {%- unless p.has_only_default_variant -%}
+                {%- for opt in p.options_with_values -%}
+                  {%- assign dn = opt.name | downcase -%}
+                  {%- if dn == 'color' or dn == 'colour' -%}
+                    <div class="apex-swatches-{{ sid }}">
+                      {%- for val in opt.values limit: 5 -%}
+                        <span class="apex-swatch-{{ sid }}{% if opt.selected_value == val %} active{% endif %}"
+                          title="{{ val | escape }}" style="background:{{ val | handle }};"></span>
+                      {%- endfor -%}
+                      {%- if opt.values.size > 5 -%}
+                        <span class="apex-swatch-more-{{ sid }}">+{{ opt.values.size | minus: 5 }}</span>
+                      {%- endif -%}
+                    </div>
+                    {%- break -%}
+                  {%- endif -%}
+                {%- endfor -%}
+              {%- endunless -%}
+              {%- if s.show_quick_add -%}
+                {%- if pcv.available -%}
+                  <form action="{{ routes.cart_add_url }}" method="post" class="apex-atc-form-{{ sid }}"
+                    data-orig="{% if p.has_only_default_variant %}{{ 'products.product.add_to_cart' | t | escape }}{% else %}{{ s.quick_add_text | default: 'Quick Add' | escape }}{% endif %}">
+                    <input type="hidden" name="id"       value="{{ pcv.id }}">
+                    <input type="hidden" name="quantity" value="1">
+                    <button type="submit" class="apex-atc-{{ sid }}">
+                      {%- if p.has_only_default_variant -%}{{ 'products.product.add_to_cart' | t }}{%- else -%}{{ s.quick_add_text | default: 'Quick Add' }}{%- endif -%}
+                    </button>
+                  </form>
+                {%- else -%}
+                  <button class="apex-atc-{{ sid }}" disabled>{{ 'products.product.sold_out' | t }}</button>
+                {%- endif -%}
+              {%- endif -%}
+            </div>
+          </div>
+        {%- endfor -%}
+      {%- elsif source_kind == 'blocks' -%}
+        {%- for block in p_blocks -%}
+          {%- assign p = block.settings.product -%}
+          {%- if p != blank -%}
+            {%- liquid
+              assign pcv = p.first_available_variant
+              if pcv == nil
+                assign pcv = p.selected_or_first_available_variant
+              endif
+              if pcv == nil
+                assign pcv = p.variants.first
+              endif
+              assign pimg = nil
+              if pcv != nil
+                assign pimg = pcv.featured_image
+              endif
+              if pimg == nil
+                assign pimg = p.featured_image
+              endif
+              if pimg == nil and p.images.size > 0
+                assign pimg = p.images.first
+              endif
+              assign on_sale = false
+              if pcv != nil and pcv.compare_at_price > pcv.price
+                assign on_sale = true
+              endif
+            -%}
+            <div class="apex-card-{{ sid }}" {{ block.shopify_attributes }}>
+              <a href="{{ p.url }}" class="apex-card-img-{{ sid }}" aria-label="{{ p.title | escape }}" tabindex="-1">
+                {%- if pimg -%}
+                  <img
+                    src="{{ pimg | image_url: width: 600 }}"
+                    srcset="{{ pimg | image_url: width: 300 }} 300w, {{ pimg | image_url: width: 600 }} 600w, {{ pimg | image_url: width: 900 }} 900w"
+                    sizes="{{ computed_width }}px"
+                    alt="{{ pimg.alt | default: p.title | escape }}"
+                    loading="lazy" decoding="async"
+                    width="{{ pimg.width }}" height="{{ pimg.height }}">
+                {%- else -%}
+                  {{ 'product-1' | placeholder_svg_tag: 'placeholder' }}
+                {%- endif -%}
+                {%- if block.settings.badge != blank -%}<span class="apex-badge-{{ sid }}">{{ block.settings.badge | escape }}</span>{%- endif -%}
+                {%- if on_sale -%}<span class="apex-sale-{{ sid }}">{{ 'products.product.on_sale' | t | default: 'Sale' }}</span>{%- endif -%}
+              </a>
+              <div class="apex-card-info-{{ sid }}">
+                <p class="apex-card-name-{{ sid }}"><a href="{{ p.url }}">{{ p.title | escape }}</a></p>
+                <div class="apex-card-price-{{ sid }}">
+                  <span class="price-current">{% if pcv != nil %}{{ pcv.price | money }}{% else %}{{ p.price | money }}{% endif %}</span>
+                  {%- if on_sale -%}<span class="price-compare">{{ pcv.compare_at_price | money }}</span>{%- endif -%}
+                </div>
+                {%- unless p.has_only_default_variant -%}
+                  {%- for opt in p.options_with_values -%}
+                    {%- assign dn = opt.name | downcase -%}
+                    {%- if dn == 'color' or dn == 'colour' -%}
+                      <div class="apex-swatches-{{ sid }}">
+                        {%- for val in opt.values limit: 5 -%}
+                          <span class="apex-swatch-{{ sid }}{% if opt.selected_value == val %} active{% endif %}"
+                            title="{{ val | escape }}" style="background:{{ val | handle }};"></span>
+                        {%- endfor -%}
+                        {%- if opt.values.size > 5 -%}
+                          <span class="apex-swatch-more-{{ sid }}">+{{ opt.values.size | minus: 5 }}</span>
+                        {%- endif -%}
+                      </div>
+                      {%- break -%}
+                    {%- endif -%}
+                  {%- endfor -%}
+                {%- endunless -%}
+                {%- if s.show_quick_add -%}
+                  {%- if pcv.available -%}
+                    <form action="{{ routes.cart_add_url }}" method="post" class="apex-atc-form-{{ sid }}"
+                      data-orig="{% if p.has_only_default_variant %}{{ 'products.product.add_to_cart' | t | escape }}{% else %}{{ s.quick_add_text | default: 'Quick Add' | escape }}{% endif %}">
+                      <input type="hidden" name="id"       value="{{ pcv.id }}">
+                      <input type="hidden" name="quantity" value="1">
+                      <button type="submit" class="apex-atc-{{ sid }}">
+                        {%- if p.has_only_default_variant -%}{{ 'products.product.add_to_cart' | t }}{%- else -%}{{ s.quick_add_text | default: 'Quick Add' }}{%- endif -%}
+                      </button>
+                    </form>
+                  {%- else -%}
+                    <button class="apex-atc-{{ sid }}" disabled>{{ 'products.product.sold_out' | t }}</button>
+                  {%- endif -%}
+                {%- endif -%}
+              </div>
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+      {%- endif -%}
+    {%- endcapture -%}
+
+    {%- if item_count == 0 -%}
+      <p style="text-align:center;color:var(--apex-fg-muted);padding:40px 0;">
+        Pick a collection in the section settings, or add Product blocks to start.
+      </p>
+    {%- else -%}
+      <div class="apex-marquee-{{ sid }}" data-apex-marquee>
+        <div class="apex-track-{{ sid }} {% if s.autoscroll_enabled %}is-{{ s.row1_direction }}{% endif %}">
+          {{ cards }}{{ cards }}
+        </div>
+      </div>
+      {%- if s.show_second_row -%}
+        <div class="apex-marquee-{{ sid }}" data-apex-marquee>
+          <div class="apex-track-{{ sid }} {% if s.autoscroll_enabled %}is-{{ s.row2_direction }}{% endif %}">
+            {{ cards }}{{ cards }}
+          </div>
+        </div>
+      {%- endif -%}
+    {%- endif -%}
+
+  {%- endif -%}
+
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  /* ── Shared ATC handler (showcase + grid single-variant forms) ── */
+  function apexAtcSubmit(e) {
+    var form = e.target;
+    if (!form || !form.className || form.className.indexOf('apex-atc-form-') === -1) return;
+    e.preventDefault();
+    var btn      = form.querySelector('button[type="submit"]');
+    var origText = form.getAttribute('data-orig') || 'Quick Add';
+    if (btn) { btn.setAttribute('data-state', 'loading'); btn.disabled = true; }
+
+    fetch('/cart/add.js', { method: 'POST', body: new FormData(form) })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.status && data.status !== 200) throw new Error(data.description || 'Cart error');
+        document.dispatchEvent(new CustomEvent('cart:item-added', { bubbles: true, detail: data }));
+        document.dispatchEvent(new CustomEvent('cart:refresh',    { bubbles: true }));
+        return fetch('/cart.js').then(function(r) { return r.json(); }).then(function(cart) {
+          document.querySelectorAll(
+            '[data-cart-count],[data-cart-item-count],.cart-count,.cart__count,.cart-count-bubble,.cart-icon-bubble'
+          ).forEach(function(el) {
+            if ('cartCount'     in el.dataset) el.dataset.cartCount     = cart.item_count;
+            if ('cartItemCount' in el.dataset) el.dataset.cartItemCount = cart.item_count;
+            if (!el.dataset.cartCount && !el.dataset.cartItemCount) el.textContent = cart.item_count;
+          });
+          if (btn) {
+            btn.setAttribute('data-state', 'added');
+            btn.disabled    = false;
+            btn.textContent = '\u2713 ' + ({{ s.added_text | default: 'Added' | json }});
+            setTimeout(function() {
+              if (btn && btn.getAttribute('data-state') === 'added') {
+                btn.removeAttribute('data-state');
+                btn.textContent = origText;
+              }
+            }, 2200);
+          }
+        });
+      })
+      .catch(function() {
+        if (btn) { btn.removeAttribute('data-state'); btn.disabled = false; btn.textContent = origText; }
+      });
+  }
+  document.addEventListener('submit', apexAtcSubmit);
+
+  var section = document.getElementById('shopify-section-{{ sid }}');
+  if (!section) return;
+
+  /* ── Showcase marquee: IntersectionObserver pause off-screen ── */
+  var marquees = section.querySelectorAll('[data-apex-marquee]');
+  if (marquees.length && 'IntersectionObserver' in window) {
+    var mio = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.target.classList.contains('is-user-paused')) return;
+        if (entry.isIntersecting) entry.target.classList.remove('is-paused');
+        else                      entry.target.classList.add('is-paused');
+      });
+    }, { threshold: 0 });
+    marquees.forEach(function(m) { mio.observe(m); });
+  }
+
+  var pauseBtn = section.querySelector('[data-apex-pause]');
+  if (pauseBtn) {
+    pauseBtn.addEventListener('click', function() {
+      var paused   = pauseBtn.getAttribute('data-paused') === 'true';
+      var newState = !paused;
+      pauseBtn.setAttribute('data-paused', String(newState));
+      pauseBtn.setAttribute('aria-label', newState ? 'Resume auto-scroll' : 'Pause auto-scroll');
+      marquees.forEach(function(m) {
+        m.classList.toggle('is-user-paused', newState);
+        if (newState) m.classList.add('is-paused');
+        else          m.classList.remove('is-paused');
+      });
+    });
+  }
+
+  /* ── Grid: stagger-in on IntersectionObserver ── */
+  var grid = section.querySelector('[data-apex-grid]');
+  if (grid && 'IntersectionObserver' in window) {
+    var gio = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          gio.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.08 });
+    gio.observe(grid);
+  } else if (grid) {
+    grid.classList.add('is-visible');
+  }
+
+  /* ── Grid: auto-rotate hero every 3s (only when no product manually set) ── */
+  if (grid && grid.dataset.apexHeroAuto === 'true') {
+    var gcards = Array.from(grid.querySelectorAll('[data-apex-gcard]'));
+    if (gcards.length > 1) {
+      var heroIdx = 0;
+
+      function apexSetHero(nextIdx) {
+        var prev = gcards[heroIdx];
+        var next = gcards[nextIdx];
+
+        prev.classList.add('is-switching');
+        next.classList.add('is-switching');
+
+        setTimeout(function() {
+          /* Demote old hero */
+          prev.classList.remove('is-hero', 'is-switching');
+          prev.querySelector('.apex-gi-{{ sid }}').classList.remove('is-hero');
+          prev.style.order = '';
+
+          /* Zero stagger on next card so fade-in has no delay */
+          next.style.setProperty('--apex-stagger', '0');
+          next.classList.add('is-hero');
+          next.classList.remove('is-switching');
+          next.querySelector('.apex-gi-{{ sid }}').classList.add('is-hero');
+          next.style.order = '-1';
+
+          heroIdx = nextIdx;
+        }, 240);
+      }
+
+      /* Start: first card is hero at natural DOM position (no order needed) */
+      gcards[0].classList.add('is-hero');
+      gcards[0].querySelector('.apex-gi-{{ sid }}').classList.add('is-hero');
+      gcards[0].style.setProperty('--apex-stagger', '0');
+
+      setInterval(function() {
+        apexSetHero((heroIdx + 1) % gcards.length);
+      }, 3000);
+    }
+  }
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Apex Featured",
+  "tag": "section",
+  "class": "section apex-featured-section",
+  "blocks": [
+    {
+      "type": "product_card",
+      "name": "Product",
+      "settings": [
+        { "type": "product", "id": "product", "label": "Product" },
+        { "type": "text",    "id": "badge",   "label": "Badge", "info": "Optional label, e.g. 'NEW' or 'BESTSELLER'" }
+      ]
+    }
+  ],
+  "settings": [
+    { "type": "header", "content": "Display" },
+    {
+      "type": "select", "id": "display_mode", "label": "Mode",
+      "options": [
+        { "value": "auto",     "label": "Auto" },
+        { "value": "showcase", "label": "Showcase (dual-row marquee)" },
+        { "value": "grid",     "label": "Product Grid" },
+        { "value": "single",   "label": "Single product" }
+      ],
+      "default": "auto",
+      "info": "Auto: showcase when a collection or 2+ blocks are set."
+    },
+
+    { "type": "header", "content": "Source — Collection or Blocks" },
+    {
+      "type": "select", "id": "source_mode", "label": "Pull products from",
+      "options": [
+        { "value": "collection", "label": "A collection (auto)" },
+        { "value": "blocks",     "label": "Manually-added blocks" }
+      ],
+      "default": "collection"
+    },
+    { "type": "collection", "id": "source_collection", "label": "Collection" },
+
+    { "type": "header", "content": "Grid Mode — Layout" },
+    {
+      "type": "range", "id": "grid_max_products", "label": "Products to show",
+      "min": 2, "max": 20, "step": 1, "default": 8,
+      "info": "Up to 20. Hick's Law: 8–12 is the sweet spot for homepage grids."
+    },
+    {
+      "type": "select", "id": "grid_cols_desktop", "label": "Columns — desktop",
+      "options": [
+        { "value": "2", "label": "2" },
+        { "value": "3", "label": "3" },
+        { "value": "4", "label": "4" }
+      ],
+      "default": "4"
+    },
+    {
+      "type": "select", "id": "grid_cols_tablet", "label": "Columns — tablet",
+      "options": [
+        { "value": "2", "label": "2" },
+        { "value": "3", "label": "3" }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select", "id": "grid_cols_mobile", "label": "Columns — mobile",
+      "options": [
+        { "value": "1", "label": "1" },
+        { "value": "2", "label": "2" },
+        { "value": "3", "label": "3" },
+        { "value": "4", "label": "4" }
+      ],
+      "default": "2",
+      "info": "2 is the standard. 3–4 works well for accessories or small-format products."
+    },
+    {
+      "type": "range", "id": "grid_mobile_rows", "label": "Rows visible on mobile",
+      "min": 1, "max": 4, "step": 1, "default": 4,
+      "info": "Cards beyond (columns × rows) are hidden on mobile. Desktop always shows all."
+    },
+    {
+      "type": "range", "id": "grid_gap", "label": "Grid gap",
+      "min": 4, "max": 32, "step": 2, "unit": "px", "default": 12,
+      "info": "Tight gaps (8–12px) create editorial density."
+    },
+    {
+      "type": "range", "id": "grid_info_padding", "label": "Info section padding",
+      "min": 6, "max": 24, "step": 2, "unit": "px", "default": 12
+    },
+
+    { "type": "header", "content": "Grid Mode — Hero First Card" },
+    {
+      "type": "checkbox", "id": "grid_hero_first", "label": "Hero first card (spans 2 columns)",
+      "default": true,
+      "info": "Von Restorff effect — differentiated item is remembered and clicked more."
+    },
+    {
+      "type": "product", "id": "grid_hero_product", "label": "Featured (hero) product",
+      "info": "Pin a specific product as the hero. Leave blank to auto-rotate every 3 seconds."
+    },
+    {
+      "type": "select", "id": "grid_hero_aspect", "label": "Hero image ratio",
+      "options": [
+        { "value": "1 / 1",  "label": "Square (1:1)" },
+        { "value": "4 / 3",  "label": "Landscape (4:3)" },
+        { "value": "3 / 2",  "label": "Wide (3:2)" },
+        { "value": "3 / 4",  "label": "Portrait (3:4)" }
+      ],
+      "default": "1 / 1"
+    },
+
+    { "type": "header", "content": "Grid Mode — Image" },
+    {
+      "type": "select", "id": "grid_aspect", "label": "Card image ratio",
+      "options": [
+        { "value": "1 / 1",  "label": "Square (1:1)" },
+        { "value": "3 / 4",  "label": "Portrait 3:4 — apparel standard" },
+        { "value": "4 / 5",  "label": "Portrait 4:5 — social/editorial" },
+        { "value": "2 / 3",  "label": "Tall 2:3" }
+      ],
+      "default": "3 / 4",
+      "info": "3:4 is the industry standard for fashion and apparel homepage grids (Nike, Zara, Adidas)."
+    },
+    {
+      "type": "checkbox", "id": "grid_second_image", "label": "Hover reveals second product image",
+      "default": true,
+      "info": "The single highest-impact conversion feature on product grids. Requires 2 product images."
+    },
+
+    { "type": "header", "content": "Grid Mode — Badges & Labels" },
+    {
+      "type": "checkbox", "id": "show_discount_pct", "label": "Show discount % (e.g. –30%)",
+      "default": true,
+      "info": "Loss-aversion framing outperforms 'SALE' text by 20–40% in A/B tests."
+    },
+    { "type": "color", "id": "sale_badge_bg", "label": "Sale badge background", "default": "#111111" },
+    { "type": "color", "id": "sale_badge_fg", "label": "Sale badge text",       "default": "#ffffff" },
+    { "type": "text",  "id": "new_tag",       "label": "Product 'New' tag (exact)",  "info": "Tag name on the product, e.g. 'new'. Case-sensitive." },
+    { "type": "text",  "id": "new_tag_label", "label": "'New' badge label",          "default": "New" },
+
+    { "type": "header", "content": "Grid Mode — Stock & Urgency" },
+    { "type": "checkbox", "id": "show_low_stock", "label": "Show low-stock indicator", "default": false },
+    {
+      "type": "range", "id": "low_stock_threshold", "label": "Low-stock threshold",
+      "min": 1, "max": 10, "step": 1, "default": 5,
+      "info": "Show indicator when inventory ≤ this number. Requires Shopify inventory tracking."
+    },
+    { "type": "text", "id": "low_stock_text", "label": "Low-stock label", "default": "Low stock" },
+
+    { "type": "header", "content": "Grid Mode — View All" },
+    { "type": "checkbox", "id": "show_view_all", "label": "Show 'View all' button", "default": true },
+    { "type": "text",     "id": "view_all_text", "label": "Button text",            "default": "View all" },
+
+    { "type": "header", "content": "Shared — Quick Add" },
+    { "type": "checkbox", "id": "show_quick_add",  "label": "Show Quick Add",         "default": true },
+    { "type": "text",     "id": "quick_add_text",  "label": "Quick Add button text",  "default": "Quick Add" },
+    { "type": "text",     "id": "options_text",    "label": "'Choose Options' text",  "default": "Choose Options",
+      "info": "Shown on grid cards for products with multiple variants (links to PDP)." },
+    { "type": "text",     "id": "added_text",      "label": "Added confirmation text","default": "Added" },
+    { "type": "checkbox", "id": "show_vendor",     "label": "Show brand / vendor",    "default": false },
+
+    { "type": "header", "content": "Showcase — Motion" },
+    { "type": "checkbox", "id": "autoscroll_enabled", "default": true, "label": "Auto-scroll the rows" },
+    { "type": "checkbox", "id": "show_second_row",    "default": true, "label": "Show second row" },
+    {
+      "type": "select", "id": "row1_direction", "label": "Top row direction",
+      "options": [
+        { "value": "left",  "label": "Right → Left" },
+        { "value": "right", "label": "Left → Right" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "select", "id": "row2_direction", "label": "Bottom row direction",
+      "options": [
+        { "value": "left",  "label": "Right → Left" },
+        { "value": "right", "label": "Left → Right" }
+      ],
+      "default": "right"
+    },
+    {
+      "type": "range", "id": "scroll_speed", "label": "Lap duration",
+      "min": 20, "max": 120, "step": 5, "unit": "s", "default": 60
+    },
+    { "type": "checkbox", "id": "show_pause_button", "default": true, "label": "Show pause button" },
+
+    { "type": "header", "content": "Showcase — Card Sizing" },
+    {
+      "type": "range", "id": "card_width", "label": "Card width",
+      "min": 200, "max": 480, "step": 10, "unit": "px", "default": 280
+    },
+    {
+      "type": "range", "id": "card_scale", "label": "Card scale",
+      "min": 60, "max": 140, "step": 5, "unit": "%", "default": 100
+    },
+    {
+      "type": "select", "id": "card_aspect", "label": "Showcase image ratio",
+      "options": [
+        { "value": "1 / 1", "label": "Square" },
+        { "value": "4 / 5", "label": "Portrait" },
+        { "value": "3 / 4", "label": "Tall" }
+      ],
+      "default": "4 / 5"
+    },
+    {
+      "type": "range", "id": "card_gap", "label": "Gap between cards",
+      "min": 8, "max": 40, "step": 2, "unit": "px", "default": 16
+    },
+    {
+      "type": "range", "id": "row_gap", "label": "Gap between rows",
+      "min": 4, "max": 32, "step": 2, "unit": "px", "default": 16
+    },
+    {
+      "type": "range", "id": "max_products", "label": "Max products (showcase)",
+      "min": 2, "max": 10, "step": 1, "default": 8
+    },
+
+    { "type": "header", "content": "Copy" },
+    { "type": "text",  "id": "eyebrow", "label": "Eyebrow", "default": "CURATED FOR YOU" },
+    { "type": "text",  "id": "title",   "label": "Heading", "default": "Featured" },
+    {
+      "type": "range", "id": "title_size", "label": "Heading size",
+      "min": 20, "max": 56, "step": 2, "unit": "px", "default": 36
+    },
+
+    { "type": "header", "content": "Colours" },
+    { "type": "color", "id": "section_bg_color",   "label": "Section background", "default": "#fbfbfd" },
+    { "type": "color", "id": "card_bg_color",      "label": "Card background",    "default": "#ffffff" },
+    { "type": "color", "id": "text_color",         "label": "Text",               "default": "#1d1d1f" },
+    { "type": "color", "id": "accent_color",       "label": "Accent",             "default": "#0071e3" },
+    { "type": "color", "id": "img_placeholder_bg", "label": "Image placeholder",  "default": "#f5f5f7" },
+
+    { "type": "header", "content": "Shape" },
+    {
+      "type": "range", "id": "card_radius", "label": "Card radius",
+      "min": 0, "max": 32, "step": 2, "unit": "px", "default": 8,
+      "info": "0px = Nike/Zara flat editorial. 8–12px = modern lifestyle. 18px+ = Apple/soft."
+    },
+    {
+      "type": "range", "id": "btn_radius", "label": "Button radius",
+      "min": 0, "max": 100, "step": 2, "unit": "px", "default": 100
+    },
+
+    { "type": "header", "content": "Section Background" },
+    { "type": "checkbox", "id": "enable_section_bg", "default": true, "label": "Apply section background" },
+    {
+      "type": "range", "id": "section_bg_radius", "label": "Section radius",
+      "min": 0, "max": 40, "step": 2, "unit": "px", "default": 0
+    },
+
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "range", "id": "max_content_width", "label": "Max content width",
+      "min": 800, "max": 1600, "step": 40, "unit": "px", "default": 1280
+    },
+    {
+      "type": "range", "id": "padding_top", "label": "Top padding",
+      "min": 0, "max": 120, "step": 4, "unit": "px", "default": 64
+    },
+    {
+      "type": "range", "id": "padding_bottom", "label": "Bottom padding",
+      "min": 0, "max": 120, "step": 4, "unit": "px", "default": 64
+    },
+
+    { "type": "header", "content": "Single Product Mode" },
+    { "type": "product", "id": "product", "label": "Fallback product" },
+    {
+      "type": "select", "id": "layout", "label": "Media position",
+      "options": [
+        { "value": "media_first", "label": "Media left" },
+        { "value": "text_first",  "label": "Media right" }
+      ],
+      "default": "media_first"
+    }
+  ],
+  "presets": [
+    { "name": "Apex Featured — Grid",     "settings": { "display_mode": "grid" } },
+    { "name": "Apex Featured — Showcase", "settings": { "display_mode": "showcase" } },
+    { "name": "Apex Featured — Single",   "settings": { "display_mode": "single" } }
+  ]
+}
+{% endschema %}

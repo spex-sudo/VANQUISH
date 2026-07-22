@@ -1,0 +1,1146 @@
+{% comment %}
+  ╔════════════════════════════════════════════════════════════╗
+  ║   VANQUISH FOOTER v3.0 — Minimal Pill + Upward Bottom Sheet ║
+  ╚════════════════════════════════════════════════════════════╝
+
+  Layout: socials (left) · monogram (center) · NEED HELP? (right)
+  All accordion content moves into a bottom-sheet drawer that
+  slides UP from the bar. Two-tier menu:
+    Tier 1 — primary navigation
+    Tier 2 — "More options" reveals legal, newsletter, contact
+
+  STRIPE COMPLIANCE:
+  Policy links remain in the DOM at all times. The bottom-sheet
+  is hidden via translateY transform (not display:none), so
+  every <a> is parseable. A second policy strip lives in the
+  permanent bottom row for double-coverage.
+{% endcomment %}
+
+{%- liquid
+  assign footer_bg     = section.settings.footer_bg_color
+  assign footer_text   = section.settings.footer_text_color
+  assign accent_color  = section.settings.accent_color
+  assign border_color  = section.settings.border_color
+  assign pill_bg       = section.settings.pill_bg_color
+  assign pill_text     = section.settings.pill_text_color
+  assign brand_label   = section.settings.brand_name | default: shop.name
+  assign monogram_text = section.settings.monogram_text | default: 'M'
+  assign center_logo   = section.settings.center_logo
+  assign logo_max_h    = section.settings.center_logo_height | default: 32
+  assign nav_menu      = linklists[section.settings.nav_menu]
+  assign more_menu     = linklists[section.settings.more_menu]
+  assign scale         = section.settings.footer_scale | default: 100
+  assign scale_dec     = scale | times: 1.0 | divided_by: 100.0
+
+  comment
+    Shopify-native font_picker. Same UX as the header settings.
+    font_face emits @font-face declarations served by Shopify's CDN — no Google Fonts request needed.
+  endcomment
+  assign hf = section.settings.heading_font
+  assign bf = section.settings.body_font
+  assign hf_bold = hf | font_modify: 'weight', 'bolder'
+  assign bf_bold = bf | font_modify: 'weight', 'bolder'
+
+  comment
+    ── Policy URL resolution, in priority order ──
+    1. Per-link custom override (set below in "Policy Link Overrides")
+    2. Policies hub page + #tab-<slug> — auto-opens the matching tab in
+       the faq-dynamic.liquid section dropped on that page
+    3. Shopify's native automatic policy page
+    4. Hardcoded /policies/* fallback
+  endcomment
+  assign hub_url = section.settings.policies_page_url
+
+  assign privacy_url = section.settings.custom_privacy_url
+  if privacy_url == blank and hub_url != blank
+    assign privacy_url = hub_url | append: '#tab-privacy'
+  endif
+  assign privacy_url = privacy_url | default: shop.privacy_policy.url | default: '/policies/privacy-policy'
+
+  assign refund_url = section.settings.custom_refund_url
+  if refund_url == blank and hub_url != blank
+    assign refund_url = hub_url | append: '#tab-refund'
+  endif
+  assign refund_url = refund_url | default: shop.refund_policy.url | default: '/policies/refund-policy'
+
+  assign terms_url = section.settings.custom_terms_url
+  if terms_url == blank and hub_url != blank
+    assign terms_url = hub_url | append: '#tab-terms'
+  endif
+  assign terms_url = terms_url | default: shop.terms_of_service.url | default: '/policies/terms-of-service'
+
+  assign shipping_url = section.settings.custom_shipping_url
+  if shipping_url == blank and hub_url != blank
+    assign shipping_url = hub_url | append: '#tab-shipping'
+  endif
+  assign shipping_url = shipping_url | default: shop.shipping_policy.url | default: '/policies/shipping-policy'
+
+  assign subscription_url = section.settings.custom_subscription_url
+  if subscription_url == blank and hub_url != blank
+    assign subscription_url = hub_url | append: '#tab-subscription'
+  endif
+  assign subscription_url = subscription_url | default: shop.subscription_policy.url
+
+  assign contact_info_url = section.settings.custom_contact_info_url
+  if contact_info_url == blank and hub_url != blank
+    assign contact_info_url = hub_url | append: '#tab-contact'
+  endif
+  assign contact_info_url = contact_info_url | default: '/policies/contact-information'
+-%}
+
+<style>
+{{ hf | font_face: font_display: 'swap' }}
+{{ hf_bold | font_face: font_display: 'swap' }}
+{{ bf | font_face: font_display: 'swap' }}
+{{ bf_bold | font_face: font_display: 'swap' }}
+</style>
+
+<style>
+  #vq-foot {
+    --vq-bg:        {{ footer_bg }};
+    --vq-text:      {{ footer_text }};
+    --vq-accent:    {{ accent_color }};
+    --vq-border:    {{ border_color }};
+    --vq-pill-bg:   {{ pill_bg }};
+    --vq-pill-text: {{ pill_text }};
+    --vq-pill-dim:  {{ pill_text | color_modify: 'alpha', 0.5 }};
+    --vq-pill-line: {{ pill_text | color_modify: 'alpha', 0.12 }};
+    --vq-pill-elev: {{ pill_text | color_modify: 'alpha', 0.06 }};
+    --vq-text-dim:   {{ footer_text | color_modify: 'alpha', 0.35 }};
+    --vq-text-faint: {{ footer_text | color_modify: 'alpha', 0.12 }};
+    --vq-fh: {{ hf.family }}, {{ hf.fallback_families }};
+    --vq-fb: {{ bf.family }}, {{ bf.fallback_families }};
+    --vq-scale: {{ scale_dec }};
+
+    position: relative;
+    background: var(--vq-bg);
+    color: var(--vq-text);
+    font-family: var(--vq-fb);
+    border-top: 1px solid var(--vq-border);
+    z-index: 1;
+  }
+  #vq-foot *,
+  #vq-foot *::before,
+  #vq-foot *::after { box-sizing: border-box; }
+
+  /* iOS Safari treats a document-level click listener (used below for
+     "tap outside to close the drawer") as reason to make the FIRST tap on
+     any link simulate :hover instead of navigating — links then need a
+     second tap to actually follow. Explicit cursor:pointer signals to
+     WebKit that these are directly clickable and skips that behavior.
+     No visual change: links already show a pointer cursor on devices
+     that have a cursor. */
+  #vq-foot a[href] { cursor: pointer; }
+
+  /* ── ACCENT SWEEP (preserved from v2) ── */
+  .vq-sweep {
+    position: relative;
+    height: 2px;
+    background: var(--vq-bg);
+    overflow: hidden;
+    z-index: 2;
+  }
+  .vq-sweep::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -60%;
+    width: 60%; height: 100%;
+    background: linear-gradient(90deg, transparent, var(--vq-accent), transparent);
+    animation: vq-sweep 3.5s ease-in-out infinite;
+  }
+  @keyframes vq-sweep {
+    0%   { left: -60%; opacity: 0; }
+    20%  { opacity: 1; }
+    80%  { opacity: 1; }
+    100% { left: 110%; opacity: 0; }
+  }
+
+  /* ══════════════════════════════════════
+     PILL BAR — scales via --vq-scale
+  ══════════════════════════════════════ */
+  .vq-bar {
+    max-width: {{ section.settings.max_width }}px;
+    margin: 0 auto;
+    padding: calc(14px * var(--vq-scale)) {{ section.settings.horizontal_padding }}px;
+  }
+  .vq-pill {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: calc(18px * var(--vq-scale));
+    background: var(--vq-pill-bg);
+    color: var(--vq-pill-text);
+    border-radius: 100px;
+    padding: calc(8px * var(--vq-scale)) calc(8px * var(--vq-scale)) calc(8px * var(--vq-scale)) calc(16px * var(--vq-scale));
+    width: 100%;
+    position: relative; /* anchor for absolutely-centered logo */
+  }
+
+  /* Left socials cluster */
+  .vq-socials {
+    display: flex;
+    align-items: center;
+    gap: calc(4px * var(--vq-scale));
+    flex-shrink: 0;
+  }
+  .vq-soc {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(36px * var(--vq-scale));
+    height: calc(36px * var(--vq-scale));
+    border-radius: 50%;
+    color: var(--vq-pill-text);
+    background: transparent;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    flex-shrink: 0;
+  }
+  .vq-soc:hover  { background: var(--vq-pill-elev); }
+  .vq-soc:active { transform: scale(0.92); }
+  .vq-soc svg {
+    width: calc(18px * var(--vq-scale));
+    height: calc(18px * var(--vq-scale));
+    display: block;
+    color: inherit;
+  }
+  /* Reset any inherited fills — icons handle their own fill/stroke per element */
+  .vq-soc svg * { vector-effect: non-scaling-stroke; }
+  .vq-soc.vq-soc-primary {
+    background: var(--vq-pill-text);
+    color: var(--vq-pill-bg);
+  }
+  .vq-soc.vq-soc-primary:hover {
+    background: var(--vq-pill-text);
+    opacity: 0.85;
+  }
+
+  /* Center monogram / logo — absolutely centered to bar midpoint,
+     immune to asymmetric left/right widths */
+  .vq-mono {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none; /* let socials / help still receive clicks if overlapped */
+    max-width: 50%;       /* never overlap into either side */
+  }
+  .vq-mono > * { pointer-events: auto; }
+  .vq-mono-mark {
+    font-family: var(--vq-fh);
+    font-size: calc(22px * var(--vq-scale));
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    color: var(--vq-pill-text);
+    text-decoration: none;
+    line-height: 1;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .vq-mono-mark svg {
+    width: calc(28px * var(--vq-scale)); height: calc(22px * var(--vq-scale));
+    fill: currentColor;
+  }
+  .vq-mono-img {
+    display: block;
+    max-height: calc({{ logo_max_h }}px * var(--vq-scale));
+    width: auto;
+    object-fit: contain;
+  }
+
+  /* Right "Need Help?" trigger */
+  .vq-help {
+    display: inline-flex;
+    align-items: center;
+    gap: calc(8px * var(--vq-scale));
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: calc(9px * var(--vq-scale)) calc(14px * var(--vq-scale)) calc(9px * var(--vq-scale)) calc(16px * var(--vq-scale));
+    border-radius: 100px;
+    color: var(--vq-pill-text);
+    font-family: var(--vq-fh);
+    font-size: calc(12px * var(--vq-scale));
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    line-height: 1;
+    transition: background 0.18s, transform 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .vq-help:hover  { background: var(--vq-pill-elev); }
+  .vq-help:active { transform: scale(0.97); }
+  .vq-help-arrow {
+    width: calc(12px * var(--vq-scale)); height: calc(12px * var(--vq-scale));
+    transition: transform 0.32s cubic-bezier(0.32,0.72,0,1);
+    flex-shrink: 0;
+  }
+  .vq-help-arrow svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 2; }
+  .vq-help[aria-expanded="true"] .vq-help-arrow { transform: rotate(180deg); }
+
+  /* ══════════════════════════════════════
+     POPOVER MENU — anchored above the Need Help trigger.
+     Two size states:
+       compact (default)  — small list, ~280px wide
+       expanded (More)    — taller, fits secondary content, never fullscreen
+  ══════════════════════════════════════ */
+  .vq-sheet-bd {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0);
+    pointer-events: none;
+    transition: background 0.2s ease;
+    z-index: 9998;
+  }
+  .vq-sheet-bd.open {
+    pointer-events: auto;
+    background: rgba(0,0,0,0.18);
+  }
+
+  .vq-sheet {
+    position: absolute;
+    z-index: 9999;
+    background: var(--vq-pill-bg);
+    color: var(--vq-pill-text);
+    border-radius: 18px;
+    box-shadow: 0 18px 48px rgba(0,0,0,0.18), 0 4px 14px rgba(0,0,0,0.10);
+    /* Anchored from the bottom-right of #vq-foot — sits ABOVE the bar */
+    bottom: calc(100% - 4px);
+    right: {{ section.settings.horizontal_padding }}px;
+    width: 280px;
+    max-width: calc(100vw - 24px);
+    max-height: 60vh;
+    transform: translateY(8px) scale(0.96);
+    transform-origin: bottom right;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      transform 0.3s cubic-bezier(0.32,0.72,0,1),
+      opacity 0.22s ease,
+      width 0.36s cubic-bezier(0.32,0.72,0,1),
+      max-height 0.36s cubic-bezier(0.32,0.72,0,1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    will-change: transform, opacity, width, max-height;
+  }
+  .vq-sheet.open {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .vq-sheet.expanded {
+    width: 380px;
+    max-width: calc(100vw - 24px);
+    max-height: 75vh;
+  }
+
+  /* Drag handle hidden — popover doesn't need it */
+  .vq-sheet-handle { display: none; }
+
+  .vq-sheet-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px 10px;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--vq-pill-line);
+  }
+  .vq-sheet-title {
+    font-family: var(--vq-fh);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--vq-pill-text);
+    line-height: 1;
+  }
+  .vq-sheet-close {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: var(--vq-pill-elev);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s;
+  }
+  .vq-sheet-close:hover { background: var(--vq-pill-line); }
+  .vq-sheet-close svg   { width: 11px; height: 11px; stroke: var(--vq-pill-text); fill: none; stroke-width: 1.7; }
+
+  .vq-sheet-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: 4px 0 14px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--vq-pill-line) transparent;
+  }
+  .vq-sheet-body::-webkit-scrollbar { width: 5px; }
+  .vq-sheet-body::-webkit-scrollbar-thumb { background: var(--vq-pill-line); border-radius: 100px; }
+
+  /* ── Tier 1 nav list ── */
+  .vq-nav {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .vq-nav li { display: block; }
+  .vq-nav a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    font-family: var(--vq-fb);
+    font-size: 13.5px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    color: var(--vq-pill-text);
+    text-decoration: none;
+    border-bottom: 1px solid var(--vq-pill-line);
+    transition: background 0.15s, padding-left 0.18s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .vq-nav a:hover { background: var(--vq-pill-elev); padding-left: 22px; }
+  .vq-nav a svg {
+    width: 13px; height: 13px;
+    stroke: var(--vq-pill-dim);
+    fill: none; stroke-width: 1.8;
+    transition: stroke 0.15s, transform 0.18s;
+    flex-shrink: 0;
+  }
+  .vq-nav a:hover svg { stroke: var(--vq-pill-text); transform: translateX(3px); }
+
+  /* ── More options trigger ── */
+  .vq-more-trig {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 14px 18px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--vq-pill-line);
+    cursor: pointer;
+    color: var(--vq-pill-text);
+    font-family: var(--vq-fh);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s;
+  }
+  .vq-more-trig:hover { background: var(--vq-pill-elev); }
+  .vq-more-trig-arrow {
+    width: 11px; height: 11px;
+    transition: transform 0.32s cubic-bezier(0.32,0.72,0,1);
+    flex-shrink: 0;
+  }
+  .vq-more-trig-arrow svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 2; }
+  .vq-more-trig[aria-expanded="true"] .vq-more-trig-arrow { transform: rotate(180deg); }
+
+  /* ── Tier 2 expandable region ── */
+  .vq-more {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.42s cubic-bezier(0.25,0.46,0.45,0.94);
+  }
+  .vq-more.open { grid-template-rows: 1fr; }
+  .vq-more-inner { overflow: hidden; }
+  .vq-more-pad   { padding: 6px 18px 14px; }
+
+  .vq-section-label {
+    font-family: var(--vq-fh);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.30em;
+    text-transform: uppercase;
+    color: var(--vq-pill-dim);
+    margin: 14px 0 8px;
+  }
+
+  /* Newsletter compact */
+  .vq-nl-form { margin-bottom: 10px; }
+  .vq-nl-wrap {
+    position: relative;
+    background: var(--vq-pill-elev);
+    border-radius: 100px;
+    overflow: hidden;
+    padding: 4px 4px 4px 14px;
+    display: flex;
+    align-items: center;
+  }
+  .vq-nl-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: var(--vq-fb);
+    font-size: 13px;
+    color: var(--vq-pill-text);
+    padding: 9px 8px 9px 0;
+    min-width: 0;
+    -webkit-appearance: none;
+  }
+  .vq-nl-input::placeholder {
+    color: var(--vq-pill-dim);
+    font-size: 12px;
+  }
+  .vq-nl-btn {
+    flex-shrink: 0;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--vq-pill-text);
+    color: var(--vq-pill-bg);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.18s, transform 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .vq-nl-btn:hover  { opacity: 0.85; }
+  .vq-nl-btn:active { transform: scale(0.94); }
+  .vq-nl-btn svg    { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2; }
+  .vq-nl-disclaimer {
+    font-size: 9.5px;
+    color: var(--vq-pill-dim);
+    line-height: 1.5;
+    margin-top: 7px;
+    padding: 0 4px;
+  }
+  .vq-nl-disclaimer a {
+    color: var(--vq-pill-text);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .vq-nl-success {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    background: var(--vq-pill-elev);
+    border-radius: 100px;
+    font-family: var(--vq-fh);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #22c55e;
+    margin-top: 8px;
+  }
+  .vq-nl-success.active { display: inline-flex; }
+
+  /* Policy/legal grid */
+  .vq-legal {
+    list-style: none;
+    margin: 0; padding: 0;
+  }
+  .vq-legal li { display: block; }
+  .vq-legal a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 4px;
+    font-family: var(--vq-fb);
+    font-size: 12.5px;
+    font-weight: 400;
+    color: var(--vq-pill-text);
+    text-decoration: none;
+    visibility: visible;
+    opacity: 1;
+    border-bottom: 1px solid var(--vq-pill-line);
+    transition: padding-left 0.18s;
+  }
+  .vq-legal a:hover { padding-left: 8px; }
+  .vq-legal a svg   { width: 11px; height: 11px; stroke: var(--vq-pill-dim); fill: none; stroke-width: 1.8; flex-shrink: 0; }
+  .vq-legal a:hover svg { stroke: var(--vq-pill-text); }
+  .vq-legal li:last-child a { border-bottom: none; }
+
+  /* Contact button */
+  .vq-contact-cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 12px 18px;
+    background: var(--vq-pill-text);
+    color: var(--vq-pill-bg);
+    border-radius: 100px;
+    text-decoration: none;
+    font-family: var(--vq-fh);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    transition: opacity 0.18s, transform 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .vq-contact-cta:hover  { opacity: 0.88; }
+  .vq-contact-cta:active { transform: scale(0.98); }
+  .vq-contact-cta svg    { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+  /* ══════════════════════════════════════
+     PERMANENT BOTTOM POLICY ROW — Stripe compliance
+     Always visible, always parseable.
+  ══════════════════════════════════════ */
+  .vq-foot-base {
+    max-width: {{ section.settings.max_width }}px;
+    margin: 0 auto;
+    padding: 6px {{ section.settings.horizontal_padding }}px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .vq-copyright {
+    font-family: var(--vq-fh);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--vq-text-dim);
+  }
+  .vq-base-policy {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .vq-base-policy a {
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--vq-text-dim);
+    text-decoration: none;
+    display: inline-block;
+    visibility: visible;
+    opacity: 1;
+    transition: color 0.2s;
+  }
+  .vq-base-policy a:hover { color: var(--vq-text); }
+
+  /* ══════════════════════════════════════
+     PAYMENT ICONS — trust signal, lives in the
+     permanent compliant zone beneath the policy
+     row. Quiet by default, never competes with
+     the pill bar above it.
+  ══════════════════════════════════════ */
+  .vq-payment-row {
+    border-top: 1px solid var(--vq-border);
+  }
+  .vq-payment-inner {
+    max-width: {{ section.settings.max_width }}px;
+    margin: 0 auto;
+    padding: 12px {{ section.settings.horizontal_padding }}px 4px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .vq-payment-label {
+    font-family: var(--vq-fh);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--vq-text-dim);
+    flex-shrink: 0;
+  }
+  .vq-payment-icons {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .vq-payment-icons li {
+    display: flex;
+    line-height: 0;
+  }
+  .vq-pay-icon {
+    display: block;
+    height: 20px;
+    width: auto;
+    border-radius: 4px;
+    box-shadow: 0 0 0 1px var(--vq-text-faint);
+    opacity: 0.88;
+    transition: opacity 0.2s ease, transform 0.15s ease;
+  }
+  .vq-payment-icons li:hover .vq-pay-icon {
+    opacity: 1;
+    transform: translateY(-1px);
+  }
+
+  /* ══════════════════════════════════════
+     RESPONSIVE
+  ══════════════════════════════════════ */
+  @media (max-width: 540px) {
+    .vq-mono { max-width: 40%; }
+    .vq-mono-mark { font-size: calc(18px * var(--vq-scale)); }
+    .vq-mono-mark svg { width: calc(22px * var(--vq-scale)); height: calc(18px * var(--vq-scale)); }
+    .vq-help { padding: calc(8px * var(--vq-scale)) calc(12px * var(--vq-scale)); font-size: calc(10.5px * var(--vq-scale)); }
+    .vq-help-arrow { width: calc(10px * var(--vq-scale)); height: calc(10px * var(--vq-scale)); }
+    .vq-soc { width: calc(32px * var(--vq-scale)); height: calc(32px * var(--vq-scale)); }
+    .vq-soc svg { width: calc(16px * var(--vq-scale)); height: calc(16px * var(--vq-scale)); }
+    .vq-pill { padding: calc(6px * var(--vq-scale)) calc(6px * var(--vq-scale)) calc(6px * var(--vq-scale)) calc(12px * var(--vq-scale)); gap: calc(10px * var(--vq-scale)); }
+    .vq-foot-base { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .vq-payment-inner { padding-top: 10px; gap: 8px; }
+    .vq-pay-icon { height: 17px; }
+
+    /* Popover: anchor right edge to padding, allow narrower */
+    .vq-sheet { width: 260px; }
+    .vq-sheet.expanded { width: calc(100vw - 24px); right: 12px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .vq-sweep::before { animation: none; opacity: 0; }
+    .vq-soc,
+    .vq-help,
+    .vq-help-arrow,
+    .vq-sheet,
+    .vq-more,
+    .vq-more-trig-arrow,
+    .vq-nav a,
+    .vq-nav a svg,
+    .vq-legal a,
+    .vq-nl-btn,
+    .vq-contact-cta,
+    .vq-pay-icon,
+    .vq-base-policy a { transition: none; }
+  }
+</style>
+
+<footer id="vq-foot" role="contentinfo" aria-label="{{ shop.name }} Footer">
+
+  <div class="vq-sweep" aria-hidden="true"></div>
+
+  <div class="vq-bar">
+    <div class="vq-pill">
+
+      {%- comment %} ── LEFT: socials ── {%- endcomment %}
+      <div class="vq-socials" aria-label="Social Media">
+        {%- if section.settings.whatsapp_url != blank %}
+        <a href="{{ section.settings.whatsapp_url }}" class="vq-soc vq-soc-primary" target="_blank" rel="noopener" aria-label="WhatsApp">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" stroke="none">
+            <path d="M20.52 3.449C18.24 1.245 15.24 0 12.045 0 5.463 0 .104 5.334.101 11.893c0 2.096.549 4.142 1.595 5.945L0 24l6.335-1.652a11.89 11.89 0 0 0 5.71 1.447h.005c6.585 0 11.946-5.336 11.95-11.896 0-3.176-1.24-6.165-3.48-8.411zM12.05 21.785h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.981.999-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.002-5.45 4.437-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.885-9.886 9.885zm5.422-7.403c-.298-.149-1.758-.867-2.031-.967-.273-.099-.471-.149-.67.15-.197.297-.767.967-.94 1.165-.173.198-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.297-.497.099-.198.05-.371-.025-.52-.075-.149-.668-1.612-.916-2.207-.241-.579-.486-.5-.668-.51-.173-.008-.371-.01-.57-.01a1.09 1.09 0 0 0-.792.372c-.272.297-1.04 1.016-1.04 2.479s1.064 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.71.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+          </svg>
+        </a>
+        {%- endif %}
+        {%- if section.settings.instagram_url != blank %}
+        <a href="{{ section.settings.instagram_url }}" class="vq-soc" target="_blank" rel="noopener" aria-label="Instagram">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" stroke="none">
+            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/>
+          </svg>
+        </a>
+        {%- endif %}
+        {%- if section.settings.tiktok_url != blank %}
+        <a href="{{ section.settings.tiktok_url }}" class="vq-soc" target="_blank" rel="noopener" aria-label="TikTok">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" stroke="none">
+            <path d="M19.589 6.686a4.793 4.793 0 0 1-3.77-4.245V2h-3.445v13.672a2.896 2.896 0 0 1-5.201 1.743l-.002-.001.002.001a2.895 2.895 0 0 1 3.183-4.51v-3.5a6.329 6.329 0 0 0-5.394 10.692 6.33 6.33 0 0 0 10.857-4.424V8.687a8.182 8.182 0 0 0 4.773 1.526V6.79a4.831 4.831 0 0 1-1.003-.104z"/>
+          </svg>
+        </a>
+        {%- endif %}
+        {%- if section.settings.pinterest_url != blank %}
+        <a href="{{ section.settings.pinterest_url }}" class="vq-soc" target="_blank" rel="noopener" aria-label="Pinterest">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" stroke="none">
+            <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.097.118.112.22.085.342-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.402.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.378l-.749 2.853c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.367 18.602.001 11.99.001l.027-.001z"/>
+          </svg>
+        </a>
+        {%- endif %}
+        {%- if section.settings.twitter_url != blank %}
+        <a href="{{ section.settings.twitter_url }}" class="vq-soc" target="_blank" rel="noopener" aria-label="X / Twitter">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" stroke="none">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231 5.45-6.231zm-1.161 17.52h1.833L7.084 4.126H5.117l11.966 15.644z"/>
+          </svg>
+        </a>
+        {%- endif %}
+        {%- if section.settings.youtube_url != blank %}
+        <a href="{{ section.settings.youtube_url }}" class="vq-soc" target="_blank" rel="noopener" aria-label="YouTube">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" stroke="none">
+            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+          </svg>
+        </a>
+        {%- endif %}
+        {%- if section.settings.discord_url != blank %}
+        <a href="{{ section.settings.discord_url }}" class="vq-soc" target="_blank" rel="noopener" aria-label="Discord">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" stroke="none">
+            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+          </svg>
+        </a>
+        {%- endif %}
+      </div>
+
+      {%- comment %} ── CENTER: logo image | SVG | text monogram ── {%- endcomment %}
+      <div class="vq-mono">
+        <a href="{{ routes.root_url }}" class="vq-mono-mark" aria-label="{{ brand_label }} home">
+          {%- if center_logo != blank -%}
+            <img src="{{ center_logo | image_url: width: 600 }}"
+                 alt="{{ brand_label | escape }}"
+                 class="vq-mono-img"
+                 width="{{ center_logo.width }}"
+                 height="{{ center_logo.height }}"
+                 loading="lazy" decoding="async">
+          {%- else -%}
+            {{ monogram_text }}
+          {%- endif -%}
+        </a>
+      </div>
+
+      {%- comment %} ── RIGHT: Need Help? trigger ── {%- endcomment %}
+      <button type="button" class="vq-help" id="vq-help-btn" aria-expanded="false" aria-controls="vq-sheet" aria-haspopup="dialog">
+        {{ section.settings.help_label | default: 'Need Help?' }}
+        <span class="vq-help-arrow" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+        </span>
+      </button>
+    </div>
+  </div>
+
+  {%- comment %} ── PERMANENT BOTTOM ROW (Stripe-compliant policy links) ── {%- endcomment %}
+  <div class="vq-foot-base">
+    <span class="vq-copyright">
+      © {{ "now" | date: "%Y" }} {{ section.settings.copyright_text | default: shop.name | upcase }}. All rights reserved.
+    </span>
+    <nav class="vq-base-policy" aria-label="Policies">
+      <a href="{{ privacy_url }}" style="display:inline-block;visibility:visible;opacity:1;">Privacy</a>
+      <a href="{{ terms_url }}" style="display:inline-block;visibility:visible;opacity:1;">Terms</a>
+      <a href="{{ refund_url }}" style="display:inline-block;visibility:visible;opacity:1;">Refunds</a>
+      <a href="{{ shipping_url }}" style="display:inline-block;visibility:visible;opacity:1;">Shipping</a>
+      <a href="{{ contact_info_url }}" style="display:inline-block;visibility:visible;opacity:1;">Contact</a>
+    </nav>
+  </div>
+
+  {%- comment %} ── PAYMENT ICONS — mirrors shop.enabled_payment_types so it always matches Settings → Payments, no hardcoded logos to maintain ── {%- endcomment %}
+  {%- if section.settings.show_payment_icons and shop.enabled_payment_types.size > 0 -%}
+    <div class="vq-payment-row">
+      <div class="vq-payment-inner">
+        {%- if section.settings.payment_icons_label != blank -%}
+          <span class="vq-payment-label">{{ section.settings.payment_icons_label }}</span>
+        {%- endif -%}
+        <ul class="vq-payment-icons" role="list" aria-label="Accepted payment methods">
+          {%- for type in shop.enabled_payment_types -%}
+            <li>{{ type | payment_type_svg_tag: class: 'vq-pay-icon' }}</li>
+          {%- endfor -%}
+        </ul>
+      </div>
+    </div>
+  {%- endif -%}
+
+  {%- comment %} ── BOTTOM SHEET ── {%- endcomment %}
+  <div class="vq-sheet-bd" id="vq-sheet-bd" aria-hidden="true"></div>
+
+  <div class="vq-sheet" id="vq-sheet" role="dialog" aria-modal="true" aria-labelledby="vq-sheet-title" aria-hidden="true">
+    <div class="vq-sheet-handle" id="vq-sheet-handle" aria-hidden="true"></div>
+    <div class="vq-sheet-head">
+      <span class="vq-sheet-title" id="vq-sheet-title">{{ section.settings.help_label | default: 'Need Help?' }}</span>
+      <button type="button" class="vq-sheet-close" id="vq-sheet-close" aria-label="Close">
+        <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="vq-sheet-body">
+
+      {%- comment %} TIER 1 — primary navigation {%- endcomment %}
+      {%- if nav_menu != blank and nav_menu.links.size > 0 -%}
+        <ul class="vq-nav" role="list">
+          {%- for link in nav_menu.links -%}
+            <li>
+              <a href="{{ link.url }}"{% if link.active %} aria-current="page"{% endif %}>
+                {{ link.title }}
+                <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg>
+              </a>
+            </li>
+          {%- endfor -%}
+        </ul>
+      {%- endif -%}
+
+      {%- comment %} TIER 2 trigger {%- endcomment %}
+      <button type="button" class="vq-more-trig" id="vq-more-trig" aria-expanded="false" aria-controls="vq-more">
+        {{ section.settings.more_label | default: 'More options' }}
+        <span class="vq-more-trig-arrow" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </span>
+      </button>
+
+      {%- comment %} TIER 2 — expandable: secondary nav, newsletter, legal, contact {%- endcomment %}
+      <div class="vq-more" id="vq-more">
+        <div class="vq-more-inner">
+          <div class="vq-more-pad">
+
+            {%- if more_menu != blank and more_menu.links.size > 0 -%}
+              <div class="vq-section-label">{{ section.settings.more_section_label | default: 'Explore' }}</div>
+              <ul class="vq-nav" role="list" style="border-top:1px solid var(--vq-pill-line);">
+                {%- for link in more_menu.links -%}
+                  <li>
+                    <a href="{{ link.url }}"{% if link.active %} aria-current="page"{% endif %}>
+                      {{ link.title }}
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg>
+                    </a>
+                  </li>
+                {%- endfor -%}
+              </ul>
+            {%- endif -%}
+
+            {%- if section.settings.show_newsletter -%}
+              <div class="vq-section-label">{{ section.settings.newsletter_heading | default: 'Stay In Touch' }}</div>
+              {%- form 'customer', id: 'vq-nl-form', class: 'vq-nl-form' -%}
+                <input type="hidden" name="contact[tags]" value="newsletter,footer">
+                <div class="vq-nl-wrap">
+                  <label for="vq-nl-email" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);">Email address</label>
+                  <input id="vq-nl-email" type="email" name="contact[email]" class="vq-nl-input" placeholder="{{ section.settings.newsletter_placeholder | default: 'Email for first access' }}" required autocomplete="email">
+                  <button type="submit" class="vq-nl-btn" aria-label="Subscribe">
+                    <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                  </button>
+                </div>
+                <div class="vq-nl-success" id="vq-nl-success" role="status" aria-live="polite">
+                  <span aria-hidden="true">✓</span> You're in.
+                </div>
+                <p class="vq-nl-disclaimer">
+                  {{ section.settings.newsletter_disclaimer | default: 'By subscribing you agree to our' }}
+                  <a href="{{ privacy_url }}">privacy policy</a>.
+                </p>
+              {%- endform -%}
+            {%- endif -%}
+
+            <div class="vq-section-label">{{ section.settings.legal_label | default: 'Policies' }}</div>
+            <ul class="vq-legal" role="list">
+              <li><a href="{{ privacy_url }}" style="visibility:visible;opacity:1;">Privacy Policy<svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg></a></li>
+              <li><a href="{{ refund_url }}" style="visibility:visible;opacity:1;">Refund Policy<svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg></a></li>
+              <li><a href="{{ terms_url }}" style="visibility:visible;opacity:1;">Terms of Service<svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg></a></li>
+              <li><a href="{{ shipping_url }}" style="visibility:visible;opacity:1;">Shipping Policy<svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg></a></li>
+              {%- if subscription_url != blank -%}
+              <li><a href="{{ subscription_url }}" style="visibility:visible;opacity:1;">Subscription Policy<svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg></a></li>
+              {%- endif -%}
+              <li><a href="{{ contact_info_url }}" style="visibility:visible;opacity:1;">Contact Information<svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg></a></li>
+            </ul>
+
+            {%- if section.settings.contact_url != blank -%}
+              <a href="{{ section.settings.contact_url }}" class="vq-contact-cta">
+                {{ section.settings.contact_label | default: 'Talk to us' }}
+                <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </a>
+            {%- endif -%}
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</footer>
+
+<script>
+(function(){
+  'use strict';
+
+  /* Shared references to the current section's interactive elements.
+     Declared outside init() so the document-level listeners below always
+     read the *latest* nodes even after Shopify swaps this section's DOM. */
+  var helpBtn, sheet, bd, closeBtn, moreTrig, moreBox, nlForm, nlSuccess, lastFocus;
+
+  function openSheet(){
+    lastFocus = document.activeElement;
+    sheet.classList.add('open');
+    bd.classList.add('open');
+    sheet.setAttribute('aria-hidden','false');
+    bd.setAttribute('aria-hidden','false');
+    if(helpBtn) helpBtn.setAttribute('aria-expanded','true');
+    setTimeout(function(){ if(closeBtn) closeBtn.focus({preventScroll:true}); }, 320);
+  }
+  function closeSheet(){
+    if(!sheet || !bd) return;
+    sheet.classList.remove('open','expanded');
+    bd.classList.remove('open');
+    sheet.setAttribute('aria-hidden','true');
+    bd.setAttribute('aria-hidden','true');
+    if(helpBtn) helpBtn.setAttribute('aria-expanded','false');
+    if(moreBox)  moreBox.classList.remove('open');
+    if(moreTrig) moreTrig.setAttribute('aria-expanded','false');
+    if(lastFocus && lastFocus.focus) lastFocus.focus({preventScroll:true});
+  }
+
+  /* Wires up one instance of the footer, scoped to `root` (defaults to the
+     whole document on first load; scoped to the reloaded section element
+     when Shopify's theme editor swaps the markup back in — see below). */
+  function initVqFooter(root){
+    root = root || document;
+
+    helpBtn   = root.querySelector('#vq-help-btn');
+    sheet     = root.querySelector('#vq-sheet');
+    bd        = root.querySelector('#vq-sheet-bd');
+    closeBtn  = root.querySelector('#vq-sheet-close');
+    moreTrig  = root.querySelector('#vq-more-trig');
+    moreBox   = root.querySelector('#vq-more');
+    nlForm    = root.querySelector('#vq-nl-form');
+    nlSuccess = root.querySelector('#vq-nl-success');
+
+    if(!sheet || !bd) return;
+
+    if(helpBtn) helpBtn.addEventListener('click', function(e){
+      e.stopPropagation();
+      if(sheet.classList.contains('open')) closeSheet(); else openSheet();
+    });
+    if(closeBtn) closeBtn.addEventListener('click', closeSheet);
+    if(bd)       bd.addEventListener('click', closeSheet);
+
+    if(moreTrig && moreBox){
+      moreTrig.addEventListener('click', function(){
+        var open = moreBox.classList.toggle('open');
+        moreTrig.setAttribute('aria-expanded', String(open));
+        sheet.classList.toggle('expanded', open);
+      });
+    }
+
+    /* Newsletter success state — auto-open sheet + tier 2 to confirm */
+    if(nlForm && nlSuccess && window.location.search.indexOf('customer_posted=true') > -1){
+      nlSuccess.classList.add('active');
+      setTimeout(function(){
+        openSheet();
+        if(moreBox && moreTrig){
+          moreBox.classList.add('open');
+          moreTrig.setAttribute('aria-expanded','true');
+          sheet.classList.add('expanded');
+        }
+      }, 250);
+    }
+  }
+
+  /* Registered once on `document`, which never gets replaced — these always
+     act on whichever sheet/bd/helpBtn initVqFooter() most recently found. */
+  document.addEventListener('keydown', function(e){
+    if(sheet && e.key === 'Escape' && sheet.classList.contains('open')) closeSheet();
+  });
+  document.addEventListener('click', function(e){
+    if(!sheet || !sheet.classList.contains('open')) return;
+    if(sheet.contains(e.target)) return;
+    if(helpBtn && helpBtn.contains(e.target)) return;
+    closeSheet();
+  });
+
+  /* Initial page load */
+  initVqFooter(document);
+
+  /* FIX: inline script tags do not re-execute when Shopify's theme editor
+     re-renders a section after a settings change — the old button/sheet
+     nodes (and their listeners) are simply swapped out for new, unwired
+     ones, which is why clicks stop doing anything after any edit. Re-run
+     init() against the fresh markup whenever this section reloads. */
+  document.addEventListener('shopify:section:load', function(e){
+    if(e.target && e.target.querySelector('#vq-help-btn')){
+      initVqFooter(e.target);
+    }
+  });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Footer — VANQUISH v3",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "🎨 Colors" },
+    { "type": "color", "id": "footer_bg_color",   "label": "Page background",      "default": "#ffffff" },
+    { "type": "color", "id": "footer_text_color", "label": "Page text",            "default": "#0a0a0a" },
+    { "type": "color", "id": "accent_color",      "label": "Accent (sweep line)",  "default": "#c8102e" },
+    { "type": "color", "id": "border_color",      "label": "Top border",           "default": "#e6e6e6" },
+    { "type": "color", "id": "pill_bg_color",     "label": "Pill background",      "default": "#eeeeee" },
+    { "type": "color", "id": "pill_text_color",   "label": "Pill text / icons",    "default": "#0a0a0a" },
+
+    { "type": "header", "content": "🔤 Typography" },
+    { "type": "font_picker", "id": "heading_font", "label": "Heading font", "default": "sans-serif",
+      "info": "Same picker as the header — choose from system fonts, Shopify Sans, or any Google font Shopify supports." },
+    { "type": "font_picker", "id": "body_font",    "label": "Body font",    "default": "sans-serif" },
+
+    { "type": "header", "content": "📐 Size & Scale" },
+    { "type": "range", "id": "footer_scale", "label": "Footer scale", "min": 80, "max": 180, "step": 5, "unit": "%", "default": 100,
+      "info": "Scales the entire pill bar — match the header by going up to 150–180%." },
+
+    { "type": "header", "content": "🔣 Brand & Center Logo" },
+    { "type": "text",         "id": "brand_name",         "label": "Brand name (a11y)",   "default": "VANQUISH" },
+    { "type": "image_picker", "id": "center_logo",        "label": "Center logo image",
+      "info": "Upload from Shopify Files. Replaces text fallback." },
+    { "type": "range",        "id": "center_logo_height", "label": "Logo height",         "min": 16, "max": 96, "step": 2, "unit": "px", "default": 32 },
+    { "type": "text",         "id": "monogram_text",      "label": "Text fallback",       "default": "M",
+      "info": "Shown only when no logo image is uploaded." },
+
+    { "type": "header", "content": "🔗 Social Links" },
+    { "type": "url", "id": "whatsapp_url",  "label": "WhatsApp URL",
+      "info": "Shown first with filled circle (matches reference design)." },
+    { "type": "url", "id": "instagram_url", "label": "Instagram URL" },
+    { "type": "url", "id": "tiktok_url",    "label": "TikTok URL" },
+    { "type": "url", "id": "pinterest_url", "label": "Pinterest URL" },
+    { "type": "url", "id": "twitter_url",   "label": "X / Twitter URL" },
+    { "type": "url", "id": "youtube_url",   "label": "YouTube URL" },
+    { "type": "url", "id": "discord_url",   "label": "Discord URL" },
+
+    { "type": "header", "content": "🆘 Help Trigger" },
+    { "type": "text", "id": "help_label",         "label": "Trigger label",              "default": "Need Help?" },
+    { "type": "text", "id": "more_label",         "label": "More options label",         "default": "More options" },
+    { "type": "text", "id": "more_section_label", "label": "Explore section heading",    "default": "Explore" },
+
+    { "type": "header", "content": "🧭 Menus" },
+    { "type": "link_list", "id": "nav_menu",  "label": "Primary menu (Tier 1)", "default": "footer",
+      "info": "Main links shown immediately when sheet opens." },
+    { "type": "link_list", "id": "more_menu", "label": "Secondary menu (Tier 2)",
+      "info": "Optional. Shown after tapping 'More options'." },
+
+    { "type": "header", "content": "📧 Newsletter" },
+    { "type": "checkbox", "id": "show_newsletter",        "label": "Show newsletter in More options", "default": true },
+    { "type": "text",     "id": "newsletter_heading",     "label": "Newsletter section heading",      "default": "Stay In Touch" },
+    { "type": "text",     "id": "newsletter_placeholder", "label": "Email placeholder",               "default": "Email for first access" },
+    { "type": "text",     "id": "newsletter_disclaimer",  "label": "Disclaimer prefix",               "default": "By subscribing you agree to our" },
+
+    { "type": "header", "content": "📞 Contact CTA" },
+    { "type": "url",  "id": "contact_url",   "label": "Contact page URL" },
+    { "type": "text", "id": "contact_label", "label": "Contact button label", "default": "Talk to us" },
+    { "type": "text", "id": "legal_label",   "label": "Policies section heading", "default": "Policies" },
+
+    { "type": "header", "content": "🧭 Policies Hub Page" },
+    { "type": "url", "id": "policies_page_url", "label": "Policies hub page URL",
+      "info": "Optional. If set, the Privacy / Refunds / Terms / Shipping / Subscription / Contact links below all point to this one page with a #tab-<slug> anchor that auto-opens the matching tab in a faq-dynamic.liquid section placed there (use its 'Policies Hub Page' preset). Leave blank to fall back to Shopify's automatic policy pages. Per-link overrides below still take priority over this." },
+
+    { "type": "header", "content": "🔗 Policy Link Overrides", "info": "Leave blank to use the Policies Hub above (or Shopify's automatic policy URLs if no hub is set)." },
+    { "type": "url", "id": "custom_privacy_url",      "label": "Privacy Policy URL" },
+    { "type": "url", "id": "custom_refund_url",       "label": "Refund Policy URL" },
+    { "type": "url", "id": "custom_terms_url",        "label": "Terms of Service URL" },
+    { "type": "url", "id": "custom_shipping_url",     "label": "Shipping Policy URL" },
+    { "type": "url", "id": "custom_subscription_url", "label": "Subscription Policy URL" },
+    { "type": "url", "id": "custom_contact_info_url", "label": "Contact Information URL" },
+
+    { "type": "header", "content": "💳 Payment Icons" },
+    { "type": "checkbox", "id": "show_payment_icons",   "label": "Show accepted payment icons", "default": true,
+      "info": "Pulls live icons from Settings → Payments — updates automatically as gateways are added or removed." },
+    { "type": "text",     "id": "payment_icons_label",  "label": "Label text", "default": "We Accept",
+      "info": "Leave blank to show icons only." },
+
+    { "type": "header", "content": "📋 Bottom Bar" },
+    { "type": "text", "id": "copyright_text", "label": "Copyright text", "default": "VANQUISH7 STUDIOS" },
+
+    { "type": "header", "content": "📐 Layout" },
+    { "type": "range", "id": "max_width",          "label": "Max content width", "min": 900, "max": 1600, "step": 20, "unit": "px", "default": 1280 },
+    { "type": "range", "id": "horizontal_padding", "label": "Horizontal padding","min": 8, "max": 60, "step": 2, "unit": "px", "default": 20 }
+  ],
+  "presets": [
+    { "name": "Footer — VANQUISH v3", "category": "Footer" }
+  ]
+}
+{% endschema %}

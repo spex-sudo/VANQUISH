@@ -1,0 +1,102 @@
+{% comment %}
+  collection-list — restored section
+  Rebuilt by VANQUISH7 STUDIOS. Renders a grid of collections.
+  Block accepted: _collection-card
+{% endcomment %}
+
+{%- liquid
+  assign columns = section.settings.columns_desktop | default: 3
+  assign heading = section.settings.heading
+-%}
+
+<div class="section-background color-{{ section.settings.color_scheme }}"></div>
+<div
+  class="section color-{{ section.settings.color_scheme }} section--{{ section.settings.section_width }}"
+  style="{% render 'spacing-style', settings: section.settings %}"
+>
+  <div class="collection-list spacing-style">
+    {%- if heading != blank -%}
+      <h2 class="collection-list__heading">{{ heading | escape }}</h2>
+    {%- endif -%}
+    <div class="collection-list__grid" style="--columns: {{ columns }};">
+      {% content_for 'blocks' %}
+    </div>
+  </div>
+</div>
+
+<style>
+  .collection-list__grid { display: grid; grid-template-columns: repeat(var(--columns, 3), 1fr); gap: 20px; }
+  .collection-list__heading { text-align: center; margin: 0 0 24px; }
+  @media (max-width: 749px) { .collection-list__grid { grid-template-columns: repeat(2, 1fr); } }
+</style>
+
+{% schema %}
+{
+  "name": "Collection list",
+  "tag": "section",
+  "class": "section-collection-list",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Collections"
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "label": "Columns on desktop",
+      "min": 2, "max": 6, "step": 1,
+      "default": 3
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "page-width", "label": "Page width" },
+        { "value": "full-width", "label": "Full width" }
+      ],
+      "default": "page-width"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    { "type": "header", "content": "Padding" },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "Top",
+      "min": 0, "max": 100, "step": 2, "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "Bottom",
+      "min": 0, "max": 100, "step": 2, "unit": "px",
+      "default": 40
+    }
+  ],
+  "blocks": [
+    { "type": "@app" },
+    { "type": "@theme" },
+    { "type": "_collection-card" }
+  ],
+  "presets": [
+    {
+      "name": "Collection list",
+      "category": "Storefront",
+      "blocks": {
+        "collection-card-1": { "type": "_collection-card" },
+        "collection-card-2": { "type": "_collection-card" },
+        "collection-card-3": { "type": "_collection-card" }
+      },
+      "block_order": ["collection-card-1", "collection-card-2", "collection-card-3"]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,1194 @@
+{% comment %}
+  ╔══════════════════════════════════════════════════════════════════╗
+  ║   APEX AUDIO ATMOSPHERE v2  ·  Draggable  ·  Persistent Audio   ║
+  ║   Control panel · Volume · Keyboard shortcuts · Position memory  ║
+  ╠══════════════════════════════════════════════════════════════════╣
+  ║  WHAT'S NEW vs v1:                                               ║
+  ║  • Cross-page audio fix: autoplay:1 playerVar + immediate inject ║
+  ║  • Optimistic UI: shows "playing" before YT API confirms         ║
+  ║  • Draggable widget — position saved to localStorage             ║
+  ║  • Control panel: volume slider, track title, keyboard hints     ║
+  ║  • Volume persisted across pages                                 ║
+  ║  • M key toggle · ← → arrow volume · Esc close panel            ║
+  ║  • Switch mode HTML bug fixed (ap-shell id was missing)          ║
+  ╚══════════════════════════════════════════════════════════════════╝
+{% endcomment %}
+
+{%- assign sid = section.id -%}
+{%- assign def_vol = section.settings.default_volume | default: 80 -%}
+
+<style>
+
+/* ═══════════════════════ CSS CUSTOM PROPERTIES */
+#apex-root-{{ sid }} {
+  --ap-accent:    {{ section.settings.accent_color }};
+  --ap-a75:       {{ section.settings.accent_color | color_modify: 'alpha', 0.75 }};
+  --ap-a55:       {{ section.settings.accent_color | color_modify: 'alpha', 0.55 }};
+  --ap-a30:       {{ section.settings.accent_color | color_modify: 'alpha', 0.30 }};
+  --ap-a15:       {{ section.settings.accent_color | color_modify: 'alpha', 0.15 }};
+  --ap-a08:       {{ section.settings.accent_color | color_modify: 'alpha', 0.08 }};
+
+  position:       fixed;
+  bottom:         {{ section.settings.margin_bottom }}px;
+  {{ section.settings.position_side }}: {{ section.settings.margin_side }}px;
+  z-index:        2147483647;
+  font-family:    'Barlow Condensed', 'Helvetica Neue', sans-serif;
+  touch-action:   none;
+  user-select:    none;
+  -webkit-user-select: none;
+}
+
+/* ═══════════════════════ MAIN SHELL */
+.ap-shell-{{ sid }} {
+  display:        flex;
+  align-items:    center;
+  gap:            7px;
+  padding:        7px 9px 7px 5px;
+  border-radius:  100px;
+  background:     rgba(10,8,5,0.07);
+  border:         1px solid rgba(10,8,5,0.12);
+  box-shadow:
+    0 2px 10px rgba(0,0,0,0.09),
+    inset 0 1px 0 rgba(255,255,255,0.32);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  cursor:         pointer;
+  -webkit-tap-highlight-color: transparent;
+  outline:        none;
+  transition:
+    background   0.35s ease,
+    border-color 0.35s ease,
+    box-shadow   0.35s ease,
+    transform    0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ap-shell-{{ sid }}:hover {
+  background:   rgba(10,8,5,0.11);
+  border-color: rgba(10,8,5,0.18);
+  box-shadow:
+    0 4px 18px rgba(0,0,0,0.14),
+    inset 0 1px 0 rgba(255,255,255,0.38);
+  transform: translateY(-1px);
+}
+
+.ap-shell-{{ sid }}.ap-live {
+  border-color: var(--ap-a30);
+  box-shadow:
+    0 3px 14px rgba(0,0,0,0.1),
+    0 0 0 1px var(--ap-a15),
+    inset 0 1px 0 rgba(255,255,255,0.30);
+}
+
+/* ═══════════════════════ DRAG HANDLE */
+.ap-drag-{{ sid }} {
+  width:          10px;
+  height:         18px;
+  cursor:         grab;
+  flex-shrink:    0;
+  display:        flex;
+  align-items:    center;
+  justify-content: center;
+  color:          rgba(0,0,0,0.65);
+  opacity:        0.2;
+  transition:     opacity 0.2s ease;
+  padding:        0 1px;
+}
+
+.ap-drag-{{ sid }}:active { cursor: grabbing; }
+.ap-shell-{{ sid }}:hover .ap-drag-{{ sid }} { opacity: 0.45; }
+
+/* ═══════════════════════ GLOWING DOT */
+.ap-dot-{{ sid }} {
+  width:          8px;
+  height:         8px;
+  border-radius:  50%;
+  background:     rgba(25,20,12,0.26);
+  border:         1px solid rgba(25,20,12,0.18);
+  box-shadow:     0 1px 3px rgba(0,0,0,0.18);
+  flex-shrink:    0;
+  transition:
+    background   0.35s ease,
+    border-color 0.35s ease,
+    box-shadow   0.35s ease,
+    transform    0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.ap-shell-{{ sid }}:hover .ap-dot-{{ sid }} {
+  background:   rgba(25,20,12,0.40);
+  transform:    scale(1.12);
+}
+
+.ap-shell-{{ sid }}.ap-live .ap-dot-{{ sid }} {
+  background:   var(--ap-accent);
+  border-color: var(--ap-accent);
+  box-shadow:   0 0 8px var(--ap-a55);
+  transform:    scale(1.1);
+  animation:    ap-dot-pulse-{{ sid }} 2.6s ease-in-out infinite;
+}
+
+@keyframes ap-dot-pulse-{{ sid }} {
+  0%,  100% { box-shadow: 0 0 0 0px transparent; }
+  50%       { box-shadow: 0 0 0 5px var(--ap-a15); }
+}
+
+/* ═══════════════════════ WAVEFORM BARS */
+.ap-viz-{{ sid }} {
+  display:        flex;
+  align-items:    center;
+  gap:            2.5px;
+  height:         16px;
+  max-width:      0;
+  overflow:       hidden;
+  opacity:        0;
+  transition:
+    max-width 0.42s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity   0.32s ease;
+}
+
+.ap-shell-{{ sid }}.ap-live .ap-viz-{{ sid }} {
+  max-width: 38px;
+  opacity:   1;
+}
+
+.ap-bar-{{ sid }} {
+  width:          2px;
+  border-radius:  2px;
+  background:     var(--ap-accent);
+  flex-shrink:    0;
+  transform-origin: bottom center;
+}
+
+.ap-bar-{{ sid }}:nth-child(1) { height: 5px;  }
+.ap-bar-{{ sid }}:nth-child(2) { height: 9px;  }
+.ap-bar-{{ sid }}:nth-child(3) { height: 7px;  }
+.ap-bar-{{ sid }}:nth-child(4) { height: 11px; }
+.ap-bar-{{ sid }}:nth-child(5) { height: 4px;  }
+
+.ap-shell-{{ sid }}.ap-live .ap-bar-{{ sid }} {
+  animation: ap-wave-{{ sid }} 1.1s ease-in-out infinite;
+}
+.ap-shell-{{ sid }}.ap-live .ap-bar-{{ sid }}:nth-child(1) { animation-duration: 1.00s; animation-delay: 0.00s; }
+.ap-shell-{{ sid }}.ap-live .ap-bar-{{ sid }}:nth-child(2) { animation-duration: 0.85s; animation-delay: 0.15s; }
+.ap-shell-{{ sid }}.ap-live .ap-bar-{{ sid }}:nth-child(3) { animation-duration: 1.20s; animation-delay: 0.05s; }
+.ap-shell-{{ sid }}.ap-live .ap-bar-{{ sid }}:nth-child(4) { animation-duration: 0.90s; animation-delay: 0.22s; }
+.ap-shell-{{ sid }}.ap-live .ap-bar-{{ sid }}:nth-child(5) { animation-duration: 1.05s; animation-delay: 0.10s; }
+
+@keyframes ap-wave-{{ sid }} {
+  0%,  100% { height: 3px;  }
+  50%       { height: 13px; }
+}
+
+/* ═══════════════════════ LABEL */
+.ap-label-{{ sid }} {
+  font-size:       {{ section.settings.font_size }}px;
+  text-transform:  uppercase;
+  letter-spacing:  0.18em;
+  color:           rgba(20,15,8,0.40);
+  font-weight:     600;
+  white-space:     nowrap;
+  overflow:        hidden;
+  max-width:       120px;
+  transition:
+    max-width 0.4s cubic-bezier(0.16,1,0.3,1),
+    opacity   0.3s ease,
+    color     0.35s ease;
+}
+
+.ap-shell-{{ sid }}.ap-live .ap-label-{{ sid }} {
+  color: var(--ap-a75);
+}
+
+/* ═══════════════════════ SETTINGS BUTTON */
+.ap-settings-btn-{{ sid }} {
+  display:        flex;
+  align-items:    center;
+  justify-content: center;
+  width:          22px;
+  height:         22px;
+  border-radius:  50%;
+  border:         none;
+  background:     transparent;
+  cursor:         pointer;
+  padding:        0;
+  color:          rgba(20,15,8,0.25);
+  flex-shrink:    0;
+  transition:     color 0.25s ease, background 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
+  outline:        none;
+}
+
+.ap-settings-btn-{{ sid }}:hover {
+  color:       rgba(20,15,8,0.58);
+  background:  rgba(0,0,0,0.06);
+}
+
+.ap-shell-{{ sid }}.ap-live .ap-settings-btn-{{ sid }} {
+  color: var(--ap-a55);
+}
+
+.ap-settings-btn-{{ sid }}:hover {
+  /* don't propagate hover transform to whole shell */
+  transform: none;
+}
+
+/* ═══════════════════════ CONTROL PANEL */
+.ap-panel-{{ sid }} {
+  position:       absolute;
+  bottom:         calc(100% + 10px);
+  left:           0;
+  width:          218px;
+  background:     rgba(14, 11, 7, 0.94);
+  border:         1px solid rgba(255,255,255,0.09);
+  border-top:     2px solid var(--ap-a55);
+  border-radius:  10px;
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  box-shadow:
+    0 10px 40px rgba(0,0,0,0.4),
+    0 2px 8px  rgba(0,0,0,0.25),
+    inset 0 1px 0 rgba(255,255,255,0.04);
+  padding:        14px;
+  opacity:        0;
+  pointer-events: none;
+  transform:      translateY(8px);
+  transition:
+    opacity   0.22s ease,
+    transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index:        2;
+}
+
+/* When widget is near top of screen, panel opens below */
+.ap-panel-{{ sid }}.ap-panel-below {
+  bottom:    auto;
+  top:       calc(100% + 10px);
+  transform: translateY(-8px);
+}
+
+.ap-panel-{{ sid }}.ap-panel-open {
+  opacity:        1;
+  pointer-events: auto;
+  transform:      translateY(0);
+}
+
+/* Panel header */
+.ap-panel-head-{{ sid }} {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  margin-bottom:   11px;
+}
+
+.ap-panel-title-{{ sid }} {
+  font-size:       8px;
+  text-transform:  uppercase;
+  letter-spacing:  0.24em;
+  color:           rgba(255,255,255,0.32);
+  font-weight:     700;
+}
+
+.ap-panel-close-{{ sid }} {
+  width:           20px;
+  height:          20px;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  border:          none;
+  background:      transparent;
+  color:           rgba(255,255,255,0.28);
+  font-size:       15px;
+  line-height:     1;
+  cursor:          pointer;
+  border-radius:   50%;
+  padding:         0;
+  transition:      color 0.2s, background 0.2s;
+  outline:         none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ap-panel-close-{{ sid }}:hover {
+  color:       rgba(255,255,255,0.72);
+  background:  rgba(255,255,255,0.08);
+}
+
+/* Track name */
+.ap-panel-track-{{ sid }} {
+  font-size:       10px;
+  color:           rgba(255,255,255,0.35);
+  letter-spacing:  0.06em;
+  margin-bottom:   13px;
+  white-space:     nowrap;
+  overflow:        hidden;
+  text-overflow:   ellipsis;
+  text-transform:  uppercase;
+}
+
+.ap-panel-track-{{ sid }} em {
+  color:           var(--ap-a75);
+  font-style:      normal;
+}
+
+/* Volume row */
+.ap-vol-row-{{ sid }} {
+  display:         flex;
+  align-items:     center;
+  gap:             9px;
+  margin-bottom:   13px;
+}
+
+.ap-vol-lbl-{{ sid }} {
+  font-size:       7px;
+  text-transform:  uppercase;
+  letter-spacing:  0.24em;
+  color:           rgba(255,255,255,0.28);
+  font-weight:     700;
+  width:           20px;
+  flex-shrink:     0;
+}
+
+.ap-vol-slider-{{ sid }} {
+  -webkit-appearance: none;
+  appearance:      none;
+  flex:            1;
+  height:          2px;
+  border-radius:   2px;
+  background:      rgba(255,255,255,0.14);
+  outline:         none;
+  cursor:          pointer;
+  margin:          0;
+  padding:         0;
+}
+
+.ap-vol-slider-{{ sid }}::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width:           13px;
+  height:          13px;
+  border-radius:   50%;
+  background:      var(--ap-accent);
+  cursor:          pointer;
+  box-shadow:
+    0 0 7px var(--ap-a55),
+    0 1px 3px rgba(0,0,0,0.45);
+  transition:      transform 0.15s ease;
+}
+
+.ap-vol-slider-{{ sid }}::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.ap-vol-slider-{{ sid }}::-moz-range-thumb {
+  width:           13px;
+  height:          13px;
+  border:          none;
+  border-radius:   50%;
+  background:      var(--ap-accent);
+  cursor:          pointer;
+}
+
+.ap-vol-num-{{ sid }} {
+  font-size:       9px;
+  font-variant-numeric: tabular-nums;
+  font-family:     'Barlow Condensed', monospace;
+  color:           rgba(255,255,255,0.38);
+  width:           22px;
+  text-align:      right;
+  flex-shrink:     0;
+}
+
+/* Divider */
+.ap-divider-{{ sid }} {
+  height:          1px;
+  background:      rgba(255,255,255,0.07);
+  margin:          0 0 11px;
+}
+
+/* Keyboard hints */
+.ap-hints-{{ sid }} {
+  display:         flex;
+  gap:             10px;
+  flex-wrap:       wrap;
+  align-items:     center;
+}
+
+.ap-hint-{{ sid }} {
+  display:         flex;
+  align-items:     center;
+  gap:             4px;
+}
+
+kbd.ap-kbd-{{ sid }} {
+  font-family:     'Barlow Condensed', monospace;
+  font-size:       7.5px;
+  font-weight:     700;
+  text-transform:  uppercase;
+  letter-spacing:  0.04em;
+  padding:         1px 4px 2px;
+  border:          1px solid rgba(255,255,255,0.18);
+  border-bottom-width: 2px;
+  border-radius:   3px;
+  background:      rgba(255,255,255,0.06);
+  color:           rgba(255,255,255,0.42);
+  line-height:     1.4;
+}
+
+.ap-hint-desc-{{ sid }} {
+  font-size:       7.5px;
+  text-transform:  uppercase;
+  letter-spacing:  0.16em;
+  color:           rgba(255,255,255,0.20);
+}
+
+/* ═══════════════════════ YOUTUBE HIDE */
+#ap-yt-wrap-{{ sid }} {
+  position:        fixed;
+  top:             -9999px;
+  left:            -9999px;
+  width:           1px !important;
+  height:          1px !important;
+  overflow:        hidden !important;
+  clip:            rect(0 0 0 0) !important;
+  clip-path:       inset(50%) !important;
+  opacity:         0.001;
+  pointer-events:  none !important;
+  z-index:         -9999;
+  contain:         strict;
+  visibility:      hidden;
+}
+
+/* ═══════════════════════ PRINT / SCREENSHOT HIDE */
+@media print { #apex-root-{{ sid }} { display: none !important; } }
+
+#apex-root-{{ sid }}.ap-ss-hide {
+  opacity:         0 !important;
+  pointer-events:  none !important;
+  transition:      none !important;
+}
+
+</style>
+
+<!-- ═══════════════════════════════════════════════ MARKUP -->
+
+<div id="apex-root-{{ sid }}">
+
+  <!-- ── CONTROL PANEL (hidden by default) ─────────────── -->
+  <div
+    class="ap-panel-{{ sid }}"
+    id="ap-panel-{{ sid }}"
+    role="region"
+    aria-label="Audio controls"
+    aria-hidden="true"
+  >
+    <div class="ap-panel-head-{{ sid }}">
+      <span class="ap-panel-title-{{ sid }}">Atmosphere</span>
+      <button
+        class="ap-panel-close-{{ sid }}"
+        id="ap-panel-close-{{ sid }}"
+        aria-label="Close audio controls"
+      >×</button>
+    </div>
+
+    <div class="ap-panel-track-{{ sid }}">
+      <em>{{ section.settings.track_title | default: 'Ambient' | escape }}</em>
+    </div>
+
+    <div class="ap-vol-row-{{ sid }}">
+      <span class="ap-vol-lbl-{{ sid }}">Vol</span>
+      <input
+        type="range"
+        class="ap-vol-slider-{{ sid }}"
+        id="ap-vol-slider-{{ sid }}"
+        min="0"
+        max="100"
+        step="1"
+        value="{{ def_vol }}"
+        aria-label="Volume"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow="{{ def_vol }}"
+      >
+      <span class="ap-vol-num-{{ sid }}" id="ap-vol-num-{{ sid }}">{{ def_vol }}</span>
+    </div>
+
+    <div class="ap-divider-{{ sid }}"></div>
+
+    <div class="ap-hints-{{ sid }}">
+      <div class="ap-hint-{{ sid }}">
+        <kbd class="ap-kbd-{{ sid }}">M</kbd>
+        <span class="ap-hint-desc-{{ sid }}">play/pause</span>
+      </div>
+      <div class="ap-hint-{{ sid }}">
+        <kbd class="ap-kbd-{{ sid }}">← →</kbd>
+        <span class="ap-hint-desc-{{ sid }}">volume</span>
+      </div>
+      <div class="ap-hint-{{ sid }}">
+        <kbd class="ap-kbd-{{ sid }}">Esc</kbd>
+        <span class="ap-hint-desc-{{ sid }}">close</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MAIN SHELL ────────────────────────────────────── -->
+  <div
+    class="ap-shell-{{ sid }}"
+    id="ap-shell-{{ sid }}"
+    role="switch"
+    aria-checked="false"
+    tabindex="0"
+    aria-label="{{ section.settings.initial_text | escape }}"
+  >
+    <!-- Six-dot drag handle (left zone, grab cursor) -->
+    <div class="ap-drag-{{ sid }}" id="ap-drag-{{ sid }}" aria-hidden="true" title="Drag to reposition">
+      <svg width="7" height="10" viewBox="0 0 7 10" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="1.5" cy="1.5" r="1.1"/>
+        <circle cx="5.5" cy="1.5" r="1.1"/>
+        <circle cx="1.5" cy="5"   r="1.1"/>
+        <circle cx="5.5" cy="5"   r="1.1"/>
+        <circle cx="1.5" cy="8.5" r="1.1"/>
+        <circle cx="5.5" cy="8.5" r="1.1"/>
+      </svg>
+    </div>
+
+    <!-- Status dot -->
+    <div class="ap-dot-{{ sid }}" aria-hidden="true"></div>
+
+    <!-- Waveform bars (animate when live) -->
+    <div class="ap-viz-{{ sid }}" id="ap-viz-{{ sid }}" aria-hidden="true">
+      <div class="ap-bar-{{ sid }}"></div>
+      <div class="ap-bar-{{ sid }}"></div>
+      <div class="ap-bar-{{ sid }}"></div>
+      <div class="ap-bar-{{ sid }}"></div>
+      <div class="ap-bar-{{ sid }}"></div>
+    </div>
+
+    <!-- Optional text label -->
+    {%- if section.settings.show_label -%}
+    <span class="ap-label-{{ sid }}" id="ap-label-{{ sid }}" aria-live="polite">
+      {{- section.settings.initial_text -}}
+    </span>
+    {%- endif -%}
+
+    <!-- Controls panel trigger (≡ icon) -->
+    <button
+      class="ap-settings-btn-{{ sid }}"
+      id="ap-settings-btn-{{ sid }}"
+      tabindex="-1"
+      aria-label="Open audio controls"
+      aria-haspopup="true"
+      aria-expanded="false"
+    >
+      <svg width="11" height="8" viewBox="0 0 11 8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+        <line x1="1" y1="1.5" x2="10" y2="1.5"/>
+        <line x1="1" y1="4"   x2="10" y2="4"/>
+        <line x1="1" y1="6.5" x2="10" y2="6.5"/>
+      </svg>
+    </button>
+  </div>
+
+</div>
+
+<!-- Hidden YouTube player container -->
+<div id="ap-yt-wrap-{{ sid }}" aria-hidden="true" role="presentation">
+  <div id="ap-yt-player-{{ sid }}"></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  function ready(fn) {
+    if (document.readyState !== 'loading') fn();
+    else document.addEventListener('DOMContentLoaded', fn);
+  }
+
+  ready(function () {
+
+    /* ──────────────────────────── ELEMENT REFS */
+    var sid         = '{{ sid }}';
+    var root        = document.getElementById('apex-root-'        + sid);
+    var shell       = document.getElementById('ap-shell-'         + sid);
+    var label       = document.getElementById('ap-label-'         + sid);
+    var panel       = document.getElementById('ap-panel-'         + sid);
+    var panelClose  = document.getElementById('ap-panel-close-'   + sid);
+    var settingsBtn = document.getElementById('ap-settings-btn-'  + sid);
+    var volSlider   = document.getElementById('ap-vol-slider-'    + sid);
+    var volNum      = document.getElementById('ap-vol-num-'       + sid);
+    var dragHandle  = document.getElementById('ap-drag-'          + sid);
+
+    if (!shell) return;
+
+    /* ──────────────────────────── CONFIG */
+    var TEXT_INIT  = '{{ section.settings.initial_text | escape }}';
+    var TEXT_PLAY  = '{{ section.settings.playing_text | escape }}';
+    var TEXT_PAUSE = '{{ section.settings.paused_text  | escape }}';
+    var YT_URL     = '{{ section.settings.youtube_url  | escape }}';
+    var LOOP       = {{ section.settings.loop_audio }};
+    var DEF_VOL    = {{ def_vol }};
+
+    /* ──────────────────────────── STORAGE KEYS */
+    var SK_PLAY = 'apex_audio_playing';
+    var SK_VOL  = 'apex_audio_volume';
+    var SK_POS  = 'apex_pos_' + sid;
+
+    /* ──────────────────────────── STATE */
+    var player      = null;
+    var isPlaying   = false;
+    var playerReady = false;
+    var apiInjected = false;
+    var panelOpen   = false;
+    var currentVol  = DEF_VOL;
+    var didDrag     = false;
+
+    /* ──────────────────────────── STORAGE HELPERS
+       safeGet checks sessionStorage first (survives Shopify
+       same-tab navigation), falls back to localStorage.
+       Both are written on every state change for resilience.
+    */
+    function safeGet(key) {
+      var v;
+      try { v = sessionStorage.getItem(key); if (v !== null) return v; } catch(e) {}
+      try { v = localStorage.getItem(key);   if (v !== null) return v; } catch(e) {}
+      return null;
+    }
+
+    function safeSet(key, val) {
+      try { sessionStorage.setItem(key, val); } catch(e) {}
+      try { localStorage.setItem(key,   val); } catch(e) {}
+    }
+
+    function safeRemove(key) {
+      try { sessionStorage.removeItem(key); } catch(e) {}
+      try { localStorage.removeItem(key);   } catch(e) {}
+    }
+
+    /* ──────────────────────────── LABEL / LIVE STATE */
+    function setLabel(t) { if (label) label.textContent = t; }
+
+    function setLive(on) {
+      shell.classList.toggle('ap-live', on);
+      shell.setAttribute('aria-checked', on ? 'true' : 'false');
+    }
+
+    /* ──────────────────────────── VIDEO ID EXTRACTION */
+    function extractVideoID(url) {
+      try {
+        var m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|v\/))([A-Za-z0-9_-]{11})/);
+        return m ? m[1] : '5qap5aO4i9A';
+      } catch(e) { return '5qap5aO4i9A'; }
+    }
+    var VIDEO_ID = extractVideoID(YT_URL);
+
+    /* ──────────────────────────── BOT / RESTRICTED UA DETECTION */
+    function isBot() {
+      if (navigator.webdriver) return true;
+      if (window.__nightmare || window.callPhantom) return true;
+      if (!navigator.languages || !navigator.languages.length) return true;
+      var ua = (navigator.userAgent || '').toLowerCase();
+      if (/bot|crawl|spider|slurp|archive|semalt/.test(ua)) return true;
+      if (!screen.width || !screen.height) return true;
+      return false;
+    }
+
+    function isRestrictedBrowser() {
+      return /TikTok|musical_ly|BytedanceWebview|Instagram|FBAN|FBAV|Snapchat|MicroMessenger|Line\//i
+        .test(navigator.userAgent || '');
+    }
+
+    /* ══════════════════════════ VOLUME
+       Volume is persisted to localStorage so it survives
+       cross-page navigation. The slider fill is updated via
+       a CSS gradient on the track background.
+    */
+    function updateVolUI(v) {
+      if (volNum)    volNum.textContent = v;
+      if (volSlider) {
+        volSlider.setAttribute('aria-valuenow', v);
+        var pct = v + '%';
+        volSlider.style.backgroundImage =
+          'linear-gradient(to right,' +
+          ' var(--ap-accent) ' + pct + ',' +
+          ' rgba(255,255,255,0.14) ' + pct + ')';
+      }
+    }
+
+    function setVolume(v) {
+      v = Math.max(0, Math.min(100, Math.round(v)));
+      currentVol = v;
+      updateVolUI(v);
+      safeSet(SK_VOL, String(v));
+      if (player && playerReady) {
+        try {
+          player.setVolume(v);
+          if (v === 0) player.mute(); else player.unMute();
+        } catch(e) {}
+      }
+    }
+
+    function initVolume() {
+      var saved = parseInt(safeGet(SK_VOL), 10);
+      currentVol = (!isNaN(saved) && saved >= 0 && saved <= 100) ? saved : DEF_VOL;
+      if (volSlider) volSlider.value = currentVol;
+      updateVolUI(currentVol);
+    }
+
+    if (volSlider) {
+      volSlider.addEventListener('input', function () {
+        setVolume(parseInt(this.value, 10));
+      });
+      /* Prevent volume slider click from toggling playback */
+      volSlider.addEventListener('click', function (e) { e.stopPropagation(); });
+    }
+
+    /* ══════════════════════════ CONTROL PANEL */
+    function openPanel() {
+      if (!panel) return;
+      panelOpen = true;
+      /* Flip to below if widget is near top of viewport */
+      var rect = root.getBoundingClientRect();
+      panel.classList.toggle('ap-panel-below', rect.top < 200);
+      panel.classList.add('ap-panel-open');
+      panel.setAttribute('aria-hidden', 'false');
+      if (settingsBtn) settingsBtn.setAttribute('aria-expanded', 'true');
+    }
+
+    function closePanel() {
+      if (!panel) return;
+      panelOpen = false;
+      panel.classList.remove('ap-panel-open');
+      panel.setAttribute('aria-hidden', 'true');
+      if (settingsBtn) settingsBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    if (settingsBtn) {
+      settingsBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        panelOpen ? closePanel() : openPanel();
+      });
+    }
+
+    if (panelClose) {
+      panelClose.addEventListener('click', function (e) {
+        e.stopPropagation();
+        closePanel();
+      });
+    }
+
+    /* Close when clicking outside the root */
+    document.addEventListener('click', function (e) {
+      if (panelOpen && root && !root.contains(e.target)) closePanel();
+    });
+
+    /* ══════════════════════════ DRAGGING
+       Only the six-dot handle zone initiates drag.
+       A 5px threshold before drag mode activates prevents
+       accidental toggles on tap/click. Position is saved
+       debounced to localStorage and restored on every page load.
+    */
+    function getLeft() { return parseFloat(root.style.left) || 0; }
+    function getTop()  { return parseFloat(root.style.top)  || 0; }
+
+    /* Convert CSS bottom/side to top/left for drag math */
+    function anchorPosition() {
+      var rect = root.getBoundingClientRect();
+      root.style.left   = rect.left + 'px';
+      root.style.top    = rect.top  + 'px';
+      root.style.bottom = 'auto';
+      root.style.right  = 'auto';
+    }
+
+    var posTimer = null;
+    function savePosition() {
+      clearTimeout(posTimer);
+      posTimer = setTimeout(function () {
+        try {
+          var rect = root.getBoundingClientRect();
+          localStorage.setItem(SK_POS, JSON.stringify({ x: Math.round(rect.left), y: Math.round(rect.top) }));
+        } catch(e) {}
+      }, 250);
+    }
+
+    function initPosition() {
+      /* Try saved position first */
+      try {
+        var raw = localStorage.getItem(SK_POS);
+        if (raw) {
+          var pos = JSON.parse(raw);
+          if (typeof pos.x === 'number' && typeof pos.y === 'number') {
+            var maxX = Math.max(0, window.innerWidth  - root.offsetWidth);
+            var maxY = Math.max(0, window.innerHeight - root.offsetHeight);
+            root.style.left   = Math.min(maxX, Math.max(0, pos.x)) + 'px';
+            root.style.top    = Math.min(maxY, Math.max(0, pos.y)) + 'px';
+            root.style.bottom = 'auto';
+            root.style.right  = 'auto';
+            return;
+          }
+        }
+      } catch(e) {}
+      /* Fall back to CSS-defined bottom/side settings */
+      anchorPosition();
+    }
+
+    function initDrag() {
+      var startClientX, startClientY, startLeft, startTop, moving;
+
+      function onMove(cx, cy) {
+        var dx = cx - startClientX;
+        var dy = cy - startClientY;
+        if (!moving && Math.abs(dx) < 5 && Math.abs(dy) < 5) return;
+        moving  = true;
+        didDrag = true;
+        var maxX = Math.max(0, window.innerWidth  - root.offsetWidth);
+        var maxY = Math.max(0, window.innerHeight - root.offsetHeight);
+        root.style.left = Math.min(maxX, Math.max(0, startLeft + dx)) + 'px';
+        root.style.top  = Math.min(maxY, Math.max(0, startTop  + dy)) + 'px';
+      }
+
+      /* Mouse drag */
+      dragHandle.addEventListener('mousedown', function (e) {
+        if (e.button !== 0) return;
+        e.preventDefault();
+        moving = false; didDrag = false;
+        startClientX = e.clientX;
+        startClientY = e.clientY;
+        startLeft    = getLeft();
+        startTop     = getTop();
+        root.style.transition = 'none';
+
+        function onMouseMove(e) { onMove(e.clientX, e.clientY); }
+        function onMouseUp()   {
+          document.removeEventListener('mousemove', onMouseMove);
+          document.removeEventListener('mouseup',   onMouseUp);
+          root.style.transition = '';
+          if (moving) savePosition();
+        }
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup',   onMouseUp);
+      });
+
+      /* Touch drag */
+      dragHandle.addEventListener('touchstart', function (e) {
+        if (e.touches.length !== 1) return;
+        var t = e.touches[0];
+        moving = false; didDrag = false;
+        startClientX = t.clientX;
+        startClientY = t.clientY;
+        startLeft    = getLeft();
+        startTop     = getTop();
+        root.style.transition = 'none';
+
+        function onTouchMove(e) {
+          e.preventDefault();
+          onMove(e.touches[0].clientX, e.touches[0].clientY);
+        }
+        function onTouchEnd() {
+          dragHandle.removeEventListener('touchmove', onTouchMove);
+          dragHandle.removeEventListener('touchend',  onTouchEnd);
+          root.style.transition = '';
+          if (moving) savePosition();
+        }
+        dragHandle.addEventListener('touchmove', onTouchMove, { passive: false });
+        dragHandle.addEventListener('touchend',  onTouchEnd);
+      }, { passive: true });
+    }
+
+    /* ══════════════════════════ YOUTUBE API */
+    function injectYTAPI() {
+      if (apiInjected) return;
+      apiInjected = true;
+      var tag   = document.createElement('script');
+      tag.src   = 'https://www.youtube.com/iframe_api';
+      tag.async = true;
+      document.head.appendChild(tag);
+      var prev = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = function () {
+        if (typeof prev === 'function') prev();
+        initPlayer();
+      };
+    }
+
+    function initPlayer() {
+      if (typeof YT === 'undefined' || !YT.Player) return;
+      var wasPlaying = safeGet(SK_PLAY) === 'true';
+      /*
+        THE KEY FIX: pass autoplay:1 directly in playerVars when resuming.
+        This tells YouTube to start buffering immediately on iframe creation,
+        before onReady fires — drastically cutting the resume gap.
+        Browsers allow this because the user has already interacted with the
+        origin (they were just playing music on the previous page).
+      */
+      player = new YT.Player('ap-yt-player-' + sid, {
+        height:  '1',
+        width:   '1',
+        videoId: VIDEO_ID,
+        playerVars: {
+          autoplay:       wasPlaying ? 1 : 0,
+          controls:       0,
+          disablekb:      1,
+          fs:             0,
+          iv_load_policy: 3,
+          loop:           LOOP ? 1 : 0,
+          modestbranding: 1,
+          playsinline:    1,
+          rel:            0,
+          origin:         window.location.origin,
+          playlist:       LOOP ? VIDEO_ID : undefined
+        },
+        events: {
+          onReady:       onPlayerReady,
+          onStateChange: onStateChange,
+          onError:       onPlayerError
+        }
+      });
+    }
+
+    function onPlayerReady(e) {
+      playerReady = true;
+      e.target.setVolume(currentVol);
+      if (currentVol === 0) { e.target.mute(); } else { e.target.unMute(); }
+    }
+
+    function onStateChange(event) {
+      var S = YT.PlayerState;
+      if (event.data === S.PLAYING) {
+        isPlaying = true;
+        setLive(true);
+        setLabel(TEXT_PLAY);
+        safeSet(SK_PLAY, 'true');
+      } else if (event.data === S.ENDED) {
+        if (LOOP) {
+          player.seekTo(0);
+          player.playVideo();
+        } else {
+          setIdle();
+        }
+      } else if (event.data === S.PAUSED || event.data === S.CUED) {
+        setIdle();
+      } else if (event.data === S.BUFFERING) {
+        setLabel('…');
+      }
+    }
+
+    function onPlayerError() {
+      setIdle();
+      setLabel('—');
+    }
+
+    function setIdle() {
+      isPlaying = false;
+      setLive(false);
+      setLabel(playerReady ? TEXT_PAUSE : TEXT_INIT);
+      safeRemove(SK_PLAY);
+    }
+
+    /* ══════════════════════════ OPTIMISTIC UI
+       When storage says "was playing", immediately show the
+       playing visual state — before the YouTube API even loads.
+       If YouTube then fails to resume, setIdle() corrects it.
+       This eliminates the "off → on" flicker that users noticed.
+    */
+    (function optimisticUI() {
+      if (safeGet(SK_PLAY) === 'true') {
+        setLive(true);
+        setLabel('…');
+      }
+    })();
+
+    /* ══════════════════════════ EARLY / WARM INJECT
+       If storage says "was playing", inject the API right now
+       (not waiting for user gesture). This is what makes music
+       resume near-instantly on page navigation.
+       Otherwise, inject on the first human interaction.
+    */
+    (function maybeEarlyInject() {
+      if (isBot() || isRestrictedBrowser()) return;
+      if (safeGet(SK_PLAY) === 'true') {
+        injectYTAPI();
+        return;
+      }
+      var warmEvents = ['mousemove', 'touchstart', 'scroll', 'keydown', 'pointerdown'];
+      var warmHandler = function () {
+        injectYTAPI();
+        warmEvents.forEach(function (ev) { window.removeEventListener(ev, warmHandler); });
+      };
+      warmEvents.forEach(function (ev) {
+        window.addEventListener(ev, warmHandler, { passive: true });
+      });
+    })();
+
+    /* ══════════════════════════ TOGGLE PLAYBACK */
+    function handleToggle() {
+      if (isRestrictedBrowser()) { setLabel('Open in browser ↗'); return; }
+      if (!apiInjected)  { injectYTAPI(); setLabel('…'); return; }
+      if (!playerReady)  { setLabel('…'); return; }
+      if (isPlaying) {
+        player.pauseVideo();
+      } else {
+        player.unMute();
+        player.setVolume(currentVol);
+        player.playVideo();
+      }
+    }
+
+    /* Shell click = toggle (unless it was a drag or the settings button) */
+    shell.addEventListener('click', function (e) {
+      if (didDrag) { didDrag = false; return; }
+      if (settingsBtn && settingsBtn.contains(e.target)) return;
+      handleToggle();
+    });
+
+    shell.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleToggle(); }
+    });
+
+    /* ══════════════════════════ KEYBOARD SHORTCUTS */
+    document.addEventListener('keydown', function (e) {
+      /* Skip when focus is in a text field */
+      var tag = document.activeElement ? document.activeElement.tagName : '';
+      if (/^(INPUT|TEXTAREA|SELECT)$/.test(tag)) return;
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+
+      if (e.key === 'm' || e.key === 'M') {
+        e.preventDefault();
+        handleToggle();
+      } else if (e.key === 'Escape') {
+        if (panelOpen) { e.preventDefault(); closePanel(); }
+      } else if (e.key === 'ArrowRight' && panelOpen) {
+        e.preventDefault();
+        setVolume(currentVol + 5);
+        if (volSlider) volSlider.value = currentVol;
+      } else if (e.key === 'ArrowLeft' && panelOpen) {
+        e.preventDefault();
+        setVolume(currentVol - 5);
+        if (volSlider) volSlider.value = currentVol;
+      }
+    });
+
+    /* ══════════════════════════ PAGE HIDE — persist before navigation */
+    window.addEventListener('pagehide', function () {
+      safeSet(SK_PLAY, isPlaying ? 'true' : 'false');
+    });
+
+    /* ══════════════════════════ SAFARI AUDIO CONTEXT UNLOCK */
+    document.addEventListener('touchend', function safariUnlock() {
+      var Ctx = window.AudioContext || window.webkitAudioContext;
+      if (Ctx) {
+        try { var ctx = new Ctx(); ctx.resume().catch(function(){}); ctx.close(); } catch(e) {}
+      }
+      document.removeEventListener('touchend', safariUnlock);
+    }, { once: true, passive: true });
+
+    /* ══════════════════════════ SCREENSHOT HIDE */
+    (function () {
+      var restoreTimer = null;
+      function hide()    { root.classList.add('ap-ss-hide'); }
+      function restore() {
+        clearTimeout(restoreTimer);
+        restoreTimer = setTimeout(function () { root.classList.remove('ap-ss-hide'); }, 1800);
+      }
+      window.addEventListener('blur',  function () { hide(); setTimeout(restore, 600); });
+      window.addEventListener('focus', function () { clearTimeout(restoreTimer); restore(); });
+      document.addEventListener('visibilitychange', function () { document.hidden ? hide() : restore(); });
+      window.addEventListener('beforeprint', hide);
+      window.addEventListener('afterprint',  restore);
+    })();
+
+    /* ══════════════════════════ INIT SEQUENCE */
+    initVolume();
+    initDrag();
+    /* Use rAF so offsetWidth is available for position clamping */
+    requestAnimationFrame(initPosition);
+
+  }); /* end ready() */
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Apex Audio Atmosphere",
+  "settings": [
+    { "type": "header", "content": "── Audio Source ──────────────────" },
+    {
+      "type": "text",
+      "id": "youtube_url",
+      "label": "YouTube URL",
+      "default": "https://www.youtube.com/watch?v=5qap5aO4i9A",
+      "info": "Paste any full YouTube link — videos, mixes, live streams."
+    },
+    {
+      "type": "checkbox",
+      "id": "loop_audio",
+      "label": "Loop continuously",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "track_title",
+      "label": "Track / playlist title",
+      "default": "Ambient",
+      "info": "Shown in the control panel. Keep it short — 2–3 words."
+    },
+    { "type": "header", "content": "── Labels ────────────────────────" },
+    {
+      "type": "checkbox",
+      "id": "show_label",
+      "label": "Show text label",
+      "default": true,
+      "info": "Hide for the most minimal look — just the dot."
+    },
+    { "type": "text", "id": "initial_text", "label": "Idle label",    "default": "Atmosphere" },
+    { "type": "text", "id": "playing_text", "label": "Playing label", "default": "On"         },
+    { "type": "text", "id": "paused_text",  "label": "Paused label",  "default": "Off"        },
+    {
+      "type": "range",
+      "id": "font_size",
+      "label": "Label font size",
+      "min": 7, "max": 13, "step": 1, "unit": "px",
+      "default": 9
+    },
+    { "type": "header", "content": "── Audio ─────────────────────────" },
+    {
+      "type": "range",
+      "id": "default_volume",
+      "label": "Default volume",
+      "min": 0, "max": 100, "step": 5, "unit": "%",
+      "default": 80,
+      "info": "Users can adjust per-session in the control panel. Their preference is remembered."
+    },
+    { "type": "header", "content": "── Design ────────────────────────" },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent color",
+      "default": "#c9a84c",
+      "info": "Used for the glowing dot, waveform bars, panel top border and volume thumb."
+    },
+    { "type": "header", "content": "── Position ──────────────────────" },
+    {
+      "type": "select",
+      "id": "position_side",
+      "label": "Default side",
+      "options": [
+        { "value": "left",  "label": "Left"  },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "left",
+      "info": "Widget is freely draggable. This only sets the default position before a user moves it."
+    },
+    {
+      "type": "range",
+      "id": "margin_bottom",
+      "label": "Distance from bottom",
+      "min": 10, "max": 120, "step": 2, "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "margin_side",
+      "label": "Distance from side",
+      "min": 10, "max": 100, "step": 2, "unit": "px",
+      "default": 28
+    }
+  ],
+  "presets": [
+    { "name": "Apex Audio Atmosphere" }
+  ]
+}
+{% endschema %}
