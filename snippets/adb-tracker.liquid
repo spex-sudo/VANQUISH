@@ -1,0 +1,52 @@
+
+{%- comment -%}
+  adb-tracker.liquid — snippets/
+  Add {% render 'adb-tracker' %} before </body> in layout/theme.liquid.
+  Records Performance API data per page into localStorage key 'adb_history'.
+  The Admin Dashboard reads this key for the Page Visit Log and charts.
+{%- endcomment -%}
+<script>
+(function(){
+  'use strict';
+  const K='adb_history', MAX=500;
+  if(/admin-dashboard|command-centre/i.test(location.pathname)) return;
+  let lcp=0,cls=0,inp=0,done=false;
+  try{new PerformanceObserver(l=>{const e=l.getEntries().at(-1);if(e)lcp=e.startTime;}).observe({type:'largest-contentful-paint',buffered:true});}catch(_){}
+  try{new PerformanceObserver(l=>{l.getEntries().forEach(e=>{if(!e.hadRecentInput)cls+=e.value;});}).observe({type:'layout-shift',buffered:true});}catch(_){}
+  try{new PerformanceObserver(l=>{l.getEntries().forEach(e=>{if(e.interactionId)inp=Math.max(inp,e.duration);});}).observe({type:'event',durationThreshold:16,buffered:true});}catch(_){}
+  function save(){
+    if(done)return; done=true;
+    const nav=performance.getEntriesByType('navigation')[0];
+    const fcp=performance.getEntriesByType('paint').find(e=>e.name==='first-contentful-paint');
+    const res=performance.getEntriesByType('resource');
+    const rec={
+      id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),
+      url:location.pathname+(location.search?location.search.slice(0,50):''),
+      title:document.title.slice(0,60),ts:Date.now(),
+      lcp:Math.round(lcp),fcp:fcp?Math.round(fcp.startTime):0,
+      ttfb:nav?Math.round(nav.responseStart-nav.requestStart):0,
+      cls:parseFloat(cls.toFixed(4)),inp:Math.round(inp),
+      loadTime:nav?Math.round(nav.loadEventEnd-nav.startTime):0,
+      dcl:nav?Math.round(nav.domContentLoadedEventEnd-nav.startTime):0,
+      resources:res.length,
+      transferKB:Math.round(res.reduce((a,e)=>a+(e.transferSize||0),0)/1024),
+      conn:(navigator.connection||{}).effectiveType||'',
+      vp:window.innerWidth+'x'+window.innerHeight
+    };
+    try{
+      const raw=localStorage.getItem(K);
+      const store=raw?JSON.parse(raw):{records:[]};
+      if(!Array.isArray(store.records)) store.records=[];
+      store.records.push(rec);
+      if(store.records.length>MAX) store.records=store.records.slice(-MAX);
+      store.lastUpdated=Date.now();
+      localStorage.setItem(K,JSON.stringify(store));
+    }catch(e){
+      try{localStorage.setItem(K,JSON.stringify({records:[rec],lastUpdated:Date.now()}));}catch(_){}
+    }
+  }
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')save();});
+  if(document.readyState==='complete') setTimeout(save,5000);
+  else window.addEventListener('load',()=>setTimeout(save,5000),{once:true});
+})();
+</script>
