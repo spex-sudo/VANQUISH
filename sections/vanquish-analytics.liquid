@@ -1,0 +1,2071 @@
+
+{%- liquid
+  assign dash_title  = section.settings.dashboard_title  | default: 'Command Centre'
+  assign master_hash = section.settings.master_password  | default: 'master' | sha256
+  assign co_email    = section.settings.company_email    | default: ''
+  assign ejs_svc     = section.settings.emailjs_service  | default: ''
+  assign ejs_tpl     = section.settings.emailjs_template | default: ''
+  assign ejs_key     = section.settings.emailjs_pubkey   | default: ''
+  assign auto_ref    = section.settings.auto_refresh
+  assign ref_int     = section.settings.refresh_interval | default: 30
+-%}
+
+<script>
+/* ── Liquid → JS data bridge ── */
+window.__CD = {
+  title:    {{ dash_title  | json }},
+  masterH:  {{ master_hash | json }},
+  email:    {{ co_email    | json }},
+  ejsSvc:   {{ ejs_svc     | json }},
+  ejsTpl:   {{ ejs_tpl     | json }},
+  ejsKey:   {{ ejs_key     | json }},
+  autoRef:  {{ auto_ref    | json }},
+  refInt:   {{ ref_int     | json }},
+  store: {
+    name:      {{ shop.name             | json }},
+    domain:    {{ shop.permanent_domain | json }},
+    currency:  {{ shop.currency         | json }},
+    cartItems: {{ cart.item_count       | json }},
+    cartTotal: {{ cart.total_price | money | json }},
+    template:  {{ template              | json }},
+    customer:  {{ customer.name | default: 'Guest' | json }},
+    theme:     {{ theme.name            | json }}
+  },
+  users: [
+    {%- for i in (1..10) -%}
+      {%- assign nk = 'user_' | append: i | append: '_name' -%}
+      {%- assign nm = section.settings[nk] | default: '' -%}
+      {%- if nm != '' -%}
+        {%- assign rk  = 'user_' | append: i | append: '_role'            -%}
+        {%- assign pk  = 'user_' | append: i | append: '_password'        -%}
+        {%- assign ovk = 'user_' | append: i | append: '_can_overview'    -%}
+        {%- assign clk = 'user_' | append: i | append: '_can_collections' -%}
+        {%- assign pfk = 'user_' | append: i | append: '_can_performance' -%}
+        {%- assign sgk = 'user_' | append: i | append: '_can_suggestions' -%}
+        {%- assign tmk = 'user_' | append: i | append: '_can_team'        -%}
+        {
+          name:  {{ nm | json }},
+          role:  {{ section.settings[rk]  | default: 'Member' | json }},
+          hash:  {{ section.settings[pk]  | default: '' | sha256 | json }},
+          access:{
+            overview:    {{ section.settings[ovk] | default: true  | json }},
+            collections: {{ section.settings[clk] | default: true  | json }},
+            performance: {{ section.settings[pfk] | default: false | json }},
+            suggestions: {{ section.settings[sgk] | default: true  | json }},
+            team:        {{ section.settings[tmk] | default: false | json }}
+          }
+        },
+      {%- endif -%}
+    {%- endfor -%}
+  ]
+};
+</script>
+
+<div id="cd-root" class="cd">
+
+  <!-- ══ GATE ══ -->
+  <div class="cd-gate" id="cd-gate">
+    <div class="cd-gate-bg">
+      <div class="cd-orb cd-orb-1"></div>
+      <div class="cd-orb cd-orb-2"></div>
+    </div>
+    <div class="cd-gate-card">
+      <div class="cd-gate-brand">
+        <div class="cd-brand-mark">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <rect width="18" height="18" rx="5" fill="#000"/>
+            <path d="M4.5 9h2.5l1.5-3.5 2 7 1.5-3.5H14" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span class="cd-brand-name" data-title>Command Centre</span>
+      </div>
+      <h1 class="cd-gate-h">Welcome back</h1>
+      <p class="cd-gate-sub">Enter your access code to continue</p>
+      <div class="cd-gate-field">
+        <div class="cd-gate-input-wrap" id="cd-pw-wrap">
+          <svg class="cd-input-icon" width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <rect x="2" y="6.5" width="10" height="7" rx="1.5" stroke="#bbb" stroke-width="1.2"/>
+            <path d="M4.5 6.5V5A2.5 2.5 0 019.5 5v1.5" stroke="#bbb" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+          <input id="cd-pw-input" class="cd-gate-input" type="password" placeholder="Access code" autocomplete="current-password" spellcheck="false"/>
+          <button id="cd-pw-eye" class="cd-eye-btn" type="button" aria-label="Toggle visibility">
+            <svg id="cd-eye-show" width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M1.5 7.5S4 3 7.5 3s6 4.5 6 4.5S12 12 7.5 12 1.5 7.5 1.5 7.5z" stroke="#bbb" stroke-width="1.2"/><circle cx="7.5" cy="7.5" r="2" stroke="#bbb" stroke-width="1.2"/></svg>
+            <svg id="cd-eye-hide" style="display:none" width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M2 2l11 11M5.2 5.3A4 4 0 004 7.5S6.5 12 7.5 12a4 4 0 002.8-1.2M3.5 3.8C2.2 4.8 1.5 7.5 1.5 7.5S4 12 7.5 12M7.5 3C11 3 13.5 7.5 13.5 7.5a9 9 0 01-1.5 2" stroke="#bbb" stroke-width="1.2" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        <div id="cd-pw-err" class="cd-gate-err"></div>
+      </div>
+      <button id="cd-pw-btn" class="cd-gate-btn" type="button">
+        <span id="cd-pw-btn-txt">Sign in</span>
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3.5l4 3.5-4 3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <p class="cd-gate-foot">Individual passwords &amp; master key supported</p>
+    </div>
+  </div>
+
+  <!-- ══ APP ══ -->
+  <div class="cd-app" id="cd-app" style="display:none">
+
+    <!-- Sidebar -->
+    <aside class="cd-side" id="cd-side">
+      <div class="cd-side-inner">
+        <div class="cd-side-top">
+          <div class="cd-side-brand">
+            <div class="cd-brand-mark cd-brand-mark--sm">
+              <svg width="16" height="16" viewBox="0 0 18 18" fill="none"><rect width="18" height="18" rx="5" fill="#000"/><path d="M4.5 9h2.5l1.5-3.5 2 7 1.5-3.5H14" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <span class="cd-side-title" data-title>Command Centre</span>
+          </div>
+
+          <nav id="cd-nav" class="cd-nav">
+            <button class="cd-nav-btn cd-nav-btn--active" data-nav="overview">
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><rect x="1.5" y="1.5" width="4.5" height="4.5" rx="1.2" stroke="currentColor" stroke-width="1.25"/><rect x="9" y="1.5" width="4.5" height="4.5" rx="1.2" stroke="currentColor" stroke-width="1.25"/><rect x="1.5" y="9" width="4.5" height="4.5" rx="1.2" stroke="currentColor" stroke-width="1.25"/><rect x="9" y="9" width="4.5" height="4.5" rx="1.2" stroke="currentColor" stroke-width="1.25"/></svg>
+              <span>Overview</span>
+            </button>
+            <button class="cd-nav-btn" data-nav="collections">
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M7.5 2L13 5v5l-5.5 3L2 10V5L7.5 2z" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"/><path d="M7.5 2v11M2 5l5.5 3 5.5-3" stroke="currentColor" stroke-width="1.25"/></svg>
+              <span>Collections</span>
+            </button>
+            <button class="cd-nav-btn" data-nav="performance">
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><polyline points="1.5,11 4.5,7 7.5,9 10.5,4 13.5,6" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span>Performance</span>
+            </button>
+            <button class="cd-nav-btn" data-nav="suggestions">
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M13 9.5A1.5 1.5 0 0111.5 11H4L2 13V3.5A1.5 1.5 0 013.5 2h8A1.5 1.5 0 0113 3.5v6z" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"/></svg>
+              <span>Suggestions</span>
+            </button>
+            <button class="cd-nav-btn" id="cd-team-btn" data-nav="team" style="display:none">
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="5.5" cy="5" r="2.5" stroke="currentColor" stroke-width="1.25"/><path d="M1 13c0-2.5 2-4.5 4.5-4.5S10 10.5 10 13" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/><circle cx="11.5" cy="5" r="2" stroke="currentColor" stroke-width="1.25"/><path d="M13.5 12a3 3 0 00-3-2.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg>
+              <span>Team</span>
+            </button>
+          </nav>
+        </div>
+
+        <!-- User card at bottom of sidebar -->
+        <div class="cd-side-user" id="cd-side-user">
+          <div class="cd-user-av" id="cd-user-av">?</div>
+          <div class="cd-user-text">
+            <div class="cd-user-name" id="cd-user-name">—</div>
+            <div class="cd-user-role" id="cd-user-role">—</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Sidebar overlay (mobile) -->
+    <div class="cd-side-overlay" id="cd-side-overlay"></div>
+
+    <!-- Main content -->
+    <div class="cd-main" id="cd-main">
+
+      <!-- Scrollable content area -->
+      <div class="cd-scroll" id="cd-scroll">
+
+        <!-- ── Overview ── -->
+        <section class="cd-view" id="view-overview">
+          <div class="cd-view-header">
+            <div>
+              <h1 class="cd-view-title" id="cd-greeting">Overview</h1>
+              <p class="cd-view-date" id="cd-date"></p>
+            </div>
+          </div>
+
+          <!-- Bento row 1 -->
+          <div class="cd-bento cd-bento--3">
+
+            <!-- Hero dark card -->
+            <div class="cd-card cd-card--dark cd-card--span2">
+              <div class="cd-hero-top">
+                <div>
+                  <div class="cd-hero-hi" id="cd-hero-hi">Good morning,</div>
+                  <div class="cd-hero-name" id="cd-hero-name">Welcome</div>
+                </div>
+                <span class="cd-role-pill" id="cd-role-pill">Admin</span>
+              </div>
+              <div class="cd-kpi-row">
+                <div class="cd-kpi"><div class="cd-kpi-num" id="kpi-fps">—</div><div class="cd-kpi-lbl">fps</div></div>
+                <div class="cd-kpi"><div class="cd-kpi-num" id="kpi-lcp">—</div><div class="cd-kpi-lbl">LCP ms</div></div>
+                <div class="cd-kpi"><div class="cd-kpi-num" id="kpi-load">—</div><div class="cd-kpi-lbl">Load ms</div></div>
+                <div class="cd-kpi"><div class="cd-kpi-num" id="kpi-heap">—</div><div class="cd-kpi-lbl">Heap MB</div></div>
+              </div>
+              <div class="cd-hero-chart" id="cd-hero-chart"></div>
+            </div>
+
+            <!-- Vitals card -->
+            <div class="cd-card cd-card--white">
+              <div class="cd-card-head">
+                <span class="cd-card-label">Web Vitals</span>
+                <span class="cd-badge cd-badge--dark">LIVE</span>
+              </div>
+              <div class="cd-vitals-wrap">
+                <div class="cd-vital-item"><div id="donut-lcp" class="cd-donut"></div><div class="cd-vital-lbl">LCP</div></div>
+                <div class="cd-vital-item"><div id="donut-fcp" class="cd-donut"></div><div class="cd-vital-lbl">FCP</div></div>
+                <div class="cd-vital-item"><div id="donut-cls" class="cd-donut"></div><div class="cd-vital-lbl">CLS</div></div>
+                <div class="cd-vital-item"><div id="donut-inp" class="cd-donut"></div><div class="cd-vital-lbl">INP</div></div>
+              </div>
+              <div class="cd-vitals-hint">LCP ≤2.5s · FCP ≤1.8s · CLS ≤0.1 · INP ≤200ms</div>
+            </div>
+
+          </div>
+
+          <!-- Bento row 2 -->
+          <div class="cd-bento cd-bento--3" style="margin-top:0">
+
+            <!-- Live telemetry dark -->
+            <div class="cd-card cd-card--dark">
+              <div class="cd-card-head cd-card-head--dark">
+                <span class="cd-card-label cd-card-label--light">Live Telemetry</span>
+                <span class="cd-badge cd-badge--red"><span class="cd-pip"></span>LIVE</span>
+              </div>
+              <div class="cd-tele">
+                <div class="cd-tele-row"><span class="cd-tele-k">Time on page</span><span class="cd-tele-v" id="tl-time">0:00</span></div>
+                <div class="cd-tele-row"><span class="cd-tele-k">Scroll depth</span><span class="cd-tele-v" id="tl-scroll">0%</span></div>
+                <div class="cd-tele-row"><span class="cd-tele-k">Interactions</span><span class="cd-tele-v" id="tl-ix">0</span></div>
+                <div class="cd-tele-row"><span class="cd-tele-k">Net requests</span><span class="cd-tele-v" id="tl-req">—</span></div>
+                <div class="cd-tele-row"><span class="cd-tele-k">Runtime errors</span><span class="cd-tele-v" id="tl-err">0</span></div>
+                <div class="cd-tele-row"><span class="cd-tele-k">JS heap</span><span class="cd-tele-v" id="tl-heap">—</span></div>
+                <div class="cd-tele-row"><span class="cd-tele-k">Connection</span><span class="cd-tele-v" id="tl-conn">—</span></div>
+                <div class="cd-tele-row"><span class="cd-tele-k">Downlink</span><span class="cd-tele-v" id="tl-dl">—</span></div>
+                <div class="cd-tele-row"><span class="cd-tele-k">Visibility</span><span class="cd-tele-v" id="tl-vis">Active</span></div>
+              </div>
+            </div>
+
+            <!-- Store snapshot -->
+            <div class="cd-card cd-card--white">
+              <div class="cd-card-head">
+                <span class="cd-card-label">Store</span>
+                <span class="cd-badge cd-badge--green">Shopify</span>
+              </div>
+              <div id="cd-store-rows" class="cd-data-rows"></div>
+            </div>
+
+            <!-- History summary -->
+            <div class="cd-card cd-card--white">
+              <div class="cd-card-head">
+                <span class="cd-card-label">Site Performance</span>
+                <span class="cd-badge cd-badge--muted">Tracked</span>
+              </div>
+              <div id="cd-hist-summary"></div>
+            </div>
+
+          </div>
+
+          <!-- History table -->
+          <div class="cd-card cd-card--white cd-card--table">
+            <div class="cd-card-head">
+              <span class="cd-card-label">Page Visit Log</span>
+              <div class="cd-head-actions">
+                <span class="cd-count-lbl" id="cd-hist-count"></span>
+                <button class="cd-ghost-btn cd-ghost-btn--danger" id="cd-hist-clear">Clear</button>
+              </div>
+            </div>
+            <div id="cd-hist-table-wrap">
+              <div id="cd-hist-empty" class="cd-empty-state">
+                Install <code>adb-tracker.liquid</code> snippet and add <code>{%- render 'adb-tracker' -%}</code> before <code>&lt;/body&gt;</code> in <strong>layout/theme.liquid</strong> to track every page visit.
+              </div>
+              <div id="cd-hist-table-inner" style="display:none">
+                <table class="cd-table">
+                  <thead><tr><th>Page</th><th>LCP</th><th>Load</th><th>FCP</th><th>TTFB</th><th>CLS</th><th>Conn</th><th>When</th></tr></thead>
+                  <tbody id="cd-hist-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── Collections ── -->
+        <section class="cd-view" id="view-collections" style="display:none">
+          <!-- Grid -->
+          <div id="cd-col-grid-view">
+            <div class="cd-view-header">
+              <div><h2 class="cd-view-title">Collections</h2><p class="cd-view-sub">Select a collection to view products and analytics</p></div>
+              <input class="cd-search" id="cd-col-search" type="search" placeholder="Search collections…"/>
+            </div>
+            <div class="cd-col-grid" id="cd-col-grid">
+              {%- for collection in collections -%}
+                {%- assign ci   = forloop.index0 -%}
+                {%- assign cpk  = 'col_password_' | append: ci -%}
+                {%- assign cpw  = section.settings[cpk] | default: '' -%}
+                <article class="cd-col-card"
+                  data-handle="{{ collection.handle }}"
+                  data-title="{{ collection.title | escape }}"
+                  data-phash="{{ cpw | sha256 }}"
+                  data-locked="{%- if cpw != '' -%}1{%- else -%}0{%- endif -%}">
+                  <div class="cd-col-img-wrap">
+                    {%- if collection.image -%}
+                      <div class="cd-col-img" style="background-image:url('{{ collection.image | img_url: '600x400', crop:'center' }}')"></div>
+                    {%- else -%}
+                      <div class="cd-col-img cd-col-img--ph">
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="4" y="4" width="24" height="24" rx="4" stroke="#d4d4d8" stroke-width="1.5"/><circle cx="12" cy="13" r="3" stroke="#d4d4d8" stroke-width="1.5"/><path d="M4 24l7-6 5 4.5 4-4 8 5.5" stroke="#d4d4d8" stroke-width="1.5" stroke-linejoin="round"/></svg>
+                      </div>
+                    {%- endif -%}
+                    {%- if cpw != '' -%}
+                      <div class="cd-col-lock" data-lock-overlay>
+                        <div class="cd-lock-pill">
+                          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="2" y="6" width="9" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M4 6V4.5a2.5 2.5 0 015 0V6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+                          Locked
+                        </div>
+                      </div>
+                    {%- endif -%}
+                  </div>
+                  <div class="cd-col-body">
+                    <div class="cd-col-row1">
+                      <h3 class="cd-col-name">{{ collection.title | escape }}</h3>
+                      <span class="cd-col-count">{{ collection.products_count }}</span>
+                    </div>
+                    {%- if collection.description != blank -%}
+                      <p class="cd-col-desc">{{ collection.description | strip_html | truncate: 72 }}</p>
+                    {%- endif -%}
+                    <div class="cd-col-foot">
+                      <span class="cd-col-handle">/{{ collection.handle }}</span>
+                      {%- if cpw != '' -%}
+                        <button class="cd-unlock-btn" type="button" data-unlock>Unlock →</button>
+                      {%- else -%}
+                        <span class="cd-open-link">Open →</span>
+                      {%- endif -%}
+                    </div>
+                  </div>
+                </article>
+              {%- endfor -%}
+            </div>
+          </div>
+
+          <!-- Detail -->
+          <div id="cd-col-detail" style="display:none">
+            <div class="cd-detail-bar">
+              <button class="cd-back" id="cd-col-back">← Back</button>
+              <div class="cd-detail-info">
+                <h2 class="cd-detail-title" id="cd-detail-title">Collection</h2>
+                <span class="cd-detail-count" id="cd-detail-count"></span>
+              </div>
+              <div class="cd-detail-controls">
+                <input class="cd-search cd-search--sm" id="cd-prod-search" type="search" placeholder="Search products…"/>
+                <select class="cd-select" id="cd-prod-sort">
+                  <option value="">Default</option>
+                  <option value="az">A → Z</option>
+                  <option value="price-asc">Price ↑</option>
+                  <option value="price-desc">Price ↓</option>
+                </select>
+              </div>
+            </div>
+            <div id="cd-col-ana" class="cd-ana-bar"></div>
+            <div id="cd-prod-grid" class="cd-prod-grid">
+              <div id="cd-prod-loading" class="cd-loading"><div class="cd-spinner"></div><span>Loading products…</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── Performance ── -->
+        <section class="cd-view" id="view-performance" style="display:none">
+          <div class="cd-view-header"><h2 class="cd-view-title">Performance</h2><p class="cd-view-sub">Full browser diagnostics for this session</p></div>
+          <div class="cd-perf-grid">
+            <div class="cd-card cd-card--dark cd-card--full">
+              <div class="cd-card-head cd-card-head--dark"><span class="cd-card-label cd-card-label--light">Navigation Timing</span></div>
+              <div id="cd-timing-bars" class="cd-timing-bars"></div>
+            </div>
+            <div class="cd-card cd-card--white">
+              <div class="cd-card-head"><span class="cd-card-label">Resources</span></div>
+              <div id="cd-res-bar" class="cd-res-bar"></div>
+              <div id="cd-res-legend" class="cd-res-legend"></div>
+            </div>
+            <div class="cd-card cd-card--dark">
+              <div class="cd-card-head cd-card-head--dark"><span class="cd-card-label cd-card-label--light">Security &amp; A11y</span></div>
+              <div id="cd-audit" class="cd-audit-list"></div>
+            </div>
+            <div id="cd-perf-stats" class="cd-perf-stats-grid"></div>
+            <div class="cd-card cd-card--white cd-card--full">
+              <div class="cd-card-head"><span class="cd-card-label">Browser Capabilities</span></div>
+              <div id="cd-caps" class="cd-caps-grid"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── Suggestions ── -->
+        <section class="cd-view" id="view-suggestions" style="display:none">
+          <div class="cd-view-header"><h2 class="cd-view-title">Suggestions</h2><p class="cd-view-sub">Ideas and reports sent directly to the team inbox</p></div>
+          <div class="cd-sug-layout">
+            <div class="cd-card cd-card--white cd-card--sug">
+              <div class="cd-card-head"><span class="cd-card-label">New Suggestion</span></div>
+              <div class="cd-sug-form">
+                <div class="cd-row2">
+                  <div class="cd-field"><label class="cd-label">Your Name</label><input class="cd-input" id="sug-name" type="text" readonly/></div>
+                  <div class="cd-field"><label class="cd-label">Role</label><input class="cd-input" id="sug-role" type="text" readonly/></div>
+                </div>
+                <div class="cd-row2">
+                  <div class="cd-field">
+                    <label class="cd-label">Category</label>
+                    <select class="cd-select cd-select--w" id="sug-cat">
+                      <option>Product Update</option><option>Collection Change</option><option>Design Feedback</option>
+                      <option>Performance Issue</option><option>Content Change</option><option>Bug Report</option>
+                      <option>Feature Request</option><option>Other</option>
+                    </select>
+                  </div>
+                  <div class="cd-field">
+                    <label class="cd-label">Priority</label>
+                    <select class="cd-select cd-select--w" id="sug-priority">
+                      <option value="low">Low</option><option value="medium" selected>Medium</option>
+                      <option value="high">High</option><option value="urgent">🔴 Urgent</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="cd-field"><label class="cd-label">Subject</label><input class="cd-input" id="sug-subject" type="text" placeholder="Brief summary…"/></div>
+                <div class="cd-field"><label class="cd-label">Details</label><textarea class="cd-textarea" id="sug-body" rows="5" placeholder="Describe your suggestion…"></textarea></div>
+                <div class="cd-field">
+                  <label class="cd-label">Image <span class="cd-label-opt">(optional)</span></label>
+                  <div class="cd-upload" id="cd-upload-zone">
+                    <input type="file" class="cd-upload-file" id="sug-img" accept="image/*"/>
+                    <div id="cd-upload-ui">
+                      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 14V5M7.5 8.5L11 5l3.5 3.5" stroke="#bbb" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 16v2a1 1 0 001 1h14a1 1 0 001-1v-2" stroke="#bbb" stroke-width="1.4" stroke-linecap="round"/></svg>
+                      <span>Click or drag image</span><span class="cd-upload-hint">PNG / JPG · max 4 MB</span>
+                    </div>
+                    <div id="cd-upload-prev" style="display:none">
+                      <img id="cd-prev-img" style="max-height:110px;border-radius:8px;object-fit:contain" alt="preview"/>
+                      <button type="button" class="cd-rm-btn" id="cd-upload-rm">✕ Remove</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="cd-field"><label class="cd-label">Video URL <span class="cd-label-opt">(optional)</span></label><input class="cd-input" id="sug-video" type="url" placeholder="YouTube, Loom, or direct link…"/></div>
+                <div class="cd-sug-footer">
+                  <span class="cd-sug-to">Sending to <strong id="cd-sug-email">—</strong></span>
+                  <button class="cd-submit-btn" id="cd-sug-submit" type="button">
+                    <span id="cd-sug-lbl">Send suggestion</span>
+                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 6.5h9M8 3.5l3.5 3L8 10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </button>
+                </div>
+                <div class="cd-sug-status" id="cd-sug-status"></div>
+              </div>
+            </div>
+            <div class="cd-card cd-card--dark cd-card--log">
+              <div class="cd-card-head cd-card-head--dark">
+                <span class="cd-card-label cd-card-label--light">Sent This Session</span>
+                <button class="cd-sm-btn cd-sm-btn--ghost" id="cd-log-clear">Clear</button>
+              </div>
+              <div id="cd-sug-log"><div class="cd-log-empty">No suggestions sent yet.</div></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── Team ── -->
+        <section class="cd-view" id="view-team" style="display:none">
+          <div class="cd-view-header"><h2 class="cd-view-title">Team</h2><p class="cd-view-sub">Members and their access permissions</p></div>
+          <div id="cd-team-grid" class="cd-team-grid"></div>
+        </section>
+
+      </div><!-- /scroll -->
+
+      <!-- ══ BOTTOM BAR ══ -->
+      <footer class="cd-bottom-bar" id="cd-bottom-bar">
+        <div class="cd-bar-left">
+          <button class="cd-bar-hamburger" id="cd-hamburger" title="Menu">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><line x1="2" y1="4" x2="14" y2="4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><line x1="2" y1="12" x2="14" y2="12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          </button>
+          <div class="cd-bar-status">
+            <span class="cd-status-pip" id="cd-status-pip"></span>
+            <span id="cd-status-txt">Online</span>
+          </div>
+          <time class="cd-bar-clock" id="cd-clock">00:00:00</time>
+        </div>
+        <div class="cd-bar-page" id="cd-bar-page">Overview</div>
+        <div class="cd-bar-right">
+          <button class="cd-bar-action" id="cd-refresh-btn" title="Refresh data">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1 6.5A5.5 5.5 0 006.5 12M12 6.5A5.5 5.5 0 006.5 1M6.5 1l1.8 2.2M6.5 1 4.7 3.2M6.5 12l1.8-2.2M6.5 12l-1.8-2.2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Refresh
+          </button>
+          <button class="cd-bar-action cd-bar-action--lock" id="cd-lock-btn" title="Lock">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1.5" y="5.5" width="9" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3.5 5.5V4A2.5 2.5 0 018.5 4v1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            Lock
+          </button>
+        </div>
+      </footer>
+
+    </div><!-- /main -->
+  </div><!-- /app -->
+
+  <!-- Collection password modal -->
+  <div class="cd-modal-bg" id="cd-col-modal" style="display:none">
+    <div class="cd-modal">
+      <div class="cd-modal-head">
+        <div class="cd-modal-icon">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2.5" y="8.5" width="13" height="8" rx="2" stroke="#000" stroke-width="1.3"/><path d="M5.5 8.5V6.5a3.5 3.5 0 017 0v2" stroke="#000" stroke-width="1.3" stroke-linecap="round"/><circle cx="9" cy="12.5" r="1.5" fill="#000"/></svg>
+        </div>
+        <div>
+          <h3 class="cd-modal-title">Unlock Collection</h3>
+          <p class="cd-modal-sub" id="cd-modal-col-name">Enter the password to access</p>
+        </div>
+        <button class="cd-modal-close" id="cd-modal-close">✕</button>
+      </div>
+      <input class="cd-input" id="cd-col-pw" type="password" placeholder="Collection password" autocomplete="off"/>
+      <div class="cd-modal-err" id="cd-col-pw-err"></div>
+      <div class="cd-modal-btns">
+        <button class="cd-ghost-btn" id="cd-modal-cancel">Cancel</button>
+        <button class="cd-submit-btn" id="cd-col-pw-ok">Unlock</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /cd-root -->
+
+<style>
+/* ─── tokens ─── */
+.cd{
+  --bg:#f0f0f5;--white:#fff;--dark:#111;--dark2:#1c1c1e;
+  --border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.12);
+  --t1:#0a0a0a;--t2:#666;--t3:#aaa;
+  --green:#22c55e;--amber:#f59e0b;--red:#ef4444;
+  --r:16px;--r-sm:10px;
+  --side:220px;--bar:48px;
+  --shadow:0 1px 4px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04);
+  --shadow-md:0 4px 24px rgba(0,0,0,0.1);
+  --font:-apple-system,BlinkMacSystemFont,"Inter","SF Pro Text",system-ui,sans-serif;
+  --mono:"SF Mono","Fira Code",ui-monospace,monospace;
+  font-family:var(--font);
+  background:var(--bg);
+  color:var(--t1);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+.cd,.cd *{box-sizing:border-box}
+
+/* ─── GATE ─── */
+.cd-gate{
+  position:fixed;inset:0;z-index:9999;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(145deg,#e8e8f0,#f0f0f8 50%,#e4e4ec);
+  overflow:hidden;
+}
+.cd-gate-bg{position:absolute;inset:0;pointer-events:none}
+.cd-orb{position:absolute;border-radius:50%;filter:blur(70px);opacity:.55}
+.cd-orb-1{width:520px;height:520px;background:rgba(180,180,210,.7);top:-120px;right:-80px}
+.cd-orb-2{width:420px;height:420px;background:rgba(200,200,220,.5);bottom:-80px;left:-60px}
+.cd-gate-card{
+  position:relative;z-index:1;
+  width:100%;max-width:400px;margin:1.5rem;
+  background:#fff;border:1px solid rgba(255,255,255,.9);
+  border-radius:22px;
+  padding:2.4rem 2.2rem 2rem;
+  box-shadow:0 8px 48px rgba(0,0,0,.1),0 1px 0 rgba(255,255,255,.8) inset;
+  animation:cd-rise .4s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes cd-rise{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
+.cd-gate-brand{display:flex;align-items:center;gap:.6rem;margin-bottom:1.6rem}
+.cd-brand-mark{width:30px;height:30px;border-radius:8px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#000}
+.cd-brand-mark--sm{width:26px;height:26px;border-radius:7px}
+.cd-brand-name,.cd-side-title{font-size:.88rem;font-weight:700;letter-spacing:-.02em}
+.cd-gate-h{font-size:1.5rem;font-weight:700;letter-spacing:-.03em;margin:0 0 .3rem}
+.cd-gate-sub{font-size:.8rem;color:var(--t3);margin:0 0 1.5rem}
+.cd-gate-field{margin-bottom:.5rem}
+.cd-gate-input-wrap{position:relative}
+.cd-input-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);pointer-events:none}
+.cd-gate-input,.cd-input{
+  width:100%;
+  padding:.72rem .9rem .72rem 2.35rem;
+  border:1.5px solid var(--border2);
+  border-radius:var(--r-sm);
+  font-size:.88rem;font-family:var(--font);
+  color:var(--t1);background:#fafafa;outline:none;
+  transition:border-color .18s,box-shadow .18s;
+}
+.cd-input{padding:.68rem .85rem}
+.cd-gate-input:focus,.cd-input:focus{
+  border-color:#000;background:#fff;
+  box-shadow:0 0 0 3px rgba(0,0,0,.07);
+}
+.cd-gate-input::placeholder,.cd-input::placeholder{color:var(--t3);letter-spacing:0}
+.cd-eye-btn{position:absolute;right:9px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:4px;display:flex}
+.cd-gate-err{font-size:.75rem;color:var(--red);min-height:1.1rem;margin-top:.35rem;opacity:0;transition:opacity .2s}
+.cd-gate-err.show{opacity:1}
+@keyframes cd-shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.cd-gate-input-wrap.shake{animation:cd-shake .3s ease}
+.cd-gate-btn{
+  display:flex;align-items:center;justify-content:center;gap:.5rem;
+  width:100%;padding:.8rem;margin-top:.75rem;
+  background:#000;color:#fff;border:none;border-radius:var(--r-sm);
+  font-size:.88rem;font-weight:600;font-family:var(--font);
+  cursor:pointer;transition:opacity .15s,transform .1s;
+}
+.cd-gate-btn:hover{opacity:.88}
+.cd-gate-btn:active{transform:scale(.98)}
+.cd-gate-btn:disabled{opacity:.55;cursor:not-allowed}
+.cd-gate-foot{font-size:.68rem;color:var(--t3);text-align:center;margin-top:1rem}
+
+/* ─── APP SHELL ─── */
+.cd-app{
+  display:flex;
+  height:100vh;
+  overflow:hidden;
+}
+
+/* ─── SIDEBAR ─── */
+.cd-side{
+  width:var(--side);
+  flex-shrink:0;
+  background:#fff;
+  border-right:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+  position:relative;
+  z-index:200;
+  transition:transform .25s ease;
+}
+.cd-side-inner{
+  display:flex;flex-direction:column;
+  height:100%;padding:.75rem;
+}
+.cd-side-top{flex:1;display:flex;flex-direction:column;gap:0;overflow-y:auto}
+.cd-side-brand{
+  display:flex;align-items:center;gap:.55rem;
+  padding:.5rem .4rem .9rem;
+  border-bottom:1px solid var(--border);
+  margin-bottom:.6rem;flex-shrink:0;
+}
+/* NAV */
+.cd-nav{display:flex;flex-direction:column;gap:2px}
+.cd-nav-btn{
+  display:flex;align-items:center;gap:.65rem;
+  padding:.58rem .75rem;
+  border-radius:var(--r-sm);border:none;
+  background:none;width:100%;text-align:left;
+  font-size:.82rem;font-weight:500;font-family:var(--font);
+  color:var(--t2);cursor:pointer;
+  transition:background .15s,color .15s;
+}
+.cd-nav-btn svg{flex-shrink:0;opacity:.6;transition:opacity .15s}
+.cd-nav-btn:hover{background:var(--bg);color:var(--t1)}
+.cd-nav-btn:hover svg{opacity:.9}
+.cd-nav-btn--active{
+  background:#000 !important;color:#fff !important;font-weight:600;
+}
+.cd-nav-btn--active svg{opacity:1;stroke:#fff}
+/* User card at bottom */
+.cd-side-user{
+  display:flex;align-items:center;gap:.65rem;
+  padding:.85rem .5rem .5rem;
+  border-top:1px solid var(--border);
+  flex-shrink:0;margin-top:auto;
+}
+.cd-user-av{
+  width:34px;height:34px;border-radius:50%;
+  background:#111;color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.78rem;font-weight:700;letter-spacing:.02em;flex-shrink:0;
+}
+.cd-user-text{flex:1;min-width:0}
+.cd-user-name{font-size:.78rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cd-user-role{font-size:.67rem;color:var(--t3);margin-top:.05rem}
+
+/* Sidebar overlay (mobile) */
+.cd-side-overlay{
+  display:none;position:fixed;inset:0;z-index:199;
+  background:rgba(0,0,0,.35);backdrop-filter:blur(2px);
+}
+
+/* ─── MAIN ─── */
+.cd-main{
+  flex:1;min-width:0;
+  display:flex;flex-direction:column;
+  height:100vh;overflow:hidden;
+}
+.cd-scroll{
+  flex:1;overflow-y:auto;
+  padding:1.4rem 1.5rem;
+  padding-bottom:.5rem;
+}
+
+/* ─── BOTTOM BAR ─── */
+.cd-bottom-bar{
+  height:var(--bar);flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 1rem;
+  background:rgba(255,255,255,.95);
+  border-top:1px solid var(--border);
+  backdrop-filter:blur(12px);
+  gap:1rem;
+}
+.cd-bar-left,.cd-bar-right{display:flex;align-items:center;gap:.6rem}
+.cd-bar-hamburger{
+  display:none;background:none;border:none;cursor:pointer;
+  padding:5px;color:var(--t2);border-radius:6px;
+  transition:background .15s;
+}
+.cd-bar-hamburger:hover{background:var(--bg)}
+.cd-bar-status{display:flex;align-items:center;gap:.3rem;font-size:.72rem;color:var(--t2)}
+.cd-status-pip{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 0 2px rgba(34,197,94,.2);
+  animation:cd-pulse-g 2s ease-in-out infinite;
+}
+@keyframes cd-pulse-g{0%,100%{box-shadow:0 0 0 2px rgba(34,197,94,.2)}50%{box-shadow:0 0 0 4px rgba(34,197,94,.08)}}
+.cd-bar-clock{font-family:var(--mono);font-size:.72rem;color:var(--t3)}
+.cd-bar-page{font-size:.78rem;font-weight:600;color:var(--t1)}
+.cd-bar-action{
+  display:flex;align-items:center;gap:.3rem;
+  background:none;border:1px solid var(--border);border-radius:7px;
+  padding:.28rem .65rem;font-size:.72rem;font-family:var(--font);
+  color:var(--t2);cursor:pointer;transition:all .15s;
+}
+.cd-bar-action:hover{background:var(--bg);border-color:var(--border2);color:var(--t1)}
+.cd-bar-action--lock:hover{color:var(--red);border-color:rgba(239,68,68,.3)}
+
+/* ─── VIEWS ─── */
+.cd-view-header{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1.1rem}
+.cd-view-title{font-size:1.15rem;font-weight:700;letter-spacing:-.025em;margin:0 0 .15rem}
+.cd-view-sub,.cd-view-date{font-size:.78rem;color:var(--t3);margin:0}
+
+/* ─── BENTO GRIDS ─── */
+.cd-bento{display:grid;gap:.85rem;margin-bottom:.85rem}
+.cd-bento--3{grid-template-columns:repeat(3,1fr)}
+.cd-card--span2{grid-column:span 2}
+.cd-card--full{grid-column:1/-1}
+.cd-card--table{grid-column:1/-1}
+
+/* ─── CARDS ─── */
+.cd-card{border-radius:var(--r);overflow:hidden}
+.cd-card--white{background:#fff;box-shadow:var(--shadow);border:1px solid var(--border)}
+.cd-card--dark{background:var(--dark)}
+.cd-card--sug{flex:1;min-width:0}
+.cd-card--log{width:270px;flex-shrink:0}
+.cd-card-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.85rem 1rem .65rem;gap:.5rem;
+}
+.cd-card-head--dark{border-bottom:1px solid rgba(255,255,255,.07)}
+.cd-card-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t1)}
+.cd-card-label--light{color:rgba(255,255,255,.5)}
+.cd-head-actions{display:flex;align-items:center;gap:.5rem}
+.cd-count-lbl{font-size:.7rem;color:var(--t3)}
+/* badges */
+.cd-badge{font-size:.58rem;font-weight:700;letter-spacing:.07em;padding:.14rem .48rem;border-radius:20px}
+.cd-badge--dark{background:#000;color:#fff}
+.cd-badge--red{display:flex;align-items:center;gap:.28rem;background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2)}
+.cd-badge--green{background:rgba(34,197,94,.1);color:#16a34a}
+.cd-badge--muted{background:rgba(0,0,0,.06);color:var(--t2)}
+.cd-pip{width:5px;height:5px;border-radius:50%;background:var(--red);animation:cd-blink 1s ease-in-out infinite;flex-shrink:0}
+@keyframes cd-blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* ─── HERO CARD ─── */
+.cd-hero-top{display:flex;align-items:flex-start;justify-content:space-between;padding:1.2rem 1.2rem .8rem}
+.cd-hero-hi{font-size:.72rem;font-weight:500;color:rgba(255,255,255,.4);margin-bottom:.2rem}
+.cd-hero-name{font-size:1.35rem;font-weight:700;letter-spacing:-.025em;color:#fff}
+.cd-role-pill{
+  font-size:.62rem;font-weight:700;letter-spacing:.06em;
+  padding:.22rem .65rem;border-radius:20px;
+  background:rgba(255,255,255,.1);color:rgba(255,255,255,.65);
+  border:1px solid rgba(255,255,255,.15);white-space:nowrap;
+}
+.cd-kpi-row{display:flex;gap:1.4rem;padding:0 1.2rem .7rem}
+.cd-kpi-num{font-family:var(--mono);font-size:1.55rem;font-weight:700;color:#fff;line-height:1}
+.cd-kpi-lbl{font-size:.58rem;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.06em;margin-top:.18rem}
+.cd-hero-chart{height:46px;padding:0 .75rem;opacity:.45}
+.cd-hero-chart svg{width:100%;height:100%}
+
+/* ─── VITALS ─── */
+.cd-vitals-wrap{display:flex;justify-content:space-around;padding:.6rem .5rem}
+.cd-vital-item{display:flex;flex-direction:column;align-items:center;gap:.3rem}
+.cd-donut{width:58px;height:58px}
+.cd-donut svg{width:100%;height:100%}
+.cd-vital-lbl{font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--t3)}
+.cd-vitals-hint{font-size:.6rem;color:var(--t3);padding:0 1rem .85rem;text-align:center}
+
+/* ─── TELEMETRY ─── */
+.cd-tele{padding:.2rem 0}
+.cd-tele-row{display:flex;justify-content:space-between;align-items:center;padding:.42rem 1rem;border-bottom:1px solid rgba(255,255,255,.05)}
+.cd-tele-row:last-child{border:none}
+.cd-tele-k{font-size:.7rem;color:rgba(255,255,255,.35)}
+.cd-tele-v{font-family:var(--mono);font-size:.7rem;font-weight:600;color:#fff;transition:color .2s}
+
+/* ─── DATA ROWS ─── */
+.cd-data-rows{padding:.2rem 0}
+.cd-data-row{display:flex;justify-content:space-between;align-items:center;padding:.42rem 1rem;border-bottom:1px solid var(--border)}
+.cd-data-row:last-child{border:none}
+.cd-dk{font-size:.7rem;color:var(--t3)}
+.cd-dv{font-size:.75rem;font-weight:600;color:var(--t1);text-align:right;max-width:58%;word-break:break-all}
+
+/* ─── HISTORY SUMMARY ─── */
+.cd-hs-empty{padding:1.2rem 1rem;font-size:.75rem;color:var(--t3);line-height:1.6}
+.cd-hs-empty code{font-family:var(--mono);font-size:.7rem;background:rgba(0,0,0,.05);padding:.1rem .35rem;border-radius:4px;color:var(--t1)}
+.cd-hs-big{font-family:var(--mono);font-size:1.75rem;font-weight:700;color:var(--t1);padding:.7rem 1rem 0;line-height:1}
+.cd-hs-lbl{font-size:.62rem;color:var(--t3);padding:.1rem 1rem .45rem;text-transform:uppercase;letter-spacing:.06em}
+.cd-hs-chart{height:50px;padding:0 .6rem .3rem}
+.cd-hs-chart svg{width:100%;height:100%}
+.cd-hs-stats{display:flex;border-top:1px solid var(--border)}
+.cd-hs-stats>div{flex:1;padding:.55rem .65rem;border-right:1px solid var(--border);text-align:center}
+.cd-hs-stats>div:last-child{border:none}
+.cd-hs-v{font-family:var(--mono);font-size:.82rem;font-weight:700;color:var(--t1);display:block}
+.cd-hs-l{font-size:.58rem;color:var(--t3);text-transform:uppercase;letter-spacing:.05em}
+
+/* ─── TABLE ─── */
+.cd-empty-state{padding:2rem 1.2rem;font-size:.78rem;color:var(--t3);text-align:center;line-height:1.7}
+.cd-empty-state code{font-family:var(--mono);font-size:.72rem;background:rgba(0,0,0,.05);padding:.1rem .38rem;border-radius:4px;color:var(--t1)}
+.cd-table{width:100%;border-collapse:collapse;font-size:.75rem}
+.cd-table th{text-align:left;padding:.55rem .9rem;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);background:#fafafa;border-bottom:1px solid var(--border);white-space:nowrap}
+.cd-table td{padding:.58rem .9rem;border-bottom:1px solid rgba(0,0,0,.03)}
+.cd-table tr:last-child td{border:none}
+.cd-table tr:hover td{background:#fafafe}
+.cd-turl{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.cd-tsub{font-size:.62rem;color:var(--t3);margin-top:.05rem}
+.cd-ts{font-size:.67rem;color:var(--t3);white-space:nowrap}
+.cd-mn{font-family:var(--mono)}
+.cd-good{color:var(--green);font-weight:700;font-family:var(--mono)}
+.cd-warn{color:var(--amber);font-weight:700;font-family:var(--mono)}
+.cd-bad{color:var(--red);font-weight:700;font-family:var(--mono)}
+.cd-na{color:var(--t3);font-family:var(--mono)}
+
+/* ─── COLLECTIONS ─── */
+.cd-search{padding:.42rem .8rem;border:1.5px solid var(--border2);border-radius:8px;font-size:.78rem;font-family:var(--font);background:#fff;outline:none;transition:border-color .18s;width:200px}
+.cd-search:focus{border-color:#000}
+.cd-search--sm{width:150px}
+.cd-select{padding:.48rem .8rem;border:1.5px solid var(--border2);border-radius:8px;font-size:.78rem;font-family:var(--font);background:#fff;outline:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23aaa' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;padding-right:1.8rem;cursor:pointer}
+.cd-select--w{width:100%}
+.cd-col-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.9rem}
+.cd-col-card{background:#fff;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:box-shadow .18s,transform .15s,border-color .18s;position:relative}
+.cd-col-card:hover{box-shadow:var(--shadow-md);border-color:var(--border2);transform:translateY(-2px)}
+.cd-col-img-wrap{position:relative}
+.cd-col-img{height:145px;background:linear-gradient(135deg,#f0f0f6,#e8e8f0) center/cover no-repeat}
+.cd-col-img--ph{display:flex;align-items:center;justify-content:center;height:145px;background:linear-gradient(135deg,#f4f4f8,#ececf2)}
+.cd-col-lock{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.7);backdrop-filter:blur(5px)}
+.cd-lock-pill{display:flex;align-items:center;gap:.38rem;background:#fff;border:1px solid rgba(0,0,0,.12);border-radius:20px;padding:.32rem .8rem;font-size:.7rem;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.cd-col-body{padding:.8rem}
+.cd-col-row1{display:flex;align-items:flex-start;justify-content:space-between;gap:.4rem;margin-bottom:.3rem}
+.cd-col-name{font-size:.85rem;font-weight:700;margin:0;color:var(--t1)}
+.cd-col-count{font-size:.62rem;font-weight:700;background:rgba(0,0,0,.06);color:var(--t2);padding:.14rem .45rem;border-radius:20px;white-space:nowrap}
+.cd-col-desc{font-size:.7rem;color:var(--t3);line-height:1.5;margin:0 0 .6rem}
+.cd-col-foot{display:flex;align-items:center;justify-content:space-between;padding-top:.6rem;border-top:1px solid var(--border);font-size:.68rem;color:var(--t3)}
+.cd-unlock-btn,.cd-open-link{font-size:.7rem;font-weight:600;color:var(--t1);background:none;border:none;cursor:pointer;font-family:var(--font);padding:0;transition:opacity .15s}
+.cd-unlock-btn:hover{opacity:.6}
+/* detail */
+.cd-detail-bar{display:flex;align-items:center;gap:.85rem;margin-bottom:1rem;flex-wrap:wrap}
+.cd-detail-info{flex:1}
+.cd-detail-title{font-size:1.05rem;font-weight:700;margin:0 0 .12rem}
+.cd-detail-count{font-size:.75rem;color:var(--t3)}
+.cd-detail-controls{display:flex;gap:.5rem;align-items:center}
+.cd-back{display:flex;align-items:center;gap:.35rem;background:none;border:1px solid var(--border2);border-radius:8px;padding:.4rem .8rem;font-size:.76rem;font-weight:500;font-family:var(--font);color:var(--t2);cursor:pointer;transition:all .15s;white-space:nowrap}
+.cd-back:hover{background:#fff;color:var(--t1)}
+.cd-ana-bar{display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:.65rem;margin-bottom:.85rem}
+.cd-ana-card{background:#fff;border:1px solid var(--border);border-radius:var(--r-sm);padding:.75rem .85rem}
+.cd-ana-lbl{font-size:.6rem;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:.25rem}
+.cd-ana-val{font-family:var(--mono);font-size:1.2rem;font-weight:700;color:var(--t1);line-height:1}
+.cd-ana-sub{font-size:.62rem;color:var(--t3);margin-top:.1rem}
+.cd-prod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:.85rem}
+.cd-loading{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:.6rem;padding:4rem;color:var(--t3);font-size:.8rem}
+.cd-spinner{width:20px;height:20px;border:2px solid rgba(0,0,0,.08);border-top-color:#000;border-radius:50%;animation:cd-spin .7s linear infinite}
+@keyframes cd-spin{to{transform:rotate(360deg)}}
+.cd-prod-card{background:#fff;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:box-shadow .15s,transform .15s}
+.cd-prod-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.cd-prod-img{height:155px;background:#fafafa center/contain no-repeat}
+.cd-prod-img--ph{display:flex;align-items:center;justify-content:center;height:155px;background:linear-gradient(135deg,#f4f4f8,#ececf2)}
+.cd-prod-body{padding:.72rem .8rem}
+.cd-prod-name{font-size:.78rem;font-weight:600;margin:0 0 .32rem;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cd-prod-price{font-family:var(--mono);font-size:.88rem;font-weight:700}
+.cd-prod-was{font-size:.65rem;color:var(--t3);text-decoration:line-through;margin-left:.28rem}
+.cd-prod-sale{font-size:.58rem;font-weight:700;background:rgba(239,68,68,.1);color:var(--red);padding:.1rem .3rem;border-radius:4px;margin-left:.28rem}
+.cd-prod-tags{display:flex;flex-wrap:wrap;gap:.25rem;margin-top:.38rem}
+.cd-prod-tag{font-size:.57rem;padding:.1rem .32rem;border-radius:4px;background:rgba(0,0,0,.05);color:var(--t2)}
+.cd-prod-foot{padding:.48rem .8rem;border-top:1px solid var(--border);font-size:.65rem;display:flex;justify-content:space-between;color:var(--t3)}
+.cd-instock{color:var(--green);font-weight:600}
+.cd-oos{color:var(--red);font-weight:600}
+
+/* ─── PERFORMANCE ─── */
+.cd-perf-grid{display:grid;grid-template-columns:1fr 1fr;gap:.85rem}
+.cd-timing-bars{padding:.85rem 1rem}
+.cd-trow{margin-bottom:.72rem}
+.cd-trow:last-child{margin:0}
+.cd-trow-labels{display:flex;justify-content:space-between;font-size:.68rem;margin-bottom:.28rem}
+.cd-trow-name{color:rgba(255,255,255,.4)}
+.cd-trow-val{font-family:var(--mono);font-weight:700;color:#fff}
+.cd-trow-track{height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden}
+.cd-trow-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,rgba(255,255,255,.85),rgba(255,255,255,.35));transition:width .7s ease}
+.cd-res-bar{height:9px;display:flex;border-radius:5px;overflow:hidden;margin:.35rem 1rem}
+.cd-res-seg{transition:width .6s ease}
+.cd-res-legend{display:flex;flex-wrap:wrap;gap:.38rem .85rem;padding:.4rem 1rem .85rem}
+.cd-res-li{display:flex;align-items:center;gap:.35rem;font-size:.68rem;color:var(--t2)}
+.cd-res-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.cd-perf-stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:.65rem;grid-column:1/-1}
+.cd-ps{background:#fff;border:1px solid var(--border);border-radius:var(--r-sm);padding:.8rem .9rem}
+.cd-ps-lbl{font-size:.6rem;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:.25rem}
+.cd-ps-val{font-family:var(--mono);font-size:1.15rem;font-weight:700;color:var(--t1);line-height:1}
+.cd-ps-unit{font-size:.62rem;color:var(--t3);margin-left:.12rem}
+.cd-ps-chip{display:inline-block;font-size:.57rem;font-weight:700;padding:.1rem .38rem;border-radius:4px;margin-top:.28rem}
+.cd-ps-chip--good{background:rgba(34,197,94,.1);color:#16a34a}
+.cd-ps-chip--warn{background:rgba(245,158,11,.1);color:#b45309}
+.cd-ps-chip--bad{background:rgba(239,68,68,.1);color:var(--red)}
+.cd-audit-list{padding:.2rem 0}
+.cd-arow{display:flex;align-items:center;gap:.55rem;padding:.48rem 1rem;border-bottom:1px solid rgba(255,255,255,.05)}
+.cd-arow:last-child{border:none}
+.cd-apip{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.cd-apip--good{background:var(--green)}
+.cd-apip--warn{background:var(--amber)}
+.cd-apip--bad{background:var(--red)}
+.cd-albl{font-size:.7rem;color:rgba(255,255,255,.48);flex:1}
+.cd-aval{font-size:.7rem;font-weight:600;color:rgba(255,255,255,.85)}
+.cd-caps-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(182px,1fr));padding:.35rem 0}
+.cd-cap{display:flex;align-items:center;justify-content:space-between;padding:.36rem .85rem;border-bottom:1px solid rgba(0,0,0,.03)}
+.cd-cap:hover{background:#fafafe}
+.cd-cap-name{font-size:.7rem;color:var(--t2)}
+.cd-cap-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.cd-cap-dot--y{background:var(--green);box-shadow:0 0 0 2px rgba(34,197,94,.15)}
+.cd-cap-dot--n{background:rgba(0,0,0,.1)}
+
+/* ─── SUGGESTIONS ─── */
+.cd-sug-layout{display:flex;gap:.85rem;align-items:flex-start}
+.cd-sug-form{padding:1rem}
+.cd-field{margin-bottom:.8rem}
+.cd-row2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.cd-label{display:block;font-size:.7rem;font-weight:600;color:var(--t2);margin-bottom:.32rem}
+.cd-label-opt{font-weight:400;color:var(--t3)}
+.cd-textarea{width:100%;padding:.65rem .85rem;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:.82rem;font-family:var(--font);color:var(--t1);background:#fafafa;outline:none;resize:vertical;min-height:90px;line-height:1.55;transition:border-color .18s,box-shadow .18s}
+.cd-textarea:focus{border-color:#000;background:#fff;box-shadow:0 0 0 3px rgba(0,0,0,.06)}
+.cd-input[readonly]{color:var(--t3);background:#f5f5f7;cursor:default}
+.cd-upload{border:1.5px dashed rgba(0,0,0,.12);border-radius:var(--r-sm);background:#fafafa;position:relative;cursor:pointer;transition:border-color .18s,background .18s}
+.cd-upload:hover,.cd-upload.drag{border-color:#000;background:#f5f5f7}
+.cd-upload-file{position:absolute;inset:0;opacity:0;cursor:pointer;border:none !important;background:none !important;padding:0 !important;width:100%;height:100%}
+#cd-upload-ui{display:flex;flex-direction:column;align-items:center;gap:.3rem;padding:1.4rem;pointer-events:none;text-align:center;font-size:.73rem;color:var(--t2)}
+.cd-upload-hint{font-size:.63rem;color:var(--t3)}
+#cd-upload-prev{padding:.8rem;display:flex;flex-direction:column;align-items:center;gap:.45rem}
+.cd-rm-btn{font-size:.68rem;font-weight:600;background:rgba(239,68,68,.08);color:var(--red);border:none;border-radius:6px;padding:.26rem .6rem;cursor:pointer;font-family:var(--font)}
+.cd-rm-btn:hover{background:rgba(239,68,68,.15)}
+.cd-sug-footer{display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.8rem 0 0;border-top:1px solid var(--border);margin-top:.8rem;flex-wrap:wrap}
+.cd-sug-to{display:flex;align-items:center;gap:.3rem;font-size:.7rem;color:var(--t3)}
+.cd-sug-status{font-size:.73rem;min-height:1rem;margin-top:.35rem}
+.cd-sug-status.ok{color:var(--green)}
+.cd-sug-status.err{color:var(--red)}
+.cd-submit-btn{display:flex;align-items:center;gap:.38rem;background:#000;color:#fff;border:none;border-radius:var(--r-sm);padding:.62rem 1rem;font-size:.8rem;font-weight:600;font-family:var(--font);cursor:pointer;transition:opacity .15s;white-space:nowrap}
+.cd-submit-btn:hover{opacity:.88}
+.cd-submit-btn:disabled{opacity:.5;cursor:not-allowed}
+/* log */
+.cd-log-empty{font-size:.73rem;color:rgba(255,255,255,.25);padding:1rem}
+.cd-log-entry{padding:.7rem 1rem;border-bottom:1px solid rgba(255,255,255,.06)}
+.cd-log-entry:last-child{border:none}
+.cd-log-hd{display:flex;align-items:center;gap:.38rem;margin-bottom:.2rem;flex-wrap:wrap}
+.cd-log-title{font-size:.73rem;font-weight:600;color:#fff;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cd-log-cat{font-size:.58rem;background:rgba(255,255,255,.1);color:rgba(255,255,255,.55);padding:.1rem .38rem;border-radius:4px}
+.cd-log-ts{font-size:.6rem;color:rgba(255,255,255,.22)}
+.cd-log-body{font-size:.68rem;color:rgba(255,255,255,.35);line-height:1.5}
+
+/* ─── TEAM ─── */
+.cd-team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:.85rem}
+.cd-team-card{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:1.1rem;box-shadow:var(--shadow)}
+.cd-team-top{display:flex;align-items:center;gap:.8rem;margin-bottom:.9rem}
+.cd-team-av{width:42px;height:42px;border-radius:50%;background:#111;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.92rem;font-weight:700;flex-shrink:0}
+.cd-team-name{font-size:.88rem;font-weight:700;margin:0 0 .12rem}
+.cd-team-role{font-size:.7rem;color:var(--t3)}
+.cd-team-tags{display:flex;flex-wrap:wrap;gap:.3rem}
+.cd-team-tag{font-size:.6rem;font-weight:600;padding:.18rem .5rem;border-radius:20px}
+.cd-team-tag--on{background:rgba(0,0,0,.07);color:var(--t1)}
+.cd-team-tag--off{background:rgba(0,0,0,.03);color:var(--t3);text-decoration:line-through}
+.cd-team-master{background:rgba(0,0,0,.88);color:#fff;border-radius:var(--r);padding:1.1rem;border:1px solid rgba(0,0,0,.2)}
+.cd-team-master .cd-team-av{background:rgba(255,255,255,.12);color:#fff}
+.cd-team-master .cd-team-name{color:#fff}
+.cd-team-master .cd-team-role{color:rgba(255,255,255,.45)}
+.cd-team-master .cd-team-tag--on{background:rgba(255,255,255,.12);color:rgba(255,255,255,.8)}
+
+/* ─── BUTTONS / MODALS ─── */
+.cd-ghost-btn{background:none;border:1px solid var(--border);border-radius:7px;font-size:.72rem;font-family:var(--font);color:var(--t2);padding:.28rem .6rem;cursor:pointer;transition:all .15s}
+.cd-ghost-btn:hover{background:var(--bg);color:var(--t1)}
+.cd-ghost-btn--danger{color:var(--red);border-color:rgba(239,68,68,.25);background:rgba(239,68,68,.05)}
+.cd-ghost-btn--danger:hover{background:rgba(239,68,68,.1)}
+.cd-sm-btn{font-size:.7rem;font-family:var(--font);border-radius:6px;padding:.25rem .6rem;border:1px solid transparent;cursor:pointer}
+.cd-sm-btn--ghost{background:none;border-color:rgba(255,255,255,.15);color:rgba(255,255,255,.45)}
+.cd-sm-btn--ghost:hover{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7)}
+.cd-modal-bg{position:fixed;inset:0;z-index:1000;background:rgba(10,10,10,.4);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.cd-modal{background:#fff;border-radius:18px;padding:1.4rem;width:355px;max-width:92vw;box-shadow:0 20px 60px rgba(0,0,0,.15);animation:cd-rise .25s ease both}
+.cd-modal-head{display:flex;align-items:center;gap:.8rem;margin-bottom:1rem}
+.cd-modal-icon{width:36px;height:36px;border-radius:10px;background:#f4f4f8;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cd-modal-title{font-size:.9rem;font-weight:700;margin:0 0 .1rem}
+.cd-modal-sub{font-size:.7rem;color:var(--t3);margin:0}
+.cd-modal-close{margin-left:auto;background:none;border:none;font-size:.85rem;color:var(--t3);cursor:pointer;padding:.2rem;transition:color .15s}
+.cd-modal-close:hover{color:var(--t1)}
+.cd-modal-err{font-size:.7rem;color:var(--red);min-height:.9rem;margin:.38rem 0 .65rem;opacity:0;transition:opacity .2s}
+.cd-modal-err.show{opacity:1}
+.cd-modal-btns{display:flex;gap:.45rem;justify-content:flex-end;margin-top:.9rem}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:960px){
+  .cd-bento--3{grid-template-columns:1fr 1fr}
+  .cd-card--span2{grid-column:1/3}
+  .cd-perf-grid{grid-template-columns:1fr}
+  .cd-card--full,.cd-perf-stats-grid{grid-column:1/-1}
+}
+@media(max-width:720px){
+  .cd-side{
+    position:fixed;left:0;top:0;height:100vh;z-index:300;
+    transform:translateX(-100%);
+    box-shadow:var(--shadow-md);
+  }
+  .cd-side.open{transform:translateX(0)}
+  .cd-side-overlay.open{display:block}
+  .cd-bar-hamburger{display:flex}
+  .cd-bento--3{grid-template-columns:1fr 1fr}
+  .cd-card--span2{grid-column:1/3}
+  .cd-sug-layout{flex-direction:column}
+  .cd-card--log{width:100%}
+}
+@media(max-width:520px){
+  .cd-scroll{padding:1rem}
+  .cd-bento--3{grid-template-columns:1fr}
+  .cd-card--span2{grid-column:auto}
+  .cd-row2{grid-template-columns:1fr}
+  .cd-col-grid,.cd-prod-grid{grid-template-columns:1fr 1fr}
+  .cd-bar-clock,.cd-bar-status{display:none}
+}
+@media(max-width:360px){
+  .cd-col-grid,.cd-prod-grid{grid-template-columns:1fr}
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  'use strict';
+
+  /* ══ CONFIG ══ */
+  const C = window.__CD || {};
+  const USERS   = C.users   || [];
+  const MASTER  = C.masterH || '';
+  const EMAIL   = C.email   || '';
+  const ADB_KEY = 'adb_history';
+  if (C.ejsKey) { try { emailjs.init(C.ejsKey); } catch(_) {} }
+
+  /* ══ EARLY VITAL OBSERVERS (before gate) ══ */
+  let _lcp=0, _cls=0, _inp=0, _lt=0, _ltd=0;
+  try { new PerformanceObserver(l=>{ const e=l.getEntries().at(-1); if(e) _lcp=e.startTime; }).observe({type:'largest-contentful-paint',buffered:true}); } catch(_){}
+  try { new PerformanceObserver(l=>{ l.getEntries().forEach(e=>{ if(!e.hadRecentInput) _cls+=e.value; }); }).observe({type:'layout-shift',buffered:true}); } catch(_){}
+  try { new PerformanceObserver(l=>{ l.getEntries().forEach(e=>{ if(e.interactionId) _inp=Math.max(_inp,e.duration); }); }).observe({type:'event',durationThreshold:16,buffered:true}); } catch(_){}
+  try { new PerformanceObserver(l=>{ l.getEntries().forEach(e=>{ _lt++; _ltd+=e.duration; }); }).observe({type:'longtask',buffered:true}); } catch(_){}
+  let _gErr=0, _gRej=0;
+  window.addEventListener('error',()=>_gErr++);
+  window.addEventListener('unhandledrejection',()=>_gRej++);
+
+  /* ══ DOM REFS ══ */
+  const ge  = id => document.getElementById(id);
+  const qs  = sel => document.querySelector(sel);
+  const qsa = sel => [...document.querySelectorAll(sel)];
+
+  const GATE       = ge('cd-gate');
+  const APP        = ge('cd-app');
+  const NAV_BTNS   = qsa('[data-nav]');
+  const VIEWS      = qsa('.cd-view');
+  const SIDE       = ge('cd-side');
+  const OVERLAY    = ge('cd-side-overlay');
+
+  /* ══ SHA-256 (Web Crypto — matches Liquid | sha256) ══ */
+  async function sha256hex(str) {
+    try {
+      if (window.crypto && window.crypto.subtle) {
+        const buf = await window.crypto.subtle.digest(
+          'SHA-256', new TextEncoder().encode(str)
+        );
+        return Array.from(new Uint8Array(buf))
+          .map(b => b.toString(16).padStart(2,'0')).join('');
+      }
+    } catch(e) { console.warn('crypto.subtle unavailable:', e); }
+    /* Fallback: tiny djb2 — only fires on non-secure origins */
+    let h = 5381;
+    for (let i=0;i<str.length;i++) h=(Math.imul(h,33)^str.charCodeAt(i))>>>0;
+    return 'fb:' + h.toString(16);
+  }
+
+  /* ══ GATE ══ */
+  const pwInput  = ge('cd-pw-input');
+  const pwErr    = ge('cd-pw-err');
+  const pwWrap   = ge('cd-pw-wrap');
+  const pwBtn    = ge('cd-pw-btn');
+  const pwBtnTxt = ge('cd-pw-btn-txt');
+  const eyeShow  = ge('cd-eye-show');
+  const eyeHide  = ge('cd-eye-hide');
+
+  function showGateErr(msg) {
+    pwErr.textContent = msg || 'Incorrect code — please try again';
+    pwErr.classList.add('show');
+    pwWrap.classList.remove('shake');
+    void pwWrap.offsetWidth;
+    pwWrap.classList.add('shake');
+    pwInput.select();
+  }
+  function clearGateErr() { pwErr.classList.remove('show'); }
+
+  ge('cd-pw-eye').addEventListener('click', () => {
+    const isPass = pwInput.type === 'password';
+    pwInput.type = isPass ? 'text' : 'password';
+    eyeShow.style.display = isPass ? 'none' : '';
+    eyeHide.style.display = isPass ? '' : 'none';
+  });
+
+  async function tryLogin() {
+    const val = pwInput.value.trim();
+    if (!val) return;
+    /* Loading state */
+    pwBtn.disabled = true;
+    pwBtnTxt.textContent = 'Verifying…';
+    clearGateErr();
+    try {
+      const h = await sha256hex(val);
+      /* Check master */
+      if (h === MASTER) {
+        bootApp({ name:'Admin', role:'Master', isMaster:true,
+          access:{overview:true,collections:true,performance:true,suggestions:true,team:true}
+        });
+        return;
+      }
+      /* Check team users */
+      const user = USERS.find(u => u.hash === h);
+      if (user) {
+        bootApp({ name:user.name, role:user.role, isMaster:false, access:user.access });
+        return;
+      }
+      showGateErr('Incorrect code — please try again');
+    } catch(err) {
+      showGateErr('Authentication error. Please try again.');
+      console.error('Auth error:', err);
+    } finally {
+      pwBtn.disabled = false;
+      pwBtnTxt.textContent = 'Sign in';
+    }
+  }
+
+  pwInput.addEventListener('keydown', e => { if (e.key==='Enter') tryLogin(); });
+  pwBtn.addEventListener('click', tryLogin);
+
+  /* Session restore */
+  let _user = null;
+  const _saved = (() => { try { return JSON.parse(sessionStorage.getItem('cd_sess')); } catch(_) { return null; } })();
+  if (_saved && _saved.access) {
+    /* Defer to next tick so DOM is fully settled */
+    setTimeout(() => bootApp(_saved), 0);
+  }
+
+  /* ══ BOOT ══ */
+  let _live = null;
+  let _perfDone = false;
+
+  function bootApp(user) {
+    _user = user;
+    try { sessionStorage.setItem('cd_sess', JSON.stringify(user)); } catch(_){}
+
+    /* Show app */
+    if (GATE) GATE.style.display = 'none';
+    if (APP)  APP.style.display  = '';
+
+    /* Title */
+    qsa('[data-title]').forEach(el => el.textContent = C.title || 'Command Centre');
+
+    /* Sidebar user */
+    const initials = (user.name || '?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    setText('cd-user-av',   initials);
+    setText('cd-user-name', user.name);
+    setText('cd-user-role', user.role);
+
+    /* Hero */
+    const h = new Date().getHours();
+    const greet = h<12?'Good morning,':h<17?'Good afternoon,':'Good evening,';
+    setText('cd-hero-hi',   greet);
+    setText('cd-hero-name', user.name);
+    setText('cd-role-pill', user.role);
+
+    /* Suggestion pre-fill */
+    setVal('sug-name', user.name);
+    setVal('sug-role', user.role);
+    setText('cd-sug-email', EMAIL || '(no email set in settings)');
+
+    /* Nav: hide inaccessible tabs */
+    NAV_BTNS.forEach(btn => {
+      const key = btn.dataset.nav;
+      const allowed = user.access[key] !== false;
+      btn.style.display = key === 'team'
+        ? (user.access.team ? '' : 'none')
+        : (allowed ? '' : 'none');
+    });
+
+    /* First accessible view */
+    const firstView = NAV_BTNS.find(b => b.style.display !== 'none');
+    if (firstView) switchView(firstView.dataset.nav);
+
+    /* Store rows */
+    renderStore();
+
+    /* Start clock */
+    startClock();
+
+    /* Collect & track */
+    setTimeout(() => { collectPerf(); collectHistory(); }, 120);
+    if (!_live) _live = new LiveTracker();
+    if (C.autoRef) setInterval(() => { collectPerf(); collectHistory(); }, (C.refInt||30)*1000);
+    setInterval(collectHistory, 15000);
+    window.addEventListener('storage', e => { if(e.key===ADB_KEY) collectHistory(); });
+
+    /* Team */
+    if (user.access.team) renderTeam();
+  }
+
+  /* ══ HELPERS ══ */
+  function setText(id, v) { const el=ge(id); if(el) el.textContent=v||''; }
+  function setVal(id, v)  { const el=ge(id); if(el) el.value=v||''; }
+  function setHTML(id, v) { const el=ge(id); if(el) el.innerHTML=v||''; }
+  function show(id) { const el=ge(id); if(el) el.style.display=''; }
+  function hide(id) { const el=ge(id); if(el) el.style.display='none'; }
+
+  /* ══ CLOCK ══ */
+  function startClock() {
+    const tick = () => {
+      setText('cd-clock', new Date().toLocaleTimeString());
+      const now = new Date();
+      setText('cd-date',
+        now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'})
+      );
+    };
+    tick(); setInterval(tick, 1000);
+  }
+
+  /* ══ LOCK ══ */
+  ge('cd-lock-btn').addEventListener('click', () => {
+    try { sessionStorage.removeItem('cd_sess'); } catch(_){}
+    if (GATE) GATE.style.display = '';
+    if (APP)  APP.style.display  = 'none';
+    pwInput.value = '';
+    clearGateErr();
+    _user = null;
+  });
+  ge('cd-refresh-btn').addEventListener('click', () => { collectPerf(); collectHistory(); });
+
+  /* ══ SIDEBAR (mobile) ══ */
+  ge('cd-hamburger').addEventListener('click', () => {
+    SIDE.classList.toggle('open');
+    OVERLAY.classList.toggle('open');
+  });
+  if (OVERLAY) OVERLAY.addEventListener('click', () => {
+    SIDE.classList.remove('open');
+    OVERLAY.classList.remove('open');
+  });
+
+  /* ══ NAVIGATION ══ */
+  const PAGE_LABELS = {overview:'Overview',collections:'Collections',performance:'Performance',suggestions:'Suggestions',team:'Team'};
+
+  function switchView(name) {
+    /* Update nav buttons */
+    NAV_BTNS.forEach(b => b.classList.toggle('cd-nav-btn--active', b.dataset.nav===name));
+    /* Show correct view */
+    VIEWS.forEach(v => v.style.display = v.id==='view-'+name ? '' : 'none');
+    /* Bottom bar label */
+    setText('cd-bar-page', PAGE_LABELS[name]||name);
+    /* Close mobile sidebar */
+    SIDE.classList.remove('open');
+    OVERLAY.classList.remove('open');
+    /* Lazy-render performance tab */
+    if (name==='performance' && !_perfDone) { renderPerfTab(); _perfDone=true; }
+    if (name==='collections') initCollections();
+    if (name==='overview')    collectHistory();
+  }
+
+  NAV_BTNS.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.nav;
+      if (!_user) return;
+      if (!_user.access[key] && key!=='team') return;
+      switchView(key);
+    });
+  });
+
+  /* ══ STORE ROWS ══ */
+  function renderStore() {
+    const s = C.store || {};
+    const rows = [
+      ['Store',    s.name],
+      ['Domain',   s.domain],
+      ['Currency', s.currency],
+      ['Cart',     `${s.cartItems} items · ${s.cartTotal}`],
+      ['Template', s.template],
+      ['Customer', s.customer],
+      ['Theme',    s.theme],
+    ];
+    setHTML('cd-store-rows', rows.map(([k,v]) =>
+      `<div class="cd-data-row"><span class="cd-dk">${k}</span><span class="cd-dv">${v||'—'}</span></div>`
+    ).join(''));
+  }
+
+  /* ══ CHARTING ══ */
+  function makeDonut(pct, color, size=58) {
+    const r=22, C2=2*Math.PI*r;
+    const fill = pct>0 ? Math.min(pct/100,1)*C2 : 0;
+    const col  = pct<=0 ? '#e4e4e7' : color;
+    const lbl  = pct>0 ? (pct>9?Math.round(pct)+'%':pct.toFixed(1)+'%') : '—';
+    const fs   = lbl.length>3 ? 8 : 9;
+    return `<svg viewBox="0 0 ${size} ${size}" fill="none">
+      <circle cx="${size/2}" cy="${size/2}" r="${r}" stroke="#e4e4e7" stroke-width="5"/>
+      <circle cx="${size/2}" cy="${size/2}" r="${r}" stroke="${col}" stroke-width="5"
+        stroke-dasharray="${fill} ${C2}" stroke-dashoffset="${C2*.25}"
+        stroke-linecap="round" transform="rotate(-90 ${size/2} ${size/2})"/>
+      <text x="${size/2}" y="${size/2+3}" text-anchor="middle"
+        font-family="monospace" font-size="${fs}" font-weight="700"
+        fill="${pct<=0?'#ccc':'#111'}">${lbl}</text>
+    </svg>`;
+  }
+
+  function makeSpark(vals, w=210, h=46, dark=true) {
+    if (!vals||vals.length<2) return '';
+    const max=Math.max(...vals), min=Math.min(...vals), rng=max-min||1;
+    const pts=vals.map((v,i)=>{
+      const x=(i/(vals.length-1))*w;
+      const y=h-4-((v-min)/rng)*(h-8);
+      return [x.toFixed(1),y.toFixed(1)];
+    });
+    const lineD='M '+pts.map(p=>p.join(',')).join(' L ');
+    const areaD=`M 0,${h} L ${pts.map(p=>p.join(',')).join(' L ')} L ${w},${h} Z`;
+    const lc = dark?'rgba(255,255,255,.65)':'#111';
+    const fc = dark?'rgba(255,255,255,.07)':'rgba(0,0,0,.04)';
+    return `<svg viewBox="0 0 ${w} ${h}" fill="none" preserveAspectRatio="none">
+      <path d="${areaD}" fill="${fc}"/>
+      <path d="${lineD}" stroke="${lc}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`;
+  }
+
+  /* ══ VITAL RATING ══ */
+  function rateV(key,v) {
+    const T={lcp:[2500,4000],cls:[.1,.25],inp:[200,500],fcp:[1800,3000],ttfb:[800,1800],loadtime:[2000,4000]};
+    const t=T[key]; if(!t||v<=0) return null;
+    return v<=t[0]?'good':v<=t[1]?'warn':'bad';
+  }
+  function vPct(key,v) {
+    const cap={lcp:4000,cls:.25,inp:500,fcp:3000,ttfb:1800,loadtime:4000};
+    return Math.max(0,Math.min(100,100-(v/(cap[key]||1))*100));
+  }
+  function vColor(r) { return r==='good'?'#22c55e':r==='warn'?'#f59e0b':r==='bad'?'#ef4444':'#e4e4e7'; }
+  function tblCls(v,key) {
+    const r=rateV(key,v);
+    return r==='good'?'cd-good':r==='warn'?'cd-warn':r==='bad'?'cd-bad':'cd-na';
+  }
+
+  /* ══ RENDER VITALS ══ */
+  function renderVitals() {
+    const nav = performance.getEntriesByType('navigation')[0];
+    const fcp = performance.getEntriesByType('paint').find(e=>e.name==='first-contentful-paint');
+    const vitals = [
+      ['lcp', _lcp,                'lcp'],
+      ['fcp', fcp?fcp.startTime:0, 'fcp'],
+      ['cls', _cls,                'cls'],
+      ['inp', _inp,                'inp'],
+    ];
+    vitals.forEach(([key,val,rkey]) => {
+      const el = ge('donut-'+key); if(!el) return;
+      const r   = rateV(rkey,val);
+      const pct = vPct(rkey,val);
+      el.innerHTML = makeDonut(pct, vColor(r));
+    });
+    /* KPIs */
+    const nav2 = performance.getEntriesByType('navigation')[0];
+    if (nav2) {
+      setText('kpi-lcp',  _lcp>0?Math.round(_lcp):'—');
+      setText('kpi-load', Math.round(nav2.loadEventEnd-nav2.startTime));
+    }
+    /* Hero spark */
+    if (nav2) {
+      const phases=[
+        nav2.domainLookupEnd-nav2.domainLookupStart,
+        nav2.connectEnd-nav2.connectStart,
+        nav2.responseStart-nav2.requestStart,
+        nav2.responseEnd-nav2.responseStart,
+        nav2.domInteractive-nav2.responseEnd,
+        nav2.domContentLoadedEventEnd-nav2.startTime,
+        nav2.loadEventEnd-nav2.startTime,
+      ].filter(v=>v>0);
+      const sc=ge('cd-hero-chart'); if(sc) sc.innerHTML=makeSpark(phases,240,46,true);
+    }
+  }
+
+  /* ══ COLLECT PERF (safe to call repeatedly) ══ */
+  function collectPerf() { renderVitals(); }
+
+  /* ══ LIVE TRACKER ══ */
+  class LiveTracker {
+    constructor() {
+      this._f=0;this._fps=0;this._lt=performance.now();
+      this._st=Date.now();this._ms=0;
+      this._rq=performance.getEntriesByType('resource').length;
+      this._ix=0;
+      this._init();
+    }
+    _set(id,v){ const el=ge(id); if(el) el.textContent=v; }
+    _init() {
+      /* FPS */
+      const loop=now=>{
+        this._f++;
+        if(now-this._lt>=1000){
+          this._fps=Math.round(this._f*1000/(now-this._lt));
+          this._f=0;this._lt=now;
+          this._set('kpi-fps',this._fps);
+          this._set('tl-fps',this._fps+' fps'); // if existed
+        }
+        requestAnimationFrame(loop);
+      };
+      requestAnimationFrame(loop);
+      /* 1-sec tick */
+      setInterval(()=>this._tick(),1000);
+      /* Scroll */
+      window.addEventListener('scroll',()=>{
+        const dH=document.documentElement.scrollHeight-window.innerHeight;
+        const d=dH>0?Math.round(window.scrollY/dH*100):0;
+        this._ms=Math.max(this._ms,Math.min(d,100));
+        this._set('tl-scroll',this._ms+'%');
+      },{passive:true});
+      /* Resource observer */
+      try{
+        new PerformanceObserver(l=>{
+          this._rq+=l.getEntries().length;
+          this._set('tl-req',this._rq);
+        }).observe({type:'resource',buffered:false});
+      }catch(_){}
+      this._set('tl-req',this._rq);
+      /* Interactions */
+      ['click','keydown','touchstart'].forEach(ev=>{
+        window.addEventListener(ev,()=>{this._ix++;this._set('tl-ix',this._ix);},{passive:true});
+      });
+      /* Visibility */
+      document.addEventListener('visibilitychange',()=>this._vis());
+      this._vis();
+      /* Online */
+      const updOnline=()=>{
+        const pip=ge('cd-status-pip'),txt=ge('cd-status-txt');
+        const on=navigator.onLine;
+        if(pip){pip.style.background=on?'#22c55e':'#ef4444';}
+        if(txt) txt.textContent=on?'Online':'Offline';
+      };
+      window.addEventListener('online',updOnline);
+      window.addEventListener('offline',updOnline);
+      updOnline();
+    }
+    _tick() {
+      /* Time on page */
+      const e=Math.floor((Date.now()-this._st)/1000);
+      const h=Math.floor(e/3600),m=Math.floor((e%3600)/60),s=e%60;
+      const ts=h>0?`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`:
+                   `${m}:${String(s).padStart(2,'0')}`;
+      this._set('tl-time',ts);
+      /* Heap */
+      if(performance.memory){
+        const mb=(performance.memory.usedJSHeapSize/1048576).toFixed(1);
+        this._set('tl-heap',mb+' MB');
+        this._set('kpi-heap',mb);
+      }
+      /* Errors */
+      this._set('tl-err',_gErr+_gRej);
+      /* Network */
+      const cn=navigator.connection||{};
+      this._set('tl-conn',(cn.effectiveType||'—').toUpperCase());
+      this._set('tl-dl',cn.downlink?cn.downlink+' Mbps':'—');
+    }
+    _vis(){this._set('tl-vis',document.visibilityState==='visible'?'Active':'Hidden');}
+  }
+
+  /* ══ HISTORY ══ */
+  function collectHistory() {
+    let store;
+    try { store=JSON.parse(localStorage.getItem(ADB_KEY)||'{"records":[]}'); }
+    catch(_){ store={records:[]}; }
+    const recs=store.records||[];
+    renderHistSummary(recs);
+    renderHistTable(recs);
+  }
+
+  function renderHistSummary(recs) {
+    const wrap=ge('cd-hist-summary'); if(!wrap) return;
+    if(!recs.length){
+      wrap.innerHTML='<div class="cd-hs-empty">No data yet. Install the <code>adb-tracker</code> snippet to collect real visit data across your store.</div>';
+      return;
+    }
+    const wL=recs.filter(r=>r.lcp>0);
+    const avgLCP=wL.length?Math.round(wL.reduce((a,r)=>a+r.lcp,0)/wL.length):0;
+    const gPct=wL.length?Math.round(wL.filter(r=>r.lcp<=2500).length/wL.length*100):0;
+    const uniq=new Set(recs.map(r=>r.url)).size;
+    const pts=[...wL].slice(-20).map(r=>r.lcp);
+    wrap.innerHTML=`
+      <div class="cd-hs-big">${avgLCP?avgLCP+' ms':'—'}</div>
+      <div class="cd-hs-lbl">Avg LCP · last ${Math.min(recs.length,20)} visits</div>
+      <div class="cd-hs-chart">${makeSpark(pts,220,50,false)}</div>
+      <div class="cd-hs-stats">
+        <div><span class="cd-hs-v">${recs.length}</span><span class="cd-hs-l">Views</span></div>
+        <div><span class="cd-hs-v">${gPct}%</span><span class="cd-hs-l">Good LCP</span></div>
+        <div><span class="cd-hs-v">${uniq}</span><span class="cd-hs-l">Unique pages</span></div>
+      </div>`;
+  }
+
+  function renderHistTable(recs) {
+    const empty=ge('cd-hist-empty'), inner=ge('cd-hist-table-inner'), tbody=ge('cd-hist-tbody');
+    const cnt=ge('cd-hist-count');
+    if(!tbody) return;
+    if(!recs.length){
+      if(empty) empty.style.display=''; if(inner) inner.style.display='none'; return;
+    }
+    if(empty) empty.style.display='none'; if(inner) inner.style.display='';
+    const shown=Math.min(recs.length,40);
+    if(cnt) cnt.textContent=`${recs.length} visits · showing last ${shown}`;
+    const recent=[...recs].reverse().slice(0,40);
+    const clsC=v=>{
+      if(!v&&v!==0) return 'cd-na';
+      return v<=.1?'cd-good':v<=.25?'cd-warn':'cd-bad';
+    };
+    tbody.innerHTML=recent.map(r=>{
+      const ts=new Date(r.ts);
+      const tsStr=ts.toLocaleDateString()+' '+ts.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+      return `<tr>
+        <td><div class="cd-turl" title="${r.url}">${r.title||r.url}</div><div class="cd-tsub">${r.url}</div></td>
+        <td class="${tblCls(r.lcp,'lcp')} cd-mn">${r.lcp>0?r.lcp+'ms':'—'}</td>
+        <td class="${tblCls(r.loadTime,'loadtime')} cd-mn">${r.loadTime>0?r.loadTime+'ms':'—'}</td>
+        <td class="${tblCls(r.fcp,'fcp')} cd-mn">${r.fcp>0?r.fcp+'ms':'—'}</td>
+        <td class="${tblCls(r.ttfb,'ttfb')} cd-mn">${r.ttfb>0?r.ttfb+'ms':'—'}</td>
+        <td class="${clsC(r.cls)} cd-mn">${r.cls!==undefined?r.cls.toFixed(3):'—'}</td>
+        <td class="cd-mn" style="font-size:.65rem;color:#aaa">${(r.conn||'—').toUpperCase()}</td>
+        <td class="cd-ts">${tsStr}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  const histClear=ge('cd-hist-clear');
+  if(histClear) histClear.addEventListener('click',()=>{
+    if(confirm('Clear all page visit history?')){
+      try{localStorage.removeItem(ADB_KEY);}catch(_){}
+      collectHistory();
+    }
+  });
+
+  /* ══ PERFORMANCE TAB ══ */
+  function renderPerfTab() {
+    renderTimingBars(); renderResChart(); renderAudit(); renderPerfStats(); renderCaps();
+  }
+
+  function renderTimingBars() {
+    const c=ge('cd-timing-bars'); if(!c) return;
+    const nav=performance.getEntriesByType('navigation')[0];
+    if(!nav){c.innerHTML='<p style="color:rgba(255,255,255,.3);font-size:.75rem;padding:.5rem 0">Navigation timing data unavailable.</p>';return;}
+    const s=nav.startTime;
+    const phases=[
+      ['Redirect',           nav.redirectEnd-nav.redirectStart],
+      ['DNS Lookup',         nav.domainLookupEnd-nav.domainLookupStart],
+      ['TCP Connect',        nav.connectEnd-nav.connectStart],
+      ['SSL / TLS',          nav.secureConnectionStart>0?nav.connectEnd-nav.secureConnectionStart:0],
+      ['Time to First Byte', nav.responseStart-nav.requestStart],
+      ['Server Response',    nav.responseEnd-nav.responseStart],
+      ['DOM Processing',     nav.domInteractive-nav.responseEnd],
+      ['DOM Content Loaded', nav.domContentLoadedEventEnd-s],
+      ['Resource Phase',     Math.max(0,nav.loadEventStart-nav.domContentLoadedEventEnd)],
+      ['Total Load',         nav.loadEventEnd-s],
+    ];
+    const maxV=Math.max(...phases.map(p=>p[1]),1);
+    c.innerHTML=phases.map(([lbl,val])=>`
+      <div class="cd-trow">
+        <div class="cd-trow-labels">
+          <span class="cd-trow-name">${lbl}</span>
+          <span class="cd-trow-val">${Math.round(val)} ms</span>
+        </div>
+        <div class="cd-trow-track">
+          <div class="cd-trow-fill" style="width:${((val/maxV)*100).toFixed(1)}%"></div>
+        </div>
+      </div>`).join('');
+  }
+
+  function renderResChart() {
+    const bar=ge('cd-res-bar'), leg=ge('cd-res-legend'); if(!bar||!leg) return;
+    const res=performance.getEntriesByType('resource');
+    const host=location.hostname;
+    const G={JS:[0,'#111'],CSS:[0,'#555'],Images:[0,'#888'],Fonts:[0,'#aaa'],XHR:[0,'#bbb'],Other:[0,'#ddd']};
+    res.forEach(e=>{
+      const t=e.initiatorType;
+      if(t==='script') G.JS[0]++;
+      else if(t==='link'||t==='css') G.CSS[0]++;
+      else if(t==='img'||/\.(png|jpg|jpeg|gif|webp|svg|avif)/i.test(e.name)) G.Images[0]++;
+      else if(t==='font'||/\.(woff2?|ttf|otf|eot)/i.test(e.name)) G.Fonts[0]++;
+      else if(t==='xmlhttprequest'||t==='fetch') G.XHR[0]++;
+      else G.Other[0]++;
+    });
+    const total=res.length||1;
+    bar.innerHTML=Object.entries(G).map(([n,[cnt,c]])=>
+      `<div class="cd-res-seg" style="width:${(cnt/total*100).toFixed(1)}%;background:${c}" title="${n}:${cnt}"></div>`).join('');
+    leg.innerHTML=Object.entries(G).map(([n,[cnt,c]])=>
+      `<div class="cd-res-li"><span class="cd-res-dot" style="background:${c}"></span>${n} (${cnt})</div>`).join('');
+  }
+
+  function renderAudit() {
+    const c=ge('cd-audit'); if(!c) return;
+    const https=location.protocol==='https:';
+    const res=performance.getEntriesByType('resource');
+    const imgs=[...document.querySelectorAll('img')];
+    const noAlt=imgs.filter(i=>!i.hasAttribute('alt')).length;
+    const mixed=https?res.filter(r=>r.name.startsWith('http://')).length:0;
+    const h1=document.querySelectorAll('h1').length;
+    const lang=document.documentElement.getAttribute('lang');
+    const og=document.querySelectorAll('meta[property^="og:"]').length;
+    const jsonld=document.querySelectorAll('script[type="application/ld+json"]').length;
+    const csp=!!document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+    const sri=document.querySelectorAll('script[integrity],link[integrity]').length;
+    const noLabel=[...document.querySelectorAll('input:not([type=hidden]),textarea,select')]
+      .filter(i=>!i.id||!document.querySelector(`label[for="${i.id}"]`)).length;
+    const checks=[
+      ['HTTPS',             https?'Secure ✓':'Not secure',       https?'good':'bad'],
+      ['Mixed Content',     `${mixed} issue${mixed!==1?'s':''}`, mixed===0?'good':'bad'],
+      ['CSP (meta)',        csp?'Present':'Missing',              csp?'good':'warn'],
+      ['SRI Protected',     `${sri} assets`,                     sri>0?'good':'warn'],
+      ['Image Alt Text',    `${noAlt} missing`,                  noAlt===0?'good':'bad'],
+      ['Form Labels',       `${noLabel} unlabelled`,             noLabel===0?'good':'bad'],
+      ['H1 Tag',            `${h1} found`,                       h1===1?'good':h1===0?'bad':'warn'],
+      ['HTML lang',         lang||'Missing',                      lang?'good':'bad'],
+      ['Open Graph',        `${og} tags`,                        og>=4?'good':og>0?'warn':'bad'],
+      ['JSON-LD Schema',    `${jsonld} found`,                   jsonld>0?'good':'warn'],
+    ];
+    c.innerHTML=checks.map(([lbl,val,r])=>
+      `<div class="cd-arow"><span class="cd-apip cd-apip--${r}"></span><span class="cd-albl">${lbl}</span><span class="cd-aval">${val}</span></div>`
+    ).join('');
+  }
+
+  function renderPerfStats() {
+    const c=ge('cd-perf-stats'); if(!c) return;
+    const nav=performance.getEntriesByType('navigation')[0];
+    const res=performance.getEntriesByType('resource');
+    const fcp=performance.getEntriesByType('paint').find(e=>e.name==='first-contentful-paint');
+    const fp =performance.getEntriesByType('paint').find(e=>e.name==='first-paint');
+    const cH=res.filter(e=>e.transferSize===0&&e.decodedBodySize>0).length;
+    const transfer=res.reduce((a,e)=>a+(e.transferSize||0),0);
+    const pct=res.length?Math.round(cH/res.length*100):0;
+    const chip=r=>r?`<div class="cd-ps-chip cd-ps-chip--${r}">${r==='good'?'● Good':r==='warn'?'● Needs work':'● Poor'}</div>`:'';
+    const stats=[
+      ['LCP',          _lcp>0?Math.round(_lcp):'—','ms',rateV('lcp',_lcp)],
+      ['FCP',          fcp?Math.round(fcp.startTime):'—','ms',rateV('fcp',fcp?fcp.startTime:0)],
+      ['First Paint',  fp?Math.round(fp.startTime):'—','ms',null],
+      ['TTFB',         nav?Math.round(nav.responseStart-nav.requestStart):'—','ms',rateV('ttfb',nav?nav.responseStart-nav.requestStart:0)],
+      ['Load Time',    nav?Math.round(nav.loadEventEnd-nav.startTime):'—','ms',rateV('loadtime',nav?nav.loadEventEnd-nav.startTime:0)],
+      ['DOM Loaded',   nav?Math.round(nav.domContentLoadedEventEnd-nav.startTime):'—','ms',null],
+      ['Resources',    res.length,'files',null],
+      ['Transfer',     Math.round(transfer/1024),'KB',null],
+      ['Cache Hits',   pct,'%',null],
+      ['Long Tasks',   _lt,'',_lt===0?'good':_lt<5?'warn':'bad'],
+      ['LT Duration',  Math.round(_ltd),'ms',null],
+      ['DOM Nodes',    document.querySelectorAll('*').length,'',null],
+    ];
+    c.innerHTML=stats.map(([lbl,val,unit,r])=>`
+      <div class="cd-ps">
+        <div class="cd-ps-lbl">${lbl}</div>
+        <div class="cd-ps-val">${val}<span class="cd-ps-unit">${unit}</span></div>
+        ${r?chip(r):''}
+      </div>`).join('');
+  }
+
+  function renderCaps() {
+    const c=ge('cd-caps'); if(!c) return;
+    const caps=[
+      ['Service Worker','serviceWorker' in navigator],['WebAssembly',typeof WebAssembly!=='undefined'],
+      ['IndexedDB','indexedDB' in window],['Cache API','caches' in window],
+      ['Web Crypto','crypto' in window&&'subtle' in(window.crypto||{})],['Push API','PushManager' in window],
+      ['Notifications','Notification' in window],['Payment Request','PaymentRequest' in window],
+      ['Battery API','getBattery' in navigator],['Geolocation','geolocation' in navigator],
+      ['WebGL',(()=>{try{return!!document.createElement('canvas').getContext('webgl')}catch(_){return false}})()],
+      ['WebGL 2',(()=>{try{return!!document.createElement('canvas').getContext('webgl2')}catch(_){return false}})()],
+      ['WebGPU','gpu' in navigator],['Web Share','share' in navigator],
+      ['Clipboard','clipboard' in navigator],['Web Workers',typeof Worker!=='undefined'],
+      ['WebXR','xr' in navigator],['Screen Wake Lock','wakeLock' in navigator],
+      ['File System','showOpenFilePicker' in window],['Speech Synth','speechSynthesis' in window],
+      ['Web Bluetooth','bluetooth' in navigator],['USB API','usb' in navigator],
+      ['Gamepads','getGamepads' in navigator],['Web Serial','serial' in navigator],
+      ['Intersection Obs','IntersectionObserver' in window],['Resize Observer','ResizeObserver' in window],
+      ['Broadcast Channel',typeof BroadcastChannel!=='undefined'],['Shared Workers',typeof SharedWorker!=='undefined'],
+      ['Pointer Lock','pointerLockElement' in document],['Badging API','setAppBadge' in navigator],
+      ['Web MIDI','requestMIDIAccess' in navigator],['Perf Observer','PerformanceObserver' in window],
+    ];
+    c.innerHTML=caps.map(([n,ok])=>
+      `<div class="cd-cap"><span class="cd-cap-name">${n}</span><span class="cd-cap-dot cd-cap-dot--${ok?'y':'n'}"></span></div>`
+    ).join('');
+  }
+
+  /* ══ COLLECTIONS ══ */
+  let _allProds=[], _curHandle=null;
+  function initCollections() {
+    const inp=ge('cd-col-search');
+    if(inp&&!inp._bound){
+      inp._bound=true;
+      inp.addEventListener('input',()=>{
+        const q=inp.value.toLowerCase();
+        qsa('[data-col-card]').forEach(c=>{
+          c.style.display=(!q||(c.dataset.title||'').toLowerCase().includes(q))?'':'none';
+        });
+      });
+    }
+  }
+
+  /* Card clicks */
+  document.addEventListener('click',e=>{
+    const unlock=e.target.closest('[data-unlock]');
+    if(unlock){e.stopPropagation();openColModal(unlock.closest('[data-col-card]'));return;}
+    const card=e.target.closest('[data-col-card]');
+    if(card&&!e.target.closest('[data-lock-overlay]')){
+      card.dataset.locked==='0'||card.dataset.unlocked==='1'?openCollection(card):openColModal(card);
+    }
+    if(e.target.closest('[data-lock-overlay]')){
+      const c=e.target.closest('[data-col-card]');if(c)openColModal(c);
+    }
+  });
+
+  /* Modal */
+  const colModal=ge('cd-col-modal'), colPwIn=ge('cd-col-pw'), colPwErr=ge('cd-modal-err');
+  let _pendCard=null;
+
+  function openColModal(card){
+    if(!card)return;
+    _pendCard=card;
+    setText('cd-modal-col-name',`"${card.dataset.title||'Collection'}"`);
+    if(colPwIn){colPwIn.value='';}
+    if(colPwErr){colPwErr.textContent='';colPwErr.classList.remove('show');}
+    if(colModal)colModal.style.display='';
+    setTimeout(()=>colPwIn&&colPwIn.focus(),40);
+  }
+  function closeColModal(){if(colModal)colModal.style.display='none';_pendCard=null;}
+  ge('cd-modal-close')  && ge('cd-modal-close').addEventListener('click',closeColModal);
+  ge('cd-modal-cancel') && ge('cd-modal-cancel').addEventListener('click',closeColModal);
+  if(colModal) colModal.addEventListener('click',e=>{if(e.target===colModal)closeColModal();});
+  if(colPwIn)  colPwIn.addEventListener('keydown',e=>{if(e.key==='Enter')submitColPw();});
+  ge('cd-col-pw-ok') && ge('cd-col-pw-ok').addEventListener('click',submitColPw);
+
+  async function submitColPw(){
+    if(!_pendCard)return;
+    const val=(colPwIn&&colPwIn.value.trim())||'';
+    const expected=_pendCard.dataset.phash||'';
+    const h=await sha256hex(val);
+    if(h===expected){
+      _pendCard.dataset.unlocked='1';
+      const ov=_pendCard.querySelector('[data-lock-overlay]');if(ov)ov.remove();
+      closeColModal();openCollection(_pendCard);
+    } else {
+      if(colPwErr){colPwErr.textContent='Incorrect password';colPwErr.classList.add('show');}
+      if(colPwIn) colPwIn.select();
+    }
+  }
+
+  function openCollection(card){
+    if(!card)return;
+    _curHandle=card.dataset.handle;
+    hide('cd-col-grid-view'); show('cd-col-detail');
+    setText('cd-detail-title',card.dataset.title);
+    loadProducts(_curHandle);
+  }
+  ge('cd-col-back')&&ge('cd-col-back').addEventListener('click',()=>{
+    show('cd-col-grid-view');hide('cd-col-detail');
+  });
+
+  const pSearch=ge('cd-prod-search'), pSort=ge('cd-prod-sort');
+  if(pSearch) pSearch.addEventListener('input',()=>renderProds(_allProds));
+  if(pSort)   pSort.addEventListener('change',()=>renderProds(_allProds));
+
+  async function loadProducts(handle){
+    const grid=ge('cd-prod-grid'); if(!grid) return;
+    setHTML('cd-prod-grid','<div id="cd-prod-loading" class="cd-loading"><div class="cd-spinner"></div><span>Loading products…</span></div>');
+    setHTML('cd-col-ana','');
+    try{
+      const r=await fetch(`/collections/${handle}/products.json?limit=250`);
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      const d=await r.json();
+      _allProds=d.products||[];
+      setText('cd-detail-count',`${_allProds.length} products`);
+      renderProds(_allProds);
+      renderColAna(_allProds);
+    }catch(err){
+      setHTML('cd-prod-grid','<div style="grid-column:1/-1;text-align:center;padding:3rem;color:#aaa;font-size:.8rem">Failed to load products — check collection handle or network.</div>');
+    }
+  }
+
+  function renderProds(prods){
+    const grid=ge('cd-prod-grid'); if(!grid) return;
+    let list=[...prods];
+    const q=(pSearch&&pSearch.value||'').toLowerCase();
+    if(q) list=list.filter(p=>p.title.toLowerCase().includes(q)||(p.tags||[]).some(t=>t.toLowerCase().includes(q)));
+    const sort=pSort?pSort.value:'';
+    if(sort==='az')          list.sort((a,b)=>a.title.localeCompare(b.title));
+    if(sort==='price-asc')   list.sort((a,b)=>+(a.variants[0]?.price||0)-(+b.variants[0]?.price||0));
+    if(sort==='price-desc')  list.sort((a,b)=>+(b.variants[0]?.price||0)-(+a.variants[0]?.price||0));
+    if(!list.length){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:2.5rem;color:#aaa">No products match.</div>';return;}
+    grid.innerHTML=list.map(p=>{
+      const v=p.variants[0]||{};
+      const price=v.price?(+v.price).toLocaleString('en-US',{style:'currency',currency:'USD'}):'—';
+      const hasSale=v.compare_at_price&&+(v.compare_at_price)>+(v.price||0);
+      const was=hasSale?(+v.compare_at_price).toLocaleString('en-US',{style:'currency',currency:'USD'}):'';
+      const img=p.images&&p.images[0]?p.images[0].src:null;
+      const avail=p.variants.some(vv=>vv.available);
+      const tags=(p.tags||[]).slice(0,3);
+      return `<div class="cd-prod-card">
+        ${img?`<div class="cd-prod-img" style="background-image:url('${img}')"></div>`
+              :`<div class="cd-prod-img cd-prod-img--ph"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="3" y="3" width="22" height="22" rx="3" stroke="#ddd" stroke-width="1.3"/><circle cx="10" cy="11" r="2.5" stroke="#ddd" stroke-width="1.3"/><path d="M3 21l6-5 4 3.5 3.5-3.5 8 5" stroke="#ddd" stroke-width="1.3" stroke-linejoin="round"/></svg></div>`}
+        <div class="cd-prod-body">
+          <h4 class="cd-prod-name">${p.title}</h4>
+          <div><span class="cd-prod-price">${price}</span>${hasSale?`<span class="cd-prod-was">${was}</span><span class="cd-prod-sale">SALE</span>`:''}</div>
+          ${tags.length?`<div class="cd-prod-tags">${tags.map(t=>`<span class="cd-prod-tag">${t}</span>`).join('')}</div>`:''}
+        </div>
+        <div class="cd-prod-foot">
+          <span class="${avail?'cd-instock':'cd-oos'}">${avail?'● In stock':'● Out of stock'}</span>
+          <span>${p.variants.length} var.</span>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderColAna(prods){
+    const c=ge('cd-col-ana');if(!c)return;
+    const prices=prods.flatMap(p=>p.variants.map(v=>+(v.price||0))).filter(Boolean);
+    const avg=prices.length?(prices.reduce((a,b)=>a+b,0)/prices.length).toFixed(2):'—';
+    const inStock=prods.filter(p=>p.variants.some(v=>v.available)).length;
+    const onSale=prods.filter(p=>p.variants.some(v=>v.compare_at_price&&+(v.compare_at_price)>+(v.price||0))).length;
+    [['Products',prods.length,''],
+     ['In Stock',inStock,`${prods.length?Math.round(inStock/prods.length*100):0}%`],
+     ['On Sale',onSale,''],
+     ['Avg Price','$'+avg,''],
+    ].forEach(([lbl,val,sub])=>{
+      const el=document.createElement('div');el.className='cd-ana-card';
+      el.innerHTML=`<div class="cd-ana-lbl">${lbl}</div><div class="cd-ana-val">${val}</div>${sub?`<div class="cd-ana-sub">${sub}</div>`:''}`;
+      c.appendChild(el);
+    });
+  }
+
+  /* ══ SUGGESTIONS ══ */
+  let _sugImg=null;
+  const upZone=ge('cd-upload-zone'), upInput=ge('sug-img');
+  const upUI=ge('cd-upload-ui'), upPrev=ge('cd-upload-prev'), prevImg=ge('cd-prev-img');
+
+  if(upZone){
+    upZone.addEventListener('dragover',e=>{e.preventDefault();upZone.classList.add('drag');});
+    upZone.addEventListener('dragleave',()=>upZone.classList.remove('drag'));
+    upZone.addEventListener('drop',e=>{e.preventDefault();upZone.classList.remove('drag');handleImg(e.dataTransfer.files[0]);});
+  }
+  if(upInput) upInput.addEventListener('change',()=>handleImg(upInput.files[0]));
+  ge('cd-upload-rm')&&ge('cd-upload-rm').addEventListener('click',clearImg);
+
+  function handleImg(file){
+    if(!file)return;
+    if(file.size>4*1024*1024){alert('Max 4MB');return;}
+    const r=new FileReader();
+    r.onload=e=>{
+      _sugImg=e.target.result;
+      if(prevImg)prevImg.src=_sugImg;
+      if(upUI)upUI.style.display='none';
+      if(upPrev)upPrev.style.display='';
+    };
+    r.readAsDataURL(file);
+  }
+  function clearImg(){
+    _sugImg=null;
+    if(upInput)upInput.value='';
+    if(prevImg)prevImg.src='';
+    if(upUI)upUI.style.display='';
+    if(upPrev)upPrev.style.display='none';
+  }
+
+  const sugSubmit=ge('cd-sug-submit'), sugLbl=ge('cd-sug-lbl'), sugStatus=ge('cd-sug-status');
+  if(sugSubmit) sugSubmit.addEventListener('click',sendSuggestion);
+
+  async function sendSuggestion(){
+    const gv=id=>(ge(id)||{}).value||'';
+    const name=gv('sug-name'),role=gv('sug-role'),cat=gv('sug-cat');
+    const priority=gv('sug-priority'),subject=gv('sug-subject'),body=gv('sug-body'),video=gv('sug-video');
+    if(!subject.trim()||!body.trim()){setSugStatus('Please fill in subject and details.','err');return;}
+    sugSubmit.disabled=true;if(sugLbl)sugLbl.textContent='Sending…';setSugStatus('','');
+    const params={
+      to_email:EMAIL,from_name:name,from_role:role,category:cat,
+      priority:priority.toUpperCase(),
+      subject:`[${priority.toUpperCase()}] ${cat}: ${subject}`,
+      message:body,video_url:video||'None',
+      page_url:location.href,timestamp:new Date().toLocaleString(),
+      has_image:_sugImg?'Yes':'No'
+    };
+    let sent=false;
+    if(C.ejsSvc&&C.ejsTpl&&C.ejsKey){
+      try{await emailjs.send(C.ejsSvc,C.ejsTpl,params);sent=true;}catch(_){}
+    }
+    if(!sent){
+      const mb=`From: ${name} (${role})\nCategory: ${cat} · Priority: ${priority}\n\n${body}\n\nVideo: ${video||'None'}\nPage: ${location.href}\nTime: ${new Date().toLocaleString()}`;
+      window.open(`mailto:${EMAIL}?subject=${encodeURIComponent(params.subject)}&body=${encodeURIComponent(mb)}`);
+      sent=true;
+    }
+    if(sent){
+      setSugStatus('✓ Sent successfully!','ok');
+      logSent({name,role,cat,subject,body,ts:Date.now()});
+      ['sug-subject','sug-body','sug-video'].forEach(id=>{const el=ge(id);if(el)el.value='';});
+      clearImg();
+    }
+    sugSubmit.disabled=false;if(sugLbl)sugLbl.textContent='Send suggestion';
+  }
+  function setSugStatus(msg,type){
+    if(!sugStatus)return;
+    sugStatus.textContent=msg;
+    sugStatus.className='cd-sug-status'+(type?' '+type:'');
+  }
+  function logSent(s){
+    const log=ge('cd-sug-log');if(!log)return;
+    const empty=log.querySelector('.cd-log-empty');if(empty)empty.style.display='none';
+    const el=document.createElement('div');el.className='cd-log-entry';
+    el.innerHTML=`<div class="cd-log-hd"><span class="cd-log-title">${s.subject}</span><span class="cd-log-cat">${s.cat}</span><span class="cd-log-ts">${new Date(s.ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span></div><div class="cd-log-body">${s.body.slice(0,80)}${s.body.length>80?'…':''}</div>`;
+    log.prepend(el);
+  }
+  ge('cd-log-clear')&&ge('cd-log-clear').addEventListener('click',()=>{
+    const log=ge('cd-sug-log');if(log)log.innerHTML='<div class="cd-log-empty">No suggestions sent yet.</div>';
+  });
+
+  /* ══ TEAM ══ */
+  function renderTeam(){
+    const grid=ge('cd-team-grid');if(!grid)return;
+    if(!USERS.length){
+      grid.innerHTML='<p style="color:#aaa;font-size:.82rem">No team members configured. Add users in section settings.</p>';
+      return;
+    }
+    const ACCESS_KEYS=['overview','collections','performance','suggestions','team'];
+    const cards=USERS.map(u=>{
+      const init=(u.name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+      const tags=ACCESS_KEYS.map(k=>`<span class="cd-team-tag cd-team-tag--${u.access[k]?'on':'off'}">${k.charAt(0).toUpperCase()+k.slice(1)}</span>`).join('');
+      return `<div class="cd-team-card">
+        <div class="cd-team-top">
+          <div class="cd-team-av">${init}</div>
+          <div><div class="cd-team-name">${u.name}</div><div class="cd-team-role">${u.role}</div></div>
+        </div>
+        <div class="cd-team-tags">${tags}</div>
+      </div>`;
+    });
+    /* Master card */
+    const masterCard=`<div class="cd-team-card cd-team-master">
+      <div class="cd-team-top">
+        <div class="cd-team-av">★</div>
+        <div><div class="cd-team-name">Master Admin</div><div class="cd-team-role">Full access · all sections</div></div>
+      </div>
+      <div class="cd-team-tags">${ACCESS_KEYS.map(k=>`<span class="cd-team-tag cd-team-tag--on">${k.charAt(0).toUpperCase()+k.slice(1)}</span>`).join('')}</div>
+    </div>`;
+    grid.innerHTML=masterCard+cards.join('');
+  }
+
+}); /* end DOMContentLoaded */
+</script>
+
+{% schema %}
+{
+  "name": "Admin Dashboard",
+  "tag": "section",
+  "class": "cd-section",
+  "settings": [
+    { "type": "header",    "content": "General" },
+    { "type": "text",      "id": "dashboard_title",    "label": "Dashboard name",          "default": "Command Centre" },
+    { "type": "checkbox",  "id": "auto_refresh",        "label": "Auto-refresh metrics",    "default": false },
+    { "type": "range",     "id": "refresh_interval",    "label": "Refresh interval",        "min": 10, "max": 120, "step": 10, "unit": "s", "default": 30 },
+    { "type": "header",    "content": "🔑 Master Password" },
+    { "type": "paragraph", "content": "The master key unlocks every tab including Team management. Pair with Shopify's built-in page password for maximum security." },
+    { "type": "text",      "id": "master_password",     "label": "Master password",         "default": "master" },
+    { "type": "header",    "content": "📧 Suggestions Email" },
+    { "type": "text",      "id": "company_email",       "label": "Destination email" },
+    { "type": "text",      "id": "emailjs_service",     "label": "EmailJS Service ID",      "info": "Create a free account at emailjs.com. Leave blank to use mailto fallback." },
+    { "type": "text",      "id": "emailjs_template",    "label": "EmailJS Template ID",     "info": "Template vars: {{from_name}}, {{from_role}}, {{subject}}, {{message}}, {{category}}, {{priority}}, {{video_url}}, {{page_url}}, {{timestamp}}." },
+    { "type": "text",      "id": "emailjs_pubkey",      "label": "EmailJS Public Key" },
+    { "type": "header",    "content": "👤 Team Member 1" },
+    { "type": "text",      "id": "user_1_name",          "label": "Full name" },
+    { "type": "text",      "id": "user_1_role",          "label": "Role",                    "default": "Designer" },
+    { "type": "text",      "id": "user_1_password",      "label": "Password",                "info": "Leave blank to skip this user slot." },
+    { "type": "checkbox",  "id": "user_1_can_overview",    "label": "Can view Overview",       "default": true  },
+    { "type": "checkbox",  "id": "user_1_can_collections", "label": "Can view Collections",    "default": true  },
+    { "type": "checkbox",  "id": "user_1_can_performance", "label": "Can view Performance",    "default": false },
+    { "type": "checkbox",  "id": "user_1_can_suggestions", "label": "Can send Suggestions",    "default": true  },
+    { "type": "checkbox",  "id": "user_1_can_team",        "label": "Can view Team",           "default": false },
+    { "type": "header",    "content": "👤 Team Member 2" },
+    { "type": "text",      "id": "user_2_name",          "label": "Full name" },
+    { "type": "text",      "id": "user_2_role",          "label": "Role",                    "default": "Developer" },
+    { "type": "text",      "id": "user_2_password",      "label": "Password" },
+    { "type": "checkbox",  "id": "user_2_can_overview",    "label": "Can view Overview",       "default": true  },
+    { "type": "checkbox",  "id": "user_2_can_collections", "label": "Can view Collections",    "default": true  },
+    { "type": "checkbox",  "id": "user_2_can_performance", "label": "Can view Performance",    "default": true  },
+    { "type": "checkbox",  "id": "user_2_can_suggestions", "label": "Can send Suggestions",    "default": true  },
+    { "type": "checkbox",  "id": "user_2_can_team",        "label": "Can view Team",           "default": false },
+    { "type": "header",    "content": "👤 Team Member 3" },
+    { "type": "text",      "id": "user_3_name",          "label": "Full name" },
+    { "type": "text",      "id": "user_3_role",          "label": "Role",                    "default": "Collaborator" },
+    { "type": "text",      "id": "user_3_password",      "label": "Password" },
+    { "type": "checkbox",  "id": "user_3_can_overview",    "label": "Can view Overview",       "default": true  },
+    { "type": "checkbox",  "id": "user_3_can_collections", "label": "Can view Collections",    "default": false },
+    { "type": "checkbox",  "id": "user_3_can_performance", "label": "Can view Performance",    "default": false },
+    { "type": "checkbox",  "id": "user_3_can_suggestions", "label": "Can send Suggestions",    "default": true  },
+    { "type": "checkbox",  "id": "user_3_can_team",        "label": "Can view Team",           "default": false },
+    { "type": "header",    "content": "👤 Team Member 4" },
+    { "type": "text",      "id": "user_4_name",          "label": "Full name" },
+    { "type": "text",      "id": "user_4_role",          "label": "Role",                    "default": "Collaborator" },
+    { "type": "text",      "id": "user_4_password",      "label": "Password" },
+    { "type": "checkbox",  "id": "user_4_can_overview",    "label": "Can view Overview",       "default": true  },
+    { "type": "checkbox",  "id": "user_4_can_collections", "label": "Can view Collections",    "default": true  },
+    { "type": "checkbox",  "id": "user_4_can_performance", "label": "Can view Performance",    "default": false },
+    { "type": "checkbox",  "id": "user_4_can_suggestions", "label": "Can send Suggestions",    "default": true  },
+    { "type": "checkbox",  "id": "user_4_can_team",        "label": "Can view Team",           "default": false },
+    { "type": "header",    "content": "👤 Team Member 5" },
+    { "type": "text",      "id": "user_5_name",          "label": "Full name" },
+    { "type": "text",      "id": "user_5_role",          "label": "Role",                    "default": "Collaborator" },
+    { "type": "text",      "id": "user_5_password",      "label": "Password" },
+    { "type": "checkbox",  "id": "user_5_can_overview",    "label": "Can view Overview",       "default": true  },
+    { "type": "checkbox",  "id": "user_5_can_collections", "label": "Can view Collections",    "default": true  },
+    { "type": "checkbox",  "id": "user_5_can_performance", "label": "Can view Performance",    "default": false },
+    { "type": "checkbox",  "id": "user_5_can_suggestions", "label": "Can send Suggestions",    "default": true  },
+    { "type": "checkbox",  "id": "user_5_can_team",        "label": "Can view Team",           "default": false },
+    { "type": "header",    "content": "👤 Team Member 6" },
+    { "type": "text",      "id": "user_6_name",          "label": "Full name" },
+    { "type": "text",      "id": "user_6_role",          "label": "Role",                    "default": "Collaborator" },
+    { "type": "text",      "id": "user_6_password",      "label": "Password" },
+    { "type": "checkbox",  "id": "user_6_can_overview",    "label": "Can view Overview",       "default": true  },
+    { "type": "checkbox",  "id": "user_6_can_collections", "label": "Can view Collections",    "default": true  },
+    { "type": "checkbox",  "id": "user_6_can_performance", "label": "Can view Performance",    "default": false },
+    { "type": "checkbox",  "id": "user_6_can_suggestions", "label": "Can send Suggestions",    "default": true  },
+    { "type": "checkbox",  "id": "user_6_can_team",        "label": "Can view Team",           "default": false },
+    { "type": "header",    "content": "👤 Team Member 7" },
+    { "type": "text",      "id": "user_7_name",          "label": "Full name" },
+    { "type": "text",      "id": "user_7_role",          "label": "Role",                    "default": "Collaborator" },
+    { "type": "text",      "id": "user_7_password",      "label": "Password" },
+    { "type": "checkbox",  "id": "user_7_can_overview",    "label": "Can view Overview",       "default": true  },
+    { "type": "checkbox",  "id": "user_7_can_collections", "label": "Can view Collections",    "default": true  },
+    { "type": "checkbox",  "id": "user_7_can_performance", "label": "Can view Performance",    "default": false },
+    { "type": "checkbox",  "id": "user_7_can_suggestions", "label": "Can send Suggestions",    "default": true  },
+    { "type": "checkbox",  "id": "user_7_can_team",        "label": "Can view Team",           "default": false },
+    { "type": "header",    "content": "👤 Team Member 8" },
+    { "type": "text",      "id": "user_8_name",          "label": "Full name" },
+    { "type": "text",      "id": "user_8_role",          "label": "Role",                    "default": "Collaborator" },
+    { "type": "text",      "id": "user_8_password",      "label": "Password" },
+    { "type": "checkbox",  "id": "user_8_can_overview",    "label": "Can view Overview",       "default": true  },
+    { "type": "checkbox",  "id": "user_8_can_collections", "label": "Can view Collections",    "default": true  },
+    { "type": "checkbox",  "id": "user_8_can_performance", "label": "Can view Performance",    "default": false },
+    { "type": "checkbox",  "id": "user_8_can_suggestions", "label": "Can send Suggestions",    "default": true  },
+    { "type": "checkbox",  "id": "user_8_can_team",        "label": "Can view Team",           "default": false },
+    { "type": "header",    "content": "👤 Team Member 9" },
+    { "type": "text",      "id": "user_9_name",          "label": "Full name" },
+    { "type": "text",      "id": "user_9_role",          "label": "Role",                    "default": "Collaborator" },
+    { "type": "text",      "id": "user_9_password",      "label": "Password" },
+    { "type": "checkbox",  "id": "user_9_can_overview",    "label": "Can view Overview",       "default": true  },
+    { "type": "checkbox",  "id": "user_9_can_collections", "label": "Can view Collections",    "default": true  },
+    { "type": "checkbox",  "id": "user_9_can_performance", "label": "Can view Performance",    "default": false },
+    { "type": "checkbox",  "id": "user_9_can_suggestions", "label": "Can send Suggestions",    "default": true  },
+    { "type": "checkbox",  "id": "user_9_can_team",        "label": "Can view Team",           "default": false },
+    { "type": "header",    "content": "👤 Team Member 10" },
+    { "type": "text",      "id": "user_10_name",         "label": "Full name" },
+    { "type": "text",      "id": "user_10_role",         "label": "Role",                    "default": "Collaborator" },
+    { "type": "text",      "id": "user_10_password",     "label": "Password" },
+    { "type": "checkbox",  "id": "user_10_can_overview",    "label": "Can view Overview",     "default": true  },
+    { "type": "checkbox",  "id": "user_10_can_collections", "label": "Can view Collections",  "default": true  },
+    { "type": "checkbox",  "id": "user_10_can_performance", "label": "Can view Performance",  "default": false },
+    { "type": "checkbox",  "id": "user_10_can_suggestions", "label": "Can send Suggestions",  "default": true  },
+    { "type": "checkbox",  "id": "user_10_can_team",        "label": "Can view Team",         "default": false },
+    { "type": "header",    "content": "🔒 Collection Passwords" },
+    { "type": "paragraph", "content": "Lock collections by position (0 = first, 1 = second…). Leave blank to leave a collection open." },
+    { "type": "text", "id": "col_password_0",  "label": "Collection 1 password"  },
+    { "type": "text", "id": "col_password_1",  "label": "Collection 2 password"  },
+    { "type": "text", "id": "col_password_2",  "label": "Collection 3 password"  },
+    { "type": "text", "id": "col_password_3",  "label": "Collection 4 password"  },
+    { "type": "text", "id": "col_password_4",  "label": "Collection 5 password"  },
+    { "type": "text", "id": "col_password_5",  "label": "Collection 6 password"  },
+    { "type": "text", "id": "col_password_6",  "label": "Collection 7 password"  },
+    { "type": "text", "id": "col_password_7",  "label": "Collection 8 password"  },
+    { "type": "text", "id": "col_password_8",  "label": "Collection 9 password"  },
+    { "type": "text", "id": "col_password_9",  "label": "Collection 10 password" },
+    { "type": "text", "id": "col_password_10", "label": "Collection 11 password" },
+    { "type": "text", "id": "col_password_11", "label": "Collection 12 password" },
+    { "type": "text", "id": "col_password_12", "label": "Collection 13 password" },
+    { "type": "text", "id": "col_password_13", "label": "Collection 14 password" },
+    { "type": "text", "id": "col_password_14", "label": "Collection 15 password" },
+    { "type": "text", "id": "col_password_15", "label": "Collection 16 password" },
+    { "type": "text", "id": "col_password_16", "label": "Collection 17 password" },
+    { "type": "text", "id": "col_password_17", "label": "Collection 18 password" },
+    { "type": "text", "id": "col_password_18", "label": "Collection 19 password" },
+    { "type": "text", "id": "col_password_19", "label": "Collection 20 password" }
+  ],
+  "presets": [{ "name": "Admin Dashboard" }]
+}
+{% endschema %}
