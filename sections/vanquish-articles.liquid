@@ -1,0 +1,522 @@
+{%- comment -%}
+  Section: Brand Showcase (New Collection / Statement / Lookbook / Footer)
+  Install: save this file as sections/brand-showcase.liquid in your theme,
+  then add it via the theme customizer to any template (Home page, Article, Page, etc).
+{%- endcomment -%}
+
+{%- liquid
+  assign new_collection = section.settings.collection
+  if new_collection == blank
+    assign new_collection = collections.all
+  endif
+  assign products_to_show = section.settings.products_to_show | default: 8
+  assign newest_products = new_collection.products | sort: 'created_at' | reverse
+  assign section_id = 'brand-showcase-' | append: section.id
+-%}
+
+<section
+  id="{{ section_id }}"
+  class="brand-showcase"
+  style="
+    --bs-bg: {{ section.settings.color_background }};
+    --bs-text: {{ section.settings.color_text }};
+    --bs-accent: {{ section.settings.color_accent }};
+    --bs-hero-height: {{ section.settings.hero_height }}px;
+    --bs-hero-overlay: {{ section.settings.hero_overlay_color }};
+    --bs-hero-overlay-opacity: {{ section.settings.hero_overlay_opacity | divided_by: 100.0 }};
+  "
+>
+
+  {%- comment -%} ---------- HERO ---------- {%- endcomment -%}
+  {%- if section.settings.hero_image != blank -%}
+    <div class="bs-hero">
+      <img
+        class="bs-hero__image"
+        srcset="
+          {{ section.settings.hero_image | image_url: width: 480 }} 480w,
+          {{ section.settings.hero_image | image_url: width: 768 }} 768w,
+          {{ section.settings.hero_image | image_url: width: 1200 }} 1200w,
+          {{ section.settings.hero_image | image_url: width: 1600 }} 1600w
+        "
+        sizes="100vw"
+        src="{{ section.settings.hero_image | image_url: width: 1200 }}"
+        alt="{{ section.settings.hero_image.alt | default: shop.name | escape }}"
+        width="{{ section.settings.hero_image.width }}"
+        height="{{ section.settings.hero_image.height }}"
+        loading="lazy"
+      >
+      <div class="bs-hero__overlay"></div>
+    </div>
+  {%- endif -%}
+
+  {%- comment -%} ---------- NEW COLLECTION ---------- {%- endcomment -%}
+  {%- if section.settings.heading_new_collection != blank or newest_products.size > 0 -%}
+    <div class="bs-block bs-new-collection">
+      {%- if section.settings.heading_new_collection != blank -%}
+        <h2 class="bs-heading">{{ section.settings.heading_new_collection | escape }}</h2>
+      {%- endif -%}
+
+      {%- if newest_products.size > 0 -%}
+        <div class="bs-carousel-wrap">
+          {%- if section.settings.enable_arrows -%}
+            <button type="button" class="bs-carousel__arrow bs-carousel__arrow--prev" aria-label="Scroll left" data-bs-prev>&#8249;</button>
+          {%- endif -%}
+
+          <ul class="bs-carousel" role="list" data-bs-carousel>
+            {%- for product in newest_products limit: products_to_show -%}
+              <li class="bs-product-card">
+                <a href="{{ product.url }}" class="bs-product-card__link">
+                  {%- if product.featured_image != blank -%}
+                    <div class="bs-product-card__media">
+                      <img
+                        src="{{ product.featured_image | image_url: width: 600 }}"
+                        srcset="
+                          {{ product.featured_image | image_url: width: 300 }} 300w,
+                          {{ product.featured_image | image_url: width: 600 }} 600w
+                        "
+                        sizes="(min-width: 990px) 25vw, (min-width: 600px) 40vw, 70vw"
+                        alt="{{ product.featured_image.alt | default: product.title | escape }}"
+                        width="{{ product.featured_image.width }}"
+                        height="{{ product.featured_image.height }}"
+                        loading="lazy"
+                      >
+                    </div>
+                  {%- endif -%}
+                  <div class="bs-product-card__info">
+                    <span class="bs-product-card__title">{{ product.title | escape }}</span>
+                    {%- if section.settings.show_price -%}
+                      <span class="bs-product-card__price">{{ product.price | money_without_trailing_zeros }}</span>
+                    {%- endif -%}
+                  </div>
+                </a>
+              </li>
+            {%- endfor -%}
+          </ul>
+
+          {%- if section.settings.enable_arrows -%}
+            <button type="button" class="bs-carousel__arrow bs-carousel__arrow--next" aria-label="Scroll right" data-bs-next>&#8250;</button>
+          {%- endif -%}
+        </div>
+      {%- else -%}
+        <p class="bs-empty-state">{{ 'No products to show yet.' }}</p>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+
+  {%- comment -%} ---------- BRAND STATEMENT + GALLERY ---------- {%- endcomment -%}
+  {%- assign gallery_blocks = section.blocks | where: 'type', 'gallery_image' -%}
+  {%- if section.settings.brand_statement != blank or gallery_blocks.size > 0 -%}
+    <div class="bs-block bs-statement">
+      {%- if section.settings.brand_statement != blank -%}
+        <div class="bs-statement__text">{{ section.settings.brand_statement }}</div>
+      {%- endif -%}
+
+      {%- if gallery_blocks.size > 0 -%}
+        <div class="bs-gallery">
+          {%- for block in gallery_blocks -%}
+            <div class="bs-gallery__item" {{ block.shopify_attributes }}>
+              {%- if block.settings.image != blank -%}
+                <img
+                  src="{{ block.settings.image | image_url: width: 700 }}"
+                  srcset="
+                    {{ block.settings.image | image_url: width: 350 }} 350w,
+                    {{ block.settings.image | image_url: width: 700 }} 700w
+                  "
+                  sizes="(min-width: 990px) 33vw, 100vw"
+                  alt="{{ block.settings.image.alt | default: section.settings.heading_new_collection | escape }}"
+                  width="{{ block.settings.image.width }}"
+                  height="{{ block.settings.image.height }}"
+                  loading="lazy"
+                >
+              {%- endif -%}
+            </div>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+
+  {%- comment -%} ---------- LOOKBOOK ---------- {%- endcomment -%}
+  {%- assign lookbook_blocks = section.blocks | where: 'type', 'lookbook_image' -%}
+  {%- if section.settings.heading_lookbook != blank or lookbook_blocks.size > 0 -%}
+    <div class="bs-block bs-lookbook">
+      {%- if section.settings.heading_lookbook != blank -%}
+        <h2 class="bs-heading">{{ section.settings.heading_lookbook | escape }}</h2>
+      {%- endif -%}
+
+      {%- if lookbook_blocks.size > 0 -%}
+        <div class="bs-lookbook__grid">
+          {%- for block in lookbook_blocks -%}
+            {%- liquid
+              assign img = block.settings.image
+              assign has_link = false
+              if block.settings.link != blank
+                assign has_link = true
+              endif
+            -%}
+            {%- if has_link -%}<a href="{{ block.settings.link }}" class="bs-lookbook__item" {{ block.shopify_attributes }}>{%- else -%}<div class="bs-lookbook__item" {{ block.shopify_attributes }}>{%- endif -%}
+              {%- if img != blank -%}
+                <img
+                  src="{{ img | image_url: width: 800 }}"
+                  srcset="
+                    {{ img | image_url: width: 400 }} 400w,
+                    {{ img | image_url: width: 800 }} 800w,
+                    {{ img | image_url: width: 1200 }} 1200w
+                  "
+                  sizes="(min-width: 990px) 50vw, 100vw"
+                  alt="{{ img.alt | default: block.settings.label | escape }}"
+                  width="{{ img.width }}"
+                  height="{{ img.height }}"
+                  loading="lazy"
+                >
+              {%- endif -%}
+              {%- if block.settings.label != blank -%}
+                <span class="bs-lookbook__label">{{ block.settings.label | escape }}</span>
+              {%- endif -%}
+            {%- if has_link -%}</a>{%- else -%}</div>{%- endif -%}
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+
+  {%- comment -%} ---------- FOOTER CONTACT + WORDMARK ---------- {%- endcomment -%}
+  {%- assign contact_blocks = section.blocks | where: 'type', 'contact_link' -%}
+  {%- if contact_blocks.size > 0 -%}
+    <div class="bs-block bs-footer">
+      <div class="bs-footer__contacts">
+        {%- for block in contact_blocks -%}
+          <div class="bs-footer__contact" {{ block.shopify_attributes }}>
+            {%- if block.settings.label != blank -%}
+              <span class="bs-footer__label">{{ block.settings.label | escape }}</span>
+            {%- endif -%}
+            {%- if block.settings.link != blank -%}
+              <a class="bs-footer__value bs-footer__value--link" href="{{ block.settings.link }}">{{ block.settings.value | escape }}</a>
+            {%- elsif block.settings.value != blank -%}
+              <span class="bs-footer__value">{{ block.settings.value | escape }}</span>
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+      </div>
+    </div>
+  {%- endif -%}
+
+  {%- if section.settings.wordmark_text != blank -%}
+    <div class="bs-block bs-wordmark">
+      <span class="bs-wordmark__text">{{ section.settings.wordmark_text | escape }}</span>
+    </div>
+  {%- endif -%}
+</section>
+
+{%- style -%}
+  #{{ section_id }} {
+    --bs-gap: {{ section.settings.spacing | default: 48 }}px;
+    background-color: var(--bs-bg);
+    color: var(--bs-text);
+    overflow: hidden;
+  }
+
+  #{{ section_id }} * { box-sizing: border-box; }
+
+  #{{ section_id }} .bs-hero {
+    position: relative;
+    width: 100%;
+    height: var(--bs-hero-height);
+    overflow: hidden;
+  }
+  #{{ section_id }} .bs-hero__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  #{{ section_id }} .bs-hero__overlay {
+    position: absolute;
+    inset: 0;
+    background-color: var(--bs-hero-overlay);
+    opacity: var(--bs-hero-overlay-opacity);
+    pointer-events: none;
+  }
+
+  #{{ section_id }} .bs-block {
+    padding: var(--bs-gap) 5%;
+  }
+
+  #{{ section_id }} .bs-heading {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    line-height: 1.05;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    margin: 0 0 1.25rem;
+    font-weight: 800;
+  }
+
+  /* New collection carousel */
+  #{{ section_id }} .bs-carousel-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  #{{ section_id }} .bs-carousel {
+    display: flex;
+    gap: 2px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex: 1;
+  }
+  #{{ section_id }} .bs-carousel::-webkit-scrollbar { display: none; }
+  #{{ section_id }} .bs-product-card {
+    scroll-snap-align: start;
+    flex: 0 0 clamp(180px, 24vw, 260px);
+  }
+  #{{ section_id }} .bs-product-card__link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+  }
+  #{{ section_id }} .bs-product-card__media {
+    background-color: #e9e9e9;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+  }
+  #{{ section_id }} .bs-product-card__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+  }
+  #{{ section_id }} .bs-product-card__link:hover .bs-product-card__media img {
+    transform: scale(1.04);
+  }
+  #{{ section_id }} .bs-product-card__info {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.6rem 0.2rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  #{{ section_id }} .bs-product-card__price {
+    color: var(--bs-accent);
+    white-space: nowrap;
+  }
+  #{{ section_id }} .bs-carousel__arrow {
+    flex: 0 0 auto;
+    background: transparent;
+    border: 1px solid currentColor;
+    color: inherit;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+  #{{ section_id }} .bs-carousel__arrow:hover { opacity: 0.7; }
+
+  /* Statement + gallery */
+  #{{ section_id }} .bs-statement__text {
+    font-size: clamp(1.5rem, 3.4vw, 2.25rem);
+    font-weight: 800;
+    text-transform: uppercase;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    max-width: 60ch;
+    margin-bottom: 2rem;
+  }
+  #{{ section_id }} .bs-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 2px;
+  }
+  #{{ section_id }} .bs-gallery__item img {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Lookbook */
+  #{{ section_id }} .bs-lookbook__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2px;
+  }
+  #{{ section_id }} .bs-lookbook__item {
+    position: relative;
+    display: block;
+    color: inherit;
+    text-decoration: none;
+  }
+  #{{ section_id }} .bs-lookbook__item img {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    display: block;
+  }
+  #{{ section_id }} .bs-lookbook__label {
+    position: absolute;
+    left: 1rem;
+    bottom: 1rem;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+  }
+
+  /* Footer */
+  #{{ section_id }} .bs-footer__contacts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem 3rem;
+  }
+  #{{ section_id }} .bs-footer__contact {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  #{{ section_id }} .bs-footer__label {
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+  }
+  #{{ section_id }} .bs-footer__value {
+    font-size: 0.85rem;
+    opacity: 0.85;
+    text-decoration: none;
+    color: inherit;
+  }
+  #{{ section_id }} .bs-footer__value--link:hover { text-decoration: underline; }
+
+  /* Wordmark */
+  #{{ section_id }} .bs-wordmark {
+    padding-top: 0;
+  }
+  #{{ section_id }} .bs-wordmark__text {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font-size: clamp(3.5rem, 15vw, 11rem);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 0.85;
+    text-transform: uppercase;
+    word-break: break-word;
+  }
+
+  @media (max-width: 749px) {
+    #{{ section_id }} .bs-block { padding: calc(var(--bs-gap) * 0.6) 6%; }
+  }
+{%- endstyle -%}
+
+<script>
+  (function () {
+    var root = document.getElementById({{ section_id | json }});
+    if (!root) return;
+    var track = root.querySelector('[data-bs-carousel]');
+    if (!track) return;
+
+    var prevBtn = root.querySelector('[data-bs-prev]');
+    var nextBtn = root.querySelector('[data-bs-next]');
+
+    function scrollByCard(direction) {
+      var card = track.querySelector('.bs-product-card');
+      var amount = card ? card.getBoundingClientRect().width + 2 : 260;
+      track.scrollBy({ left: amount * direction, behavior: 'smooth' });
+    }
+
+    if (prevBtn) prevBtn.addEventListener('click', function () { scrollByCard(-1); });
+    if (nextBtn) nextBtn.addEventListener('click', function () { scrollByCard(1); });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Brand Showcase",
+  "class": "brand-showcase-section",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Hero image" },
+    { "type": "image_picker", "id": "hero_image", "label": "Hero image" },
+    { "type": "range", "id": "hero_height", "label": "Hero height", "min": 200, "max": 900, "step": 10, "unit": "px", "default": 500 },
+    { "type": "color", "id": "hero_overlay_color", "label": "Hero overlay color", "default": "#000000" },
+    { "type": "range", "id": "hero_overlay_opacity", "label": "Hero overlay opacity", "min": 0, "max": 100, "step": 5, "unit": "%", "default": 15 },
+
+    { "type": "header", "content": "Colors" },
+    { "type": "color", "id": "color_background", "label": "Background", "default": "#121212" },
+    { "type": "color", "id": "color_text", "label": "Text", "default": "#f5f5f5" },
+    { "type": "color", "id": "color_accent", "label": "Accent (price / links)", "default": "#f5f5f5" },
+
+    { "type": "header", "content": "New collection" },
+    { "type": "text", "id": "heading_new_collection", "label": "Heading", "default": "New Collection" },
+    { "type": "collection", "id": "collection", "label": "Collection", "info": "Leave blank to auto-pull the newest products from your entire catalog." },
+    { "type": "range", "id": "products_to_show", "label": "Products to show", "min": 2, "max": 16, "step": 1, "default": 8 },
+    { "type": "checkbox", "id": "show_price", "label": "Show price", "default": true },
+    { "type": "checkbox", "id": "enable_arrows", "label": "Show carousel arrows", "default": true },
+
+    { "type": "header", "content": "Brand statement" },
+    { "type": "richtext", "id": "brand_statement", "label": "Statement text", "default": "<p>Brand — direction of development toward modernity, dynamics, innovation and precision.</p>" },
+
+    { "type": "header", "content": "Lookbook" },
+    { "type": "text", "id": "heading_lookbook", "label": "Heading", "default": "Lookbook" },
+
+    { "type": "header", "content": "Wordmark" },
+    { "type": "text", "id": "wordmark_text", "label": "Large wordmark text", "info": "Leave blank to hide.", "default": "BRAND" },
+
+    { "type": "header", "content": "Layout" },
+    { "type": "range", "id": "spacing", "label": "Vertical spacing between blocks", "min": 16, "max": 120, "step": 4, "unit": "px", "default": 48 }
+  ],
+  "blocks": [
+    {
+      "type": "gallery_image",
+      "name": "Gallery image",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Image" }
+      ]
+    },
+    {
+      "type": "lookbook_image",
+      "name": "Lookbook image",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Image" },
+        { "type": "text", "id": "label", "label": "Caption (optional)" },
+        { "type": "url", "id": "link", "label": "Link (optional)" }
+      ]
+    },
+    {
+      "type": "contact_link",
+      "name": "Contact / footer link",
+      "settings": [
+        { "type": "text", "id": "label", "label": "Label", "default": "Instagram" },
+        { "type": "text", "id": "value", "label": "Display text", "default": "@yourbrand" },
+        { "type": "url", "id": "link", "label": "Link (optional)" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Brand Showcase",
+      "blocks": [
+        { "type": "gallery_image" },
+        { "type": "gallery_image" },
+        { "type": "gallery_image" },
+        { "type": "lookbook_image" },
+        { "type": "lookbook_image" },
+        { "type": "contact_link", "settings": { "label": "Instagram", "value": "@yourbrand" } },
+        { "type": "contact_link", "settings": { "label": "Telegram", "value": "@yourbrand" } },
+        { "type": "contact_link", "settings": { "label": "WhatsApp", "value": "+1 234 567 89" } },
+        { "type": "contact_link", "settings": { "label": "Email", "value": "info@yourbrand.com" } }
+      ]
+    }
+  ]
+}
+{% endschema %}
