@@ -24,6 +24,8 @@
     --bs-hero-height: {{ section.settings.hero_height }}px;
     --bs-hero-overlay: {{ section.settings.hero_overlay_color }};
     --bs-hero-overlay-opacity: {{ section.settings.hero_overlay_opacity | divided_by: 100.0 }};
+    --bs-gallery-cols: {{ section.settings.gallery_columns | default: 3 }};
+    --bs-lookbook-cols: {{ section.settings.lookbook_columns | default: 2 }};
   "
 >
 
@@ -338,7 +340,7 @@
   }
   #{{ section_id }} .bs-gallery {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+    grid-template-columns: repeat(var(--bs-gallery-cols, 3), minmax(0, 1fr));
     gap: 2px;
   }
   #{{ section_id }} .bs-gallery__item img {
@@ -352,7 +354,7 @@
   /* Lookbook */
   #{{ section_id }} .bs-lookbook__grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+    grid-template-columns: repeat(var(--bs-lookbook-cols, 2), minmax(0, 1fr));
     gap: 2px;
   }
   #{{ section_id }} .bs-lookbook__item {
@@ -483,9 +485,11 @@
 
     { "type": "header", "content": "Brand statement" },
     { "type": "richtext", "id": "brand_statement", "label": "Statement text", "default": "<p>Brand — direction of development toward modernity, dynamics, innovation and precision.</p>" },
+    { "type": "range", "id": "gallery_columns", "label": "Gallery columns (all screen sizes)", "min": 1, "max": 4, "step": 1, "default": 3 },
 
     { "type": "header", "content": "Lookbook" },
     { "type": "text", "id": "heading_lookbook", "label": "Heading", "default": "Lookbook" },
+    { "type": "range", "id": "lookbook_columns", "label": "Lookbook columns (all screen sizes)", "min": 1, "max": 3, "step": 1, "default": 2 },
 
     { "type": "header", "content": "Wordmark" },
     { "type": "text", "id": "wordmark_text", "label": "Large wordmark text", "info": "Leave blank to hide.", "default": "BRAND" },
