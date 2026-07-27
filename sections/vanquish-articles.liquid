@@ -213,15 +213,18 @@
     --bs-gap: {{ section.settings.spacing | default: 48 }}px;
     background-color: var(--bs-bg);
     color: var(--bs-text);
-    overflow: hidden;
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
   }
 
-  #{{ section_id }} * { box-sizing: border-box; }
+  #{{ section_id }} * { box-sizing: border-box; min-width: 0; }
+  #{{ section_id }} img, #{{ section_id }} svg { max-width: 100%; height: auto; display: block; }
 
   #{{ section_id }} .bs-hero {
     position: relative;
     width: 100%;
-    height: var(--bs-hero-height);
+    height: min(var(--bs-hero-height), 90vh);
     overflow: hidden;
   }
   #{{ section_id }} .bs-hero__image {
@@ -249,6 +252,7 @@
     letter-spacing: -0.02em;
     margin: 0 0 1.25rem;
     font-weight: 800;
+    overflow-wrap: anywhere;
   }
 
   /* New collection carousel */
@@ -272,7 +276,7 @@
   #{{ section_id }} .bs-carousel::-webkit-scrollbar { display: none; }
   #{{ section_id }} .bs-product-card {
     scroll-snap-align: start;
-    flex: 0 0 clamp(180px, 24vw, 260px);
+    flex: 0 0 clamp(140px, 40vw, 260px);
   }
   #{{ section_id }} .bs-product-card__link {
     display: block;
@@ -328,12 +332,13 @@
     text-transform: uppercase;
     line-height: 1.1;
     letter-spacing: -0.02em;
-    max-width: 60ch;
+    max-width: min(60ch, 100%);
+    overflow-wrap: anywhere;
     margin-bottom: 2rem;
   }
   #{{ section_id }} .bs-gallery {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
     gap: 2px;
   }
   #{{ section_id }} .bs-gallery__item img {
@@ -347,7 +352,7 @@
   /* Lookbook */
   #{{ section_id }} .bs-lookbook__grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
     gap: 2px;
   }
   #{{ section_id }} .bs-lookbook__item {
@@ -411,6 +416,8 @@
     line-height: 0.85;
     text-transform: uppercase;
     word-break: break-word;
+    overflow-wrap: anywhere;
+    max-width: 100%;
   }
 
   @media (max-width: 749px) {
@@ -436,6 +443,17 @@
 
     if (prevBtn) prevBtn.addEventListener('click', function () { scrollByCard(-1); });
     if (nextBtn) nextBtn.addEventListener('click', function () { scrollByCard(1); });
+
+    // Safety net: if the theme's <head> is missing a responsive viewport tag,
+    // mobile browsers render the page at desktop width and zoom out to fit it,
+    // which is what makes everything look squished. Add one only if it's absent.
+    var viewport = document.querySelector('meta[name="viewport"]');
+    if (!viewport) {
+      viewport = document.createElement('meta');
+      viewport.setAttribute('name', 'viewport');
+      viewport.setAttribute('content', 'width=device-width, initial-scale=1');
+      document.head.appendChild(viewport);
+    }
   })();
 </script>
 
