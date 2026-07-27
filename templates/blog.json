@@ -66,15 +66,15 @@
           "type": "contact_link",
           "settings": {
             "label": "WhatsApp",
-            "value": "+1 234 567 89",
-            "link": ""
+            "value": "+ 1 (876) 575-9791",
+            "link": "https://wa.me/18765759791"
           }
         },
         "contact_link_MNgqXc": {
           "type": "contact_link",
           "settings": {
             "label": "Email",
-            "value": "info@yourbrand.com",
+            "value": "Devici.Studios@outlook.com",
             "link": ""
           }
         }
