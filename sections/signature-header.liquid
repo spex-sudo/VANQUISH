@@ -10,7 +10,7 @@
 
 {%- liquid
   assign logo_subtext = section.settings.logo_subtext | replace: '{currency}', cart.currency.iso_code
-  assign _spacer_h    = section.settings.height | plus: section.settings.pill_margin | plus: 8
+  assign spacer_h     = section.settings.height | plus: section.settings.pill_margin | plus: 8
 -%}
 
 {%- if section.settings.text_logo_font != blank and section.settings.logo == blank and section.settings.logo_video == blank -%}
@@ -36,7 +36,7 @@
   --apex-overlay-bg:   {{ section.settings.scroll_bg_color }};
   --apex-overlay-text: {{ section.settings.scroll_text_color }};
   /* Pre-computed in Liquid — JS will refine after layout, but this eliminates CLS on first paint */
-  --apex-shell-bottom: {{ _spacer_h }}px;
+  --apex-shell-bottom: {{ spacer_h }}px;
   /* Logo/video sizing tokens — JS (syncLogoSize) refines these once the media
      has loaded so the header always fits the media exactly, with no cropping,
      using the same code path on every device (no separate mobile logic). */
