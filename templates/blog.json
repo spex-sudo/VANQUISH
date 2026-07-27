@@ -6,8 +6,110 @@
  * or related systems. Please exercise caution as any changes
  * made to this file may be overwritten.
  * ------------------------------------------------------------
- */{
+ */
+{
   "sections": {
+    "vanquish_articles_tGiDW6": {
+      "type": "vanquish-articles",
+      "blocks": {
+        "gallery_image_H9YFwR": {
+          "type": "gallery_image",
+          "settings": {
+            "image": "shopify://shop_images/VANQUISH7-industrial-assests.jpg"
+          }
+        },
+        "gallery_image_Hx3hVR": {
+          "type": "gallery_image",
+          "settings": {
+            "image": "shopify://shop_images/ef6018d4004b404692397e80b65ca0a6-Max-Origin.webp"
+          }
+        },
+        "gallery_image_ExxmnF": {
+          "type": "gallery_image",
+          "settings": {
+            "image": "shopify://shop_images/949f9326671b4df282703f052139bced-Max-Origin.webp"
+          }
+        },
+        "lookbook_image_MrBTBa": {
+          "type": "lookbook_image",
+          "settings": {
+            "image": "shopify://shop_images/3C84A550-A43E-4C63-A8B4-42C6BBA922A8.png",
+            "label": "",
+            "link": ""
+          }
+        },
+        "lookbook_image_j8nrVh": {
+          "type": "lookbook_image",
+          "settings": {
+            "image": "shopify://shop_images/D09F46AD-6526-4D9E-8543-C2EAEF49FEDF.png",
+            "label": "",
+            "link": ""
+          }
+        },
+        "contact_link_Lk67jJ": {
+          "type": "contact_link",
+          "settings": {
+            "label": "Instagram",
+            "value": "@yourbrand",
+            "link": ""
+          }
+        },
+        "contact_link_xgM7Pc": {
+          "type": "contact_link",
+          "settings": {
+            "label": "Telegram",
+            "value": "@yourbrand",
+            "link": ""
+          }
+        },
+        "contact_link_ThMMbR": {
+          "type": "contact_link",
+          "settings": {
+            "label": "WhatsApp",
+            "value": "+1 234 567 89",
+            "link": ""
+          }
+        },
+        "contact_link_MNgqXc": {
+          "type": "contact_link",
+          "settings": {
+            "label": "Email",
+            "value": "info@yourbrand.com",
+            "link": ""
+          }
+        }
+      },
+      "block_order": [
+        "gallery_image_H9YFwR",
+        "gallery_image_Hx3hVR",
+        "gallery_image_ExxmnF",
+        "lookbook_image_MrBTBa",
+        "lookbook_image_j8nrVh",
+        "contact_link_Lk67jJ",
+        "contact_link_xgM7Pc",
+        "contact_link_ThMMbR",
+        "contact_link_MNgqXc"
+      ],
+      "name": "Brand Showcase",
+      "settings": {
+        "hero_image": "shopify://shop_images/DEVICI_STUDIOS_c852a702-cf47-4890-8fbd-fe5d99bc5572.jpg",
+        "hero_height": 500,
+        "hero_overlay_color": "#000000",
+        "hero_overlay_opacity": 15,
+        "color_background": "#121212",
+        "color_text": "#f5f5f5",
+        "color_accent": "#f5f5f5",
+        "heading_new_collection": "New Collection",
+        "collection": "",
+        "products_to_show": 8,
+        "show_price": false,
+        "enable_arrows": false,
+        "brand_statement": "<p>Brand — direction of development toward modernity, dynamics, innovation and precision.</p>",
+        "heading_lookbook": "Lookbook",
+        "wordmark_text": "VANQUISH",
+        "spacing": 48
+      }
+    },
     "main": {
       "type": "main-blog",
       "blocks": {
@@ -44,6 +146,18 @@
             "alignment": "left"
           },
           "blocks": {
+            "image": {
+              "type": "_blog-post-image",
+              "static": true,
+              "settings": {
+                "height": "large",
+                "border": "none",
+                "border_width": 1,
+                "border_opacity": 100,
+                "border_radius": 0
+              },
+              "blocks": {}
+            },
             "heading": {
               "type": "_heading",
               "name": "t:names.title",
@@ -83,15 +197,20 @@
               },
               "blocks": {}
             },
-            "image": {
-              "type": "_blog-post-image",
+            "content": {
+              "type": "_blog-post-description",
               "static": true,
               "settings": {
-                "height": "large",
-                "border": "none",
-                "border_width": 1,
-                "border_opacity": 100,
-                "border_radius": 0
+                "type_preset": "rte",
+                "font": "var(--font-body--family)",
+                "font_size": "1rem",
+                "line_height": "normal",
+                "letter_spacing": "normal",
+                "case": "none",
+                "wrap": "pretty",
+                "color": "var(--color-foreground)",
+                "padding-block-start": 16,
+                "padding-block-end": 0
               },
               "blocks": {}
             }
@@ -110,6 +229,7 @@
     }
   },
   "order": [
+    "vanquish_articles_tGiDW6",
     "main"
   ]
 }
