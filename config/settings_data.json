@@ -130,34 +130,21 @@
         "disabled": false,
         "settings": {
           "greeting_message": "",
-          "button_color": "#FFFFFF",
-          "secondary_color": "#000000",
+          "show_featured_products": false,
+          "featured_products": [],
+          "background_color": "#ffffff",
+          "font_color": "#030302",
+          "button_color": "#030302",
+          "secondary_color": "#ffffff",
           "ternary_color": "#6a6a6a",
           "button_icon": "no_icon",
-          "button_text": "chat_with_us",
+          "button_text": "need_help",
           "button_horizontal_position": "bottom_right",
-          "button_vertical_position": "higher"
+          "button_vertical_position": "higher",
+          "agent_inherit_fonts": false,
+          "agent_font": "system_ui_n7",
+          "agent_border_radius": 2
         }
-      },
-      "9005256451184024879": {
-        "type": "shopify://apps/uppromote-affiliate/blocks/customer-referral/64c32457-930d-4cb9-9641-e24c0d9cf1f4",
-        "disabled": true,
-        "settings": {}
-      },
-      "1996061711396120121": {
-        "type": "shopify://apps/uppromote-affiliate/blocks/message-bar/64c32457-930d-4cb9-9641-e24c0d9cf1f4",
-        "disabled": true,
-        "settings": {}
-      },
-      "3138269044488530766": {
-        "type": "shopify://apps/uppromote-affiliate/blocks/core-script/64c32457-930d-4cb9-9641-e24c0d9cf1f4",
-        "disabled": true,
-        "settings": {}
-      },
-      "7539343560218715217": {
-        "type": "shopify://apps/lucky-orange-heatmaps-replay/blocks/lucky_orange_tracking/019b2899-e426-7dbd-b9e7-ff9f0bb0d0f3",
-        "disabled": true,
-        "settings": {}
       }
     },
     "color_schemes": {
