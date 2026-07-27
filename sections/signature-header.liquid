@@ -1,8 +1,11 @@
 {%- comment -%}
-  APEX HEADER — V19.1 · Pill System
+  APEX HEADER — V19.2 · Pill System
   • Fixed/always-visible — no mode selector
   • Spacer height pre-computed in Liquid to eliminate CLS
   • Notification, drawer, search, vault all preserved
+  • V19.2: logo/video auto-sizing (no cropping, consistent on every device),
+           fixed a flexbox min-width bug that made the floating notif pill
+           behave differently on mobile vs desktop.
 {%- endcomment -%}
 
 {%- liquid
@@ -10,7 +13,7 @@
   assign _spacer_h    = section.settings.height | plus: section.settings.pill_margin | plus: 8
 -%}
 
-{%- if section.settings.text_logo_font != blank and section.settings.logo == blank -%}
+{%- if section.settings.text_logo_font != blank and section.settings.logo == blank and section.settings.logo_video == blank -%}
   <style>{{ section.settings.text_logo_font | font_face: font_display: 'swap' }}</style>
 {%- endif -%}
 
@@ -34,6 +37,11 @@
   --apex-overlay-text: {{ section.settings.scroll_text_color }};
   /* Pre-computed in Liquid — JS will refine after layout, but this eliminates CLS on first paint */
   --apex-shell-bottom: {{ _spacer_h }}px;
+  /* Logo/video sizing tokens — JS (syncLogoSize) refines these once the media
+     has loaded so the header always fits the media exactly, with no cropping,
+     using the same code path on every device (no separate mobile logic). */
+  --apex-logo-h:        {{ section.settings.logo_height }}px;
+  --apex-logo-max-w:    min(60vw, 420px);
   --apex-ease:         cubic-bezier(0.22, 1, 0.36, 1);
   --apex-ui:           'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
@@ -82,8 +90,15 @@
   line-height: 1.3;
   white-space: nowrap;
   color: var(--apex-pill-text);
-  /* max-width + padding animate to collapse flex space when hidden */
-  max-width: 320px;
+  /* max-width + padding animate to collapse flex space when hidden.
+     min-width:0 is required here — without it, flex items refuse to shrink
+     below their content's natural (nowrap) width, so on narrow viewports the
+     pill would overflow/overlap the right-side icons instead of shrinking +
+     marqueeing like it does on desktop. This is what made the pill behave
+     differently on mobile vs PC. */
+  max-width: min(320px, 65vw);
+  min-width: 0;
+  flex-shrink: 1;
   overflow: hidden;
   transition: opacity 0.4s ease, transform 0.4s ease,
               max-width 0.4s ease, padding 0.4s ease,
@@ -148,39 +163,55 @@
   max-width: var(--apex-max);
   margin: 0 auto;
   height: var(--apex-height);
+  min-height: var(--apex-height);
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 var(--apex-pad);
   background: var(--apex-pill-bg);
   color: var(--apex-pill-text);
   border-radius: var(--apex-pill-radius);
-  transition: height 0.35s ease, box-shadow 0.35s ease, border-radius 0.35s ease,
+  transition: height 0.35s ease, min-height 0.35s ease, box-shadow 0.35s ease, border-radius 0.35s ease,
               background 0.45s ease, opacity 0.35s ease;
 }
 .apex-shell.scrolled .apex-bar {
   box-shadow: 0 6px 24px rgba(0,0,0,0.08), 0 1px 0 rgba(0,0,0,0.04);
 }
 {% if section.settings.shrink_on_scroll %}
-.apex-shell.scrolled .apex-bar { height: calc(var(--apex-height) * 0.85); }
+.apex-shell.scrolled .apex-bar { height: calc(var(--apex-height) * 0.85); min-height: calc(var(--apex-height) * 0.85); }
 {% endif %}
 @media (max-width: 900px) {
   .apex-shell { padding: 0 10px; }
-  .apex-bar { height: 56px !important; padding: 0 18px !important; border-radius: var(--apex-pill-radius) !important; }
-  .apex-shell.scrolled .apex-bar { height: 52px !important; }
+  .apex-bar { padding: 0 18px !important; border-radius: var(--apex-pill-radius) !important; }
 }
 
 /* LEFT: LOGO + SUBTEXT */
 .apex-left {
-  display: flex; align-items: center; gap: 14px; min-width: 0;
+  display: flex; align-items: center; gap: 14px;
+  min-width: 0; /* let children (notif pill) shrink instead of overflowing on narrow screens */
 }
 .apex-logo-link {
   display: inline-flex; align-items: center;
   text-decoration: none; color: inherit;
   transition: opacity 0.4s ease, max-width 0.4s ease;
-  max-width: 400px; overflow: hidden; /* enables space collapse when hidden */
+  /* Fluid fallback cap so wide logos never get clipped before JS measures
+     the real rendered width (syncLogoSize sets --apex-logo-max-w precisely). */
+  max-width: var(--apex-logo-max-w);
+  overflow: hidden; /* enables space collapse when hidden */
   flex-shrink: 1; /* allow shrink so max-width:0 actually collapses space */
   -webkit-tap-highlight-color: transparent;
 }
 .apex-logo-link:hover { opacity: 0.7; }
+/* Shared by <img> and <video> logos — object-fit:contain guarantees the
+   media is always scaled to fit, never cropped, on any device. The header
+   itself grows (via --apex-height, set by syncLogoSize) to fit tall media
+   instead of squashing or clipping it. */
+.apex-logo-media {
+  display: block;
+  height: auto;
+  width: auto;
+  max-height: var(--apex-logo-h);
+  max-width: 100%;
+  object-fit: contain;
+}
 .apex-logo-text {
   {% if section.settings.text_logo_font != blank %}
     font-family: {{ section.settings.text_logo_font.family }}, {{ section.settings.text_logo_font.fallback_families }};
@@ -355,7 +386,9 @@
   text-decoration: none; color: var(--apex-pill-text);
   font-family: var(--apex-ui); font-weight: 900;
   font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+  display: inline-flex; align-items: center;
 }
+.apex-drawer-logo .apex-logo-media { max-height: 28px; }
 .apex-close-btn {
   display: flex; align-items: center; justify-content: center;
   width: 40px; height: 40px; border-radius: 50%;
@@ -608,14 +641,20 @@
             <span class="apex-notif-pill-track"><span class="apex-notif-pill-bar" id="ApexNotifBar"></span></span>
           {%- endif -%}
         </div>
-        <a href="{{ routes.root_url }}" class="apex-logo-link" aria-label="{{ shop.name }} — Home">
-          {%- if section.settings.logo != blank -%}
+        <a href="{{ routes.root_url }}" class="apex-logo-link" id="ApexLogoLink" aria-label="{{ shop.name }} — Home">
+          {%- if section.settings.logo_video != blank -%}
+            {{ section.settings.logo_video | video_tag: autoplay: true, loop: true, muted: true, playsinline: true, controls: false, class: 'apex-logo-media' }}
+          {%- elsif section.settings.logo != blank -%}
             <img
-              src="{{ section.settings.logo | image_url: width: 400 }}"
+              class="apex-logo-media"
+              src="{{ section.settings.logo | image_url: width: 800 }}"
+              srcset="
+                {{ section.settings.logo | image_url: width: 400 }} 400w,
+                {{ section.settings.logo | image_url: width: 800 }} 800w
+              "
               alt="{{ shop.name }}"
-              height="{{ section.settings.logo_height }}"
-              width="auto"
-              style="height:{{ section.settings.logo_height }}px;width:auto;display:block;"
+              width="{{ section.settings.logo.width }}"
+              height="{{ section.settings.logo.height }}"
               loading="eager"
               fetchpriority="high">
           {%- else -%}
@@ -714,13 +753,15 @@
   <aside id="ApexDrawer" class="apex-drawer" role="dialog" aria-modal="true" aria-label="Site navigation" tabindex="-1">
     <div class="apex-drawer-top">
       <a href="{{ routes.root_url }}" class="apex-drawer-logo" onclick="apexCloseAll()">
-        {%- if section.settings.logo != blank -%}
+        {%- if section.settings.logo_video != blank -%}
+          {{ section.settings.logo_video | video_tag: autoplay: true, loop: true, muted: true, playsinline: true, controls: false, class: 'apex-logo-media' }}
+        {%- elsif section.settings.logo != blank -%}
           <img
+            class="apex-logo-media"
             src="{{ section.settings.logo | image_url: width: 240 }}"
             alt="{{ shop.name }}"
-            height="{{ section.settings.logo_height | at_most: 28 }}"
-            width="auto"
-            style="height:{{ section.settings.logo_height | at_most: 28 }}px;width:auto;display:block;"
+            width="{{ section.settings.logo.width }}"
+            height="{{ section.settings.logo.height }}"
             loading="lazy">
         {%- else -%}
           {{ section.settings.custom_logo_text }}
@@ -881,6 +922,60 @@
   updateLayout();
   setTimeout(updateLayout, 200);
 
+  /* ── LOGO / VIDEO AUTO-SIZE ──────────────────────────────────────────
+     Same code path on every device (no separate mobile/desktop rules):
+     once the logo image or video has loaded, measure its real rendered
+     size and grow --apex-height / --apex-logo-max-w to fit it exactly.
+     object-fit:contain on the media itself means it is NEVER cropped;
+     this just makes sure the pill around it is never too small either.
+  ───────────────────────────────────────────────────────────────────── */
+  function syncLogoSize() {
+    var media = document.querySelector('#ApexLogoLink .apex-logo-media');
+    if (!media) return;
+
+    var configuredHeight = {{ section.settings.height }};
+    var verticalBreathingRoom = 16;
+
+    function applyFit() {
+      var w = media.offsetWidth  || media.clientWidth;
+      var h = media.offsetHeight || media.clientHeight;
+      if (!w || !h) return;
+
+      /* Horizontal: give the collapsing logo container enough room for the
+         real rendered width so wide logos never get clipped by overflow:hidden. */
+      document.documentElement.style.setProperty('--apex-logo-max-w', Math.ceil(w + 4) + 'px');
+
+      /* Vertical: grow the header pill to fit the logo/video, never shrink
+         below the merchant-configured minimum height. */
+      var needed = Math.ceil(h + verticalBreathingRoom);
+      document.documentElement.style.setProperty(
+        '--apex-height',
+        Math.max(configuredHeight, needed) + 'px'
+      );
+    }
+
+    var throttled = false;
+    function throttledApplyFit() {
+      if (throttled) return;
+      throttled = true;
+      requestAnimationFrame(function () { applyFit(); throttled = false; });
+    }
+
+    if (media.tagName === 'IMG') {
+      if (media.complete && media.naturalWidth) applyFit();
+      else media.addEventListener('load', applyFit, { once: true });
+    } else if (media.tagName === 'VIDEO') {
+      if (media.readyState >= 1) applyFit();
+      else media.addEventListener('loadedmetadata', applyFit, { once: true });
+    }
+
+    window.addEventListener('resize', throttledApplyFit, { passive: true });
+    if (window.ResizeObserver) {
+      try { new ResizeObserver(throttledApplyFit).observe(media); } catch (e) {}
+    }
+  }
+  syncLogoSize();
+
   /* ── DRAWER ── */
   window.apexOpenDrawer = function () {
     if (_drawerOpen) return;
@@ -1012,8 +1107,12 @@
 
   /* ── NOTIF PILL MARQUEE ──────────────────────────────────────────────
      Measures text overflow once visible. If text is wider than the pill,
-     animates it scrolling left. Restarts on content change (flash restore).
-     Uses MutationObserver on root class — zero scroll/resize cost.
+     animates it scrolling left. Restarts on content change (flash restore)
+     AND on viewport resize/orientation change — without the resize
+     listener, a measurement taken at one width (e.g. desktop) would stay
+     stale after the viewport changed (e.g. rotating a phone, or resizing
+     a browser window), which is what made the pill look inconsistent
+     between devices.
   ───────────────────────────────────────────────────────────────────── */
   (function() {
     var pillEl   = document.getElementById('ApexNotifPill');
@@ -1070,6 +1169,10 @@
       textEl.style.removeProperty('--apex-mq-dur');
     }
 
+    function isPillVisible() {
+      return root && (root.classList.contains('apex-at-top') || root.classList.contains('apex-notif-flash'));
+    }
+
     /* Watch root class changes — triggers when at-top/flash state changes.
        Observer stored so it can be disconnected if the section is removed
        (prevents memory leak in Shopify theme editor section reloads). */
@@ -1078,10 +1181,8 @@
       _mo = new MutationObserver(function(muts) {
         muts.forEach(function(m) {
           if (m.attributeName !== 'class') return;
-          var visible = root.classList.contains('apex-at-top') ||
-                        root.classList.contains('apex-notif-flash');
-          if (visible) setTimeout(applyMarquee, 450);
-          else         stopMarquee();
+          if (isPillVisible()) setTimeout(applyMarquee, 450);
+          else                 stopMarquee();
         });
       });
       _mo.observe(root, { attributes: true });
@@ -1092,11 +1193,20 @@
       }
     }
 
+    /* Re-measure on resize/orientation change so the marquee always matches
+       the pill's *current* rendered width, on any device. */
+    var _resizeRaf = null;
+    window.addEventListener('resize', function () {
+      if (!isPillVisible()) return;
+      cancelAnimationFrame(_resizeRaf);
+      _resizeRaf = requestAnimationFrame(function () { applyMarquee(); });
+    }, { passive: true });
+
     /* Also expose so flash restore can re-check after content swap */
     window._apexNotifMarquee = applyMarquee;
 
     /* Initial check if page loads at top */
-    if (root && root.classList.contains('apex-at-top')) setTimeout(applyMarquee, 500);
+    if (isPillVisible()) setTimeout(applyMarquee, 500);
   })();
 
   /* ── FLASH NOTIFICATIONS ─────────────────────────────────────────
@@ -1222,7 +1332,7 @@
 
     { "type": "header", "content": "💊 Pill Layout" },
     { "type": "checkbox", "id": "shrink_on_scroll",     "label": "Shrink on Scroll",           "default": true },
-    { "type": "range",    "id": "height",               "label": "Pill Height (px)",           "min": 50, "max": 100, "step": 2, "default": 64 },
+    { "type": "range",    "id": "height",               "label": "Minimum Pill Height (px)",   "min": 50, "max": 100, "step": 2, "default": 64, "info": "The header automatically grows taller than this if your logo/video needs more room — it will never crop your media." },
     { "type": "range",    "id": "max_width",            "label": "Max Width (px)",             "min": 600, "max": 1800, "step": 20, "default": 1400 },
     { "type": "range",    "id": "padding_side",         "label": "Inner Side Padding (px)",    "min": 12, "max": 60, "step": 2, "default": 24 },
     { "type": "range",    "id": "pill_margin",          "label": "Outer Margin (px)",          "min": 0, "max": 32, "step": 2, "default": 14 },
@@ -1259,9 +1369,10 @@
     { "type": "link_list", "id": "menu", "label": "Navigation", "default": "main-menu" },
 
     { "type": "header", "content": "🅰 Branding" },
-    { "type": "text",        "id": "custom_logo_text", "label": "Text Logo (fallback)",  "default": "SOVEREIGN" },
+    { "type": "text",        "id": "custom_logo_text", "label": "Text Logo (fallback)",  "default": "SOVEREIGN", "info": "Shown only if neither a logo image nor a logo video is set." },
     { "type": "image_picker","id": "logo",              "label": "Logo Image" },
-    { "type": "range",       "id": "logo_height",       "label": "Logo Height (px)",     "min": 16, "max": 50, "step": 2, "default": 26 },
+    { "type": "video",       "id": "logo_video",         "label": "Logo Video", "info": "Optional — takes priority over the logo image if both are set. Plays muted, looped, inline. Never cropped: the header automatically grows to fit it." },
+    { "type": "range",       "id": "logo_height",       "label": "Max Logo Height (px)", "min": 16, "max": 80, "step": 2, "default": 26, "info": "The logo/video scales to fit inside this height without ever being cropped or stretched." },
     { "type": "text",        "id": "logo_subtext",      "label": "Logo Subtext",          "default": "{currency}", "info": "Use {currency} for live ISO code. Leave blank to hide." },
     { "type": "font_picker", "id": "text_logo_font",    "label": "Text Logo Font",        "default": "work_sans_n7" },
     { "type": "range",       "id": "text_logo_size",    "label": "Text Logo Size (px)",  "min": 14, "max": 40, "step": 1, "default": 22 },
