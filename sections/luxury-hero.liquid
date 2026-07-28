@@ -7,6 +7,26 @@
 -%}
 
 {%- comment -%}
+  APEX HERO — HERO ASPECT-RATIO FIX
+  The section's box always matches the native proportions of the actual
+  displayed media (the video poster when a video is set, otherwise the
+  image) so the media is never cropped and the section auto-sizes to fit
+  it correctly at any resolution. Falls back to the manual VH height
+  controls only when no usable media is present (color-only hero, or a
+  video with no poster uploaded).
+{%- endcomment -%}
+{%- liquid
+  assign hero_ratio = 0
+  if section.settings.video_link != blank
+    if section.settings.video_poster != blank and section.settings.video_poster.aspect_ratio > 0
+      assign hero_ratio = section.settings.video_poster.aspect_ratio
+    endif
+  elsif section.settings.image != blank and section.settings.image.aspect_ratio > 0
+    assign hero_ratio = section.settings.image.aspect_ratio
+  endif
+-%}
+
+{%- comment -%}
   Google Fonts — text overlays, about card, and wall font.
   PERFORMANCE LOOPHOLE: We use media="print" onload swap so the font
   request is non-render-blocking. The wall is lazily built on first
@@ -61,21 +81,20 @@
   flex-direction: column;
   overflow: hidden;
   background-color: {{ section.settings.bg_color }};
-  min-height: {{ section.settings.height_mobile }}vh;
   justify-content: center;
-  {%- if section.settings.video_poster != blank -%}
-  background-image: url('{{ section.settings.video_poster | image_url: width: 1920 }}');
-  background-size: {{ section.settings.image_fit }};
-  background-position: center;
-  {%- elsif section.settings.image != blank -%}
-  background-image: url('{{ section.settings.image | image_url: width: 1920 }}');
-  background-size: {{ section.settings.image_fit }};
-  background-position: center;
-  {%- endif -%}
+  {%- if hero_ratio > 0 %}
+  /* Matches the media's real aspect ratio — resolution-independent, so
+     the box always fits the image/poster exactly with zero cropping. */
+  aspect-ratio: {{ hero_ratio | round: 4 }};
+  {%- else %}
+  min-height: {{ section.settings.height_mobile }}vh;
+  {%- endif %}
 }
 @media (min-width: 768px) {
   .hero-{{ sid }} {
+    {%- unless hero_ratio > 0 %}
     min-height: {{ section.settings.height }}vh;
+    {%- endunless %}
     align-items: {{ section.settings.vertical_alignment }};
     justify-content: {{ section.settings.horizontal_alignment }};
   }
@@ -668,9 +687,34 @@
     </div>
   {%- endif -%}
 
+  {%- comment -%}
+    FLOATING TEXT OVERLAY SCALING FIX
+    Font size and max-width used to be raw px values, which meant an
+    overlay tuned on a desktop preview (~1920px wide) rendered far too
+    large/small relative to the hero on any other viewport width — the
+    position (%) scaled with the container, but the type size didn't.
+    Each value is now expressed as clamp(floor, fluid-vw, ceiling):
+      • the "fluid" middle value scales the px size proportionally to a
+        1920px reference canvas (the same width the hero image itself
+        is rendered/previewed at), so the overlay's proportion relative
+        to the hero image is identical on any screen — phone or desktop.
+      • the ceiling caps it at the exact px value configured in the
+        editor, so it never grows larger than "how it looks on PC" on
+        ultra-wide monitors.
+      • the floor keeps small text legible on narrow phones instead of
+        shrinking to near-invisible at low viewport widths.
+  {%- endcomment -%}
   {%- for block in section.blocks -%}
     {%- if block.type == 'text_overlay' -%}
-      <div class="text-overlay-block" style="top:{{ block.settings.pos_y }}%;left:{{ block.settings.pos_x }}%;font-size:{{ block.settings.font_size }}px;color:{{ block.settings.overlay_text_color }};opacity:{{ block.settings.text_opacity | divided_by: 100.0 }};font-weight:{{ block.settings.font_weight }};letter-spacing:{{ block.settings.letter_spacing | divided_by: 100.0 }}em;{%- if block.settings.uppercase %}text-transform:uppercase;{%- endif %}transform:rotate({{ block.settings.rotation }}deg) translate(-{{ block.settings.anchor_x }}%,-{{ block.settings.anchor_y }}%);max-width:{{ block.settings.max_width }}px;{%- if block.settings.font_family != blank %}font-family:'{{ block.settings.font_family }}',sans-serif;{%- endif %}line-height:{{ block.settings.line_height | divided_by: 10.0 }};" {{ block.shopify_attributes }}>{{ block.settings.overlay_text }}</div>
+      {%- liquid
+        assign ov_fs     = block.settings.font_size
+        assign ov_fs_min = ov_fs | times: 0.45 | round
+        assign ov_fs_vw  = ov_fs | times: 100.0 | divided_by: 1920 | round: 3
+        assign ov_mw     = block.settings.max_width
+        assign ov_mw_min = ov_mw | times: 0.5 | round
+        assign ov_mw_vw  = ov_mw | times: 100.0 | divided_by: 1920 | round: 3
+      -%}
+      <div class="text-overlay-block" style="top:{{ block.settings.pos_y }}%;left:{{ block.settings.pos_x }}%;font-size:clamp({{ ov_fs_min }}px,{{ ov_fs_vw }}vw,{{ ov_fs }}px);color:{{ block.settings.overlay_text_color }};opacity:{{ block.settings.text_opacity | divided_by: 100.0 }};font-weight:{{ block.settings.font_weight }};letter-spacing:{{ block.settings.letter_spacing | divided_by: 100.0 }}em;{%- if block.settings.uppercase %}text-transform:uppercase;{%- endif %}transform:rotate({{ block.settings.rotation }}deg) translate(-{{ block.settings.anchor_x }}%,-{{ block.settings.anchor_y }}%);max-width:clamp({{ ov_mw_min }}px,{{ ov_mw_vw }}vw,{{ ov_mw }}px);{%- if block.settings.font_family != blank %}font-family:'{{ block.settings.font_family }}',sans-serif;{%- endif %}line-height:{{ block.settings.line_height | divided_by: 10.0 }};" {{ block.shopify_attributes }}>{{ block.settings.overlay_text }}</div>
     {%- endif -%}
   {%- endfor -%}
 
@@ -820,6 +864,17 @@
         scheduleFade();
       }
       video.addEventListener('playing', showVideo, { once: true });
+
+      /* Refine the hero's aspect ratio to the video's *true* dimensions
+         once known — the CSS aspect-ratio set from the poster image is
+         only an approximation until the real video metadata loads. This
+         guarantees zero cropping for video too, regardless of whether
+         the uploaded poster matches the video's exact resolution. */
+      video.addEventListener('loadedmetadata', function () {
+        if (heroSection && video.videoWidth > 0 && video.videoHeight > 0) {
+          heroSection.style.aspectRatio = (video.videoWidth / video.videoHeight).toString();
+        }
+      });
 
       function scheduleFade() {
         clearTimeout(fadeTimer);
@@ -1177,8 +1232,9 @@
     { "type": "select",       "id": "image_fit",    "label": "Image Fitting",
       "options": [{"value":"cover","label":"Cover"},{"value":"contain","label":"Contain"}], "default": "cover" },
     { "type": "header", "content": "── Layout ──" },
-    { "type": "range", "id": "height",        "label": "Desktop Height (VH)", "min": 60,  "max": 100, "step": 1,  "default": 90 },
-    { "type": "range", "id": "height_mobile", "label": "Mobile Height (VH)",  "min": 50,  "max": 100, "step": 1,  "default": 80 },
+    { "type": "paragraph", "content": "When an image (or video poster) is set, the hero's height is derived automatically from that media's real aspect ratio, so it is never cropped. The VH controls below only apply as a fallback when no image/poster is present." },
+    { "type": "range", "id": "height",        "label": "Fallback Desktop Height (VH)", "min": 60,  "max": 100, "step": 1,  "default": 90 },
+    { "type": "range", "id": "height_mobile", "label": "Fallback Mobile Height (VH)",  "min": 50,  "max": 100, "step": 1,  "default": 80 },
     { "type": "range", "id": "content_width", "label": "Content Max Width",   "min": 400, "max": 1200,"step": 10, "default": 800, "unit": "px" },
     { "type": "select", "id": "horizontal_alignment", "label": "Horizontal Position",
       "options": [{"value":"flex-start","label":"Left"},{"value":"center","label":"Center"},{"value":"flex-end","label":"Right"}], "default": "center" },
