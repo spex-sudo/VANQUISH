@@ -20,7 +20,7 @@
         "edge_offset": 6,
         "master_scale": 80,
         "lobe_size": 48,
-        "primary_boost": 120,
+        "primary_boost": 130,
         "icon_size": 21,
         "lobe_overlap": 0,
         "bg_color": "#ffffff",
