@@ -11,16 +11,36 @@
   assign bg_color      = s.bg_color | default: '#1d1d1f'
   assign fg_color      = s.fg_color | default: '#ffffff'
   assign muted_color   = s.muted_color | default: '#86868b'
-  assign expand_on     = s.expand_behavior | default: 'hover'
+  assign expand_mode   = s.expand_behavior | default: 'click'
 
   assign scale_pct     = s.master_scale | default: 100
   assign scale_factor  = scale_pct | divided_by: 100.0
-  assign btn_size_raw  = s.button_size | default: 44
-  assign btn_size      = btn_size_raw | times: scale_factor | round
-  assign icon_size_raw = s.icon_size | default: 18
-  assign icon_size     = icon_size_raw | times: scale_factor | round
-  assign btn_gap_raw   = s.button_gap | default: 6
-  assign btn_gap       = btn_gap_raw | times: scale_factor | round
+
+  assign lobe_size_raw    = s.lobe_size | default: 48
+  assign lobe_secondary_f = lobe_size_raw | times: scale_factor
+  assign lobe_secondary   = lobe_secondary_f | round
+  assign lobe_arrow_f     = lobe_size_raw | times: 0.9 | times: scale_factor
+  assign lobe_arrow       = lobe_arrow_f | round
+
+  assign primary_boost_pct = s.primary_boost | default: 130
+  assign primary_boost_f   = primary_boost_pct | divided_by: 100.0
+  assign lobe_primary_f    = lobe_size_raw | times: primary_boost_f | times: scale_factor
+  assign lobe_primary      = lobe_primary_f | round
+
+  assign icon_size_raw    = s.icon_size | default: 18
+  assign icon_secondary_f = icon_size_raw | times: scale_factor
+  assign icon_secondary   = icon_secondary_f | round
+  assign icon_primary_f   = icon_size_raw | times: primary_boost_f | times: scale_factor
+  assign icon_primary     = icon_primary_f | round
+
+  assign lobe_overlap_raw = s.lobe_overlap | default: 14
+  assign lobe_overlap_f   = lobe_overlap_raw | times: scale_factor
+  assign lobe_overlap     = lobe_overlap_f | round
+
+  assign mobile_shrink       = 0.88
+  assign lobe_primary_m      = lobe_primary | times: mobile_shrink | round
+  assign lobe_secondary_m    = lobe_secondary | times: mobile_shrink | round
+  assign lobe_arrow_m        = lobe_arrow | times: mobile_shrink | round
 
   assign show_cart      = s.show_cart
   assign cart_mode      = s.cart_mode | default: 'drawer'
@@ -33,21 +53,97 @@
   assign audio_label = s.audio_label | default: 'Music'
   assign audio_loop  = s.audio_loop
   assign audio_vol   = s.audio_volume | default: 80
+
+  assign has_cart  = false
+  assign has_favs  = false
+  assign has_audio = false
+  if show_cart
+    assign has_cart = true
+  endif
+  if show_favorites
+    assign has_favs = true
+  endif
+  if show_audio and audio_url != blank
+    assign has_audio = true
+  endif
+
+  assign enabled_count = 0
+  if has_cart
+    assign enabled_count = enabled_count | plus: 1
+  endif
+  if has_favs
+    assign enabled_count = enabled_count | plus: 1
+  endif
+  if has_audio
+    assign enabled_count = enabled_count | plus: 1
+  endif
+
+  # Resolve the merchant's primary choice, falling back to the first
+  # enabled action if the chosen one is disabled, so the notch never
+  # renders with a broken/empty primary lobe.
+  assign primary_choice = s.primary_button | default: 'cart'
+  assign primary = ''
+  if primary_choice == 'cart' and has_cart
+    assign primary = 'cart'
+  endif
+  if primary_choice == 'favorites' and has_favs
+    assign primary = 'favorites'
+  endif
+  if primary_choice == 'audio' and has_audio
+    assign primary = 'audio'
+  endif
+  if primary == blank
+    if has_cart
+      assign primary = 'cart'
+    elsif has_favs
+      assign primary = 'favorites'
+    elsif has_audio
+      assign primary = 'audio'
+    endif
+  endif
+
+  assign secondary_count = 0
+  if enabled_count > 0
+    assign secondary_count = enabled_count | minus: 1
+  endif
+
+  # Build the render order: primary first, then whichever of the other
+  # two are enabled, in a stable cart -> favorites -> audio order.
+  assign slot_str = primary
+  if has_cart and primary != 'cart'
+    assign slot_str = slot_str | append: ',cart'
+  endif
+  if has_favs and primary != 'favorites'
+    assign slot_str = slot_str | append: ',favorites'
+  endif
+  if has_audio and primary != 'audio'
+    assign slot_str = slot_str | append: ',audio'
+  endif
+  assign slots = slot_str | split: ','
+
+  # Mirror the DOM order for the left edge so the arrow lobe always sits
+  # nearest the screen edge and the blob grows into the page, never off it.
+  assign render_slots = slots
+  if side == 'left'
+    assign render_slots = slots | reverse
+  endif
 -%}
 
 {%- style -%}
   .apex-notch-{{ sid }} {
-    --notch-bg:        {{ bg_color }};
-    --notch-fg:        {{ fg_color }};
-    --notch-muted:     {{ muted_color }};
-    --notch-accent:    {{ accent }};
-    --notch-hairline:  {{ fg_color }}1f;
-    --notch-pill-r:    {{ s.pill_radius | default: 100 }}px;
-    --notch-icon-size: {{ icon_size }}px;
-    --notch-btn-size:  {{ btn_size }}px;
-    --notch-gap:       {{ btn_gap }}px;
-    --notch-offset:    {{ s.edge_offset | default: 16 }}px;
-    --notch-spring:    cubic-bezier(0.22, 1, 0.36, 1);
+    --notch-bg:         {{ bg_color }};
+    --notch-fg:         {{ fg_color }};
+    --notch-muted:      {{ muted_color }};
+    --notch-accent:     {{ accent }};
+    --notch-hairline:   {{ fg_color }}1f;
+    --lobe-primary:     {{ lobe_primary }}px;
+    --lobe-secondary:   {{ lobe_secondary }}px;
+    --lobe-arrow:       {{ lobe_arrow }}px;
+    --lobe-overlap:     {{ lobe_overlap }}px;
+    --icon-primary:     {{ icon_primary }}px;
+    --icon-secondary:   {{ icon_secondary }}px;
+    --notch-offset:     {{ s.edge_offset | default: 16 }}px;
+    --notch-spring:     cubic-bezier(0.22, 1, 0.36, 1);
     --notch-spring-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   .apex-favs-{{ sid }} {
@@ -62,6 +158,12 @@
 {%- endstyle -%}
 
 <style>
+/* ════════════ NOTCH SHELL ════════════
+   A plain flex row, no chrome of its own — every lobe carries its
+   own circle, fill and shadow. Lobes overlap via negative margin so
+   the same-colour union reads as one connected blob (see .notch-lobe
+   below); no SVG/blur filter, so it stays cheap on a fixed element.
+════════════════════════════════════════ */
 .apex-notch-{{ sid }} {
   position: fixed;
   {% if side == 'left' %}left: var(--notch-offset);{% else %}right: var(--notch-offset);{% endif %}
@@ -69,12 +171,7 @@
   top: {{ vertical_pos }}svh;
   z-index: 998;
   display: flex;
-  flex-direction: column;
-  gap: var(--notch-gap);
-  padding: 6px;
-  background: var(--notch-bg);
-  border-radius: var(--notch-pill-r);
-  box-shadow: 0 8px 28px rgba(0,0,0,0.18), 0 1px 0 0 var(--notch-hairline) inset;
+  align-items: center;
   opacity: 0;
   pointer-events: none;
   visibility: hidden;
@@ -92,9 +189,8 @@
 }
 
 /* ── PEEK (double-tap to hide) ──────────────────────────────────
-   Slides the pill off the viewport edge leaving a 9px rounded
-   bump — the natural curve of the pill's border-radius.
-   Single-tap the bump to restore. Hover nudges it out a touch.
+   Slides the whole blob off the viewport edge leaving a small
+   rounded sliver of the arrow lobe. Single-tap the sliver restores.
 ───────────────────────────────────────────────────────────────── */
 {%- if side == 'right' -%}
   {%- assign _peek_sign = '' -%}
@@ -104,81 +200,113 @@
 .apex-notch-{{ sid }}.is-peeking {
   transform: translate3d({{ _peek_sign }}calc(100% + var(--notch-offset) - 9px), -50%, 0);
   cursor: pointer;
-  /* Dim buttons behind the edge — bump is the only affordance */
-  box-shadow: 0 4px 18px rgba(0,0,0,0.22), 0 1px 0 0 var(--notch-hairline) inset;
 }
 @media (hover: hover) and (pointer: fine) {
   .apex-notch-{{ sid }}.is-peeking:hover {
     transform: translate3d({{ _peek_sign }}calc(100% + var(--notch-offset) - 20px), -50%, 0);
   }
 }
-.apex-notch-{{ sid }} .notch-btn {
+
+/* ── Lobes ───────────────────────────────────────────────────── */
+.apex-notch-{{ sid }} .notch-lobe {
   position: relative;
-  display: flex; align-items: center;
-  width: var(--notch-btn-size); min-width: var(--notch-btn-size);
-  height: var(--notch-btn-size);
-  padding: 0; border: none;
-  border-radius: var(--notch-pill-r);
-  background: transparent;
+  display: flex; align-items: center; justify-content: center;
+  width: var(--lobe-secondary); height: var(--lobe-secondary);
+  flex-shrink: 0;
+  border: none; padding: 0; margin: 0;
+  border-radius: 50%;
+  background: var(--notch-bg);
   color: var(--notch-fg);
   cursor: pointer;
-  font-family: inherit; font-size: 13px; font-weight: 500;
-  text-decoration: none;
-  overflow: hidden;
+  font-family: inherit;
   -webkit-tap-highlight-color: transparent;
-  transition: width 0.32s var(--notch-spring), background 0.18s, color 0.18s;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.16);
+  transition: width 0.4s var(--notch-spring), margin-left 0.4s var(--notch-spring),
+              opacity 0.3s var(--notch-spring), background 0.18s, transform 0.15s;
 }
-.apex-notch-{{ sid }} .notch-btn .notch-icon-wrap {
-  width: var(--notch-btn-size); height: var(--notch-btn-size);
-  flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
+.apex-notch-{{ sid }} .notch-lobe:not(:first-child) {
+  margin-left: calc(-1 * var(--lobe-overlap));
+}
+.apex-notch-{{ sid }} .notch-lobe:hover  { background: {{ fg_color }}14; }
+.apex-notch-{{ sid }} .notch-lobe:active { transform: scale(0.94); }
+
+.apex-notch-{{ sid }} .notch-lobe--primary {
+  width: var(--lobe-primary); height: var(--lobe-primary);
+  z-index: 3;
+}
+.apex-notch-{{ sid }} .notch-lobe--arrow {
+  width: var(--lobe-arrow); height: var(--lobe-arrow);
+  z-index: 2;
+  gap: 4px;
+}
+.apex-notch-{{ sid }} .notch-lobe--secondary {
+  width: 0; height: var(--lobe-secondary);
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+.apex-notch-{{ sid }} .notch-lobe--secondary:not(:first-child) { margin-left: 0; }
+.apex-notch-{{ sid }}.is-expanded .notch-lobe--secondary {
+  width: var(--lobe-secondary);
+  opacity: 1;
+  pointer-events: auto;
+  transition-delay: calc(var(--i, 0) * 40ms);
+}
+.apex-notch-{{ sid }}.is-expanded .notch-lobe--secondary:not(:first-child) {
+  margin-left: calc(-1 * var(--lobe-overlap));
+  transition-delay: calc(var(--i, 0) * 40ms);
+}
+
+.apex-notch-{{ sid }} .notch-lobe-icon {
   position: relative;
-  transform: translateZ(0);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
 }
-.apex-notch-{{ sid }} .notch-btn svg {
-  width: var(--notch-icon-size); height: var(--notch-icon-size);
+.apex-notch-{{ sid }} .notch-lobe svg {
+  width: var(--icon-secondary); height: var(--icon-secondary);
   stroke: currentColor; stroke-width: 1.8; fill: none;
   stroke-linecap: round; stroke-linejoin: round;
+  flex-shrink: 0;
 }
-.apex-notch-{{ sid }} .notch-btn .notch-label {
-  white-space: nowrap;
-  opacity: 0; transform: translateX(-4px);
-  transition: opacity 0.2s var(--notch-spring), transform 0.25s var(--notch-spring);
-  padding-right: 14px; pointer-events: none;
+.apex-notch-{{ sid }} .notch-lobe--primary svg {
+  width: var(--icon-primary); height: var(--icon-primary);
 }
-.apex-notch-{{ sid }} .notch-btn:hover  { background: {{ fg_color }}14; }
-.apex-notch-{{ sid }} .notch-btn:active { transform: scale(0.96); }
-@media (hover: hover) and (pointer: fine) {
-  .apex-notch-{{ sid }}:hover .notch-btn { width: 100%; }
-  .apex-notch-{{ sid }}:hover .notch-btn .notch-label { opacity: 1; transform: translateX(0); }
+.apex-notch-{{ sid }} .notch-lobe--arrow .arrow-icon {
+  width: 15px; height: 15px;
+  transition: transform 0.4s var(--notch-spring);
 }
-{%- if expand_on == 'always' -%}
-.apex-notch-{{ sid }} .notch-btn { width: 100%; }
-.apex-notch-{{ sid }} .notch-btn .notch-label { opacity: 1; transform: translateX(0); }
-{%- endif -%}
+.apex-notch-{{ sid }} .notch-lobe--arrow .arrow-icon.is-flipped { transform: rotate(180deg); }
+.apex-notch-{{ sid }} .arrow-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--notch-fg);
+  opacity: 0.75;
+  flex-shrink: 0;
+  transition: background 0.25s, opacity 0.25s;
+}
+.apex-notch-{{ sid }} .arrow-dot.has-activity {
+  background: var(--notch-accent);
+  opacity: 1;
+}
 
 .apex-notch-{{ sid }} .notch-count {
-  position: absolute; top: 4px; right: 4px;
-  min-width: 18px; height: 18px;
-  padding: 0 5px;
+  position: absolute; top: 2px; right: 2px;
+  min-width: 16px; height: 16px;
+  padding: 0 4px;
   border-radius: 100px;
   background: var(--notch-accent);
   color: #fff;
-  font-size: 10px; font-weight: 600; letter-spacing: -0.02em;
+  font-size: 9.5px; font-weight: 700; letter-spacing: -0.02em;
   display: none; align-items: center; justify-content: center;
   line-height: 1; font-variant-numeric: tabular-nums;
   pointer-events: none;
+  box-shadow: 0 0 0 2px var(--notch-bg);
 }
 .apex-notch-{{ sid }} .notch-count.is-visible { display: flex; }
-
-.apex-notch-{{ sid }} .notch-btn[data-active="true"] { color: var(--notch-accent); }
-.apex-notch-{{ sid }} .notch-btn[data-active="true"]:hover {
-  background: var(--notch-accent); color: #fff;
+.apex-notch-{{ sid }} .notch-lobe[data-active="true"] {
+  box-shadow: 0 0 0 2px var(--notch-accent) inset, 0 3px 12px rgba(0,0,0,0.16);
 }
-.apex-notch-{{ sid }} .notch-btn[data-active="true"]:hover .notch-count {
-  background: #fff; color: var(--notch-accent);
-}
-.apex-notch-{{ sid }} .notch-btn[data-favs-active="true"] svg {
+.apex-notch-{{ sid }} .notch-lobe[data-favs-active="true"] svg {
   fill: var(--notch-accent); stroke: var(--notch-accent);
 }
 
@@ -188,24 +316,29 @@
   70%  { transform: scale(0.95) translateZ(0); }
   100% { transform: scale(1) translateZ(0); }
 }
-.apex-notch-{{ sid }} .notch-btn.is-pulsing .notch-icon-wrap {
+.apex-notch-{{ sid }} .notch-lobe.is-pulsing .notch-lobe-icon {
   animation: apex-notch-pulse-{{ sid }} 0.55s var(--notch-spring-pop);
 }
 
 @media (max-width: 480px) {
-  .apex-notch-{{ sid }} { --notch-offset: 10px; --notch-btn-size: 40px; }
+  .apex-notch-{{ sid }} {
+    --notch-offset:   10px;
+    --lobe-primary:   {{ lobe_primary_m }}px;
+    --lobe-secondary: {{ lobe_secondary_m }}px;
+    --lobe-arrow:     {{ lobe_arrow_m }}px;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .apex-notch-{{ sid }} *, .apex-notch-{{ sid }} { transition: none !important; animation: none !important; }
 }
 
-/* ════════════ AUDIO BUTTON ════════════
-   The music icon (SVG) fades out and the waveform bars fade
-   in when the button is in the active/playing state.
-   Both live inside the same notch-icon-wrap (position:relative)
-   so the swap is purely visual with no layout shift.
+/* ════════════ AUDIO LOBE ════════════
+   The music icon (SVG) fades out and the waveform bars fade in
+   when playing. Both live inside the same notch-lobe-icon
+   (position:relative) so the swap is purely visual, no layout shift.
+   Works identically whether audio ends up primary or secondary.
 ═══════════════════════════════════════ */
-{%- if show_audio and audio_url != blank -%}
+{%- if has_audio -%}
 .apex-notch-{{ sid }} .notch-audio .ap-aud-ico-{{ sid }} {
   transition: opacity 0.25s ease;
   flex-shrink: 0;
@@ -823,104 +956,143 @@ body.apex-favs-open-{{ sid }} { overflow: hidden; }
 body.apex-cart-open-{{ sid }} { overflow: hidden; }
 </style>
 
-<!-- ════════════════════════ NOTCH ════════════════════════ -->
-
+<!-- ════════════════════════ NOTCH ════════════════════════
+     Collapsed: [primary icon lobe][arrow lobe] — a two-circle
+     union blob. Clicking/hovering the arrow lobe reveals the
+     remaining enabled actions as extra lobes fused into the same
+     chain, then collapses again once one is used or focus leaves.
+════════════════════════════════════════════════════════════ -->
+{%- if enabled_count > 0 -%}
 <aside id="apex-notch-{{ sid }}" class="apex-notch-{{ sid }}"
        data-apex-notch
        data-side="{{ side }}"
-       data-expand="{{ expand_on }}"
+       data-expand-mode="{{ expand_mode }}"
        aria-label="Quick actions"
        role="navigation">
 
-  {%- if show_cart -%}
-    {%- if cart_mode == 'drawer' -%}
-      <button type="button"
-              class="notch-btn notch-cart"
-              data-notch-cart
-              data-cart-mode="drawer"
-              {% if cart.item_count > 0 %}data-active="true"{% endif %}
-              aria-label="View cart">
-        <span class="notch-icon-wrap">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M3 6h2l2.5 12.5a1 1 0 0 0 1 .8h9a1 1 0 0 0 1-.8L21 9H6"/>
-            <circle cx="9" cy="21" r="1.4" fill="currentColor" stroke="none"/>
-            <circle cx="18" cy="21" r="1.4" fill="currentColor" stroke="none"/>
-          </svg>
-          <span class="notch-count" data-notch-cart-count
-                {% if cart.item_count > 0 %}style="display:flex;"{% endif %}>{{ cart.item_count }}</span>
-        </span>
-        <span class="notch-label">{{ s.cart_label | default: 'Cart' | escape }}</span>
-      </button>
-    {%- else -%}
-      <a href="{{ routes.cart_url }}"
-         class="notch-btn notch-cart"
-         data-notch-cart
-         data-cart-mode="redirect"
-         {% if cart.item_count > 0 %}data-active="true"{% endif %}
-         aria-label="View cart">
-        <span class="notch-icon-wrap">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M3 6h2l2.5 12.5a1 1 0 0 0 1 .8h9a1 1 0 0 0 1-.8L21 9H6"/>
-            <circle cx="9" cy="21" r="1.4" fill="currentColor" stroke="none"/>
-            <circle cx="18" cy="21" r="1.4" fill="currentColor" stroke="none"/>
-          </svg>
-          <span class="notch-count" data-notch-cart-count
-                {% if cart.item_count > 0 %}style="display:flex;"{% endif %}>{{ cart.item_count }}</span>
-        </span>
-        <span class="notch-label">{{ s.cart_label | default: 'Cart' | escape }}</span>
-      </a>
-    {%- endif -%}
-  {%- endif -%}
-
-  {%- if show_favorites -%}
+  {%- if side == 'left' and secondary_count > 0 -%}
     <button type="button"
-            class="notch-btn notch-favorites"
-            data-notch-favorites
-            aria-label="View favorites">
-      <span class="notch-icon-wrap">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9z"/>
-        </svg>
-        <span class="notch-count" data-notch-favs-count></span>
-      </span>
-      <span class="notch-label">{{ s.favorites_label | default: 'Saved' | escape }}</span>
+            class="notch-lobe notch-lobe--arrow"
+            data-notch-expand
+            aria-expanded="false"
+            aria-label="Show {{ secondary_count }} more option{% if secondary_count != 1 %}s{% endif %}">
+      <span class="arrow-dot" data-notch-arrow-dot aria-hidden="true"></span>
+      <svg class="arrow-icon" data-notch-arrow-icon viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
     </button>
   {%- endif -%}
 
-  {%- if show_audio and audio_url != blank -%}
-    <!-- ── MUSIC BUTTON ───────────────────────────────── -->
-    <!--
-      Icon swap: music note (idle) ↔ animated waveform bars (playing).
-      Both live inside notch-icon-wrap (position:relative).
-      CSS transitions handle the opacity crossfade.
-      data-active="true" drives both the accent colour and the swap.
-    -->
+  {%- assign sec_i = 0 -%}
+  {%- for slot in render_slots -%}
+    {%- assign is_primary = false -%}
+    {%- if slot == primary -%}
+      {%- assign is_primary = true -%}
+    {%- endif -%}
+    {%- assign role_class = 'notch-lobe--secondary' -%}
+    {%- if is_primary -%}
+      {%- assign role_class = 'notch-lobe--primary' -%}
+    {%- endif -%}
+
+    {%- case slot -%}
+
+      {%- when 'cart' -%}
+        {%- if cart_mode == 'drawer' -%}
+          <button type="button"
+                  class="notch-lobe {{ role_class }} notch-cart"
+                  data-notch-lobe
+                  data-notch-cart
+                  data-cart-mode="drawer"
+                  {% unless is_primary %}style="--i:{{ sec_i }}" tabindex="-1" aria-hidden="true"{% endunless %}
+                  {% if cart.item_count > 0 %}data-active="true"{% endif %}
+                  aria-label="{{ s.cart_label | default: 'Cart' | escape }}">
+            <span class="notch-lobe-icon">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 6h2l2.5 12.5a1 1 0 0 0 1 .8h9a1 1 0 0 0 1-.8L21 9H6"/>
+                <circle cx="9" cy="21" r="1.4" fill="currentColor" stroke="none"/>
+                <circle cx="18" cy="21" r="1.4" fill="currentColor" stroke="none"/>
+              </svg>
+            </span>
+            <span class="notch-count" data-notch-cart-count
+                  {% if cart.item_count > 0 %}style="display:flex;"{% endif %}>{{ cart.item_count }}</span>
+          </button>
+        {%- else -%}
+          <a href="{{ routes.cart_url }}"
+             class="notch-lobe {{ role_class }} notch-cart"
+             data-notch-lobe
+             data-notch-cart
+             data-cart-mode="redirect"
+             {% unless is_primary %}style="--i:{{ sec_i }}" tabindex="-1" aria-hidden="true"{% endunless %}
+             {% if cart.item_count > 0 %}data-active="true"{% endif %}
+             aria-label="{{ s.cart_label | default: 'Cart' | escape }}">
+            <span class="notch-lobe-icon">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 6h2l2.5 12.5a1 1 0 0 0 1 .8h9a1 1 0 0 0 1-.8L21 9H6"/>
+                <circle cx="9" cy="21" r="1.4" fill="currentColor" stroke="none"/>
+                <circle cx="18" cy="21" r="1.4" fill="currentColor" stroke="none"/>
+              </svg>
+            </span>
+            <span class="notch-count" data-notch-cart-count
+                  {% if cart.item_count > 0 %}style="display:flex;"{% endif %}>{{ cart.item_count }}</span>
+          </a>
+        {%- endif -%}
+        {%- unless is_primary -%}{%- assign sec_i = sec_i | plus: 1 -%}{%- endunless -%}
+
+      {%- when 'favorites' -%}
+        <button type="button"
+                class="notch-lobe {{ role_class }} notch-favorites"
+                data-notch-lobe
+                data-notch-favorites
+                {% unless is_primary %}style="--i:{{ sec_i }}" tabindex="-1" aria-hidden="true"{% endunless %}
+                aria-label="{{ s.favorites_label | default: 'Saved' | escape }}">
+          <span class="notch-lobe-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9z"/>
+            </svg>
+          </span>
+          <span class="notch-count" data-notch-favs-count></span>
+        </button>
+        {%- unless is_primary -%}{%- assign sec_i = sec_i | plus: 1 -%}{%- endunless -%}
+
+      {%- when 'audio' -%}
+        <button type="button"
+                class="notch-lobe {{ role_class }} notch-audio"
+                id="ap-audio-btn-{{ sid }}"
+                data-notch-lobe
+                data-notch-audio
+                {% unless is_primary %}style="--i:{{ sec_i }}" tabindex="-1" aria-hidden="true"{% endunless %}
+                aria-label="{{ audio_label | escape }}"
+                aria-pressed="false">
+          <span class="notch-lobe-icon">
+            <svg class="ap-aud-ico-{{ sid }}" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M9 18V5l12-2v13"/>
+              <circle cx="6" cy="18" r="3"/>
+              <circle cx="18" cy="16" r="3"/>
+            </svg>
+            <span class="ap-aud-bars-{{ sid }}" aria-hidden="true">
+              <b class="ap-aud-bar-{{ sid }}"></b>
+              <b class="ap-aud-bar-{{ sid }}"></b>
+              <b class="ap-aud-bar-{{ sid }}"></b>
+              <b class="ap-aud-bar-{{ sid }}"></b>
+            </span>
+          </span>
+        </button>
+        {%- unless is_primary -%}{%- assign sec_i = sec_i | plus: 1 -%}{%- endunless -%}
+
+    {%- endcase -%}
+  {%- endfor -%}
+
+  {%- if side == 'right' and secondary_count > 0 -%}
     <button type="button"
-            class="notch-btn notch-audio"
-            id="ap-audio-btn-{{ sid }}"
-            data-notch-audio
-            aria-label="{{ audio_label | escape }}"
-            aria-pressed="false">
-      <span class="notch-icon-wrap">
-        <!-- Music note icon: visible when idle -->
-        <svg class="ap-aud-ico-{{ sid }}" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M9 18V5l12-2v13"/>
-          <circle cx="6" cy="18" r="3"/>
-          <circle cx="18" cy="16" r="3"/>
-        </svg>
-        <!-- Waveform bars: visible when playing -->
-        <span class="ap-aud-bars-{{ sid }}" aria-hidden="true">
-          <b class="ap-aud-bar-{{ sid }}"></b>
-          <b class="ap-aud-bar-{{ sid }}"></b>
-          <b class="ap-aud-bar-{{ sid }}"></b>
-          <b class="ap-aud-bar-{{ sid }}"></b>
-        </span>
-      </span>
-      <span class="notch-label">{{ audio_label | escape }}</span>
+            class="notch-lobe notch-lobe--arrow"
+            data-notch-expand
+            aria-expanded="false"
+            aria-label="Show {{ secondary_count }} more option{% if secondary_count != 1 %}s{% endif %}">
+      <span class="arrow-dot" data-notch-arrow-dot aria-hidden="true"></span>
+      <svg class="arrow-icon" data-notch-arrow-icon viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
     </button>
   {%- endif -%}
 
 </aside>
+{%- endif -%}
 
 <!-- ════════════ FAVORITES DRAWER ════════════ -->
 {%- if show_favorites and favs_mode == 'drawer' -%}
@@ -987,7 +1159,7 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
      from appearing in any accessibility tree.
      Uses contain:strict so it never affects page layout or paint.
 ════════════════════════════════════════════════════════ -->
-{%- if show_audio and audio_url != blank -%}
+{%- if has_audio -%}
 <div id="ap-yt-wrap-{{ sid }}"
      aria-hidden="true"
      style="position:fixed;top:-9999px;left:-9999px;
@@ -1014,8 +1186,89 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', showNotch);
   else requestAnimationFrame(showNotch);
 
-  /* ── PEEK: hold 480ms to hide / tap bump to restore ────────────
-     Long-press never conflicts with button taps. Works on Safari,
+  /* Defensive matchMedia: never let a missing/throwing implementation
+     (rare hardened browsers, embedded webviews, test runners) abort
+     the rest of this script's setup. */
+  function mq(query) {
+    try { return typeof window.matchMedia === 'function' && !!window.matchMedia(query).matches; }
+    catch (e) { return false; }
+  }
+
+  /* ── Expand: reveals the secondary lobes ─────────────────────
+     The arrow lobe is the only thing users click/hover to expand;
+     picking any action re-collapses it so the blob always returns
+     to its resting two-lobe shape.
+  ─────────────────────────────────────────────────────────────── */
+  var expandBtn    = notch.querySelector('[data-notch-expand]');
+  var arrowIcon    = notch.querySelector('[data-notch-arrow-icon]');
+  var arrowDot     = notch.querySelector('[data-notch-arrow-dot]');
+  var secondaryEls = notch.querySelectorAll('.notch-lobe--secondary');
+  var isExpanded   = false;
+  var EXPAND_MODE  = {{ expand_mode | json }};
+
+  function updateArrowIcon() {
+    if (!arrowIcon) return;
+    var pointLeft = (notch.getAttribute('data-side') === 'right') ? isExpanded : !isExpanded;
+    arrowIcon.classList.toggle('is-flipped', pointLeft);
+  }
+
+  function setExpanded(on) {
+    if (!expandBtn) return;
+    isExpanded = !!on;
+    notch.classList.toggle('is-expanded', isExpanded);
+    expandBtn.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+    secondaryEls.forEach(function (el) {
+      el.setAttribute('aria-hidden', isExpanded ? 'false' : 'true');
+      el.setAttribute('tabindex', isExpanded ? '0' : '-1');
+    });
+    updateArrowIcon();
+  }
+
+  function updateArrowDot() {
+    if (!arrowDot) return;
+    var cartN = 0, favsN = 0;
+    if (cartCount) cartN = parseInt(cartCount.textContent, 10) || 0;
+    try { favsN = window.ApexFavorites ? window.ApexFavorites.count() : 0; } catch (e) {}
+    arrowDot.classList.toggle('has-activity', (cartN > 0 || favsN > 0));
+  }
+
+  if (expandBtn) {
+    updateArrowIcon();
+
+    expandBtn.addEventListener('click', function (e) {
+      if (notch.classList.contains('is-peeking')) return; /* let the peek-restore tap through */
+      e.stopPropagation();
+      setExpanded(!isExpanded);
+    });
+
+    /* Picking any actual action collapses the blob back down */
+    notch.addEventListener('click', function (e) {
+      var lobe = e.target.closest('[data-notch-lobe]');
+      if (lobe && isExpanded) setExpanded(false);
+    });
+
+    document.addEventListener('click', function (e) {
+      if (isExpanded && !notch.contains(e.target)) setExpanded(false);
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && isExpanded) setExpanded(false);
+    });
+
+    if (EXPAND_MODE === 'hover' && mq('(hover: hover) and (pointer: fine)')) {
+      var leaveTimer;
+      notch.addEventListener('mouseenter', function () {
+        if (notch.classList.contains('is-peeking')) return;
+        clearTimeout(leaveTimer);
+        setExpanded(true);
+      });
+      notch.addEventListener('mouseleave', function () {
+        leaveTimer = setTimeout(function () { setExpanded(false); }, 260);
+      });
+    }
+  }
+
+  /* ── PEEK: hold 480ms to hide / tap the sliver to restore ──────
+     Long-press never conflicts with lobe taps. Works on Safari,
      Chrome, Firefox — mobile and desktop.
   ─────────────────────────────────────────────────────────────── */
   var SK_PEEK      = 'apex_notch_peek_' + SID;
@@ -1026,9 +1279,11 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
 
   function setPeek(on) {
     notch.classList.toggle('is-peeking', on);
-    notch.querySelectorAll('.notch-btn').forEach(function (b) {
-      b.setAttribute('tabindex', on ? '-1' : '0');
+    notch.querySelectorAll('.notch-lobe--primary, .notch-lobe--arrow').forEach(function (b) {
+      if (on) b.setAttribute('tabindex', '-1');
+      else b.removeAttribute('tabindex');
     });
+    if (on) setExpanded(false);
     try { localStorage.setItem(SK_PEEK, on ? '1' : '0'); } catch (e) {}
   }
 
@@ -1067,7 +1322,7 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
   notch.addEventListener('mouseup',    cancelHold);
   notch.addEventListener('mouseleave', cancelHold);
 
-  /* Tap bump to restore */
+  /* Tap the sliver to restore */
   notch.addEventListener('click', function (e) {
     if (notch.classList.contains('is-peeking')) { setPeek(false); e.stopPropagation(); }
   });
@@ -1086,6 +1341,7 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
     cartCount.style.display = n > 0 ? 'flex' : 'none';
     if (n > 0) cartBtn.setAttribute('data-active', 'true');
     else       cartBtn.removeAttribute('data-active');
+    updateArrowDot();
   }
   function pulseCart() {
     if (!cartBtn) return;
@@ -1270,7 +1526,7 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
     if (!head) return;
     var startY = 0, deltaY = 0, dragging = false;
     head.addEventListener('touchstart', function (e) {
-      if (!window.matchMedia('(max-width: 600px)').matches) return;
+      if (!mq('(max-width: 600px)')) return;
       if (e.touches.length !== 1) return;
       startY = e.touches[0].clientY; deltaY = 0; dragging = true;
       panel.style.transition = 'none';
@@ -1388,6 +1644,7 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
       favBtn.removeAttribute('data-favs-active');
       favBtn.removeAttribute('data-active');
     }
+    updateArrowDot();
   }
   syncFavBtn();
 
@@ -1604,7 +1861,7 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
     if (!head) return;
     var startY = 0, deltaY = 0, dragging = false;
     head.addEventListener('touchstart', function (e) {
-      if (!window.matchMedia('(max-width: 600px)').matches) return;
+      if (!mq('(max-width: 600px)')) return;
       if (e.touches.length !== 1) return;
       startY = e.touches[0].clientY; deltaY = 0; dragging = true; panel.style.transition = 'none';
     }, { passive: true });
@@ -1669,6 +1926,10 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
       }
     });
   }
+
+  /* Initial paint of the activity dot, now that both cart and
+     favorites state above are available. */
+  updateArrowDot();
 })();
 </script>
 
@@ -1683,8 +1944,9 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
   • pagehide persistence (works on iOS unlike beforeunload)
   • AudioContext unlock for iOS Safari
   • Chained onYouTubeIframeAPIReady — safe to run alongside other YT consumers
+  • Works identically whether the audio lobe is primary or secondary
 ════════════════════════════════════════ -->
-{%- if show_audio and audio_url != blank -%}
+{%- if has_audio -%}
 <script>
 (function () {
   'use strict';
@@ -1761,7 +2023,7 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
     }
 
     /*
-      These in-app browsers block YouTube iFrame embedding or intercept
+      These in-app browsers block YouTube iframe embedding or intercept
       postMessage in ways that silently break the YT API. We detect them
       and use a graceful pulse (no harmful errors or infinite spinners).
       MP3 playback via HTML5 Audio still works in all of these.
@@ -2105,7 +2367,7 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
 
 {% schema %}
 {
-  "name": "Apex Notch v4",
+  "name": "Apex Notch v5",
   "limit": 1,
   "settings": [
     { "type": "header", "content": "Position" },
@@ -2116,17 +2378,20 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
     { "type": "range", "id": "edge_offset",       "label": "Edge offset",       "min": 6,  "max": 40, "step": 2, "unit": "px", "default": 16 },
 
     { "type": "header", "content": "Sizing" },
-    { "type": "range", "id": "master_scale", "label": "Master scale", "min": 60, "max": 140, "step": 5, "unit": "%", "default": 100 },
-    { "type": "range", "id": "button_size",  "label": "Button size",  "min": 36, "max": 56, "step": 2, "unit": "px", "default": 44 },
-    { "type": "range", "id": "icon_size",    "label": "Icon size",    "min": 14, "max": 22, "step": 1, "unit": "px", "default": 18 },
-    { "type": "range", "id": "button_gap",   "label": "Button gap",   "min": 2,  "max": 12, "step": 1, "unit": "px", "default": 6 },
-    { "type": "range", "id": "pill_radius",  "label": "Pill rounding","min": 12, "max": 100,"step": 2, "unit": "px", "default": 100 },
+    { "type": "range", "id": "master_scale",  "label": "Master scale",        "min": 60,  "max": 140, "step": 5, "unit": "%",  "default": 100 },
+    { "type": "range", "id": "lobe_size",     "label": "Lobe size",           "min": 36,  "max": 64,  "step": 2, "unit": "px", "default": 48,
+      "info": "Base size of the arrow lobe and any revealed secondary lobes." },
+    { "type": "range", "id": "primary_boost", "label": "Primary lobe boost",  "min": 105, "max": 160, "step": 5, "unit": "%",  "default": 130,
+      "info": "How much bigger the primary icon lobe is than the base lobe size." },
+    { "type": "range", "id": "icon_size",     "label": "Icon size",           "min": 14,  "max": 22,  "step": 1, "unit": "px", "default": 18 },
+    { "type": "range", "id": "lobe_overlap",  "label": "Lobe overlap",        "min": 0,   "max": 28,  "step": 2, "unit": "px", "default": 14,
+      "info": "How much the lobes overlap to fuse into one connected shape." },
 
     { "type": "header", "content": "Colors" },
-    { "type": "color", "id": "bg_color",     "label": "Background",          "default": "#1d1d1f" },
+    { "type": "color", "id": "bg_color",     "label": "Lobe background",     "default": "#1d1d1f" },
     { "type": "color", "id": "fg_color",     "label": "Icons",               "default": "#ffffff" },
     { "type": "color", "id": "muted_color",  "label": "Muted",               "default": "#86868b" },
-    { "type": "color", "id": "accent_color", "label": "Accent (count badge)","default": "#0071e3" },
+    { "type": "color", "id": "accent_color", "label": "Accent (badges/dot)", "default": "#0071e3" },
     { "type": "color", "id": "drawer_bg",    "label": "Drawer background",   "default": "#ffffff" },
     { "type": "color", "id": "drawer_fg",    "label": "Drawer text",         "default": "#1d1d1f" },
     { "type": "range", "id": "drawer_radius","label": "Drawer corner radius","min": 0, "max": 32, "step": 2, "unit": "px", "default": 0 },
@@ -2175,7 +2440,7 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
       "id": "show_audio",
       "label": "Show music button",
       "default": false,
-      "info": "Adds a music toggle below the other notch buttons. Requires an Audio source URL below."
+      "info": "Adds a music toggle as one of the notch actions. Requires an Audio source URL below."
     },
     {
       "type": "text",
@@ -2208,16 +2473,26 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
       "info": "Applied when the user first plays audio. If they change volume via M+←/→ keys, their preference persists across pages."
     },
 
-    { "type": "header", "content": "Behavior" },
-    { "type": "select", "id": "expand_behavior", "label": "Expand on", "default": "hover",
+    { "type": "header", "content": "Primary action" },
+    { "type": "select", "id": "primary_button", "label": "Icon shown on the notch", "default": "cart",
       "options": [
-        { "value": "hover",  "label": "Hover (desktop)" },
-        { "value": "always", "label": "Always expanded" }
+        { "value": "cart",      "label": "Cart" },
+        { "value": "favorites", "label": "Favorites" },
+        { "value": "audio",     "label": "Music" }
+      ],
+      "info": "The big lobe always shown. If this action is turned off above, the notch falls back to the first one that's still enabled."
+    },
+
+    { "type": "header", "content": "Behavior" },
+    { "type": "select", "id": "expand_behavior", "label": "Reveal other actions on", "default": "click",
+      "options": [
+        { "value": "click", "label": "Tap / click" },
+        { "value": "hover", "label": "Hover (desktop) + tap" }
       ]
     }
   ],
   "presets": [
-    { "name": "Apex Notch v4" }
+    { "name": "Apex Notch v5" }
   ]
 }
 {% endschema %}
