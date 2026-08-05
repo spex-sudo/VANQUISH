@@ -119,14 +119,7 @@
   if has_audio and primary != 'audio'
     assign slot_str = slot_str | append: ',audio'
   endif
-  assign slots = slot_str | split: ','
-
-  # Mirror the DOM order for the left edge so the arrow lobe always sits
-  # nearest the screen edge and the blob grows into the page, never off it.
-  assign render_slots = slots
-  if side == 'left'
-    assign render_slots = slots | reverse
-  endif
+  assign render_slots = slot_str | split: ','
 -%}
 
 {%- style -%}
@@ -159,7 +152,7 @@
 
 <style>
 /* ════════════ NOTCH SHELL ════════════
-   A plain flex row, no chrome of its own — every lobe carries its
+   A plain flex column, no chrome of its own — every lobe carries its
    own circle, fill and shadow. Lobes overlap via negative margin so
    the same-colour union reads as one connected blob (see .notch-lobe
    below); no SVG/blur filter, so it stays cheap on a fixed element.
@@ -168,9 +161,9 @@
   position: fixed;
   {% if side == 'left' %}left: var(--notch-offset);{% else %}right: var(--notch-offset);{% endif %}
   top: {{ vertical_pos }}vh;
-  top: {{ vertical_pos }}svh;
   z-index: 998;
   display: flex;
+  flex-direction: column;
   align-items: center;
   opacity: 0;
   pointer-events: none;
@@ -221,11 +214,11 @@
   font-family: inherit;
   -webkit-tap-highlight-color: transparent;
   box-shadow: 0 3px 12px rgba(0,0,0,0.16);
-  transition: width 0.4s var(--notch-spring), margin-left 0.4s var(--notch-spring),
+  transition: height 0.4s var(--notch-spring), margin-top 0.4s var(--notch-spring),
               opacity 0.3s var(--notch-spring), background 0.18s, transform 0.15s;
 }
 .apex-notch-{{ sid }} .notch-lobe:not(:first-child) {
-  margin-left: calc(-1 * var(--lobe-overlap));
+  margin-top: calc(-1 * var(--lobe-overlap));
 }
 .apex-notch-{{ sid }} .notch-lobe:hover  { background: {{ fg_color }}14; }
 .apex-notch-{{ sid }} .notch-lobe:active { transform: scale(0.94); }
@@ -237,24 +230,25 @@
 .apex-notch-{{ sid }} .notch-lobe--arrow {
   width: var(--lobe-arrow); height: var(--lobe-arrow);
   z-index: 2;
-  gap: 4px;
+  flex-direction: column;
+  gap: 2px;
 }
 .apex-notch-{{ sid }} .notch-lobe--secondary {
-  width: 0; height: var(--lobe-secondary);
+  width: var(--lobe-secondary); height: 0;
   opacity: 0;
   overflow: hidden;
   pointer-events: none;
   z-index: 1;
 }
-.apex-notch-{{ sid }} .notch-lobe--secondary:not(:first-child) { margin-left: 0; }
+.apex-notch-{{ sid }} .notch-lobe--secondary:not(:first-child) { margin-top: 0; }
 .apex-notch-{{ sid }}.is-expanded .notch-lobe--secondary {
-  width: var(--lobe-secondary);
+  height: var(--lobe-secondary);
   opacity: 1;
   pointer-events: auto;
   transition-delay: calc(var(--i, 0) * 40ms);
 }
 .apex-notch-{{ sid }}.is-expanded .notch-lobe--secondary:not(:first-child) {
-  margin-left: calc(-1 * var(--lobe-overlap));
+  margin-top: calc(-1 * var(--lobe-overlap));
   transition-delay: calc(var(--i, 0) * 40ms);
 }
 
@@ -957,10 +951,11 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
 </style>
 
 <!-- ════════════════════════ NOTCH ════════════════════════
-     Collapsed: [primary icon lobe][arrow lobe] — a two-circle
-     union blob. Clicking/hovering the arrow lobe reveals the
-     remaining enabled actions as extra lobes fused into the same
-     chain, then collapses again once one is used or focus leaves.
+     Collapsed: primary icon lobe on top, arrow lobe fused directly
+     beneath it. Clicking/hovering the arrow reveals the remaining
+     enabled actions as extra lobes inserted between them, extending
+     the chain downward, then collapses again once one is used or
+     focus leaves.
 ════════════════════════════════════════════════════════════ -->
 {%- if enabled_count > 0 -%}
 <aside id="apex-notch-{{ sid }}" class="apex-notch-{{ sid }}"
@@ -969,17 +964,6 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
        data-expand-mode="{{ expand_mode }}"
        aria-label="Quick actions"
        role="navigation">
-
-  {%- if side == 'left' and secondary_count > 0 -%}
-    <button type="button"
-            class="notch-lobe notch-lobe--arrow"
-            data-notch-expand
-            aria-expanded="false"
-            aria-label="Show {{ secondary_count }} more option{% if secondary_count != 1 %}s{% endif %}">
-      <span class="arrow-dot" data-notch-arrow-dot aria-hidden="true"></span>
-      <svg class="arrow-icon" data-notch-arrow-icon viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
-    </button>
-  {%- endif -%}
 
   {%- assign sec_i = 0 -%}
   {%- for slot in render_slots -%}
@@ -1080,14 +1064,14 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
     {%- endcase -%}
   {%- endfor -%}
 
-  {%- if side == 'right' and secondary_count > 0 -%}
+  {%- if secondary_count > 0 -%}
     <button type="button"
             class="notch-lobe notch-lobe--arrow"
             data-notch-expand
             aria-expanded="false"
             aria-label="Show {{ secondary_count }} more option{% if secondary_count != 1 %}s{% endif %}">
       <span class="arrow-dot" data-notch-arrow-dot aria-hidden="true"></span>
-      <svg class="arrow-icon" data-notch-arrow-icon viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+      <svg class="arrow-icon" data-notch-arrow-icon viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9l7 7 7-7"/></svg>
     </button>
   {%- endif -%}
 
@@ -1208,8 +1192,7 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
 
   function updateArrowIcon() {
     if (!arrowIcon) return;
-    var pointLeft = (notch.getAttribute('data-side') === 'right') ? isExpanded : !isExpanded;
-    arrowIcon.classList.toggle('is-flipped', pointLeft);
+    arrowIcon.classList.toggle('is-flipped', isExpanded);
   }
 
   function setExpanded(on) {
@@ -1980,6 +1963,7 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
     var isPlaying   = false;
     var playerReady = false;
     var apiInjected = false;
+    var apiLoadTimer = null;
     var currentVol  = DEF_VOL;
     var ytPlayer    = null;
     var mp3Audio    = null;
@@ -2072,6 +2056,14 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
       var tag = document.createElement('script');
       tag.src   = 'https://www.youtube.com/iframe_api';
       tag.async = true;
+      tag.onerror = function () {
+        /* Request failed outright (blocked domain, offline, etc.) — reset
+           so the button doesn't stay stuck and a later tap can retry. */
+        apiInjected = false;
+        clearTimeout(apiLoadTimer);
+        setActive(false);
+        safeRemove(SK_PLAY);
+      };
       document.head.appendChild(tag);
       /*
         Chain the global callback safely: other sections (or the audio
@@ -2083,6 +2075,20 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
         if (typeof prev === 'function') prev();
         initYTPlayer();
       };
+      /*
+        Some in-app browsers accept the request but never resolve it
+        (silent network stall rather than a fast onerror). Cap the wait
+        so a flaky connection can't leave the player stuck "loading"
+        forever — reset and let the next tap try again.
+      */
+      clearTimeout(apiLoadTimer);
+      apiLoadTimer = setTimeout(function () {
+        if (!playerReady) {
+          apiInjected = false;
+          setActive(false);
+          safeRemove(SK_PLAY);
+        }
+      }, 7000);
     }
 
     function initYTPlayer() {
@@ -2122,6 +2128,7 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
         events: {
           onReady: function (e) {
             playerReady = true;
+            clearTimeout(apiLoadTimer);
             e.target.setVolume(currentVol);
             if (currentVol === 0) e.target.mute(); else e.target.unMute();
           },
@@ -2147,6 +2154,7 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
           },
           onError: function () {
             /* Covers: video unavailable, embedding disabled, network error */
+            clearTimeout(apiLoadTimer);
             setActive(false);
             safeRemove(SK_PLAY);
           }
@@ -2318,25 +2326,12 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
           setActive(true); /* Optimistic UI */
           startConfirmTimer(); /* Reset if YT doesn't confirm within 3.5s */
           injectYTAPI();
-        } else {
-          /*
-            WARM LOAD: inject the YT API on the first human interaction —
-            before the user has tapped the audio button. This eliminates
-            the ~300ms API-injection delay from the first tap, making the
-            button feel instantaneous.
-          */
-          var warmed = false;
-          var warmEvents = ['mousemove', 'touchstart', 'scroll', 'pointerdown'];
-          var warmHandler = function () {
-            if (warmed) return;
-            warmed = true;
-            injectYTAPI();
-            warmEvents.forEach(function (ev) { window.removeEventListener(ev, warmHandler); });
-          };
-          warmEvents.forEach(function (ev) {
-            window.addEventListener(ev, warmHandler, { passive: true });
-          });
         }
+        /* Otherwise: do nothing until the button is actually tapped.
+           The API loads on first click (see toggle()) — this avoids a
+           speculative youtube.com request on every single page view,
+           which is unnecessary weight and a real risk on slower or
+           more restrictive in-app browser connections. */
 
       } else {
         /*
@@ -2367,7 +2362,7 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
 
 {% schema %}
 {
-  "name": "Apex Notch v5",
+  "name": "Apex Notch v6",
   "limit": 1,
   "settings": [
     { "type": "header", "content": "Position" },
@@ -2492,7 +2487,7 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
     }
   ],
   "presets": [
-    { "name": "Apex Notch v5" }
+    { "name": "Apex Notch v6" }
   ]
 }
 {% endschema %}
