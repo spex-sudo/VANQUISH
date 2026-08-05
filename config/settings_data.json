@@ -9,11 +9,11 @@
  */
 {
   "current": {
-    "logo": "shopify://shop_images/logo8.png",
+    "logo": "shopify://shop_images/F2D848F7-A2A3-48D2-AE30-58B9FE04182F.png",
     "logo_inverse": "shopify://shop_images/vanquish-logo8.png",
     "logo_height": 36,
     "logo_height_mobile": 48,
-    "favicon": "shopify://shop_images/C4B3EA4A-7D1A-40A5-AF4A-6F53C65695E0.jpg",
+    "favicon": "shopify://shop_images/D09F46AD-6526-4D9E-8543-C2EAEF49FEDF.png",
     "type_body_font": "geist_n4",
     "type_subheading_font": "geist_n5",
     "type_heading_font": "geist_n6",
@@ -47,7 +47,7 @@
     "page_transition_enabled": false,
     "transition_to_main_product": false,
     "add_to_cart_animation": true,
-    "card_hover_effect": "subtle-zoom",
+    "card_hover_effect": "lift",
     "badge_position": "top-left",
     "badge_corner_radius": 2,
     "badge_sale_color_scheme": "scheme-1",
