@@ -75,6 +75,7 @@
         "image_JBfgLP",
         "image_r7geXE"
       ],
+      "disabled": true,
       "name": "Page Transition",
       "settings": {
         "overlay_style": "solid",
