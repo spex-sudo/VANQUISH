@@ -9,102 +9,6 @@
  */
 {
   "sections": {
-    "luxury_transition_EqEqcX": {
-      "type": "luxury-transition",
-      "blocks": {
-        "image_aikpfb": {
-          "type": "image",
-          "settings": {
-            "image": "shopify://shop_images/2BED5A60-A6D0-468F-B5CE-01D05890B341.png",
-            "fit": "cover",
-            "custom_w": 60,
-            "bg": ""
-          }
-        },
-        "image_GkUVab": {
-          "type": "image",
-          "settings": {
-            "image": "shopify://shop_images/C2F90E44-E23B-40A7-8449-23503B1BA066.png",
-            "fit": "cover",
-            "custom_w": 60,
-            "bg": ""
-          }
-        },
-        "image_9KtgEp": {
-          "type": "image",
-          "settings": {
-            "image": "shopify://shop_images/040FBA4D-1501-4CA4-9924-E83F13201F67.png",
-            "fit": "cover",
-            "custom_w": 60,
-            "bg": ""
-          }
-        },
-        "image_DKkg4a": {
-          "type": "image",
-          "settings": {
-            "image": "shopify://shop_images/48F243A8-9F0E-4BC0-A322-F2DDC6D24B80.png",
-            "fit": "cover",
-            "custom_w": 60,
-            "bg": ""
-          }
-        },
-        "image_JBfgLP": {
-          "type": "image",
-          "settings": {
-            "image": "shopify://shop_images/134B4D4E-B0AE-4BA1-9804-A163E2B89AC6.png",
-            "fit": "cover",
-            "custom_w": 60,
-            "bg": ""
-          }
-        },
-        "image_r7geXE": {
-          "type": "image",
-          "settings": {
-            "image": "shopify://shop_images/548ED8B7-D60F-4921-A697-B545A632705B.png",
-            "fit": "cover",
-            "custom_w": 60,
-            "bg": ""
-          }
-        }
-      },
-      "block_order": [
-        "image_aikpfb",
-        "image_GkUVab",
-        "image_9KtgEp",
-        "image_DKkg4a",
-        "image_JBfgLP",
-        "image_r7geXE"
-      ],
-      "name": "Page Transition",
-      "settings": {
-        "overlay_style": "solid",
-        "bg": "#ffffff",
-        "bg_opacity": 5,
-        "blur_amount": 2,
-        "bar_color": "#864cc9",
-        "fps": 8,
-        "min_ms": 300,
-        "fade_out": 0,
-        "loading_text": "Loading",
-        "text_position": "center",
-        "text_offset_x": 32,
-        "text_offset_y": 40,
-        "loading_font": "rounded",
-        "loading_font_size": 13,
-        "loading_font_weight": "700",
-        "loading_text_transform": "uppercase",
-        "loading_letter_spacing": 8,
-        "loading_text_color": "#000000",
-        "slow_text": "Your internet is slow, retrying",
-        "slow_ms": 9000,
-        "enable_grid_reveal": false,
-        "grid_cols": 19,
-        "grid_stagger": 15,
-        "grid_cell_dur": 200,
-        "grid_color": "#ffffff",
-        "default_fit": "cover"
-      }
-    },
     "luxury_hero_EFGqQq": {
       "type": "luxury-hero",
       "blocks": {
@@ -604,7 +508,6 @@
     }
   },
   "order": [
-    "luxury_transition_EqEqcX",
     "luxury_hero_EFGqQq",
     "luxury_collectiongrid_jpK7Cz",
     "vanquish_transittimer_hmmnrA",
