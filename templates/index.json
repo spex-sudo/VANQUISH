@@ -12,26 +12,6 @@
     "luxury_hero_EFGqQq": {
       "type": "luxury-hero",
       "blocks": {
-        "text_overlay_mrWygh": {
-          "type": "text_overlay",
-          "settings": {
-            "overlay_text": "To Overcome & Defeat Thoroughly",
-            "font_family": "",
-            "font_size": 10,
-            "font_weight": "400",
-            "overlay_text_color": "#ffffff",
-            "text_opacity": 100,
-            "letter_spacing": 2,
-            "line_height": 10,
-            "uppercase": true,
-            "pos_x": 5,
-            "pos_y": 93,
-            "anchor_x": 0,
-            "anchor_y": 0,
-            "rotation": -10,
-            "max_width": 280
-          }
-        },
         "social_link_QpPtyr": {
           "type": "social_link",
           "settings": {
@@ -67,7 +47,7 @@
           "settings": {
             "overlay_text": "VANQUISH",
             "font_family": "Bebas Neue",
-            "font_size": 36,
+            "font_size": 64,
             "font_weight": "900",
             "overlay_text_color": "#ffffff",
             "text_opacity": 90,
@@ -84,7 +64,6 @@
         }
       },
       "block_order": [
-        "text_overlay_mrWygh",
         "social_link_QpPtyr",
         "social_link_cMjbkD",
         "social_link_eY3MTE",
