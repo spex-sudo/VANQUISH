@@ -112,7 +112,7 @@
         "wall_scrim_color": "#000000",
         "wall_scrim_opacity": 0,
         "wall_btn_style": "glass",
-        "wall_btn_label_show": "Leaderboard",
+        "wall_btn_label_show": "",
         "wall_btn_label_hide": "Hide",
         "wall_btn_size": 10,
         "wall_btn_pad_x": 18,
