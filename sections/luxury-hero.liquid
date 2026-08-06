@@ -32,44 +32,97 @@
   request is non-render-blocking. The wall is lazily built on first
   toggle click, so by the time names render the font is already cached.
   Zero LCP penalty; font loads in the background like any stylesheet.
+
+  WEIGHT OPTIMIZATION: earlier versions requested all 5 weights
+  (300/400/600/700/900) for every family regardless of what's actually
+  used. Now we collect only the weights each block setting actually
+  references (plus 400 as the implicit body-text weight), which can
+  cut the CSS2 payload by more than half on a typical page.
 {%- endcomment -%}
-{%- assign font_families = '' -%}
-{%- for block in section.blocks -%}
-  {%- if block.type == 'text_overlay' and block.settings.font_family != blank -%}
-    {%- unless font_families contains block.settings.font_family -%}
-      {%- assign font_families = font_families | append: block.settings.font_family | append: '|' -%}
-    {%- endunless -%}
-  {%- endif -%}
-  {%- if block.type == 'about_button' and block.settings.about_font != blank -%}
-    {%- unless font_families contains block.settings.about_font -%}
-      {%- assign font_families = font_families | append: block.settings.about_font | append: '|' -%}
-    {%- endunless -%}
-  {%- endif -%}
-{%- endfor -%}
-{%- if section.settings.wall_font != blank -%}
-  {%- unless font_families contains section.settings.wall_font -%}
-    {%- assign font_families = font_families | append: section.settings.wall_font | append: '|' -%}
+{%- liquid
+  assign font_weight_map = ''
+  for block in section.blocks
+    if block.type == 'text_overlay' and block.settings.font_family != blank
+      assign fam_key = block.settings.font_family | append: ':' | append: block.settings.font_weight
+      unless font_weight_map contains fam_key
+        assign font_weight_map = font_weight_map | append: fam_key | append: '|'
+      endunless
+    endif
+    if block.type == 'about_button' and block.settings.about_font != blank
+      # The trigger button itself carries no explicit font-weight, so it
+      # always renders at the family's base (400) weight.
+      assign fam_key = block.settings.about_font | append: ':400'
+      unless font_weight_map contains fam_key
+        assign font_weight_map = font_weight_map | append: fam_key | append: '|'
+      endunless
+    endif
+  endfor
+  # The About modal CARD (and its store-name heading) use the section-level
+  # about_font/about_title_weight settings — a separate control from the
+  # per-block trigger-button font handled above.
+  if section.settings.about_font != blank
+    assign fam_key = section.settings.about_font | append: ':400'
+    unless font_weight_map contains fam_key
+      assign font_weight_map = font_weight_map | append: fam_key | append: '|'
+    endunless
+    assign fam_key2 = section.settings.about_font | append: ':' | append: section.settings.about_title_weight
+    unless font_weight_map contains fam_key2
+      assign font_weight_map = font_weight_map | append: fam_key2 | append: '|'
+    endunless
+  endif
+  if section.settings.wall_font != blank
+    assign fam_key = section.settings.wall_font | append: ':400'
+    unless font_weight_map contains fam_key
+      assign font_weight_map = font_weight_map | append: fam_key | append: '|'
+    endunless
+  endif
+  assign weight_pairs = font_weight_map | split: '|'
+
+  assign font_family_list  = ''
+  assign font_weight_lists = ''
+-%}
+{%- for pair in weight_pairs -%}
+  {%- assign parts = pair | split: ':' -%}
+  {%- assign fam = parts | first -%}
+  {%- assign wt  = parts | last -%}
+  {%- unless font_family_list contains fam -%}
+    {%- assign font_family_list = font_family_list | append: fam | append: ',' -%}
   {%- endunless -%}
-{%- endif -%}
-{%- assign font_array = font_families | split: '|' -%}
+{%- endfor -%}
+{%- assign font_array = font_family_list | split: ',' -%}
 {%- if font_array.size > 0 -%}
   {%- assign gf_query = '' -%}
   {%- for f in font_array -%}
     {%- unless f == blank -%}
       {%- assign f_enc = f | replace: ' ', '+' -%}
-      {%- assign gf_query = gf_query | append: f_enc | append: ':wght@300;400;600;700;900&family=' -%}
+      {%- assign wt_list = '' -%}
+      {%- for pair in weight_pairs -%}
+        {%- assign parts = pair | split: ':' -%}
+        {%- if parts.first == f -%}
+          {%- unless wt_list contains parts.last -%}
+            {%- assign wt_list = wt_list | append: parts.last | append: ';' -%}
+          {%- endunless -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {%- assign wt_list = wt_list | append: '400;' -%}
+      {%- assign wt_list = wt_list | split: ';' | uniq | sort | join: ';' -%}
+      {%- assign gf_query = gf_query | append: f_enc | append: ':wght@' | append: wt_list | append: '&family=' -%}
     {%- endunless -%}
   {%- endfor -%}
+  {%- # theme-check-disable RemoteAsset -%}
+  {%- comment -%}
+    Google Fonts can't be served from Shopify's CDN — self-hosting would
+    mean bundling every font in the picker's list (15+ families) as
+    theme assets regardless of whether a merchant ever selects them.
+    The two preconnects + media="print" swap below keep this from
+    blocking render or costing any LCP time; only the weights actually
+    referenced by this section's block settings are requested.
+  {%- endcomment -%}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family={{ gf_query | remove_last: '&family=' }}&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
   <noscript><link href="https://fonts.googleapis.com/css2?family={{ gf_query | remove_last: '&family=' }}&display=swap" rel="stylesheet"></noscript>
-{%- endif -%}
-
-{%- if section.settings.video_poster != blank -%}
-  <link rel="preload" as="image" href="{{ section.settings.video_poster | image_url: width: 1920 }}" fetchpriority="high">
-{%- elsif section.settings.image != blank -%}
-  <link rel="preload" as="image" href="{{ section.settings.image | image_url: width: 1920 }}" fetchpriority="high">
+  {%- # theme-check-enable RemoteAsset -%}
 {%- endif -%}
 
 <style>
@@ -353,10 +406,10 @@
 .vid-pause-btn-{{ sid }}.is-visible { display: flex; }
 .vid-pause-btn-{{ sid }}.is-faded { opacity: 0; pointer-events: none; }
 .vid-pause-btn-{{ sid }}:hover { color: rgba(255,255,255,0.95); background: rgba(0,0,0,0.2); }
-.vid-pause-btn-{{ sid }} .icon-pause { display: block; }
-.vid-pause-btn-{{ sid }} .icon-play  { display: none; }
-.vid-pause-btn-{{ sid }}.is-paused .icon-pause { display: none; }
-.vid-pause-btn-{{ sid }}.is-paused .icon-play  { display: block; }
+.vid-pause-btn-{{ sid }} .icon-pause-{{ sid }} { display: block; }
+.vid-pause-btn-{{ sid }} .icon-play-{{ sid }}  { display: none; }
+.vid-pause-btn-{{ sid }}.is-paused .icon-pause-{{ sid }} { display: none; }
+.vid-pause-btn-{{ sid }}.is-paused .icon-play-{{ sid }}  { display: block; }
 
 /* ── Signature wall ── */
 .sig-wall-canvas-{{ sid }} {
@@ -603,17 +656,16 @@
     {%- if section.settings.video_link != blank -%}
       {%- if section.settings.video_poster != blank -%}
         {%- assign poster_alt = section.settings.video_poster.alt | default: '' -%}
-        {%- assign poster_src = section.settings.video_poster | image_url: width: 1920 -%}
-        <img
-          id="hero-poster-img-{{ sid }}"
-          class="hero-poster-{{ sid }}"
-          src="{{ poster_src }}"
-          alt="{{ poster_alt }}"
-          loading="eager"
-          fetchpriority="high"
-          width="{{ section.settings.video_poster.width }}"
-          height="{{ section.settings.video_poster.height }}"
-        >
+        {%- assign poster_id_attr    = 'hero-poster-img-' | append: sid -%}
+        {%- assign poster_class_attr = 'hero-poster-'     | append: sid -%}
+        {{- section.settings.video_poster | image_url: width: 1920 | image_tag:
+              id: poster_id_attr,
+              class: poster_class_attr,
+              alt: poster_alt,
+              loading: 'eager',
+              fetchpriority: 'high',
+              preload: true
+        -}}
       {%- endif -%}
       <video id="hero-video-{{ sid }}" class="hero-asset"
         src="{{ section.settings.video_link }}"
@@ -624,7 +676,7 @@
         x-webkit-airplay="deny">
       </video>
     {%- elsif section.settings.image != blank -%}
-      {{ section.settings.image | image_url: width: 3000 | image_tag: class: 'hero-asset', loading: 'eager', fetchpriority: 'high' }}
+      {{ section.settings.image | image_url: width: 3000 | image_tag: class: 'hero-asset', loading: 'eager', fetchpriority: 'high', preload: true }}
     {%- endif -%}
   </div>
 
@@ -782,8 +834,8 @@
 
   {%- if section.settings.video_link != blank -%}
     <button class="vid-pause-btn-{{ sid }}" id="vid-pause-{{ sid }}" aria-label="Pause video">
-      <svg class="icon-pause" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-      <svg class="icon-play"  width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      <svg class="icon-pause-{{ sid }}" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+      <svg class="icon-play-{{ sid }}"  width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
     </button>
   {%- endif -%}
 
