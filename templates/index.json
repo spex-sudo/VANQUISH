@@ -17,7 +17,7 @@
           "settings": {
             "platform": "pinterest",
             "url": "",
-            "btn_size": 44,
+            "btn_size": 36,
             "pill_radius": 12,
             "show_label": false
           }
@@ -27,7 +27,7 @@
           "settings": {
             "platform": "tiktok",
             "url": "",
-            "btn_size": 44,
+            "btn_size": 36,
             "pill_radius": 12,
             "show_label": false
           }
@@ -37,7 +37,7 @@
           "settings": {
             "platform": "instagram",
             "url": "",
-            "btn_size": 44,
+            "btn_size": 36,
             "pill_radius": 12,
             "show_label": false
           }
@@ -52,10 +52,10 @@
             "overlay_text_color": "#ffffff",
             "text_opacity": 90,
             "letter_spacing": 2,
-            "line_height": 12,
+            "line_height": 20,
             "uppercase": true,
             "pos_x": 5,
-            "pos_y": 86,
+            "pos_y": 77,
             "anchor_x": 0,
             "anchor_y": 8,
             "rotation": -10,
@@ -74,7 +74,7 @@
         "video_link": "https://cdn.shopify.com/videos/c/o/v/6abb496dbd314aa8be56745589a133f5.mp4",
         "video_poster": "shopify://shop_images/Not_Worth_it..jpg",
         "image_fit": "cover",
-        "height": 79,
+        "height": 64,
         "height_mobile": 69,
         "content_width": 1200,
         "horizontal_alignment": "center",
@@ -86,7 +86,7 @@
         "text_color": "#ffffff",
         "overlay_color": "#000000",
         "overlay_opacity": 0,
-        "title_size": 6,
+        "title_size": 8,
         "show_scroll": true,
         "social_color": "#ffffff",
         "social_pos_x": 6,
@@ -110,7 +110,7 @@
         "wall_color_4": "#e8e8e8",
         "wall_color_5": "#cccccc",
         "wall_scrim_color": "#000000",
-        "wall_scrim_opacity": 20,
+        "wall_scrim_opacity": 0,
         "wall_btn_style": "glass",
         "wall_btn_label_show": "Leaderboard",
         "wall_btn_label_hide": "Hide",
@@ -119,7 +119,7 @@
         "wall_btn_pad_y": 11,
         "wall_btn_radius": 18,
         "wall_btn_x": 86,
-        "wall_btn_y": 71,
+        "wall_btn_y": 86,
         "wall_btn_anchor_x": 50,
         "wall_btn_anchor_y": 50,
         "addname_pos_x": 50,
