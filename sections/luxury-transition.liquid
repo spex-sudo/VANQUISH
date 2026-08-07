@@ -1,8 +1,22 @@
 {%- comment -%}
   PAGE TRANSITION (lightweight rewrite)
   ──────────────────────────────────────
-  Install: add {% section 'page-transition' %} as the
-  first line inside <body> in layout/theme.liquid
+  Install: add {% section 'page-transition' %} as a plain,
+  direct Liquid include — the first line inside <body> in
+  layout/theme.liquid. Do NOT add it via the customizer while
+  the Header (or Footer) group is selected, and do not place
+  it inside sections/header-group.json or footer-group.json.
+  Either of those nests it under that group in the customizer
+  sidebar, and can stop it from being the first thing painted
+  in <body>, which is what avoids a flash of the page
+  underneath in the first place.
+
+  Home page only: everything below is wrapped in a
+  request.page_type == 'index' check, so it renders nothing
+  at all on any other page — regardless of where the section
+  tag itself is included from. If it still shows up on
+  non-homepage pages after this, the include is somewhere it
+  shouldn't be (see above) rather than a logic bug here.
 
   Why the old version could hang the whole homepage:
   - "Solid colour" mode never actually set a background —
@@ -18,7 +32,11 @@
   animation removes the overlay even if the script never
   runs, and a try/catch removes it if the script errors.
   The blinds/grid exit animation has been removed entirely.
+  The old click-to-replay-on-navigation feature has also been
+  removed: with this section homepage-only, there's no longer
+  a "some other page" for it to replay the transition on.
 {%- endcomment -%}
+{%- if request.page_type == 'index' -%}
 {%- liquid
   assign sid = section.id
   assign is_glass = false
@@ -108,4 +126,631 @@
   opacity: 1;
   transition: opacity 0.4s ease;
 }
-#pt-bar-f
+#pt-bar-fill-{{ sid }} {
+  height: 100%;
+  width: 0%;
+  background: {{ section.settings.bar_color }};
+  transition: width {{ max_ms }}ms linear;
+}
+#pt-bar-fill-{{ sid }}.pt-done-{{ sid }} {
+  transition: width 150ms ease-out;
+}
+
+/* ─── Loading text ─────────────────────────────────────── */
+#pt-text-{{ sid }} {
+  position: absolute;
+  z-index: 3;
+  font-family: {{ font_stack }};
+  font-size: {{ section.settings.loading_font_size }}px;
+  font-weight: {{ section.settings.loading_font_weight }};
+  color: {{ section.settings.loading_text_color }};
+  letter-spacing: calc({{ section.settings.loading_letter_spacing }} * 0.01em);
+  text-transform: {{ section.settings.loading_text_transform }};
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  user-select: none;
+  pointer-events: none;
+
+  {%- case section.settings.text_position -%}
+    {%- when 'top-left' -%}
+      top: {{ section.settings.text_offset_y }}px;
+      left: {{ section.settings.text_offset_x }}px;
+    {%- when 'top-center' -%}
+      top: {{ section.settings.text_offset_y }}px;
+      left: 50%;
+      transform: translateX(-50%);
+    {%- when 'top-right' -%}
+      top: {{ section.settings.text_offset_y }}px;
+      right: {{ section.settings.text_offset_x }}px;
+    {%- when 'center-left' -%}
+      top: 50%;
+      left: {{ section.settings.text_offset_x }}px;
+      transform: translateY(-50%);
+    {%- when 'center' -%}
+      top: calc(50% + {{ section.settings.text_offset_y }}px);
+      left: 50%;
+      transform: translate(-50%, -50%);
+    {%- when 'center-right' -%}
+      top: 50%;
+      right: {{ section.settings.text_offset_x }}px;
+      transform: translateY(-50%);
+    {%- when 'bottom-left' -%}
+      bottom: {{ section.settings.text_offset_y }}px;
+      left: {{ section.settings.text_offset_x }}px;
+    {%- when 'bottom-center' -%}
+      bottom: {{ section.settings.text_offset_y }}px;
+      left: 50%;
+      transform: translateX(-50%);
+    {%- when 'bottom-right' -%}
+      bottom: {{ section.settings.text_offset_y }}px;
+      right: {{ section.settings.text_offset_x }}px;
+  {%- endcase -%}
+}
+
+#pt-text-{{ sid }} .pt-dots-{{ sid }} {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.05em;
+}
+#pt-text-{{ sid }} .pt-dots-{{ sid }} span {
+  display: inline-block;
+  animation: pt-dot-{{ sid }} 1.2s ease-in-out infinite;
+  opacity: 0;
+}
+#pt-text-{{ sid }} .pt-dots-{{ sid }} span:nth-child(1) { animation-delay: 0s;   }
+#pt-text-{{ sid }} .pt-dots-{{ sid }} span:nth-child(2) { animation-delay: 0.2s; }
+#pt-text-{{ sid }} .pt-dots-{{ sid }} span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes pt-dot-{{ sid }} {
+  0%, 60%, 100% { opacity: 0; transform: translateY(0);      }
+  30%            { opacity: 1; transform: translateY(-0.2em); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pt-slide-{{ sid }} { transition: none; }
+  #pt-text-{{ sid }} .pt-dots-{{ sid }} span { animation: none; opacity: 1; }
+}
+</style>
+
+{%- comment -%} No JS at all? Don't make anyone wait out the failsafe timer. {%- endcomment -%}
+<noscript><style>#pt-{{ sid }} { display: none !important; }</style></noscript>
+
+<div id="pt-{{ sid }}" aria-hidden="true">
+  {%- for block in section.blocks -%}
+    {%- if block.settings.image != blank -%}
+      {%- assign img = block.settings.image -%}
+      {%- assign img_h = 1800 | divided_by: img.aspect_ratio | ceil -%}
+      {%- capture img_srcset -%}
+        {{ img | image_url: width: 480 }} 480w,
+        {{ img | image_url: width: 800 }} 800w,
+        {{ img | image_url: width: 1200 }} 1200w,
+        {{ img | image_url: width: 1600 }} 1600w,
+        {{ img | image_url: width: 1800 }} 1800w
+      {%- endcapture -%}
+      {%- assign img_fallback = img | image_url: width: 1800 -%}
+      <div class="pt-slide-{{ sid }}"
+        {% if block.settings.bg != blank %}style="background:{{ block.settings.bg }};"{% endif %}
+        {{ block.shopify_attributes }}>
+        <img
+          {%- if forloop.first %}
+          src="{{ img_fallback }}"
+          srcset="{{ img_srcset }}"
+          fetchpriority="high"
+          {%- else %}
+          data-src="{{ img_fallback }}"
+          data-srcset="{{ img_srcset }}"
+          loading="lazy"
+          fetchpriority="low"
+          {%- endif %}
+          sizes="100vw"
+          decoding="async"
+          width="1800"
+          height="{{ img_h }}"
+          alt=""
+          style="
+            {%- if block.settings.fit == 'cover' or block.settings.fit == 'default' and section.settings.default_fit == 'cover' -%}
+              width:100%;height:100%;object-fit:cover;
+            {%- elsif block.settings.fit == 'contain' or block.settings.fit == 'default' and section.settings.default_fit == 'contain' -%}
+              max-width:100%;max-height:100%;object-fit:contain;
+            {%- elsif block.settings.fit == 'natural' or block.settings.fit == 'default' and section.settings.default_fit == 'natural' -%}
+              max-width:100%;height:auto;
+            {%- elsif block.settings.fit == 'custom' -%}
+              width:{{ block.settings.custom_w }}%;height:auto;
+            {%- else -%}
+              width:100%;height:100%;object-fit:cover;
+            {%- endif -%}
+          ">
+      </div>
+    {%- endif -%}
+  {%- endfor -%}
+
+  <div id="pt-text-{{ sid }}">
+    {{ section.settings.loading_text }}<span class="pt-dots-{{ sid }}"><span>.</span><span>.</span><span>.</span></span>
+  </div>
+
+  <div id="pt-bar-{{ sid }}">
+    <div id="pt-bar-fill-{{ sid }}"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var SID = '{{ sid }}';
+  var overlayRef = null;
+  try {
+    var overlay = document.getElementById('pt-' + SID);
+    overlayRef = overlay;
+    if (!overlay) return;
+
+    var slides  = Array.prototype.slice.call(overlay.querySelectorAll('.pt-slide-' + SID));
+    var bar     = document.getElementById('pt-bar-' + SID);
+    var barFill = document.getElementById('pt-bar-fill-' + SID);
+    var textEl  = document.getElementById('pt-text-' + SID);
+
+    var MIN  = {{ min_ms }};
+    var MAX  = {{ max_ms }};
+    var FADE = {{ section.settings.fade_out }};
+    var FPS  = {{ section.settings.fps }};
+
+    var multiSlide = slides.length > 1;
+    var cur        = 0;
+    var gone       = false;
+    var cycleTimer = null;
+    var minTimer   = null;
+    var maxTimer   = null;
+
+    if (slides.length === 0) {
+      if (bar) bar.style.display = 'none';
+    } else {
+      slides[0].classList.add('on');
+    }
+
+    /* ── Progressive slide image loading ──────────────────
+       Only slide 0 ships with a real src (it needs to paint
+       immediately). Every other slide holds its URL in
+       data-src/data-srcset and is fetched one slide ahead of
+       whichever is current, via requestIdleCallback, so the
+       slideshow never competes with real page resources for
+       bandwidth on first load.
+    ─────────────────────────────────────────────────────── */
+    function loadSlide(i) {
+      var slide = slides[i];
+      if (!slide) return;
+      var img = slide.querySelector('img[data-src]');
+      if (!img) return;
+      if (img.dataset.srcset) { img.srcset = img.dataset.srcset; img.removeAttribute('data-srcset'); }
+      img.src = img.dataset.src;
+      img.removeAttribute('data-src');
+    }
+    function preload(i) {
+      var idle = window.requestIdleCallback || function (fn) { setTimeout(fn, 1); };
+      idle(function () { loadSlide(i % slides.length); });
+    }
+
+    if (multiSlide) {
+      preload(1);
+      cycleTimer = setInterval(function () {
+        slides[cur].classList.remove('on');
+        cur = (cur + 1) % slides.length;
+        slides[cur].classList.add('on');
+        preload(cur + 1);
+      }, Math.max(1000 / FPS, 16));
+    }
+
+    /* Bar fill eases toward ~92% on its own via the CSS
+       transition above (duration = Maximum display time).
+       JS only ever has to snap it the rest of the way on
+       dismiss — no per-frame width calculation needed. */
+    if (barFill) {
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () { barFill.style.width = '92%'; });
+      });
+    }
+
+    var slowTimer = setTimeout(function () {
+      if (textEl && !gone) {
+        textEl.innerHTML = '{{ section.settings.slow_text | escape }}<span class="pt-dots-' + SID + '"><span>.</span><span>.</span><span>.</span></span>';
+      }
+    }, {{ section.settings.slow_ms }});
+
+    function dismiss() {
+      if (gone) return;
+      gone = true;
+      clearTimeout(slowTimer);
+      clearTimeout(minTimer);
+      clearTimeout(maxTimer);
+      if (cycleTimer) clearInterval(cycleTimer);
+
+      if (barFill) {
+        barFill.classList.add('pt-done-' + SID);
+        barFill.style.width = '100%';
+      }
+      if (bar) bar.style.opacity = '0';
+
+      /* Unblock clicks/scrolling the instant we decide to
+         dismiss — don't make shoppers wait out the fade
+         animation on top of everything else. */
+      overlay.style.pointerEvents = 'none';
+      overlay.style.willChange    = 'opacity';
+      overlay.style.transition    = 'opacity ' + FADE + 'ms ease';
+      overlay.style.opacity       = '0';
+      setTimeout(function () {
+        if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+      }, FADE);
+    }
+
+    /* ── Readiness ─────────────────────────────────────────
+       Dismiss once the HERO SLIDE IMAGE is actually ready —
+       not once every last third-party script/pixel on the
+       page has finished loading. Waiting on window 'load'
+       (the old approach) is what let one slow embed hang the
+       whole homepage. MAX is a hard ceiling regardless: the
+       overlay is gone by then no matter what else is running.
+    ─────────────────────────────────────────────────────── */
+    var ready   = false;
+    var minDone = (MIN <= 0);
+
+    function tryDismiss() { if (ready && minDone) dismiss(); }
+    function markReady()  { ready = true; tryDismiss(); }
+
+    var heroImg = slides.length ? slides[0].querySelector('img') : null;
+    if (heroImg) {
+      if (heroImg.decode) {
+        heroImg.decode().then(markReady, markReady);
+      } else if (heroImg.complete) {
+        markReady();
+      } else {
+        heroImg.addEventListener('load', markReady, { once: true });
+        heroImg.addEventListener('error', markReady, { once: true });
+      }
+    } else if (document.readyState !== 'loading') {
+      markReady();
+    } else {
+      document.addEventListener('DOMContentLoaded', markReady, { once: true });
+    }
+
+    if (MIN > 0) {
+      minTimer = setTimeout(function () { minDone = true; tryDismiss(); }, MIN);
+    }
+    maxTimer = setTimeout(dismiss, MAX);
+
+  } catch (err) {
+    /* A bug anywhere above should never hold the storefront
+       hostage — remove the overlay outright and move on.
+       overlayRef is used first (in case getElementById itself
+       is what's misbehaving); the inner try/catch means this
+       cleanup can't throw its way out of the IIFE either. */
+    try {
+      var el = overlayRef || document.getElementById('pt-' + SID);
+      if (el && el.parentNode) { el.parentNode.removeChild(el); }
+    } catch (err2) { /* nothing more we can safely do from script */ }
+  }
+})();
+</script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Page Transition",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Add a Liquid `section` tag referencing 'page-transition' directly in layout/theme.liquid — not inside the Header or Footer group. Home page only: renders nothing on any other page."
+    },
+    {
+      "type": "header",
+      "content": "Overlay"
+    },
+    {
+      "type": "select",
+      "id": "overlay_style",
+      "label": "Overlay style",
+      "options": [
+        { "value": "solid", "label": "Solid colour" },
+        { "value": "glass", "label": "Glassmorphism (frosted glass)" }
+      ],
+      "default": "solid",
+      "info": "Glassmorphism blurs the page behind the overlay and costs more to render. Falls back to solid colour on unsupported browsers."
+    },
+    {
+      "type": "color",
+      "id": "bg",
+      "label": "Background colour",
+      "default": "#0a0a0a"
+    },
+    {
+      "type": "range",
+      "id": "bg_opacity",
+      "label": "Glass tint opacity",
+      "min": 5,
+      "max": 80,
+      "step": 5,
+      "unit": "%",
+      "default": 20,
+      "info": "Glassmorphism mode only."
+    },
+    {
+      "type": "range",
+      "id": "blur_amount",
+      "label": "Blur intensity",
+      "min": 2,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 16,
+      "info": "Glassmorphism mode only."
+    },
+    {
+      "type": "color",
+      "id": "bar_color",
+      "label": "Loading bar colour",
+      "default": "#c9a84c",
+      "info": "1px progress line at the bottom of the overlay."
+    },
+    {
+      "type": "header",
+      "content": "Timing"
+    },
+    {
+      "type": "range",
+      "id": "fps",
+      "label": "Slide cycling speed (fps)",
+      "min": 2,
+      "max": 24,
+      "step": 1,
+      "default": 12,
+      "info": "Only matters with 2+ image blocks below."
+    },
+    {
+      "type": "range",
+      "id": "min_ms",
+      "label": "Minimum display time",
+      "min": 0,
+      "max": 3000,
+      "step": 100,
+      "unit": "ms",
+      "default": 300,
+      "info": "Overlay stays up at least this long, even on a cached instant load. Automatically capped at the maximum display time below."
+    },
+    {
+      "type": "range",
+      "id": "max_ms",
+      "label": "Maximum display time (failsafe)",
+      "min": 1000,
+      "max": 8000,
+      "step": 250,
+      "unit": "ms",
+      "default": 2500,
+      "info": "Hard limit — the overlay is always removed by this point, no matter what is still loading in the background. This is what stops the page from ever getting stuck."
+    },
+    {
+      "type": "range",
+      "id": "fade_out",
+      "label": "Overlay fade out",
+      "min": 0,
+      "max": 800,
+      "step": 50,
+      "unit": "ms",
+      "default": 200
+    },
+    {
+      "type": "header",
+      "content": "Loading text"
+    },
+    {
+      "type": "text",
+      "id": "loading_text",
+      "label": "Loading label",
+      "default": "Loading",
+      "info": "Three animated dots are appended automatically."
+    },
+    {
+      "type": "select",
+      "id": "text_position",
+      "label": "Position",
+      "options": [
+        { "value": "top-left",      "label": "Top left"      },
+        { "value": "top-center",    "label": "Top centre"    },
+        { "value": "top-right",     "label": "Top right"     },
+        { "value": "center-left",   "label": "Middle left"   },
+        { "value": "center",        "label": "Centre"        },
+        { "value": "center-right",  "label": "Middle right"  },
+        { "value": "bottom-left",   "label": "Bottom left"   },
+        { "value": "bottom-center", "label": "Bottom centre" },
+        { "value": "bottom-right",  "label": "Bottom right"  }
+      ],
+      "default": "bottom-center"
+    },
+    {
+      "type": "range",
+      "id": "text_offset_x",
+      "label": "Horizontal offset",
+      "min": 8,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "text_offset_y",
+      "label": "Vertical offset",
+      "min": 8,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "select",
+      "id": "loading_font",
+      "label": "Font style",
+      "options": [
+        { "value": "sans",    "label": "System sans-serif (default)" },
+        { "value": "mono",    "label": "System monospace"            },
+        { "value": "serif",   "label": "System serif"                },
+        { "value": "rounded", "label": "System rounded (iOS/macOS)"  },
+        { "value": "theme",   "label": "Inherit theme heading font"  }
+      ],
+      "default": "sans",
+      "info": "Uses zero-latency system fonts — no extra network request."
+    },
+    {
+      "type": "range",
+      "id": "loading_font_size",
+      "label": "Font size",
+      "min": 10,
+      "max": 48,
+      "step": 1,
+      "unit": "px",
+      "default": 13
+    },
+    {
+      "type": "select",
+      "id": "loading_font_weight",
+      "label": "Font weight",
+      "options": [
+        { "value": "300", "label": "Light"    },
+        { "value": "400", "label": "Regular"  },
+        { "value": "500", "label": "Medium"   },
+        { "value": "600", "label": "Semibold" },
+        { "value": "700", "label": "Bold"     }
+      ],
+      "default": "400"
+    },
+    {
+      "type": "select",
+      "id": "loading_text_transform",
+      "label": "Text case",
+      "options": [
+        { "value": "none",       "label": "As typed"   },
+        { "value": "lowercase",  "label": "lowercase"  },
+        { "value": "uppercase",  "label": "UPPERCASE"  },
+        { "value": "capitalize", "label": "Capitalise" }
+      ],
+      "default": "lowercase"
+    },
+    {
+      "type": "range",
+      "id": "loading_letter_spacing",
+      "label": "Letter spacing",
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "unit": "‰",
+      "default": 8,
+      "info": "Divided by 100 to get em. E.g. 8 = 0.08em."
+    },
+    {
+      "type": "color",
+      "id": "loading_text_color",
+      "label": "Text colour",
+      "default": "#ffffff"
+    },
+    {
+      "type": "text",
+      "id": "slow_text",
+      "label": "Slow connection message",
+      "default": "slow connection, fix your internet",
+      "info": "Replaces the loading label after the slow connection threshold."
+    },
+    {
+      "type": "range",
+      "id": "slow_ms",
+      "label": "Slow connection threshold",
+      "min": 1000,
+      "max": 9000,
+      "step": 500,
+      "unit": "ms",
+      "default": 3000,
+      "info": "How long before the loading text changes to the slow connection message. Keep this below the maximum display time."
+    },
+    {
+      "type": "header",
+      "content": "Images"
+    },
+    {
+      "type": "select",
+      "id": "default_fit",
+      "label": "Default image fit",
+      "options": [
+        { "value": "cover",   "label": "Cover (fill screen)" },
+        { "value": "contain", "label": "Contain (letterbox)" },
+        { "value": "natural", "label": "Natural size"        }
+      ],
+      "default": "contain"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "image",
+      "name": "Image",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Image" },
+        {
+          "type": "select",
+          "id": "fit",
+          "label": "Image fit",
+          "options": [
+            { "value": "default", "label": "Use section default" },
+            { "value": "cover",   "label": "Cover (fill screen)" },
+            { "value": "contain", "label": "Contain (letterbox)" },
+            { "value": "natural", "label": "Natural size"        },
+            { "value": "custom",  "label": "Custom width %"      }
+          ],
+          "default": "default"
+        },
+        {
+          "type": "range",
+          "id": "custom_w",
+          "label": "Custom width",
+          "min": 10,
+          "max": 100,
+          "step": 5,
+          "unit": "%",
+          "default": 60,
+          "info": "Only used when fit is set to Custom width %."
+        },
+        {
+          "type": "color",
+          "id": "bg",
+          "label": "Slide background",
+          "info": "Overrides the section background for this image only."
+        }
+      ]
+    }
+  ],
+  "max_blocks": 20,
+  "presets": [
+    {
+      "name": "Page Transition",
+      "settings": {
+        "bg":                     "#0a0a0a",
+        "overlay_style":          "solid",
+        "bg_opacity":             20,
+        "blur_amount":            16,
+        "bar_color":              "#c9a84c",
+        "fps":                    12,
+        "min_ms":                 300,
+        "max_ms":                 2500,
+        "fade_out":               200,
+        "default_fit":            "contain",
+        "loading_text":           "Loading",
+        "text_position":          "bottom-center",
+        "text_offset_x":          32,
+        "text_offset_y":          40,
+        "loading_font":           "sans",
+        "loading_font_size":      13,
+        "loading_font_weight":    "400",
+        "loading_text_transform": "lowercase",
+        "loading_letter_spacing": 8,
+        "loading_text_color":     "#ffffff",
+        "slow_text":              "slow connection, fix your internet",
+        "slow_ms":                3000
+      }
+    }
+  ]
+}
+{% endschema %}
