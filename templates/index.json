@@ -9,6 +9,67 @@
  */
 {
   "sections": {
+    "luxury_transition_m6cr6x": {
+      "type": "luxury-transition",
+      "blocks": {
+        "image_hzBRNG": {
+          "type": "image",
+          "settings": {
+            "fit": "default",
+            "custom_w": 60,
+            "bg": ""
+          }
+        },
+        "image_7Kp3V3": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/687663FD-5DC7-442A-A9D7-8E8D0F81B3B8.png",
+            "fit": "default",
+            "custom_w": 60,
+            "bg": ""
+          }
+        },
+        "image_6yhQQx": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/548ED8B7-D60F-4921-A697-B545A632705B.png",
+            "fit": "default",
+            "custom_w": 60,
+            "bg": "#FFFFFF"
+          }
+        }
+      },
+      "block_order": [
+        "image_hzBRNG",
+        "image_7Kp3V3",
+        "image_6yhQQx"
+      ],
+      "name": "Page Transition",
+      "settings": {
+        "overlay_style": "solid",
+        "bg": "#0a0a0a",
+        "bg_opacity": 5,
+        "blur_amount": 2,
+        "bar_color": "#315EF3",
+        "fps": 12,
+        "min_ms": 300,
+        "max_ms": 3500,
+        "fade_out": 0,
+        "loading_text": "Loading",
+        "text_position": "bottom-center",
+        "text_offset_x": 32,
+        "text_offset_y": 40,
+        "loading_font": "sans",
+        "loading_font_size": 13,
+        "loading_font_weight": "400",
+        "loading_text_transform": "lowercase",
+        "loading_letter_spacing": 8,
+        "loading_text_color": "#ffffff",
+        "slow_text": "Your connection is slow, Retrying",
+        "slow_ms": 7000,
+        "default_fit": "cover"
+      }
+    },
     "luxury_hero_EFGqQq": {
       "type": "luxury-hero",
       "blocks": {
@@ -487,6 +548,7 @@
     }
   },
   "order": [
+    "luxury_transition_m6cr6x",
     "luxury_hero_EFGqQq",
     "luxury_collectiongrid_jpK7Cz",
     "vanquish_transittimer_hmmnrA",
