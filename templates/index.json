@@ -12,48 +12,58 @@
     "luxury_transition_m6cr6x": {
       "type": "luxury-transition",
       "blocks": {
-        "image_Y4xxka": {
+        "image_gbyaPz": {
           "type": "image",
           "settings": {
-            "image": "shopify://shop_images/134B4D4E-B0AE-4BA1-9804-A163E2B89AC6.png",
+            "image": "shopify://shop_images/7B8904DA-F19A-4DE7-AB09-831720FD747A.png",
             "fit": "default",
             "custom_w": 60,
             "bg": ""
           }
         },
-        "image_hzBRNG": {
+        "image_gPLxxL": {
           "type": "image",
           "settings": {
-            "image": "shopify://shop_images/48F243A8-9F0E-4BC0-A322-F2DDC6D24B80.png",
+            "image": "shopify://shop_images/25CDB0D4-DF28-4F52-BA51-276EE1F2C18E.jpg",
             "fit": "default",
             "custom_w": 60,
             "bg": ""
           }
         },
-        "image_7Kp3V3": {
+        "image_xQBJAh": {
           "type": "image",
           "settings": {
-            "image": "shopify://shop_images/687663FD-5DC7-442A-A9D7-8E8D0F81B3B8.png",
+            "image": "shopify://shop_images/EE9DD45A-3074-4913-B67B-A7F686534A46.jpg",
             "fit": "default",
             "custom_w": 60,
             "bg": ""
           }
         },
-        "image_6yhQQx": {
+        "image_zTeUgt": {
           "type": "image",
           "settings": {
-            "image": "shopify://shop_images/548ED8B7-D60F-4921-A697-B545A632705B.png",
+            "image": "shopify://shop_images/B53C7B5A-A5E7-4855-8A91-70C0A648538C.jpg",
             "fit": "default",
             "custom_w": 60,
-            "bg": "#FFFFFF"
+            "bg": ""
+          }
+        },
+        "image_VyqALG": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/9983339E-ADD3-4CA8-80A9-325CB0E276FC.jpg",
+            "fit": "default",
+            "custom_w": 60,
+            "bg": ""
           }
         }
       },
       "block_order": [
-        "image_Y4xxka",
-        "image_hzBRNG",
-        "image_7Kp3V3",
-        "image_6yhQQx"
+        "image_gbyaPz",
+        "image_gPLxxL",
+        "image_xQBJAh",
+        "image_zTeUgt",
+        "image_VyqALG"
       ],
       "name": "Page Transition",
       "settings": {
