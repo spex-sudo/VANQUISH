@@ -62,7 +62,7 @@
         "bg_opacity": 5,
         "blur_amount": 2,
         "bar_color": "#315EF3",
-        "fps": 4,
+        "fps": 2,
         "min_ms": 1300,
         "max_ms": 6250,
         "fade_out": 0,
