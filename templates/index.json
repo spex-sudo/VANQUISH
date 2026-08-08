@@ -70,13 +70,13 @@
         "text_position": "center",
         "text_offset_x": 32,
         "text_offset_y": 40,
-        "loading_font": "sans",
-        "loading_font_size": 13,
+        "loading_font": "rounded",
+        "loading_font_size": 20,
         "loading_font_weight": "400",
-        "loading_text_transform": "lowercase",
+        "loading_text_transform": "uppercase",
         "loading_letter_spacing": 8,
-        "loading_text_color": "#ffffff",
-        "slow_text": "Your connection is slow, Retrying",
+        "loading_text_color": "#000000",
+        "slow_text": "Your connection is slow, Retrying.",
         "slow_ms": 7000,
         "default_fit": "cover"
       }
