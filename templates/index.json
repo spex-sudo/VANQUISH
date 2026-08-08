@@ -63,7 +63,7 @@
         "blur_amount": 2,
         "bar_color": "#315EF3",
         "fps": 7,
-        "min_ms": 1300,
+        "min_ms": 1900,
         "max_ms": 7000,
         "fade_out": 0,
         "loading_text": "Loading",
@@ -76,7 +76,7 @@
         "loading_text_transform": "uppercase",
         "loading_letter_spacing": 5,
         "loading_text_color": "#000000",
-        "slow_text": "Your internet is slow, try again later",
+        "slow_text": "Your internet is slow, Transferring you to lite mode",
         "slow_ms": 5500,
         "default_fit": "cover"
       }
