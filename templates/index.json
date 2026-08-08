@@ -74,7 +74,7 @@
         "loading_font_size": 10,
         "loading_font_weight": "700",
         "loading_text_transform": "uppercase",
-        "loading_letter_spacing": 8,
+        "loading_letter_spacing": 5,
         "loading_text_color": "#000000",
         "slow_text": "Your connection is slow, Retrying.",
         "slow_ms": 7000,
