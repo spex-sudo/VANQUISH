@@ -64,7 +64,7 @@
         "bar_color": "#315EF3",
         "fps": 7,
         "min_ms": 1300,
-        "max_ms": 6250,
+        "max_ms": 7000,
         "fade_out": 0,
         "loading_text": "Loading",
         "text_position": "center",
@@ -76,8 +76,8 @@
         "loading_text_transform": "uppercase",
         "loading_letter_spacing": 5,
         "loading_text_color": "#000000",
-        "slow_text": "Your connection is slow, Retrying.",
-        "slow_ms": 7000,
+        "slow_text": "Your internet is slow, try again later",
+        "slow_ms": 5500,
         "default_fit": "cover"
       }
     },
