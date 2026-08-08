@@ -25,7 +25,7 @@
           "type": "image",
           "settings": {
             "image": "shopify://shop_images/25CDB0D4-DF28-4F52-BA51-276EE1F2C18E.jpg",
-            "fit": "default",
+            "fit": "custom",
             "custom_w": 60,
             "bg": ""
           }
