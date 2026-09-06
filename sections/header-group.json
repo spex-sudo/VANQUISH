@@ -136,7 +136,7 @@
       ],
       "name": "Apex Header V19",
       "settings": {
-        "notif_text": "CHECKOUT IS DISABLED",
+        "notif_text": "NEW DROP UPCOMING",
         "notif_url": "",
         "notif_pill_text": "#ffffff",
         "flash_interval": 15,
