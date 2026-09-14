@@ -1,7 +1,7 @@
 {%- comment -%}
   VANQUISH — Product Atelier / Magazine carousel
   Selected products, or a random store sample when none are picked.
-  No prices. Hovering rounded cards. Swipe + optional continuous rotation.
+  No prices. Flat cards. Native swipe + continuous rotation.
 {%- endcomment -%}
 
 {%- liquid
@@ -72,8 +72,6 @@
     --va-card-w: {{ section.settings.card_width }}px;
     --va-ratio: {% if shape == 'landscape' %}{{ section.settings.landscape_ratio }}{% else %}1 / 1{% endif %};
     --va-name-size: {{ section.settings.name_size }}px;
-    --va-lift: {{ section.settings.hover_lift }}px;
-    --va-track-y: {{ section.settings.hover_lift | at_most: 6 }}px;
     background: var(--va-bg);
     color: var(--va-ink);
     padding: {{ section.settings.pad_top }}px 0 {{ section.settings.pad_bottom }}px;
@@ -122,7 +120,6 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
   }
   #va-{{ sid }} .va-btn:hover {
     background: {{ ink | color_modify: 'alpha', 0.06 }};
@@ -151,27 +148,27 @@
     display: flex;
     align-items: flex-start;
     gap: var(--va-gap);
-    padding: var(--va-track-y) var(--va-pad) var(--va-track-y);
+    padding: 4px var(--va-pad) 4px;
     overflow-x: auto;
     overflow-y: hidden;
-    scroll-snap-type: x mandatory;
-    scroll-padding-inline: var(--va-pad);
+    scroll-snap-type: none;
+    scroll-behavior: auto;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
     scrollbar-width: none;
     cursor: grab;
     touch-action: pan-x;
+    will-change: scroll-position;
   }
   #va-{{ sid }} .va-track::-webkit-scrollbar { display: none; }
   #va-{{ sid }} .va-track.is-dragging {
     cursor: grabbing;
-    scroll-snap-type: none;
     user-select: none;
   }
 
   #va-{{ sid }} .va-card {
     flex: 0 0 var(--va-card-w);
     width: var(--va-card-w);
-    scroll-snap-align: start;
     text-decoration: none;
     color: inherit;
     display: flex;
@@ -188,7 +185,6 @@
     overflow: hidden;
     background: {% if surface == 'dark' %}#141414{% else %}#ececec{% endif %};
     transform: translateZ(0);
-    transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 420ms cubic-bezier(0.22, 1, 0.36, 1);
     {% if surface == 'dark' %}
       box-shadow:
         0 1px 0 rgba(255,255,255,0.06) inset,
@@ -199,22 +195,6 @@
         0 1px 0 rgba(255,255,255,0.85) inset,
         0 6px 14px rgba(0,0,0,0.08),
         0 1px 3px rgba(0,0,0,0.05);
-    {% endif %}
-  }
-
-  #va-{{ sid }} .va-card:hover .va-media,
-  #va-{{ sid }} .va-card:focus-visible .va-media {
-    transform: translate3d(0, calc(var(--va-lift) * -1), 0);
-    {% if surface == 'dark' %}
-      box-shadow:
-        0 1px 0 rgba(255,255,255,0.08) inset,
-        0 10px 20px rgba(0,0,0,0.48),
-        0 3px 8px rgba(0,0,0,0.28);
-    {% else %}
-      box-shadow:
-        0 1px 0 rgba(255,255,255,0.95) inset,
-        0 10px 22px rgba(0,0,0,0.12),
-        0 3px 8px rgba(0,0,0,0.06);
     {% endif %}
   }
 
@@ -262,14 +242,6 @@
     #va-{{ sid }} .va-title { font-size: {{ section.settings.title_size | times: 0.78 | round }}px; }
     #va-{{ sid }} .va-name { font-size: {{ section.settings.name_size | times: 0.9 | round }}px; }
   }
-
-  @media (prefers-reduced-motion: reduce) {
-    #va-{{ sid }} .va-media,
-    #va-{{ sid }} .va-card:hover .va-media {
-      transition: none;
-      transform: none;
-    }
-  }
 </style>
 
 {% render 'vanquish-atelier-markup', sid: sid, surface: surface, use_images: use_images, pool: pool, from_selected: from_selected, limit: limit, card_count: card_count %}
@@ -296,7 +268,6 @@
     { "type": "range", "id": "squircle_radius", "min": 16, "max": 64, "step": 2, "unit": "px", "label": "Squircle corner", "default": 36 },
     { "type": "range", "id": "landscape_radius", "min": 8, "max": 40, "step": 2, "unit": "px", "label": "Landscape corner", "default": 18 },
     { "type": "range", "id": "card_gap", "min": 8, "max": 40, "step": 2, "unit": "px", "label": "Gap", "default": 20 },
-    { "type": "range", "id": "hover_lift", "min": 4, "max": 18, "step": 1, "unit": "px", "label": "Hover lift", "default": 8 },
     { "type": "checkbox", "id": "show_names", "label": "Show product / caption name", "default": true },
     { "type": "header", "content": "Typography" },
     { "type": "font_picker", "id": "name_font", "label": "Product name font", "default": "bebas_neue_n4" },
@@ -306,7 +277,7 @@
     { "type": "range", "id": "name_tracking", "min": 0, "max": 20, "step": 1, "label": "Name letter spacing", "default": 4 },
     { "type": "select", "id": "name_transform", "label": "Name capitalization", "options": [ { "value": "uppercase", "label": "Uppercase" }, { "value": "none", "label": "As written" }, { "value": "capitalize", "label": "Capitalize" } ], "default": "uppercase" },
     { "type": "header", "content": "Motion" },
-    { "type": "checkbox", "id": "autoplay", "label": "Continuous rotation", "default": false, "info": "Seamless loop. Pauses on hover, focus, and when the section is off-screen. Honors reduced-motion." },
+    { "type": "checkbox", "id": "autoplay", "label": "Continuous rotation", "default": true, "info": "Seamless loop. Pauses while dragging. Stops when the section is off-screen. Honors reduced-motion." },
     { "type": "range", "id": "autoplay_speed", "min": 8, "max": 60, "step": 2, "label": "Rotation speed", "default": 22 },
     { "type": "checkbox", "id": "edge_fade", "label": "Fade carousel edges", "default": true },
     { "type": "header", "content": "Colors & space" },
@@ -320,7 +291,7 @@
     { "type": "magazine", "name": "Magazine image", "settings": [ { "type": "image_picker", "id": "image", "label": "Image" }, { "type": "text", "id": "caption", "label": "Caption" }, { "type": "url", "id": "link", "label": "Link" } ] }
   ],
   "presets": [
-    { "name": "Product Atelier", "settings": { "display_mode": "products", "title": "Atelier", "card_shape": "squircle", "autoplay": false, "name_font": "bebas_neue_n4", "heading_font": "bebas_neue_n4", "bg_color": "#0a0a0a", "text_color": "#f4f4f2" } }
+    { "name": "Product Atelier", "settings": { "display_mode": "products", "title": "Atelier", "card_shape": "squircle", "autoplay": true, "name_font": "bebas_neue_n4", "heading_font": "bebas_neue_n4", "bg_color": "#0a0a0a", "text_color": "#f4f4f2" } }
   ]
 }
 {% endschema %}
