@@ -1,0 +1,37 @@
+{%- comment -%}
+  VANQUISH — Section blend
+  Writes CSS variables that drive the Orbit Apex white→black fade.
+  Place this section anywhere; it has no visible height of its own.
+{%- endcomment -%}
+
+{%- liquid
+  assign from = section.settings.from_color | default: '#ffffff'
+  assign into = section.settings.to_color | default: '#000000'
+  assign h = section.settings.fade_height | default: 180
+  assign enabled = section.settings.enabled
+-%}
+
+{% style %}
+  .orbit-master {
+    --orbit-fade-from: {{ from }};
+    --orbit-fade-to: {{ into }};
+    --orbit-fade-h: {% if enabled == false %}0px{% else %}{{ h }}px{% endif %};
+  }
+{% endstyle %}
+
+{% schema %}
+{
+  "name": "Section blend",
+  "tag": "div",
+  "class": "va-blend",
+  "settings": [
+    { "type": "checkbox", "id": "enabled", "label": "Enable fade", "default": true },
+    { "type": "color", "id": "from_color", "label": "Fade from", "default": "#ffffff", "info": "Color of the section above (Atelier is white)." },
+    { "type": "color", "id": "to_color", "label": "Fade into", "default": "#000000", "info": "Color of Orbit Apex (black)." },
+    { "type": "range", "id": "fade_height", "min": 40, "max": 320, "step": 10, "unit": "px", "label": "Fade height", "default": 180 }
+  ],
+  "presets": [
+    { "name": "Section blend", "settings": { "enabled": true, "from_color": "#ffffff", "to_color": "#000000", "fade_height": 180 } }
+  ]
+}
+{% endschema %}

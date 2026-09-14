@@ -1,33 +1,40 @@
-/* Sovereign Orbit Apex — bottom fade into the NEXT section.
-   Homepage stack is Orbit (black) → Trust banner (black), so default
-   is a short black fade. No white stripe on launch.
+/* Orbit Apex blend — WHITE into BLACK at the TOP of the section.
+   Matches Atelier (white) sitting above Orbit (black).
 
-   White section below? In Orbit Apex Custom CSS:
-     .orbit-master { --orbit-fade-to: #ffffff; --orbit-fade-h: 140px; }
-   Disable:
-     .orbit-master { --orbit-fade-h: 0px; }
+   Override from the "Section blend" section, or Orbit Custom CSS:
+     .orbit-master {
+       --orbit-fade-from: #ffffff;
+       --orbit-fade-to: #000000;
+       --orbit-fade-h: 180px;
+     }
 */
 .orbit-master {
+  --orbit-fade-from: #ffffff;
   --orbit-fade-to: #000000;
-  --orbit-fade-h: 72px;
+  --orbit-fade-h: 180px;
 }
 .orbit-master::after {
   content: "";
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 0;
+  top: 0;
+  bottom: auto;
   height: var(--orbit-fade-h);
   pointer-events: none;
   z-index: 40;
   background: linear-gradient(
     to bottom,
-    transparent 0%,
-    color-mix(in srgb, var(--orbit-fade-to) 10%, transparent) 36%,
-    color-mix(in srgb, var(--orbit-fade-to) 52%, transparent) 68%,
+    var(--orbit-fade-from) 0%,
+    color-mix(in srgb, var(--orbit-fade-from) 88%, var(--orbit-fade-to)) 14%,
+    color-mix(in srgb, var(--orbit-fade-from) 68%, var(--orbit-fade-to)) 28%,
+    color-mix(in srgb, var(--orbit-fade-from) 48%, var(--orbit-fade-to)) 44%,
+    color-mix(in srgb, var(--orbit-fade-from) 28%, var(--orbit-fade-to)) 62%,
+    color-mix(in srgb, var(--orbit-fade-from) 12%, var(--orbit-fade-to)) 80%,
     var(--orbit-fade-to) 100%
   );
 }
 .section-orbit-apex {
+  margin-top: 0;
   margin-bottom: 0;
 }
