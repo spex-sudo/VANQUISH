@@ -1,37 +1,5 @@
 {%- comment -%}
   SOVEREIGN ORBIT APEX — v3.4  (Performance Edition + bottom fade)
-  ───────────────────────────────────────────────────────────────────
-  PERF CHANGES in v3.3:
-    • CONTENT-VISIBILITY — section gains content-visibility:auto so the
-      browser skips all paint/layout when the section is off-screen.
-      contain-intrinsic-block-size provides a placeholder height so the
-      scrollbar doesn't jump when the section renders.
-    • CARD PAINT CONTAINMENT — contain:layout style paint on every card
-      tells the browser each card is an isolated paint boundary. A hover
-      or activation change repaints only that card, not the whole section.
-    • ANIMATION SCOPE — LED heartbeat and badge-pulse keyframes were
-      running on ALL cards at all times. Scoped to .is-active only.
-      Inactive cards now carry zero animation cost.
-    • COMPOSITE LAYER — noise ::before used mix-blend-mode:overlay which
-      forced a permanent extra GPU layer. Removed; opacity alone achieves
-      the same grain at a fraction of the compositing cost.
-    • FIRST CARD PRE-ACTIVE — Liquid stamps is-active on the first card
-      before any JS runs. Carousel is visually correct at paint time.
-    • TWO-PHASE JS — Phase 1 runs synchronously (~1ms): only paints
-      persisted committed/unlock badges for returning visitors. Phase 2
-      deferred via setTimeout(0) — yields one frame for the browser to
-      paint, then initialises all interaction, observers, video, modal.
-    • LAZY VIDEO INJECTION — video elements are NOT created until the
-      section is within 400px of the viewport. Pages where the section is
-      below the fold never pay createElement / load() costs at all.
-    • LAZY MODAL INIT — all form DOM-traversal and event-wiring happens
-      only on the first locked-card tap. Zero cost for pages with no
-      locked collections or users who never engage.
-    • LOCALSTORAGE CACHE — unlock tick no longer JSON.parses on every
-      1-second interval. Map is cached in memory; invalidated on
-      visibilitychange (tab return) and on addUnlock writes.
-    • is-animating CSS selector removed — class was never set by JS,
-      selector was wasted rule evaluation on every style recalc.
 {%- endcomment -%}
 
 {%- liquid
@@ -93,9 +61,9 @@
   assign now_ts              = 'now' | date: '%s' | plus: 0
 -%}
 
-{% render 'orbit-apex-style' %}
-{% render 'orbit-apex-markup' %}
-{% render 'orbit-apex-js' %}
+{% include 'orbit-apex-style' %}
+{% include 'orbit-apex-markup' %}
+{% include 'orbit-apex-js' %}
 
 {% schema %}
 {
@@ -114,7 +82,7 @@
     { "type": "color",  "id": "accent_color", "label": "Accent Color", "default": "#d4af37" },
     { "type": "text",   "id": "aspect_ratio", "label": "Aspect Ratio", "default": "4/5" },
     { "type": "range",  "id": "padding_v",    "label": "Vertical Padding", "min": 0, "max": 150, "step": 10, "default": 80 },
-    { "type": "checkbox", "id": "bottom_fade", "label": "Fade bottom into next section", "default": true, "info": "Soft blend from this section into the one below. Set Fade into color to match the next section. That next section does not need its own fade." },
+    { "type": "checkbox", "id": "bottom_fade", "label": "Fade bottom into next section", "default": true, "info": "Soft blend from this section into the one below. Set Fade into color to match the next section." },
     { "type": "color", "id": "fade_to_color", "label": "Fade into color", "default": "#ffffff" },
     { "type": "range", "id": "fade_height", "label": "Fade height", "min": 40, "max": 280, "step": 10, "unit": "px", "default": 140 },
 
