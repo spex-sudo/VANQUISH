@@ -1,13 +1,14 @@
 {%- comment -%}
   VANQUISH — Section blend
-  Writes CSS variables that drive the Orbit Apex white→black fade.
+  Writes CSS variables that drive the Orbit Apex black→white fade
+  at the BOTTOM of Orbit (into the section below).
   Place this section anywhere; it has no visible height of its own.
 {%- endcomment -%}
 
 {%- liquid
-  assign from = section.settings.from_color | default: '#ffffff'
-  assign into = section.settings.to_color | default: '#000000'
-  assign h = section.settings.fade_height | default: 180
+  assign from = section.settings.from_color | default: '#000000'
+  assign into = section.settings.to_color | default: '#ffffff'
+  assign h = section.settings.fade_height | default: 160
   assign enabled = section.settings.enabled
 -%}
 
@@ -26,12 +27,12 @@
   "class": "va-blend",
   "settings": [
     { "type": "checkbox", "id": "enabled", "label": "Enable fade", "default": true },
-    { "type": "color", "id": "from_color", "label": "Fade from", "default": "#ffffff", "info": "Color of the section above (Atelier is white)." },
-    { "type": "color", "id": "to_color", "label": "Fade into", "default": "#000000", "info": "Color of Orbit Apex (black)." },
-    { "type": "range", "id": "fade_height", "min": 40, "max": 320, "step": 10, "unit": "px", "label": "Fade height", "default": 180 }
+    { "type": "color", "id": "from_color", "label": "Fade from", "default": "#000000", "info": "Color of Orbit Apex (black)." },
+    { "type": "color", "id": "to_color", "label": "Fade into", "default": "#ffffff", "info": "Color of the section below (Atelier is white)." },
+    { "type": "range", "id": "fade_height", "min": 40, "max": 400, "step": 10, "unit": "px", "label": "Fade height", "default": 160 }
   ],
   "presets": [
-    { "name": "Section blend", "settings": { "enabled": true, "from_color": "#ffffff", "to_color": "#000000", "fade_height": 180 } }
+    { "name": "Section blend", "settings": { "enabled": true, "from_color": "#000000", "to_color": "#ffffff", "fade_height": 160 } }
   ]
 }
 {% endschema %}

@@ -1,40 +1,44 @@
-/* Orbit Apex blend — WHITE into BLACK at the TOP of the section.
-   Matches Atelier (white) sitting above Orbit (black).
+/* Orbit Apex blend — BLACK into WHITE at the BOTTOM of the section.
+   Orbit (black) sits above Atelier (white). The wash starts transparent
+   so cards stay readable, then eases into the next section color.
 
-   Override from the "Section blend" section, or Orbit Custom CSS:
+   Override from Orbit settings or Custom CSS:
      .orbit-master {
-       --orbit-fade-from: #ffffff;
-       --orbit-fade-to: #000000;
-       --orbit-fade-h: 180px;
+       --orbit-fade-from: #000000;
+       --orbit-fade-to: #ffffff;
+       --orbit-fade-h: 160px;
      }
 */
 .orbit-master {
-  --orbit-fade-from: #ffffff;
-  --orbit-fade-to: #000000;
-  --orbit-fade-h: 180px;
+  --orbit-fade-from: #000000;
+  --orbit-fade-to: #ffffff;
+  --orbit-fade-h: 160px;
 }
 .orbit-master::after {
   content: "";
   position: absolute;
   left: 0;
   right: 0;
-  top: 0;
-  bottom: auto;
+  top: auto;
+  bottom: 0;
   height: var(--orbit-fade-h);
   pointer-events: none;
-  z-index: 40;
+  z-index: 25;
   background: linear-gradient(
     to bottom,
-    var(--orbit-fade-from) 0%,
-    color-mix(in srgb, var(--orbit-fade-from) 88%, var(--orbit-fade-to)) 14%,
-    color-mix(in srgb, var(--orbit-fade-from) 68%, var(--orbit-fade-to)) 28%,
-    color-mix(in srgb, var(--orbit-fade-from) 48%, var(--orbit-fade-to)) 44%,
-    color-mix(in srgb, var(--orbit-fade-from) 28%, var(--orbit-fade-to)) 62%,
-    color-mix(in srgb, var(--orbit-fade-from) 12%, var(--orbit-fade-to)) 80%,
+    rgb(0 0 0 / 0) 0%,
+    color-mix(in srgb, var(--orbit-fade-to) 6%, transparent) 28%,
+    color-mix(in srgb, var(--orbit-fade-to) 18%, transparent) 48%,
+    color-mix(in srgb, var(--orbit-fade-to) 38%, transparent) 66%,
+    color-mix(in srgb, var(--orbit-fade-to) 62%, transparent) 80%,
+    color-mix(in srgb, var(--orbit-fade-to) 86%, transparent) 92%,
     var(--orbit-fade-to) 100%
   );
 }
 .section-orbit-apex {
   margin-top: 0;
   margin-bottom: 0;
+}
+.section-orbit-apex + .shopify-section {
+  margin-top: 0;
 }
