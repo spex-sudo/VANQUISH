@@ -1,0 +1,683 @@
+{%- comment -%}
+  VANQUISH — Product Atelier / Magazine carousel
+  Selected products, or a random store sample when none are picked.
+  No prices. Hovering rounded cards. Swipe + optional continuous rotation.
+{%- endcomment -%}
+
+{%- liquid
+  assign sid = section.id
+  assign name_font = section.settings.name_font
+  assign heading_font = section.settings.heading_font
+  assign limit = section.settings.card_count | default: 8
+  assign mode = section.settings.display_mode | default: 'products'
+  assign shape = section.settings.card_shape | default: 'squircle'
+  assign bg = section.settings.bg_color | default: '#0a0a0a'
+  assign ink = section.settings.text_color | default: '#f4f4f2'
+  assign brightness = bg | color_brightness | default: 10
+  if brightness > 140
+    assign surface = 'light'
+  else
+    assign surface = 'dark'
+  endif
+
+  assign card_count = 0
+  assign use_images = false
+
+  if mode == 'magazine'
+    assign use_images = true
+  endif
+
+  if use_images == false
+    assign selected = section.settings.products
+    if selected != blank and selected.size > 0
+      assign pool = selected
+      assign from_selected = true
+    else
+      assign from_selected = false
+      if section.settings.collection != blank and section.settings.collection.products_count > 0
+        assign pool = section.settings.collection.products
+      else
+        assign pool = collections.all.products
+      endif
+    endif
+  endif
+-%}
+
+{%- if name_font != blank -%}
+  <link rel="preload" as="font" href="{{ name_font | font_url }}" type="font/woff2" crossorigin>
+  <style>{{ name_font | font_face: font_display: 'swap' }}</style>
+{%- endif -%}
+{%- if heading_font != blank -%}
+  <style>{{ heading_font | font_face: font_display: 'swap' }}</style>
+{%- endif -%}
+
+<style>
+  #va-{{ sid }} {
+    --va-bg: {{ bg }};
+    --va-ink: {{ ink }};
+    --va-muted: {{ ink | color_modify: 'alpha', 0.55 }};
+    --va-line: {{ ink | color_modify: 'alpha', 0.10 }};
+    --va-name: {{ name_font.family | default: 'Bebas Neue' }}, {{ name_font.fallback_families | default: 'Impact, Haettenschweiler, Arial Narrow Bold' }}, sans-serif;
+    --va-head: {{ heading_font.family | default: 'Bebas Neue' }}, {{ heading_font.fallback_families | default: 'Impact, Arial Narrow Bold' }}, sans-serif;
+    --va-gap: {{ section.settings.card_gap }}px;
+    --va-pad: {{ section.settings.section_padding }}px;
+    --va-radius: {% if shape == 'squircle' %}{{ section.settings.squircle_radius }}px{% else %}{{ section.settings.landscape_radius }}px{% endif %};
+    --va-card-w: {{ section.settings.card_width }}px;
+    --va-ratio: {% if shape == 'landscape' %}{{ section.settings.landscape_ratio }}{% else %}1 / 1{% endif %};
+    --va-name-size: {{ section.settings.name_size }}px;
+    --va-lift: {{ section.settings.hover_lift }}px;
+    background: var(--va-bg);
+    color: var(--va-ink);
+    padding: {{ section.settings.pad_top }}px 0 {{ section.settings.pad_bottom }}px;
+    overflow: hidden;
+    isolation: isolate;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #va-{{ sid }} *,
+  #va-{{ sid }} *::before,
+  #va-{{ sid }} *::after { box-sizing: border-box; }
+
+  #va-{{ sid }} .va-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 0 var(--va-pad) 22px;
+  }
+
+  #va-{{ sid }} .va-title {
+    margin: 0;
+    font-family: var(--va-head);
+    font-size: {{ section.settings.title_size }}px;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1;
+    color: var(--va-ink);
+  }
+
+  #va-{{ sid }} .va-nav {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  #va-{{ sid }} .va-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    border: 1px solid var(--va-line);
+    background: transparent;
+    color: var(--va-ink);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
+  }
+  #va-{{ sid }} .va-btn:hover {
+    background: {{ ink | color_modify: 'alpha', 0.06 }};
+    border-color: {{ ink | color_modify: 'alpha', 0.22 }};
+  }
+  #va-{{ sid }} .va-btn:focus-visible {
+    outline: 2px solid var(--va-ink);
+    outline-offset: 2px;
+  }
+  #va-{{ sid }} .va-btn svg {
+    width: 14px;
+    height: 14px;
+    pointer-events: none;
+  }
+
+  #va-{{ sid }} .va-viewport {
+    position: relative;
+  }
+
+  {% if section.settings.edge_fade %}
+  #va-{{ sid }} .va-viewport {
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 36px, #000 calc(100% - 36px), transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0, #000 36px, #000 calc(100% - 36px), transparent 100%);
+  }
+  {% endif %}
+
+  #va-{{ sid }} .va-track {
+    display: flex;
+    gap: var(--va-gap);
+    padding: calc(var(--va-lift) + 18px) var(--va-pad) calc(var(--va-lift) + 28px);
+    overflow-x: auto;
+    overflow-y: visible;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--va-pad);
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    cursor: grab;
+    touch-action: pan-x;
+  }
+  #va-{{ sid }} .va-track::-webkit-scrollbar { display: none; }
+  #va-{{ sid }} .va-track.is-dragging {
+    cursor: grabbing;
+    scroll-snap-type: none;
+    user-select: none;
+  }
+
+  #va-{{ sid }} .va-card {
+    flex: 0 0 var(--va-card-w);
+    width: var(--va-card-w);
+    scroll-snap-align: start;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    contain: layout style;
+    content-visibility: auto;
+    contain-intrinsic-size: var(--va-card-w) 420px;
+  }
+
+  #va-{{ sid }} .va-media {
+    position: relative;
+    width: 100%;
+    aspect-ratio: var(--va-ratio);
+    border-radius: var(--va-radius);
+    overflow: hidden;
+    background: {% if surface == 'dark' %}#141414{% else %}#ececec{% endif %};
+    transform: translateZ(0);
+    transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 420ms cubic-bezier(0.22, 1, 0.36, 1);
+    {% if surface == 'dark' %}
+      box-shadow:
+        0 1px 0 rgba(255,255,255,0.06) inset,
+        0 10px 24px rgba(0,0,0,0.38),
+        0 2px 6px rgba(0,0,0,0.28);
+    {% else %}
+      box-shadow:
+        0 1px 0 rgba(255,255,255,0.85) inset,
+        0 14px 28px rgba(0,0,0,0.10),
+        0 3px 8px rgba(0,0,0,0.06);
+    {% endif %}
+  }
+
+  #va-{{ sid }} .va-card:hover .va-media,
+  #va-{{ sid }} .va-card:focus-visible .va-media {
+    transform: translate3d(0, calc(var(--va-lift) * -1), 0);
+    {% if surface == 'dark' %}
+      box-shadow:
+        0 1px 0 rgba(255,255,255,0.08) inset,
+        0 22px 40px rgba(0,0,0,0.55),
+        0 6px 14px rgba(0,0,0,0.32);
+    {% else %}
+      box-shadow:
+        0 1px 0 rgba(255,255,255,0.95) inset,
+        0 26px 48px rgba(0,0,0,0.14),
+        0 8px 16px rgba(0,0,0,0.07);
+    {% endif %}
+  }
+
+  #va-{{ sid }} .va-media img,
+  #va-{{ sid }} .va-media .va-ph {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    pointer-events: none;
+  }
+
+  #va-{{ sid }} .va-name {
+    margin: 0;
+    padding: 0 4px;
+    font-family: var(--va-name);
+    font-size: var(--va-name-size);
+    font-weight: 400;
+    letter-spacing: {{ section.settings.name_tracking | divided_by: 100.0 }}em;
+    text-transform: {{ section.settings.name_transform }};
+    line-height: 1.05;
+    color: var(--va-ink);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  #va-{{ sid }} .va-empty {
+    padding: 24px var(--va-pad) 8px;
+    color: var(--va-muted);
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 749px) {
+    #va-{{ sid }} {
+      --va-card-w: {{ section.settings.card_width | times: 0.78 | round }}px;
+      --va-pad: {{ section.settings.section_padding | at_most: 20 }}px;
+    }
+    #va-{{ sid }} .va-title { font-size: {{ section.settings.title_size | times: 0.78 | round }}px; }
+    #va-{{ sid }} .va-name { font-size: {{ section.settings.name_size | times: 0.9 | round }}px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #va-{{ sid }} .va-media,
+    #va-{{ sid }} .va-card:hover .va-media {
+      transition: none;
+      transform: none;
+    }
+  }
+</style>
+
+<section
+  id="va-{{ sid }}"
+  class="va-atelier va-{{ surface }}"
+  data-va-root
+  data-autoplay="{{ section.settings.autoplay }}"
+  data-speed="{{ section.settings.autoplay_speed }}"
+  aria-label="{{ section.settings.title | default: 'Product atelier' | escape }}"
+>
+  {%- if section.settings.show_header and section.settings.title != blank -%}
+    <div class="va-header">
+      <h2 class="va-title">{{ section.settings.title | escape }}</h2>
+      <div class="va-nav">
+        <button class="va-btn" type="button" data-va-prev aria-label="Previous">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2.5 4.5 7 9 11.5"/></svg>
+        </button>
+        <button class="va-btn" type="button" data-va-next aria-label="Next">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 2.5 9.5 7 5 11.5"/></svg>
+        </button>
+      </div>
+    </div>
+  {%- elsif section.settings.show_arrows -%}
+    <div class="va-header" style="justify-content:flex-end;padding-bottom:12px;">
+      <div class="va-nav">
+        <button class="va-btn" type="button" data-va-prev aria-label="Previous">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2.5 4.5 7 9 11.5"/></svg>
+        </button>
+        <button class="va-btn" type="button" data-va-next aria-label="Next">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 2.5 9.5 7 5 11.5"/></svg>
+        </button>
+      </div>
+    </div>
+  {%- endif -%}
+
+  <div class="va-viewport">
+    <div class="va-track" data-va-track role="list">
+      {%- if use_images -%}
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'magazine' and block.settings.image != blank -%}
+            {%- assign card_count = card_count | plus: 1 -%}
+            {%- assign img = block.settings.image -%}
+            {%- assign href = '#' -%}
+            {%- if block.settings.link != blank -%}
+              {%- assign href = block.settings.link -%}
+            {%- endif -%}
+            {%- assign alt_text = block.settings.caption | default: img.alt | escape -%}
+            <a class="va-card" role="listitem" href="{{ href }}" {{ block.shopify_attributes }}>
+              <div class="va-media">
+                {{ img
+                  | image_url: width: 900
+                  | image_tag:
+                    widths: '320, 480, 640, 800, 900',
+                    sizes: '(max-width: 749px) 62vw, 280px',
+                    loading: 'lazy',
+                    decoding: 'async',
+                    alt: alt_text
+                }}
+              </div>
+              {%- if section.settings.show_names and block.settings.caption != blank -%}
+                <p class="va-name">{{ block.settings.caption | escape }}</p>
+              {%- endif -%}
+            </a>
+          {%- endif -%}
+        {%- endfor -%}
+      {%- else -%}
+        {%- liquid
+          assign shown = 0
+          assign pool_size = pool.size | default: 0
+          assign tick = 'now' | date: '%s' | plus: 0
+          if from_selected
+            assign start_at = 0
+          elsif pool_size > 1
+            assign start_at = tick | modulo: pool_size
+          else
+            assign start_at = 0
+          endif
+          assign current_id = product.id | default: 0
+        -%}
+
+        {%- if from_selected -%}
+          {%- for item in pool -%}
+            {%- if shown >= limit -%}{%- break -%}{%- endif -%}
+            {%- if item == blank or item.featured_image == blank -%}{%- continue -%}{%- endif -%}
+            {%- assign shown = shown | plus: 1 -%}
+            {%- assign card_count = card_count | plus: 1 -%}
+            {%- assign alt_text = item.featured_image.alt | default: item.title | escape -%}
+            <a class="va-card" role="listitem" href="{{ item.url }}">
+              <div class="va-media">
+                {{ item.featured_image
+                  | image_url: width: 900
+                  | image_tag:
+                    widths: '320, 480, 640, 800, 900',
+                    sizes: '(max-width: 749px) 62vw, 280px',
+                    loading: 'lazy',
+                    decoding: 'async',
+                    alt: alt_text
+                }}
+              </div>
+              {%- if section.settings.show_names -%}
+                <p class="va-name">{{ item.title | escape }}</p>
+              {%- endif -%}
+            </a>
+          {%- endfor -%}
+        {%- else -%}
+          {%- for pass in (1..2) -%}
+            {%- for item in pool -%}
+              {%- if shown >= limit -%}{%- break -%}{%- endif -%}
+              {%- if pass == 1 and forloop.index0 < start_at -%}{%- continue -%}{%- endif -%}
+              {%- if item == blank or item.featured_image == blank -%}{%- continue -%}{%- endif -%}
+              {%- if current_id != 0 and item.id == current_id -%}{%- continue -%}{%- endif -%}
+              {%- assign shown = shown | plus: 1 -%}
+              {%- assign card_count = card_count | plus: 1 -%}
+              {%- assign alt_text = item.featured_image.alt | default: item.title | escape -%}
+              <a class="va-card" role="listitem" href="{{ item.url }}">
+                <div class="va-media">
+                  {{ item.featured_image
+                    | image_url: width: 900
+                    | image_tag:
+                      widths: '320, 480, 640, 800, 900',
+                      sizes: '(max-width: 749px) 62vw, 280px',
+                      loading: 'lazy',
+                      decoding: 'async',
+                      alt: alt_text
+                  }}
+                </div>
+                {%- if section.settings.show_names -%}
+                  <p class="va-name">{{ item.title | escape }}</p>
+                {%- endif -%}
+              </a>
+            {%- endfor -%}
+            {%- if shown >= limit -%}{%- break -%}{%- endif -%}
+          {%- endfor -%}
+        {%- endif -%}
+      {%- endif -%}
+    </div>
+  </div>
+
+  {%- if card_count == 0 -%}
+    <p class="va-empty">
+      {%- if request.design_mode -%}
+        Select products, a collection, or add magazine images.
+      {%- endif -%}
+    </p>
+  {%- endif -%}
+</section>
+
+{%- if card_count > 0 -%}
+<script>
+(() => {
+  const root = document.getElementById('va-{{ sid }}');
+  if (!root) return;
+  const track = root.querySelector('[data-va-track]');
+  if (!track) return;
+
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const autoplayOn = root.dataset.autoplay === 'true' && !reduce;
+  const speed = Math.max(8, parseInt(root.dataset.speed || '28', 10));
+  const originals = Array.from(track.children);
+  if (!originals.length) return;
+
+  let looping = false;
+  if (autoplayOn && originals.length > 1) {
+    const frag = document.createDocumentFragment();
+    originals.forEach((node) => frag.appendChild(node.cloneNode(true)));
+    track.appendChild(frag);
+    looping = true;
+  }
+
+  let dragging = false;
+  let startX = 0;
+  let startScroll = 0;
+  let moved = 0;
+  let paused = false;
+  let raf = 0;
+  let last = 0;
+  let half = 0;
+
+  const measure = () => {
+    if (!looping) return;
+    half = track.scrollWidth / 2;
+  };
+
+  const wrap = () => {
+    if (!looping || half <= 0) return;
+    if (track.scrollLeft >= half - 1) track.scrollLeft -= half;
+    else if (track.scrollLeft <= 1) track.scrollLeft += half;
+  };
+
+  const step = (ts) => {
+    if (!autoplayOn || paused || dragging) {
+      raf = 0;
+      return;
+    }
+    if (!last) last = ts;
+    const dt = Math.min(32, ts - last);
+    last = ts;
+    track.scrollLeft += (speed / 1000) * dt * 16;
+    wrap();
+    raf = requestAnimationFrame(step);
+  };
+
+  const play = () => {
+    if (!autoplayOn || paused || dragging || raf) return;
+    last = 0;
+    raf = requestAnimationFrame(step);
+  };
+
+  const stop = () => {
+    if (raf) cancelAnimationFrame(raf);
+    raf = 0;
+    last = 0;
+  };
+
+  const page = (dir) => {
+    const amount = Math.max(track.clientWidth * 0.72, originals[0].getBoundingClientRect().width + 16);
+    track.scrollBy({ left: dir * amount, behavior: reduce ? 'auto' : 'smooth' });
+    if (looping) setTimeout(wrap, 420);
+  };
+
+  const prev = root.querySelector('[data-va-prev]');
+  const next = root.querySelector('[data-va-next]');
+  if (prev) prev.addEventListener('click', () => page(-1));
+  if (next) next.addEventListener('click', () => page(1));
+
+  track.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    dragging = true;
+    moved = 0;
+    startX = e.clientX;
+    startScroll = track.scrollLeft;
+    track.classList.add('is-dragging');
+    try { track.setPointerCapture(e.pointerId); } catch (err) {}
+    stop();
+  });
+
+  track.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const dx = e.clientX - startX;
+    moved = Math.max(moved, Math.abs(dx));
+    track.scrollLeft = startScroll - dx;
+    wrap();
+  });
+
+  const endDrag = () => {
+    if (!dragging) return;
+    dragging = false;
+    track.classList.remove('is-dragging');
+    wrap();
+    if (!paused) play();
+  };
+
+  track.addEventListener('pointerup', endDrag);
+  track.addEventListener('pointercancel', endDrag);
+  track.addEventListener('pointerleave', endDrag);
+
+  track.addEventListener('click', (e) => {
+    if (moved > 8) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, true);
+
+  track.addEventListener('scroll', () => { if (!dragging) wrap(); }, { passive: true });
+
+  root.addEventListener('mouseenter', () => { paused = true; stop(); });
+  root.addEventListener('mouseleave', () => { paused = false; play(); });
+  root.addEventListener('focusin', () => { paused = true; stop(); });
+  root.addEventListener('focusout', () => { paused = false; play(); });
+
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) play();
+        else stop();
+      });
+    }, { threshold: 0.12 });
+    io.observe(root);
+  }
+
+  measure();
+  if (looping) track.scrollLeft = 1;
+  requestAnimationFrame(measure);
+  window.addEventListener('resize', measure, { passive: true });
+  play();
+})();
+</script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Product Atelier",
+  "tag": "section",
+  "class": "va-atelier-section",
+  "settings": [
+    { "type": "header", "content": "Content" },
+    {
+      "type": "select",
+      "id": "display_mode",
+      "label": "Display",
+      "options": [
+        { "value": "products", "label": "Products" },
+        { "value": "magazine", "label": "Magazine images" }
+      ],
+      "default": "products",
+      "info": "Magazine mode uses the image blocks below. Works on any page, including product."
+    },
+    {
+      "type": "product_list",
+      "id": "products",
+      "label": "Selected products",
+      "limit": 16,
+      "info": "Leave empty to pull a random sample from the collection below, or from the whole catalog."
+    },
+    { "type": "collection", "id": "collection", "label": "Fallback collection" },
+    {
+      "type": "range",
+      "id": "card_count",
+      "min": 3,
+      "max": 16,
+      "step": 1,
+      "label": "Max cards",
+      "default": 8
+    },
+    { "type": "header", "content": "Heading" },
+    { "type": "checkbox", "id": "show_header", "label": "Show section title", "default": true },
+    { "type": "text", "id": "title", "label": "Title", "default": "Atelier" },
+    { "type": "checkbox", "id": "show_arrows", "label": "Show arrows when title is hidden", "default": true },
+    { "type": "header", "content": "Cards" },
+    {
+      "type": "select",
+      "id": "card_shape",
+      "label": "Card shape",
+      "options": [
+        { "value": "squircle", "label": "Squircle" },
+        { "value": "landscape", "label": "Landscape square" }
+      ],
+      "default": "squircle"
+    },
+    {
+      "type": "select",
+      "id": "landscape_ratio",
+      "label": "Landscape ratio",
+      "options": [
+        { "value": "4 / 3", "label": "4:3" },
+        { "value": "16 / 10", "label": "16:10" },
+        { "value": "3 / 2", "label": "3:2" },
+        { "value": "16 / 9", "label": "16:9" }
+      ],
+      "default": "4 / 3"
+    },
+    { "type": "range", "id": "card_width", "min": 160, "max": 420, "step": 10, "unit": "px", "label": "Card width", "default": 260 },
+    { "type": "range", "id": "squircle_radius", "min": 16, "max": 64, "step": 2, "unit": "px", "label": "Squircle corner", "default": 36 },
+    { "type": "range", "id": "landscape_radius", "min": 8, "max": 40, "step": 2, "unit": "px", "label": "Landscape corner", "default": 18 },
+    { "type": "range", "id": "card_gap", "min": 8, "max": 40, "step": 2, "unit": "px", "label": "Gap", "default": 20 },
+    { "type": "range", "id": "hover_lift", "min": 4, "max": 18, "step": 1, "unit": "px", "label": "Hover lift", "default": 8 },
+    { "type": "checkbox", "id": "show_names", "label": "Show product / caption name", "default": true },
+    { "type": "header", "content": "Typography" },
+    { "type": "font_picker", "id": "name_font", "label": "Product name font", "default": "bebas_neue_n4" },
+    { "type": "font_picker", "id": "heading_font", "label": "Section title font", "default": "bebas_neue_n4" },
+    { "type": "range", "id": "name_size", "min": 14, "max": 42, "step": 1, "unit": "px", "label": "Name size", "default": 22 },
+    { "type": "range", "id": "title_size", "min": 16, "max": 56, "step": 2, "unit": "px", "label": "Title size", "default": 28 },
+    { "type": "range", "id": "name_tracking", "min": 0, "max": 20, "step": 1, "label": "Name letter spacing", "default": 4 },
+    {
+      "type": "select",
+      "id": "name_transform",
+      "label": "Name capitalization",
+      "options": [
+        { "value": "uppercase", "label": "Uppercase" },
+        { "value": "none", "label": "As written" },
+        { "value": "capitalize", "label": "Capitalize" }
+      ],
+      "default": "uppercase"
+    },
+    { "type": "header", "content": "Motion" },
+    {
+      "type": "checkbox",
+      "id": "autoplay",
+      "label": "Continuous rotation",
+      "default": false,
+      "info": "Seamless loop. Pauses on hover, focus, and when the section is off-screen. Honors reduced-motion."
+    },
+    { "type": "range", "id": "autoplay_speed", "min": 8, "max": 60, "step": 2, "label": "Rotation speed", "default": 22 },
+    { "type": "checkbox", "id": "edge_fade", "label": "Fade carousel edges", "default": true },
+    { "type": "header", "content": "Colors & space" },
+    { "type": "color", "id": "bg_color", "label": "Background", "default": "#0a0a0a" },
+    { "type": "color", "id": "text_color", "label": "Text", "default": "#f4f4f2" },
+    { "type": "range", "id": "section_padding", "min": 12, "max": 80, "step": 4, "unit": "px", "label": "Side padding", "default": 32 },
+    { "type": "range", "id": "pad_top", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Padding top", "default": 40 },
+    { "type": "range", "id": "pad_bottom", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Padding bottom", "default": 48 }
+  ],
+  "blocks": [
+    {
+      "type": "magazine",
+      "name": "Magazine image",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Image" },
+        { "type": "text", "id": "caption", "label": "Caption" },
+        { "type": "url", "id": "link", "label": "Link" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product Atelier",
+      "settings": {
+        "display_mode": "products",
+        "title": "Atelier",
+        "card_shape": "squircle",
+        "autoplay": false,
+        "name_font": "bebas_neue_n4",
+        "heading_font": "bebas_neue_n4",
+        "bg_color": "#0a0a0a",
+        "text_color": "#f4f4f2"
+      }
+    }
+  ]
+}
+{% endschema %}
