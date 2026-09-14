@@ -1,1 +1,216 @@
-SEE_FILE_/tmp/luxury-collectiongrid.liquid
+{%- comment -%}
+  SOVEREIGN ORBIT APEX — v3.4  (Performance Edition + bottom fade)
+  ───────────────────────────────────────────────────────────────────
+  PERF CHANGES in v3.3:
+    • CONTENT-VISIBILITY — section gains content-visibility:auto so the
+      browser skips all paint/layout when the section is off-screen.
+      contain-intrinsic-block-size provides a placeholder height so the
+      scrollbar doesn't jump when the section renders.
+    • CARD PAINT CONTAINMENT — contain:layout style paint on every card
+      tells the browser each card is an isolated paint boundary. A hover
+      or activation change repaints only that card, not the whole section.
+    • ANIMATION SCOPE — LED heartbeat and badge-pulse keyframes were
+      running on ALL cards at all times. Scoped to .is-active only.
+      Inactive cards now carry zero animation cost.
+    • COMPOSITE LAYER — noise ::before used mix-blend-mode:overlay which
+      forced a permanent extra GPU layer. Removed; opacity alone achieves
+      the same grain at a fraction of the compositing cost.
+    • FIRST CARD PRE-ACTIVE — Liquid stamps is-active on the first card
+      before any JS runs. Carousel is visually correct at paint time.
+    • TWO-PHASE JS — Phase 1 runs synchronously (~1ms): only paints
+      persisted committed/unlock badges for returning visitors. Phase 2
+      deferred via setTimeout(0) — yields one frame for the browser to
+      paint, then initialises all interaction, observers, video, modal.
+    • LAZY VIDEO INJECTION — video elements are NOT created until the
+      section is within 400px of the viewport. Pages where the section is
+      below the fold never pay createElement / load() costs at all.
+    • LAZY MODAL INIT — all form DOM-traversal and event-wiring happens
+      only on the first locked-card tap. Zero cost for pages with no
+      locked collections or users who never engage.
+    • LOCALSTORAGE CACHE — unlock tick no longer JSON.parses on every
+      1-second interval. Map is cached in memory; invalidated on
+      visibilitychange (tab return) and on addUnlock writes.
+    • is-animating CSS selector removed — class was never set by JS,
+      selector was wasted rule evaluation on every style recalc.
+{%- endcomment -%}
+
+{%- liquid
+  assign sid                 = section.id
+  assign bg                  = section.settings.bg_color         | default: '#000000'
+  assign accent              = section.settings.accent_color     | default: '#d4af37'
+  assign eyebrow             = section.settings.eyebrow
+  assign heading             = section.settings.heading
+  assign tagline             = section.settings.tagline
+
+  assign rendered_count = 0
+  for _b in section.blocks
+    assign _bc = collections[_b.settings.collection]
+    if _bc != blank and _bc != empty
+      assign rendered_count = rendered_count | plus: 1
+    endif
+  endfor
+
+  assign enable_autoscroll   = section.settings.enable_autoscroll
+  assign autoscroll_interval = section.settings.autoscroll_interval | default: 6
+  assign show_counter        = section.settings.show_counter
+  assign show_meta           = section.settings.show_meta
+  assign show_noise          = section.settings.show_noise
+  assign show_dots           = section.settings.show_dots
+  assign enable_schema       = section.settings.enable_schema
+  assign enable_nudge        = section.settings.enable_nudge
+  assign card_radius         = section.settings.card_radius        | default: 16
+  assign card_width_pct      = section.settings.card_width_desktop | default: 70
+  assign card_width_mob      = section.settings.card_width_mobile  | default: 80
+  assign card_gap_px         = section.settings.card_gap           | default: 40
+
+  assign price_prefix        = section.settings.price_prefix          | default: 'From'
+  assign unit_singular       = section.settings.unit_singular         | default: 'piece'
+  assign unit_plural         = section.settings.unit_plural           | default: 'pieces'
+  assign cd_day_label        = section.settings.countdown_day_label    | default: 'days'
+  assign cd_hour_label       = section.settings.countdown_hour_label   | default: 'hrs'
+  assign cd_min_label        = section.settings.countdown_minute_label | default: 'min'
+  assign cd_sec_label        = section.settings.countdown_second_label | default: 'sec'
+  assign sr_showing_label    = section.settings.sr_showing_label      | default: 'Showing'
+  assign sr_of_label         = section.settings.sr_of_label           | default: 'of'
+
+  assign modal_bg            = section.settings.modal_bg            | default: '#ffffff'
+  assign modal_fg            = section.settings.modal_fg            | default: '#0a0a0a'
+  assign modal_accent        = section.settings.modal_accent        | default: '#0071e3'
+  assign modal_radius        = section.settings.modal_radius        | default: 24
+  assign modal_step1_title   = section.settings.modal_step1_title   | default: 'Request Access'
+  assign modal_step1_sub     = section.settings.modal_step1_sub     | default: "Reserve your spot. We'll email when it opens."
+  assign modal_cta_submit    = section.settings.modal_cta_submit    | default: 'Reserve Access'
+  assign modal_name_label    = section.settings.modal_name_label    | default: 'First name'
+  assign modal_email_label   = section.settings.modal_email_label   | default: 'Email'
+  assign modal_biz_label     = section.settings.modal_biz_label     | default: "I'm signing up for a business"
+  assign modal_privacy_note  = section.settings.modal_privacy_note  | default: "We'll never share your email. Unsubscribe anytime."
+  assign committed_badge     = section.settings.committed_badge     | default: "YOU'RE ON THE LIST"
+  assign unlock_hours        = section.settings.unlock_hours        | default: 24
+  assign countdown_enabled   = section.settings.countdown_enabled
+  assign business_tag        = section.settings.business_tag        | default: 'business_partner'
+  assign admin_notify_url    = section.settings.admin_notify_url    | default: ''
+
+  assign now_ts              = 'now' | date: '%s' | plus: 0
+-%}
+
+{% render 'orbit-apex-style' %}
+{% render 'orbit-apex-markup' %}
+{% render 'orbit-apex-js' %}
+
+{% schema %}
+{
+  "name": "Sovereign Orbit Apex",
+  "tag": "section",
+  "class": "section-orbit-apex",
+  "settings": [
+    { "type": "header", "content": "Header Copy" },
+    { "type": "text",     "id": "eyebrow",  "label": "Eyebrow",  "default": "SOVEREIGN / 2026 / LIVE" },
+    { "type": "text",     "id": "heading",  "label": "Heading",  "default": "The Apex Collections" },
+    { "type": "textarea", "id": "tagline",  "label": "Tagline",  "default": "Six worlds. One uniform. Curated for those who refuse the default." },
+    { "type": "range",    "id": "header_gap", "label": "Space below header", "min": 0, "max": 120, "step": 4, "default": 56 },
+
+    { "type": "header", "content": "Visual Core" },
+    { "type": "color",  "id": "bg_color",     "label": "Background",   "default": "#000000" },
+    { "type": "color",  "id": "accent_color", "label": "Accent Color", "default": "#d4af37" },
+    { "type": "text",   "id": "aspect_ratio", "label": "Aspect Ratio", "default": "4/5" },
+    { "type": "range",  "id": "padding_v",    "label": "Vertical Padding", "min": 0, "max": 150, "step": 10, "default": 80 },
+    { "type": "checkbox", "id": "bottom_fade", "label": "Fade bottom into next section", "default": true, "info": "Soft blend from this section into the one below. Set Fade into color to match the next section. That next section does not need its own fade." },
+    { "type": "color", "id": "fade_to_color", "label": "Fade into color", "default": "#ffffff" },
+    { "type": "range", "id": "fade_height", "label": "Fade height", "min": 40, "max": 280, "step": 10, "unit": "px", "default": 140 },
+
+    { "type": "header", "content": "Typography" },
+    { "type": "font_picker", "id": "title_font", "label": "Title Font", "default": "mono" },
+    { "type": "range",       "id": "title_size", "label": "Max Title Size", "min": 20, "max": 60, "step": 1, "default": 36 },
+
+    { "type": "header", "content": "Controls" },
+    { "type": "checkbox", "id": "enable_blur",    "label": "Inactive Blur",             "default": true },
+    { "type": "checkbox", "id": "show_ring",      "label": "Orbital Ring",              "default": false },
+    { "type": "checkbox", "id": "show_hud",       "label": "HUD Corner Brackets",       "default": false },
+    { "type": "checkbox", "id": "show_scanlines", "label": "Scanline Texture",           "default": false },
+    { "type": "checkbox", "id": "show_noise",     "label": "Film Grain Overlay",         "default": true },
+    { "type": "checkbox", "id": "show_counter",   "label": "Show Position Counter",      "default": true },
+    { "type": "checkbox", "id": "show_meta",      "label": "Show Collection Meta",       "default": true },
+    { "type": "checkbox", "id": "show_dots",      "label": "Show Dot Pagination",        "default": true },
+    { "type": "checkbox", "id": "enable_nudge",   "label": "Auto-Nudge on First Visit",  "default": true },
+    { "type": "range",    "id": "card_radius",          "label": "Card Corner Radius",   "min": 0,  "max": 40, "step": 2,  "default": 16, "unit": "px" },
+    { "type": "range",    "id": "card_width_desktop",   "label": "Card Width (desktop)", "min": 50, "max": 85, "step": 1,  "default": 70, "unit": "%" },
+    { "type": "range",    "id": "card_width_mobile",    "label": "Card Width (mobile)",  "min": 70, "max": 92, "step": 1,  "default": 80, "unit": "%" },
+    { "type": "range",    "id": "card_gap",             "label": "Card Gap",             "min": 10, "max": 80, "step": 2,  "default": 40, "unit": "px" },
+    { "type": "select", "id": "inactive_scale", "label": "Inactive Card Scale",
+      "options": [{"value":"0.8","label":"Small (0.8)"},{"value":"0.9","label":"Medium (0.9)"},{"value":"1.0","label":"Full Size (1.0)"}],
+      "default": "0.9" },
+
+    { "type": "header", "content": "Autoscroll" },
+    { "type": "checkbox", "id": "enable_autoscroll",   "label": "Enable Autoscroll", "default": false },
+    { "type": "range",    "id": "autoscroll_interval", "label": "Seconds per card",  "min": 3, "max": 15, "step": 1, "default": 6 },
+
+    { "type": "header", "content": "Text Labels" },
+    { "type": "text", "id": "price_prefix",           "label": "Price prefix",           "default": "From" },
+    { "type": "text", "id": "unit_singular",          "label": "Unit (singular)",         "default": "piece" },
+    { "type": "text", "id": "unit_plural",            "label": "Unit (plural)",           "default": "pieces" },
+    { "type": "text", "id": "countdown_day_label",    "label": "Countdown — days",        "default": "days" },
+    { "type": "text", "id": "countdown_hour_label",   "label": "Countdown — hours",       "default": "hrs" },
+    { "type": "text", "id": "countdown_minute_label", "label": "Countdown — minutes",     "default": "min" },
+    { "type": "text", "id": "countdown_second_label", "label": "Countdown — seconds",     "default": "sec" },
+    { "type": "text", "id": "sr_showing_label",       "label": "Screen reader 'Showing'", "default": "Showing" },
+    { "type": "text", "id": "sr_of_label",            "label": "Screen reader 'of'",      "default": "of" },
+    { "type": "text", "id": "committed_badge",        "label": "You're on the list badge", "default": "YOU'RE ON THE LIST" },
+
+    { "type": "header", "content": "Access Modal — Design" },
+    { "type": "color", "id": "modal_bg",     "label": "Modal Background", "default": "#ffffff" },
+    { "type": "color", "id": "modal_fg",     "label": "Modal Text",       "default": "#0a0a0a" },
+    { "type": "color", "id": "modal_accent", "label": "Modal Accent",     "default": "#0071e3" },
+    { "type": "range", "id": "modal_radius", "label": "Modal Corner Radius", "min": 0, "max": 40, "step": 2, "default": 24, "unit": "px" },
+
+    { "type": "header", "content": "Access Modal — Copy" },
+    { "type": "text",     "id": "modal_step1_title",  "label": "Title",            "default": "Request Access" },
+    { "type": "text",     "id": "modal_step1_sub",    "label": "Subtitle",         "default": "Reserve your spot. We'll email when it opens." },
+    { "type": "text",     "id": "modal_name_label",   "label": "Name field label", "default": "First name" },
+    { "type": "text",     "id": "modal_email_label",  "label": "Email field label","default": "Email" },
+    { "type": "text",     "id": "modal_biz_label",    "label": "Business toggle",  "default": "I'm signing up for a business" },
+    { "type": "text",     "id": "modal_cta_submit",   "label": "Submit button",    "default": "Reserve Access" },
+    { "type": "textarea", "id": "modal_privacy_note", "label": "Privacy note",     "default": "We'll never share your email. Unsubscribe anytime." },
+
+    { "type": "header", "content": "Unlock Timing" },
+    { "type": "checkbox", "id": "countdown_enabled", "label": "Enable countdown after signup", "default": true,
+      "info": "OFF = immediate access. Business signups always unlock immediately." },
+    { "type": "range", "id": "unlock_hours", "label": "Countdown duration (hours)", "min": 1, "max": 72, "step": 1, "default": 24, "unit": "h" },
+
+    { "type": "header", "content": "Business Customers" },
+    { "type": "text", "id": "business_tag", "label": "Tag for business signups", "default": "business_partner" },
+
+    { "type": "header", "content": "Webhook (optional)" },
+    { "type": "url", "id": "admin_notify_url", "label": "Business signup webhook URL" },
+
+    { "type": "header", "content": "SEO" },
+    { "type": "checkbox", "id": "enable_schema", "label": "Output JSON-LD ItemList schema", "default": true }
+  ],
+  "blocks": [
+    {
+      "type": "collection",
+      "name": "Collection",
+      "settings": [
+        { "type": "collection",   "id": "collection",   "label": "Collection" },
+        { "type": "text",         "id": "status_text",  "label": "Status Label",  "default": "SYSTEM_READY" },
+        { "type": "color",        "id": "status_color", "label": "Status Color",  "default": "#d4af37" },
+        { "type": "image_picker", "id": "custom_image", "label": "Custom Photo" },
+        { "type": "video",        "id": "video_url",    "label": "Custom Video" },
+        { "type": "text",         "id": "cta_label",    "label": "CTA Label",     "default": "Enter" },
+        { "type": "text",         "id": "price_from",   "label": "Price From (optional)" },
+        { "type": "header", "content": "Tactical Badge" },
+        { "type": "text",  "id": "badge_text",       "label": "Badge Text" },
+        { "type": "color", "id": "badge_bg",         "label": "Badge Background",  "default": "#000000" },
+        { "type": "color", "id": "badge_text_color", "label": "Badge Text / Glow", "default": "#ff4d4d" },
+        { "type": "header", "content": "Collection Lock" },
+        { "type": "checkbox", "id": "lock_collection",    "label": "Lock this collection",       "default": false },
+        { "type": "text",     "id": "lock_label",         "label": "Lock Message",               "default": "ACCESS RESTRICTED" },
+        { "type": "text",     "id": "lock_cta_label",     "label": "Lock CTA chip text",         "default": "Request Access" },
+        { "type": "text",     "id": "unlocked_cta_label", "label": "Unlocked CTA (after grace)", "default": "Shop Now" },
+        { "type": "color",    "id": "lock_color",         "label": "Lock Accent Color",          "default": "#888888" },
+        { "type": "text",     "id": "lock_unlock_at",     "label": "Unlock At (YYYY-MM-DD HH:MM)", "info": "Optional live countdown. Shop timezone." }
+      ]
+    }
+  ],
+  "presets": [{ "name": "Sovereign Orbit Apex" }]
+}
+{% endschema %}
