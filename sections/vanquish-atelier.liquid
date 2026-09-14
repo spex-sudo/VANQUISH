@@ -52,6 +52,7 @@
 {%- endif -%}
 
 <style>
+  #shopify-section-{{ sid }} { margin: 0; }
   #va-{{ sid }} {
     --va-bg: {{ bg }};
     --va-ink: {{ ink }};
@@ -66,6 +67,7 @@
     --va-ratio: {% if shape == 'landscape' %}{{ section.settings.landscape_ratio }}{% else %}1 / 1{% endif %};
     --va-name-size: {{ section.settings.name_size }}px;
     --va-lift: {{ section.settings.hover_lift }}px;
+    --va-shadow: {% if surface == 'dark' %}18px{% else %}14px{% endif %};
     background: var(--va-bg);
     color: var(--va-ink);
     padding: {{ section.settings.pad_top }}px 0 {{ section.settings.pad_bottom }}px;
@@ -83,7 +85,7 @@
     align-items: baseline;
     justify-content: space-between;
     gap: 16px;
-    padding: 0 var(--va-pad) 22px;
+    padding: 0 var(--va-pad) 18px;
   }
 
   #va-{{ sid }} .va-title {
@@ -130,9 +132,7 @@
     pointer-events: none;
   }
 
-  #va-{{ sid }} .va-viewport {
-    position: relative;
-  }
+  #va-{{ sid }} .va-viewport { position: relative; }
 
   {% if section.settings.edge_fade %}
   #va-{{ sid }} .va-viewport {
@@ -143,10 +143,11 @@
 
   #va-{{ sid }} .va-track {
     display: flex;
+    align-items: flex-start;
     gap: var(--va-gap);
-    padding: calc(var(--va-lift) + 18px) var(--va-pad) calc(var(--va-lift) + 28px);
+    padding: var(--va-lift) var(--va-pad) var(--va-shadow);
     overflow-x: auto;
-    overflow-y: visible;
+    overflow-y: hidden;
     scroll-snap-type: x mandatory;
     scroll-padding-inline: var(--va-pad);
     -webkit-overflow-scrolling: touch;
@@ -169,10 +170,8 @@
     color: inherit;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: {% if section.settings.show_names %}8px{% else %}0{% endif %};
     contain: layout style;
-    content-visibility: auto;
-    contain-intrinsic-size: var(--va-card-w) 420px;
   }
 
   #va-{{ sid }} .va-media {
@@ -233,13 +232,15 @@
     line-height: 1.05;
     color: var(--va-ink);
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    min-height: 0;
   }
 
   #va-{{ sid }} .va-empty {
-    padding: 24px var(--va-pad) 8px;
+    margin: 0;
+    padding: 8px var(--va-pad);
     color: var(--va-muted);
     font-size: 13px;
     letter-spacing: 0.08em;
@@ -311,15 +312,7 @@
             {%- assign alt_text = block.settings.caption | default: img.alt | escape -%}
             <a class="va-card" role="listitem" href="{{ href }}" {{ block.shopify_attributes }}>
               <div class="va-media">
-                {{ img
-                  | image_url: width: 900
-                  | image_tag:
-                    widths: '320, 480, 640, 800, 900',
-                    sizes: '(max-width: 749px) 62vw, 280px',
-                    loading: 'lazy',
-                    decoding: 'async',
-                    alt: alt_text
-                }}
+                {{ img | image_url: width: 900 | image_tag: widths: '320, 480, 640, 800, 900', sizes: '(max-width: 749px) 62vw, 280px', loading: 'lazy', decoding: 'async', alt: alt_text }}
               </div>
               {%- if section.settings.show_names and block.settings.caption != blank -%}
                 <p class="va-name">{{ block.settings.caption | escape }}</p>
@@ -341,7 +334,6 @@
           endif
           assign current_id = product.id | default: 0
         -%}
-
         {%- if from_selected -%}
           {%- for item in pool -%}
             {%- if shown >= limit -%}{%- break -%}{%- endif -%}
@@ -351,15 +343,7 @@
             {%- assign alt_text = item.featured_image.alt | default: item.title | escape -%}
             <a class="va-card" role="listitem" href="{{ item.url }}">
               <div class="va-media">
-                {{ item.featured_image
-                  | image_url: width: 900
-                  | image_tag:
-                    widths: '320, 480, 640, 800, 900',
-                    sizes: '(max-width: 749px) 62vw, 280px',
-                    loading: 'lazy',
-                    decoding: 'async',
-                    alt: alt_text
-                }}
+                {{ item.featured_image | image_url: width: 900 | image_tag: widths: '320, 480, 640, 800, 900', sizes: '(max-width: 749px) 62vw, 280px', loading: 'lazy', decoding: 'async', alt: alt_text }}
               </div>
               {%- if section.settings.show_names -%}
                 <p class="va-name">{{ item.title | escape }}</p>
@@ -378,15 +362,7 @@
               {%- assign alt_text = item.featured_image.alt | default: item.title | escape -%}
               <a class="va-card" role="listitem" href="{{ item.url }}">
                 <div class="va-media">
-                  {{ item.featured_image
-                    | image_url: width: 900
-                    | image_tag:
-                      widths: '320, 480, 640, 800, 900',
-                      sizes: '(max-width: 749px) 62vw, 280px',
-                      loading: 'lazy',
-                      decoding: 'async',
-                      alt: alt_text
-                  }}
+                  {{ item.featured_image | image_url: width: 900 | image_tag: widths: '320, 480, 640, 800, 900', sizes: '(max-width: 749px) 62vw, 280px', loading: 'lazy', decoding: 'async', alt: alt_text }}
                 </div>
                 {%- if section.settings.show_names -%}
                   <p class="va-name">{{ item.title | escape }}</p>
@@ -400,12 +376,8 @@
     </div>
   </div>
 
-  {%- if card_count == 0 -%}
-    <p class="va-empty">
-      {%- if request.design_mode -%}
-        Select products, a collection, or add magazine images.
-      {%- endif -%}
-    </p>
+  {%- if card_count == 0 and request.design_mode -%}
+    <p class="va-empty">Select products, a collection, or add magazine images.</p>
   {%- endif -%}
 </section>
 
@@ -416,13 +388,11 @@
   if (!root) return;
   const track = root.querySelector('[data-va-track]');
   if (!track) return;
-
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const autoplayOn = root.dataset.autoplay === 'true' && !reduce;
   const speed = Math.max(8, parseInt(root.dataset.speed || '28', 10));
   const originals = Array.from(track.children);
   if (!originals.length) return;
-
   let looping = false;
   if (autoplayOn && originals.length > 1) {
     const frag = document.createDocumentFragment();
@@ -430,32 +400,15 @@
     track.appendChild(frag);
     looping = true;
   }
-
-  let dragging = false;
-  let startX = 0;
-  let startScroll = 0;
-  let moved = 0;
-  let paused = false;
-  let raf = 0;
-  let last = 0;
-  let half = 0;
-
-  const measure = () => {
-    if (!looping) return;
-    half = track.scrollWidth / 2;
-  };
-
+  let dragging = false, startX = 0, startScroll = 0, moved = 0, paused = false, raf = 0, last = 0, half = 0;
+  const measure = () => { if (looping) half = track.scrollWidth / 2; };
   const wrap = () => {
     if (!looping || half <= 0) return;
     if (track.scrollLeft >= half - 1) track.scrollLeft -= half;
     else if (track.scrollLeft <= 1) track.scrollLeft += half;
   };
-
   const step = (ts) => {
-    if (!autoplayOn || paused || dragging) {
-      raf = 0;
-      return;
-    }
+    if (!autoplayOn || paused || dragging) { raf = 0; return; }
     if (!last) last = ts;
     const dt = Math.min(32, ts - last);
     last = ts;
@@ -463,41 +416,24 @@
     wrap();
     raf = requestAnimationFrame(step);
   };
-
-  const play = () => {
-    if (!autoplayOn || paused || dragging || raf) return;
-    last = 0;
-    raf = requestAnimationFrame(step);
-  };
-
-  const stop = () => {
-    if (raf) cancelAnimationFrame(raf);
-    raf = 0;
-    last = 0;
-  };
-
+  const play = () => { if (!autoplayOn || paused || dragging || raf) return; last = 0; raf = requestAnimationFrame(step); };
+  const stop = () => { if (raf) cancelAnimationFrame(raf); raf = 0; last = 0; };
   const page = (dir) => {
     const amount = Math.max(track.clientWidth * 0.72, originals[0].getBoundingClientRect().width + 16);
     track.scrollBy({ left: dir * amount, behavior: reduce ? 'auto' : 'smooth' });
     if (looping) setTimeout(wrap, 420);
   };
-
   const prev = root.querySelector('[data-va-prev]');
   const next = root.querySelector('[data-va-next]');
   if (prev) prev.addEventListener('click', () => page(-1));
   if (next) next.addEventListener('click', () => page(1));
-
   track.addEventListener('pointerdown', (e) => {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
-    dragging = true;
-    moved = 0;
-    startX = e.clientX;
-    startScroll = track.scrollLeft;
+    dragging = true; moved = 0; startX = e.clientX; startScroll = track.scrollLeft;
     track.classList.add('is-dragging');
     try { track.setPointerCapture(e.pointerId); } catch (err) {}
     stop();
   });
-
   track.addEventListener('pointermove', (e) => {
     if (!dragging) return;
     const dx = e.clientX - startX;
@@ -505,7 +441,6 @@
     track.scrollLeft = startScroll - dx;
     wrap();
   });
-
   const endDrag = () => {
     if (!dragging) return;
     dragging = false;
@@ -513,35 +448,21 @@
     wrap();
     if (!paused) play();
   };
-
   track.addEventListener('pointerup', endDrag);
   track.addEventListener('pointercancel', endDrag);
   track.addEventListener('pointerleave', endDrag);
-
-  track.addEventListener('click', (e) => {
-    if (moved > 8) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  }, true);
-
+  track.addEventListener('click', (e) => { if (moved > 8) { e.preventDefault(); e.stopPropagation(); } }, true);
   track.addEventListener('scroll', () => { if (!dragging) wrap(); }, { passive: true });
-
   root.addEventListener('mouseenter', () => { paused = true; stop(); });
   root.addEventListener('mouseleave', () => { paused = false; play(); });
   root.addEventListener('focusin', () => { paused = true; stop(); });
   root.addEventListener('focusout', () => { paused = false; play(); });
-
   if ('IntersectionObserver' in window) {
     const io = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) play();
-        else stop();
-      });
+      entries.forEach((entry) => { if (entry.isIntersecting) play(); else stop(); });
     }, { threshold: 0.12 });
     io.observe(root);
   }
-
   measure();
   if (looping) track.scrollLeft = 1;
   requestAnimationFrame(measure);
@@ -558,61 +479,17 @@
   "class": "va-atelier-section",
   "settings": [
     { "type": "header", "content": "Content" },
-    {
-      "type": "select",
-      "id": "display_mode",
-      "label": "Display",
-      "options": [
-        { "value": "products", "label": "Products" },
-        { "value": "magazine", "label": "Magazine images" }
-      ],
-      "default": "products",
-      "info": "Magazine mode uses the image blocks below. Works on any page, including product."
-    },
-    {
-      "type": "product_list",
-      "id": "products",
-      "label": "Selected products",
-      "limit": 16,
-      "info": "Leave empty to pull a random sample from the collection below, or from the whole catalog."
-    },
+    { "type": "select", "id": "display_mode", "label": "Display", "options": [ { "value": "products", "label": "Products" }, { "value": "magazine", "label": "Magazine images" } ], "default": "products", "info": "Magazine mode uses the image blocks below. Works on any page, including product." },
+    { "type": "product_list", "id": "products", "label": "Selected products", "limit": 16, "info": "Leave empty to pull a random sample from the collection below, or from the whole catalog." },
     { "type": "collection", "id": "collection", "label": "Fallback collection" },
-    {
-      "type": "range",
-      "id": "card_count",
-      "min": 3,
-      "max": 16,
-      "step": 1,
-      "label": "Max cards",
-      "default": 8
-    },
+    { "type": "range", "id": "card_count", "min": 3, "max": 16, "step": 1, "label": "Max cards", "default": 8 },
     { "type": "header", "content": "Heading" },
     { "type": "checkbox", "id": "show_header", "label": "Show section title", "default": true },
     { "type": "text", "id": "title", "label": "Title", "default": "Atelier" },
     { "type": "checkbox", "id": "show_arrows", "label": "Show arrows when title is hidden", "default": true },
     { "type": "header", "content": "Cards" },
-    {
-      "type": "select",
-      "id": "card_shape",
-      "label": "Card shape",
-      "options": [
-        { "value": "squircle", "label": "Squircle" },
-        { "value": "landscape", "label": "Landscape square" }
-      ],
-      "default": "squircle"
-    },
-    {
-      "type": "select",
-      "id": "landscape_ratio",
-      "label": "Landscape ratio",
-      "options": [
-        { "value": "4 / 3", "label": "4:3" },
-        { "value": "16 / 10", "label": "16:10" },
-        { "value": "3 / 2", "label": "3:2" },
-        { "value": "16 / 9", "label": "16:9" }
-      ],
-      "default": "4 / 3"
-    },
+    { "type": "select", "id": "card_shape", "label": "Card shape", "options": [ { "value": "squircle", "label": "Squircle" }, { "value": "landscape", "label": "Landscape square" } ], "default": "squircle" },
+    { "type": "select", "id": "landscape_ratio", "label": "Landscape ratio", "options": [ { "value": "4 / 3", "label": "4:3" }, { "value": "16 / 10", "label": "16:10" }, { "value": "3 / 2", "label": "3:2" }, { "value": "16 / 9", "label": "16:9" } ], "default": "4 / 3" },
     { "type": "range", "id": "card_width", "min": 160, "max": 420, "step": 10, "unit": "px", "label": "Card width", "default": 260 },
     { "type": "range", "id": "squircle_radius", "min": 16, "max": 64, "step": 2, "unit": "px", "label": "Squircle corner", "default": 36 },
     { "type": "range", "id": "landscape_radius", "min": 8, "max": 40, "step": 2, "unit": "px", "label": "Landscape corner", "default": 18 },
@@ -625,25 +502,9 @@
     { "type": "range", "id": "name_size", "min": 14, "max": 42, "step": 1, "unit": "px", "label": "Name size", "default": 22 },
     { "type": "range", "id": "title_size", "min": 16, "max": 56, "step": 2, "unit": "px", "label": "Title size", "default": 28 },
     { "type": "range", "id": "name_tracking", "min": 0, "max": 20, "step": 1, "label": "Name letter spacing", "default": 4 },
-    {
-      "type": "select",
-      "id": "name_transform",
-      "label": "Name capitalization",
-      "options": [
-        { "value": "uppercase", "label": "Uppercase" },
-        { "value": "none", "label": "As written" },
-        { "value": "capitalize", "label": "Capitalize" }
-      ],
-      "default": "uppercase"
-    },
+    { "type": "select", "id": "name_transform", "label": "Name capitalization", "options": [ { "value": "uppercase", "label": "Uppercase" }, { "value": "none", "label": "As written" }, { "value": "capitalize", "label": "Capitalize" } ], "default": "uppercase" },
     { "type": "header", "content": "Motion" },
-    {
-      "type": "checkbox",
-      "id": "autoplay",
-      "label": "Continuous rotation",
-      "default": false,
-      "info": "Seamless loop. Pauses on hover, focus, and when the section is off-screen. Honors reduced-motion."
-    },
+    { "type": "checkbox", "id": "autoplay", "label": "Continuous rotation", "default": false, "info": "Seamless loop. Pauses on hover, focus, and when the section is off-screen. Honors reduced-motion." },
     { "type": "range", "id": "autoplay_speed", "min": 8, "max": 60, "step": 2, "label": "Rotation speed", "default": 22 },
     { "type": "checkbox", "id": "edge_fade", "label": "Fade carousel edges", "default": true },
     { "type": "header", "content": "Colors & space" },
@@ -654,30 +515,10 @@
     { "type": "range", "id": "pad_bottom", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Padding bottom", "default": 48 }
   ],
   "blocks": [
-    {
-      "type": "magazine",
-      "name": "Magazine image",
-      "settings": [
-        { "type": "image_picker", "id": "image", "label": "Image" },
-        { "type": "text", "id": "caption", "label": "Caption" },
-        { "type": "url", "id": "link", "label": "Link" }
-      ]
-    }
+    { "type": "magazine", "name": "Magazine image", "settings": [ { "type": "image_picker", "id": "image", "label": "Image" }, { "type": "text", "id": "caption", "label": "Caption" }, { "type": "url", "id": "link", "label": "Link" } ] }
   ],
   "presets": [
-    {
-      "name": "Product Atelier",
-      "settings": {
-        "display_mode": "products",
-        "title": "Atelier",
-        "card_shape": "squircle",
-        "autoplay": false,
-        "name_font": "bebas_neue_n4",
-        "heading_font": "bebas_neue_n4",
-        "bg_color": "#0a0a0a",
-        "text_color": "#f4f4f2"
-      }
-    }
+    { "name": "Product Atelier", "settings": { "display_mode": "products", "title": "Atelier", "card_shape": "squircle", "autoplay": false, "name_font": "bebas_neue_n4", "heading_font": "bebas_neue_n4", "bg_color": "#0a0a0a", "text_color": "#f4f4f2" } }
   ]
 }
 {% endschema %}
