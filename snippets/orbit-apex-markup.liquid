@@ -1,0 +1,304 @@
+{%- if enable_schema and rendered_count > 0 -%}
+  {%- capture items_json -%}
+    [{%- assign _first = true -%}{%- for block in section.blocks -%}{%- assign c = collections[block.settings.collection] -%}{%- if c != blank -%}{%- unless _first %},{%- endunless -%}{"@type":"ListItem","position":{{ forloop.index }},"url":{{ shop.url | append: c.url | json }},"name":{{ c.title | json }}{%- if c.description != blank -%},"description":{{ c.description | strip_html | truncatewords: 30 | json }}{%- endif -%}{%- if c.featured_image != blank -%},"image":{{ c.featured_image | image_url: width: 1200 | prepend: 'https:' | json }}{%- endif -%}}{%- assign _first = false -%}{%- endif -%}{%- endfor -%}]
+  {%- endcapture -%}
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"ItemList","name":{{ heading | default: shop.name | json }}{%- if tagline != blank -%},"description":{{ tagline | json }}{%- endif -%},"numberOfItems":{{ rendered_count }},"itemListElement":{{ items_json }}}</script>
+{%- endif -%}
+
+<section
+  class="orbit-master orbit-master-{{ sid }}"
+  {% if heading != blank %}aria-labelledby="orbit-h-{{ sid }}"{% else %}aria-label="Collections"{% endif %}
+  data-section-id="{{ sid }}"
+  {% if enable_autoscroll %}data-autoscroll="{{ autoscroll_interval }}"{% endif %}
+  {% if enable_nudge %}data-nudge="1"{% endif %}
+>
+  {%- if eyebrow != blank or heading != blank or tagline != blank -%}
+    <header class="orbit-header">
+      {%- if eyebrow != blank -%}
+        <p class="orbit-eyebrow">
+          <span class="orbit-eyebrow-glyph" aria-hidden="true"></span>
+          <span>{{ eyebrow | escape }}</span>
+          <span class="orbit-eyebrow-glyph" aria-hidden="true"></span>
+        </p>
+      {%- endif -%}
+      {%- if heading != blank -%}<h2 id="orbit-h-{{ sid }}" class="orbit-heading">{{ heading | escape }}</h2>{%- endif -%}
+      {%- if tagline != blank -%}<p class="orbit-tagline">{{ tagline | escape }}</p>{%- endif -%}
+    </header>
+  {%- endif -%}
+
+  {%- if show_counter and rendered_count > 1 -%}
+    <div class="orbit-counter" aria-hidden="true">
+      <span class="orbit-counter-current" id="OrbitCount-{{ sid }}">01</span>
+      <span class="orbit-counter-sep">/</span>
+      <span class="orbit-counter-total">{{ rendered_count | prepend: '00' | slice: -2, 2 }}</span>
+    </div>
+  {%- endif -%}
+
+  <div class="edge-indicator edge-left"  id="EdgeLeft-{{ sid }}"  aria-hidden="true"></div>
+  <div class="edge-indicator edge-right" id="EdgeRight-{{ sid }}" aria-hidden="true"></div>
+
+  <div class="orbital-scanner" aria-hidden="true">
+    <div class="orbital-ring-active" id="OrbitRing-{{ sid }}"></div>
+  </div>
+
+  <div
+    class="orbit-track"
+    id="OrbitTrack-{{ sid }}"
+    role="region"
+    aria-roledescription="carousel"
+    aria-label="{{ heading | default: 'Collections' | escape }}"
+    tabindex="0"
+  >
+    {%- assign first_rendered = true -%}
+    {% for block in section.blocks %}
+      {%- liquid
+        assign c = collections[block.settings.collection]
+        if c == blank or c == empty
+          continue
+        endif
+        assign node_color   = block.settings.status_color | default: section.settings.accent_color
+        assign is_locked    = block.settings.lock_collection
+        assign lock_color   = block.settings.lock_color | default: '#888888'
+        assign lock_label   = block.settings.lock_label | default: 'ACCESS RESTRICTED'
+        assign lock_until   = block.settings.lock_unlock_at
+        assign cta_label    = block.settings.cta_label | default: 'Enter'
+        assign lock_cta     = block.settings.lock_cta_label | default: 'Request Access'
+        assign unlocked_cta = block.settings.unlocked_cta_label | default: 'Shop Now'
+        assign coll_handle  = c.handle | default: 'unknown'
+        assign coll_title   = c.title | default: 'Collection'
+        assign coll_count   = c.products_count | default: 0
+        assign unlock_ts    = 0
+        if lock_until != blank
+          assign unlock_ts = lock_until | date: '%s' | plus: 0
+        endif
+        if is_locked and unlock_ts > 0 and now_ts >= unlock_ts
+          assign is_locked = false
+        endif
+        assign aria_label = coll_title
+        if is_locked
+          assign aria_label = coll_title | append: ' — ' | append: lock_label
+        endif
+      -%}
+
+      {% if is_locked %}
+        <div
+          class="orbit-card is-locked{% if first_rendered %} is-active{% endif %}"
+          {{ block.shopify_attributes }}
+          data-index="{{ forloop.index0 }}"
+          data-collection-title="{{ coll_title | escape }}"
+          data-collection-handle="{{ coll_handle }}"
+          data-collection-url="{{ c.url | default: '' }}"
+          data-locked="1"
+          data-unlocked-cta="{{ unlocked_cta | escape }}"
+          {% if unlock_ts > 0 %}data-unlock-at="{{ unlock_ts }}"{% endif %}
+          style="--lock-color: {{ lock_color }};"
+          role="button" tabindex="0"
+          aria-label="{{ aria_label | escape }}"
+          {% if first_rendered %}aria-current="true"{% endif %}
+        >
+      {% else %}
+        <a
+          href="{{ c.url | default: '#' }}"
+          class="orbit-card{% if first_rendered %} is-active{% endif %}"
+          {{ block.shopify_attributes }}
+          data-index="{{ forloop.index0 }}"
+          data-collection-title="{{ coll_title | escape }}"
+          data-collection-handle="{{ coll_handle }}"
+          aria-label="{{ aria_label | escape }}"
+          {% if first_rendered %}aria-current="true"{% endif %}
+        >
+      {% endif %}
+
+        <div class="hud-corners" aria-hidden="true">
+          <span class="hud-corner hud-tl"></span><span class="hud-corner hud-tr"></span>
+          <span class="hud-corner hud-bl"></span><span class="hud-corner hud-br"></span>
+        </div>
+
+        {% if block.settings.badge_text != blank %}
+          <div class="orbit-badge is-active-pulse"
+            style="background:{{ block.settings.badge_bg | color_modify: 'alpha', 0.85 }};color:{{ block.settings.badge_text_color }};border:1px solid {{ block.settings.badge_text_color }};">
+            {{ block.settings.badge_text | escape }}
+          </div>
+        {% endif %}
+
+        <div class="orbit-committed" data-committed-badge>
+          <span class="tick"></span>{{ committed_badge | escape }}
+        </div>
+
+        {%- assign video_src = '' -%}
+        {%- assign video_poster_url = '' -%}
+        {%- if block.settings.video_url != blank -%}
+          {%- assign _vobj = block.settings.video_url -%}
+          {%- assign _mp4 = _vobj.sources | where: 'format', 'mp4' | first -%}
+          {%- if _mp4 -%}{%- assign video_src = _mp4.url -%}
+          {%- elsif _vobj.sources.size > 0 -%}{%- assign video_src = _vobj.sources[0].url -%}
+          {%- endif -%}
+          {%- if _vobj.preview_image != blank -%}{%- assign video_poster_url = _vobj.preview_image | image_url: width: 800 -%}{%- endif -%}
+        {%- endif -%}
+
+        <div class="orbit-media"
+          {% if video_src != blank %}data-video-src="{{ video_src }}"{% endif %}
+          {% if video_poster_url != blank %}data-video-poster="{{ video_poster_url }}"{% endif %}
+        >
+          {%- if block.settings.custom_image != blank -%}
+            {%- assign img_src = block.settings.custom_image -%}
+          {%- elsif c.featured_image != blank -%}
+            {%- assign img_src = c.featured_image -%}
+          {%- else -%}
+            {%- assign img_src = nil -%}
+          {%- endif -%}
+          {%- if img_src != blank -%}
+            {%- assign _ratio = img_src.aspect_ratio | default: 0.8 -%}
+            <img
+              src="{{ img_src | image_url: width: 800 }}"
+              width="800" height="{{ 800 | divided_by: _ratio | ceil }}"
+              srcset="{{ img_src | image_url: width: 400 }} 400w, {{ img_src | image_url: width: 800 }} 800w, {{ img_src | image_url: width: 1200 }} 1200w"
+              sizes="(max-width: 768px) {{ card_width_mob }}vw, {{ card_width_pct }}vw"
+              loading="{% if first_rendered %}eager{% else %}lazy{% endif %}"
+              decoding="async"
+              {% if first_rendered %}fetchpriority="high"{% endif %}
+              alt="{{ block.settings.custom_image.alt | default: coll_title | escape }}"
+              data-poster>
+          {%- endif -%}
+        </div>
+
+        <div class="orbit-overlay">
+          <div class="status-wrapper">
+            <div class="status-led" style="background:{{ node_color }};color:{{ node_color }};box-shadow:0 0 10px {{ node_color }};" aria-hidden="true"></div>
+            <div class="orbit-status-text" style="color:{{ node_color }};">{{ block.settings.status_text | default: 'READY' | escape }}</div>
+          </div>
+          <h3 class="orbit-title">{{ coll_title | escape }}</h3>
+          {%- if show_meta and is_locked == false -%}
+            <div class="orbit-meta" aria-hidden="true">
+              {%- if coll_count > 0 -%}<span>{{ coll_count }} {% if coll_count == 1 %}{{ unit_singular | escape }}{% else %}{{ unit_plural | escape }}{% endif %}</span>{%- endif -%}
+              {%- if block.settings.price_from != blank -%}
+                {%- if coll_count > 0 -%}<span class="orbit-meta-dot"></span>{%- endif -%}
+                <span class="orbit-meta-price">{{ price_prefix | escape }} {{ block.settings.price_from | escape }}</span>
+              {%- endif -%}
+            </div>
+          {%- endif -%}
+          {%- if is_locked == false -%}
+            <span class="orbit-cta" aria-hidden="true"><span>{{ cta_label | escape }}</span><span class="orbit-cta-arrow"></span></span>
+          {%- endif -%}
+        </div>
+
+        {% if is_locked %}
+          <div class="orbit-lock-veil" aria-hidden="true">
+            <div class="lock-icon">
+              <svg viewBox="0 0 24 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 12V8C6 4.686 8.686 2 12 2C15.314 2 18 4.686 18 8V12" stroke="{{ lock_color }}" stroke-width="2" stroke-linecap="round"/>
+                <rect x="3" y="12" width="18" height="14" rx="2" fill="none" stroke="{{ lock_color }}" stroke-width="2"/>
+                <circle cx="12" cy="19" r="2" fill="{{ lock_color }}"/>
+                <line x1="12" y1="21" x2="12" y2="24" stroke="{{ lock_color }}" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="lock-rule"></div>
+            <div class="lock-label" data-lock-label>{{ lock_label | escape }}</div>
+            {%- if unlock_ts > 0 -%}
+              <div class="lock-countdown" data-countdown>
+                <div class="lock-count-unit"><span class="lock-count-num" data-d>00</span><span class="lock-count-lbl">{{ cd_day_label | escape }}</span></div>
+                <div class="lock-count-unit"><span class="lock-count-num" data-h>00</span><span class="lock-count-lbl">{{ cd_hour_label | escape }}</span></div>
+                <div class="lock-count-unit"><span class="lock-count-num" data-m>00</span><span class="lock-count-lbl">{{ cd_min_label | escape }}</span></div>
+                <div class="lock-count-unit"><span class="lock-count-num" data-s>00</span><span class="lock-count-lbl">{{ cd_sec_label | escape }}</span></div>
+              </div>
+            {%- endif -%}
+            <div class="lock-countdown lock-countdown--personal" data-personal-countdown style="display:none;">
+              <div class="lock-count-unit"><span class="lock-count-num" data-pcd-h>00</span><span class="lock-count-lbl">{{ cd_hour_label | escape }}</span></div>
+              <div class="lock-count-unit"><span class="lock-count-num" data-pcd-m>00</span><span class="lock-count-lbl">{{ cd_min_label | escape }}</span></div>
+              <div class="lock-count-unit"><span class="lock-count-num" data-pcd-s>00</span><span class="lock-count-lbl">{{ cd_sec_label | escape }}</span></div>
+            </div>
+            <div class="lock-cta-hint" data-lock-cta-hint>{{ lock_cta | escape }}</div>
+          </div>
+        {% endif %}
+
+      {% if is_locked %}</div>{% else %}</a>{% endif %}
+      {%- assign first_rendered = false -%}
+    {% endfor %}
+  </div>
+
+  {%- if show_dots and rendered_count > 1 -%}
+    <div class="orbit-dots" role="tablist" aria-label="Carousel navigation" id="OrbitDots-{{ sid }}">
+      {%- assign dot_idx = 0 -%}
+      {%- for block in section.blocks -%}
+        {%- assign _c = collections[block.settings.collection] -%}
+        {%- if _c != blank and _c != empty -%}
+          <button type="button"
+            class="orbit-dot{% if dot_idx == 0 %} is-active{% endif %}"
+            data-dot-index="{{ dot_idx }}"
+            {% if block.settings.lock_collection %}data-locked="1"{% endif %}
+            aria-label="Go to {{ _c.title | default: 'collection' | escape }} ({{ dot_idx | plus: 1 }} of {{ rendered_count }})"
+            role="tab"
+            aria-selected="{% if dot_idx == 0 %}true{% else %}false{% endif %}"
+          ></button>
+          {%- assign dot_idx = dot_idx | plus: 1 -%}
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+  {%- endif -%}
+
+  <div class="sr-only" aria-live="polite" id="OrbitLive-{{ sid }}"></div>
+</section>
+
+<div class="orbit-modal-{{ sid }}"
+  id="OrbitModal-{{ sid }}"
+  role="dialog" aria-modal="true"
+  aria-labelledby="OrbitModalTitle-{{ sid }}"
+  aria-hidden="true"
+  data-unlock-hours="{{ unlock_hours }}"
+  data-countdown-enabled="{% if countdown_enabled %}1{% else %}0{% endif %}"
+  data-business-tag="{{ business_tag }}"
+  data-admin-notify-url="{{ admin_notify_url }}"
+>
+  <div class="m-backdrop" data-close></div>
+  <div class="m-card" role="document">
+    <button type="button" class="m-close" data-close aria-label="Close">
+      <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M1 1L13 13M13 1L1 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+    </button>
+    {%- assign form_id = 'OrbitForm-' | append: sid -%}
+    {% form 'customer', id: form_id, class: 'm-form', novalidate: 'novalidate' %}
+      <input type="hidden" name="contact[accepts_marketing]" value="1">
+      <input type="hidden" name="contact[tags]" value="orbit-signup" data-tags>
+      <div class="m-step is-visible" data-step="form">
+        <div class="m-context"><span class="m-context-dot"></span><span data-context-label>Collection</span></div>
+        <h3 class="m-title" id="OrbitModalTitle-{{ sid }}">{{ modal_step1_title | escape }}</h3>
+        <p class="m-sub">{{ modal_step1_sub | escape }}</p>
+        {%- if form.errors -%}
+          <div class="m-error is-visible" data-orbit-error="true" role="alert">
+            {%- for field in form.errors -%}{{ form.errors.messages[field] }}{% unless forloop.last %} · {% endunless %}{%- endfor -%}
+          </div>
+        {%- endif -%}
+        <div class="m-fields">
+          <div class="m-field">
+            <label class="m-label" for="OrbitName-{{ sid }}">{{ modal_name_label | escape }}</label>
+            <input class="m-input" type="text" id="OrbitName-{{ sid }}" name="contact[first_name]" autocomplete="given-name" autocapitalize="words" required>
+            <div class="m-error" data-error-for="name">Please enter your first name.</div>
+          </div>
+          <div class="m-field">
+            <label class="m-label" for="OrbitEmail-{{ sid }}">{{ modal_email_label | escape }}</label>
+            <input class="m-input" type="email" id="OrbitEmail-{{ sid }}" name="contact[email]" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false" required value="{{ form.email }}">
+            <div class="m-error" data-error-for="email">Please enter a valid email.</div>
+          </div>
+        </div>
+        <label class="m-toggle">
+          <input type="checkbox" id="OrbitBiz-{{ sid }}" data-business>
+          <span class="m-toggle-track" aria-hidden="true"><span class="m-toggle-knob"></span></span>
+          <span class="m-toggle-label">{{ modal_biz_label | escape }}</span>
+        </label>
+        <div class="m-honeypot" aria-hidden="true">
+          <label>Leave this empty</label>
+          <input type="text" name="contact[website]" tabindex="-1" autocomplete="off">
+        </div>
+        <div class="m-actions">
+          <button type="submit" class="m-btn m-btn-primary" data-submit>
+            <span class="m-spin" aria-hidden="true"></span>
+            <span class="m-btn-label">{{ modal_cta_submit | escape }}</span>
+          </button>
+        </div>
+        <p class="m-privacy">{{ modal_privacy_note | escape }}</p>
+      </div>
+    {% endform %}
+    <div class="sr-only" aria-live="polite" data-live></div>
+  </div>
+</div>
