@@ -58,10 +58,10 @@
       "name": "Page Transition",
       "settings": {
         "overlay_style": "solid",
-        "bg": "#FFFFFF",
+        "bg": "#ffffff",
         "bg_opacity": 5,
         "blur_amount": 2,
-        "bar_color": "#315EF3",
+        "bar_color": "#315ef3",
         "fps": 7,
         "min_ms": 1900,
         "max_ms": 7000,
@@ -211,6 +211,41 @@
         "addname_submit_loading": "Sending…",
         "addname_success_title": "You're on the list!",
         "addname_success_body": "Thanks for joining. Your name will appear on the wall after a quick review — usually within 24 hours."
+      }
+    },
+    "vanquish_atelier_r4XQki": {
+      "type": "vanquish-atelier",
+      "name": "Product Atelier",
+      "settings": {
+        "display_mode": "products",
+        "products": [],
+        "collection": "",
+        "card_count": 8,
+        "show_header": false,
+        "title": "Atelier",
+        "show_arrows": false,
+        "card_shape": "squircle",
+        "landscape_ratio": "16 / 10",
+        "card_width": 260,
+        "squircle_radius": 64,
+        "landscape_radius": 24,
+        "card_gap": 14,
+        "hover_lift": 14,
+        "show_names": true,
+        "name_font": "bayon_n4",
+        "heading_font": "bebas_neue_n4",
+        "name_size": 22,
+        "title_size": 16,
+        "name_tracking": 4,
+        "name_transform": "uppercase",
+        "autoplay": true,
+        "autoplay_speed": 22,
+        "edge_fade": true,
+        "bg_color": "#FFFFFF",
+        "text_color": "#404040",
+        "section_padding": 12,
+        "pad_top": 0,
+        "pad_bottom": 0
       }
     },
     "luxury_collectiongrid_jpK7Cz": {
@@ -561,6 +596,7 @@
   "order": [
     "luxury_transition_m6cr6x",
     "luxury_hero_EFGqQq",
+    "vanquish_atelier_r4XQki",
     "luxury_collectiongrid_jpK7Cz",
     "vanquish_transittimer_hmmnrA",
     "luxury_featureproduct_DDiGAR",
