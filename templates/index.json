@@ -213,41 +213,6 @@
         "addname_success_body": "Thanks for joining. Your name will appear on the wall after a quick review — usually within 24 hours."
       }
     },
-    "vanquish_atelier_r4XQki": {
-      "type": "vanquish-atelier",
-      "name": "Product Atelier",
-      "settings": {
-        "display_mode": "products",
-        "products": [],
-        "collection": "",
-        "card_count": 8,
-        "show_header": false,
-        "title": "Atelier",
-        "show_arrows": false,
-        "card_shape": "squircle",
-        "landscape_ratio": "4 / 3",
-        "card_width": 170,
-        "squircle_radius": 64,
-        "landscape_radius": 24,
-        "card_gap": 14,
-        "hover_lift": 4,
-        "show_names": true,
-        "name_font": "bayon_n4",
-        "heading_font": "bebas_neue_n4",
-        "name_size": 22,
-        "title_size": 16,
-        "name_tracking": 4,
-        "name_transform": "uppercase",
-        "autoplay": true,
-        "autoplay_speed": 22,
-        "edge_fade": true,
-        "bg_color": "#FFFFFF",
-        "text_color": "#404040",
-        "section_padding": 12,
-        "pad_top": 0,
-        "pad_bottom": 0
-      }
-    },
     "luxury_collectiongrid_jpK7Cz": {
       "type": "luxury-collectiongrid",
       "blocks": {
@@ -352,7 +317,7 @@
         "title_font": "tomorrow_n9",
         "title_size": 33,
         "enable_blur": true,
-        "show_ring": false,
+        "show_ring": true,
         "show_hud": false,
         "show_scanlines": false,
         "show_noise": true,
@@ -361,7 +326,7 @@
         "show_dots": true,
         "enable_nudge": false,
         "card_radius": 16,
-        "card_width_desktop": 59,
+        "card_width_desktop": 63,
         "card_width_mobile": 80,
         "card_gap": 30,
         "inactive_scale": "0.8",
@@ -393,6 +358,41 @@
         "business_tag": "business_partner",
         "admin_notify_url": "",
         "enable_schema": true
+      }
+    },
+    "vanquish_atelier_r4XQki": {
+      "type": "vanquish-atelier",
+      "name": "Product Atelier",
+      "settings": {
+        "display_mode": "products",
+        "products": [],
+        "collection": "",
+        "card_count": 8,
+        "show_header": false,
+        "title": "Atelier",
+        "show_arrows": false,
+        "card_shape": "squircle",
+        "landscape_ratio": "4 / 3",
+        "card_width": 210,
+        "squircle_radius": 64,
+        "landscape_radius": 24,
+        "card_gap": 14,
+        "hover_lift": 18,
+        "show_names": true,
+        "name_font": "bayon_n4",
+        "heading_font": "bebas_neue_n4",
+        "name_size": 15,
+        "title_size": 16,
+        "name_tracking": 2,
+        "name_transform": "uppercase",
+        "autoplay": true,
+        "autoplay_speed": 22,
+        "edge_fade": true,
+        "bg_color": "#ffffff",
+        "text_color": "#404040",
+        "section_padding": 12,
+        "pad_top": 0,
+        "pad_bottom": 0
       }
     },
     "vanquish_transittimer_hmmnrA": {
@@ -596,8 +596,8 @@
   "order": [
     "luxury_transition_m6cr6x",
     "luxury_hero_EFGqQq",
-    "vanquish_atelier_r4XQki",
     "luxury_collectiongrid_jpK7Cz",
+    "vanquish_atelier_r4XQki",
     "vanquish_transittimer_hmmnrA",
     "luxury_featureproduct_DDiGAR",
     "luxury_featureproduct_BNr6Rf"
