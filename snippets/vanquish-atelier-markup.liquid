@@ -1,0 +1,206 @@
+<section
+  id="va-{{ sid }}"
+  class="va-atelier va-{{ surface }}"
+  data-va-root
+  data-autoplay="{{ section.settings.autoplay }}"
+  data-speed="{{ section.settings.autoplay_speed }}"
+  aria-label="{{ section.settings.title | default: 'Product atelier' | escape }}"
+>
+  {%- if section.settings.show_header and section.settings.title != blank -%}
+    <div class="va-header">
+      <h2 class="va-title">{{ section.settings.title | escape }}</h2>
+      <div class="va-nav">
+        <button class="va-btn" type="button" data-va-prev aria-label="Previous">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2.5 4.5 7 9 11.5"/></svg>
+        </button>
+        <button class="va-btn" type="button" data-va-next aria-label="Next">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 2.5 9.5 7 5 11.5"/></svg>
+        </button>
+      </div>
+    </div>
+  {%- elsif section.settings.show_arrows -%}
+    <div class="va-header" style="justify-content:flex-end;padding-bottom:12px;">
+      <div class="va-nav">
+        <button class="va-btn" type="button" data-va-prev aria-label="Previous">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2.5 4.5 7 9 11.5"/></svg>
+        </button>
+        <button class="va-btn" type="button" data-va-next aria-label="Next">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 2.5 9.5 7 5 11.5"/></svg>
+        </button>
+      </div>
+    </div>
+  {%- endif -%}
+
+  <div class="va-viewport">
+    <div class="va-track" data-va-track role="list">
+      {%- if use_images -%}
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'magazine' and block.settings.image != blank -%}
+            {%- assign card_count = card_count | plus: 1 -%}
+            {%- assign img = block.settings.image -%}
+            {%- assign href = '#' -%}
+            {%- if block.settings.link != blank -%}
+              {%- assign href = block.settings.link -%}
+            {%- endif -%}
+            {%- assign alt_text = block.settings.caption | default: img.alt | escape -%}
+            <a class="va-card" role="listitem" href="{{ href }}" {{ block.shopify_attributes }}>
+              <div class="va-media">
+                {{ img | image_url: width: 900 | image_tag: widths: '320, 480, 640, 800, 900', sizes: '(max-width: 749px) 62vw, 280px', loading: 'lazy', decoding: 'async', alt: alt_text }}
+              </div>
+              {%- if section.settings.show_names and block.settings.caption != blank -%}
+                <p class="va-name">{{ block.settings.caption | escape }}</p>
+              {%- endif -%}
+            </a>
+          {%- endif -%}
+        {%- endfor -%}
+      {%- else -%}
+        {%- liquid
+          assign shown = 0
+          assign pool_size = pool.size | default: 0
+          assign tick = 'now' | date: '%s' | plus: 0
+          if from_selected
+            assign start_at = 0
+          elsif pool_size > 1
+            assign start_at = tick | modulo: pool_size
+          else
+            assign start_at = 0
+          endif
+          assign current_id = product.id | default: 0
+        -%}
+        {%- if from_selected -%}
+          {%- for item in pool -%}
+            {%- if shown >= limit -%}{%- break -%}{%- endif -%}
+            {%- if item == blank or item.featured_image == blank -%}{%- continue -%}{%- endif -%}
+            {%- assign shown = shown | plus: 1 -%}
+            {%- assign card_count = card_count | plus: 1 -%}
+            {%- assign alt_text = item.featured_image.alt | default: item.title | escape -%}
+            <a class="va-card" role="listitem" href="{{ item.url }}">
+              <div class="va-media">
+                {{ item.featured_image | image_url: width: 900 | image_tag: widths: '320, 480, 640, 800, 900', sizes: '(max-width: 749px) 62vw, 280px', loading: 'lazy', decoding: 'async', alt: alt_text }}
+              </div>
+              {%- if section.settings.show_names -%}
+                <p class="va-name">{{ item.title | escape }}</p>
+              {%- endif -%}
+            </a>
+          {%- endfor -%}
+        {%- else -%}
+          {%- for pass in (1..2) -%}
+            {%- for item in pool -%}
+              {%- if shown >= limit -%}{%- break -%}{%- endif -%}
+              {%- if pass == 1 and forloop.index0 < start_at -%}{%- continue -%}{%- endif -%}
+              {%- if item == blank or item.featured_image == blank -%}{%- continue -%}{%- endif -%}
+              {%- if current_id != 0 and item.id == current_id -%}{%- continue -%}{%- endif -%}
+              {%- assign shown = shown | plus: 1 -%}
+              {%- assign card_count = card_count | plus: 1 -%}
+              {%- assign alt_text = item.featured_image.alt | default: item.title | escape -%}
+              <a class="va-card" role="listitem" href="{{ item.url }}">
+                <div class="va-media">
+                  {{ item.featured_image | image_url: width: 900 | image_tag: widths: '320, 480, 640, 800, 900', sizes: '(max-width: 749px) 62vw, 280px', loading: 'lazy', decoding: 'async', alt: alt_text }}
+                </div>
+                {%- if section.settings.show_names -%}
+                  <p class="va-name">{{ item.title | escape }}</p>
+                {%- endif -%}
+              </a>
+            {%- endfor -%}
+            {%- if shown >= limit -%}{%- break -%}{%- endif -%}
+          {%- endfor -%}
+        {%- endif -%}
+      {%- endif -%}
+    </div>
+  </div>
+
+  {%- if card_count == 0 and request.design_mode -%}
+    <p class="va-empty">Select products, a collection, or add magazine images.</p>
+  {%- endif -%}
+</section>
+
+{%- if card_count > 0 -%}
+<script>
+(() => {
+  const root = document.getElementById('va-{{ sid }}');
+  if (!root) return;
+  const track = root.querySelector('[data-va-track]');
+  if (!track) return;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const autoplayOn = root.dataset.autoplay === 'true' && !reduce;
+  const speed = Math.max(8, parseInt(root.dataset.speed || '28', 10));
+  const originals = Array.from(track.children);
+  if (!originals.length) return;
+  let looping = false;
+  if (autoplayOn && originals.length > 1) {
+    const frag = document.createDocumentFragment();
+    originals.forEach((node) => frag.appendChild(node.cloneNode(true)));
+    track.appendChild(frag);
+    looping = true;
+  }
+  let dragging = false, startX = 0, startScroll = 0, moved = 0, paused = false, raf = 0, last = 0, half = 0;
+  const measure = () => { if (looping) half = track.scrollWidth / 2; };
+  const wrap = () => {
+    if (!looping || half <= 0) return;
+    if (track.scrollLeft >= half - 1) track.scrollLeft -= half;
+    else if (track.scrollLeft <= 1) track.scrollLeft += half;
+  };
+  const step = (ts) => {
+    if (!autoplayOn || paused || dragging) { raf = 0; return; }
+    if (!last) last = ts;
+    const dt = Math.min(32, ts - last);
+    last = ts;
+    track.scrollLeft += (speed / 1000) * dt * 16;
+    wrap();
+    raf = requestAnimationFrame(step);
+  };
+  const play = () => { if (!autoplayOn || paused || dragging || raf) return; last = 0; raf = requestAnimationFrame(step); };
+  const stop = () => { if (raf) cancelAnimationFrame(raf); raf = 0; last = 0; };
+  const page = (dir) => {
+    const amount = Math.max(track.clientWidth * 0.72, originals[0].getBoundingClientRect().width + 16);
+    track.scrollBy({ left: dir * amount, behavior: reduce ? 'auto' : 'smooth' });
+    if (looping) setTimeout(wrap, 420);
+  };
+  const prev = root.querySelector('[data-va-prev]');
+  const next = root.querySelector('[data-va-next]');
+  if (prev) prev.addEventListener('click', () => page(-1));
+  if (next) next.addEventListener('click', () => page(1));
+  track.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    dragging = true; moved = 0; startX = e.clientX; startScroll = track.scrollLeft;
+    track.classList.add('is-dragging');
+    try { track.setPointerCapture(e.pointerId); } catch (err) {}
+    stop();
+  });
+  track.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const dx = e.clientX - startX;
+    moved = Math.max(moved, Math.abs(dx));
+    track.scrollLeft = startScroll - dx;
+    wrap();
+  });
+  const endDrag = () => {
+    if (!dragging) return;
+    dragging = false;
+    track.classList.remove('is-dragging');
+    wrap();
+    if (!paused) play();
+  };
+  track.addEventListener('pointerup', endDrag);
+  track.addEventListener('pointercancel', endDrag);
+  track.addEventListener('pointerleave', endDrag);
+  track.addEventListener('click', (e) => { if (moved > 8) { e.preventDefault(); e.stopPropagation(); } }, true);
+  track.addEventListener('scroll', () => { if (!dragging) wrap(); }, { passive: true });
+  root.addEventListener('mouseenter', () => { paused = true; stop(); });
+  root.addEventListener('mouseleave', () => { paused = false; play(); });
+  root.addEventListener('focusin', () => { paused = true; stop(); });
+  root.addEventListener('focusout', () => { paused = false; play(); });
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => { if (entry.isIntersecting) play(); else stop(); });
+    }, { threshold: 0.12 });
+    io.observe(root);
+  }
+  measure();
+  if (looping) track.scrollLeft = 1;
+  requestAnimationFrame(measure);
+  window.addEventListener('resize', measure, { passive: true });
+  play();
+})();
+</script>
+{%- endif -%}
