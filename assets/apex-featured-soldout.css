@@ -1,0 +1,12 @@
+/* Apex Featured — sold-out products stay full opacity.
+   Status is indicated only by the existing disabled Sold out button. */
+[class^="apex-gc-"].is-sold-out [class*="apex-gi-"],
+[class*=" apex-gc-"].is-sold-out [class*="apex-gi-"] {
+  opacity: 1 !important;
+  filter: none !important;
+}
+[class^="apex-gsold-"],
+[class*=" apex-gsold-"] {
+  display: none !important;
+  background: transparent !important;
+}
