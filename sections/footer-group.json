@@ -11,7 +11,7 @@
   "type": "footer",
   "name": "Footer",
   "sections": {
-    "luxury_footer_3VcBXN": {
+    "luxury_footer_gbxGDK": {
       "type": "luxury-footer",
       "name": "Footer — VANQUISH v3",
       "settings": {
@@ -63,6 +63,6 @@
     }
   },
   "order": [
-    "luxury_footer_3VcBXN"
+    "luxury_footer_gbxGDK"
   ]
 }
