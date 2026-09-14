@@ -1,0 +1,257 @@
+<script>
+(function () {
+  'use strict';
+  var SID = '{{ sid }}';
+  var COMMIT_KEY = 'orbit_committed_v1';
+  var UNLOCK_KEY = 'orbit_unlocks_v1';
+  var EMAIL_KEY  = 'orbit_email_v1';
+
+  function safeGet(key) {
+    try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) { return null; }
+  }
+  function safeSet(key, val) {
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
+  }
+
+  (function paintCommitted() {
+    var committed = safeGet(COMMIT_KEY);
+    if (!committed || !committed.length) return;
+    var section = document.querySelector('.orbit-master-' + SID);
+    if (!section) return;
+    section.querySelectorAll('.orbit-card[data-collection-handle]').forEach(function (card) {
+      if (committed.indexOf(card.getAttribute('data-collection-handle')) !== -1) {
+        card.setAttribute('data-committed', '1');
+      }
+    });
+  })();
+
+  function defer(fn) {
+    if (typeof requestIdleCallback === 'function') requestIdleCallback(fn, { timeout: 1500 });
+    else setTimeout(fn, 0);
+  }
+
+  defer(function initOrbit() {
+    var root = document.querySelector('.orbit-master-' + SID);
+    var track = document.getElementById('OrbitTrack-' + SID);
+    var ring = document.getElementById('OrbitRing-' + SID);
+    var leftInd = document.getElementById('EdgeLeft-' + SID);
+    var rightInd = document.getElementById('EdgeRight-' + SID);
+    var counter = document.getElementById('OrbitCount-' + SID);
+    var live = document.getElementById('OrbitLive-' + SID);
+    var dotsEl = document.getElementById('OrbitDots-' + SID);
+    var modal = document.getElementById('OrbitModal-' + SID);
+    var form = document.getElementById('OrbitForm-' + SID);
+    if (!track || !root) return;
+
+    var cards = Array.prototype.slice.call(track.querySelectorAll('.orbit-card'));
+    var dots = dotsEl ? Array.prototype.slice.call(dotsEl.querySelectorAll('.orbit-dot')) : [];
+    var total = cards.length;
+    var activeIdx = 0;
+    var reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var gestureReady = false;
+
+    var _unlockCache = null;
+    function getUnlocks() {
+      if (!_unlockCache) _unlockCache = safeGet(UNLOCK_KEY) || {};
+      return _unlockCache;
+    }
+    function addUnlock(handle, atMs) {
+      var map = getUnlocks();
+      if (!map[handle]) { map[handle] = atMs; _unlockCache = map; safeSet(UNLOCK_KEY, map); }
+    }
+    function addCommitted(handle) {
+      var arr = safeGet(COMMIT_KEY) || [];
+      if (arr.indexOf(handle) === -1) { arr.push(handle); safeSet(COMMIT_KEY, arr); }
+    }
+
+    function playVideo(v) {
+      if (!v || reducedMotion) return;
+      v.muted = true;
+      var p = v.play();
+      if (p && p.catch) p.catch(function () {});
+    }
+    function pauseVideo(v) {
+      if (v && !v.paused) { try { v.pause(); } catch (e) {} }
+    }
+
+    function setActive(card) {
+      cards.forEach(function (c) {
+        if (c === card) return;
+        c.classList.remove('is-active');
+        c.removeAttribute('aria-current');
+        var pv = c.querySelector('video');
+        if (pv) { pauseVideo(pv); pv.style.opacity = '0'; }
+      });
+      card.classList.add('is-active');
+      card.setAttribute('aria-current', 'true');
+      var idx = cards.indexOf(card);
+      if (idx < 0) idx = 0;
+      activeIdx = idx;
+      if (counter) counter.textContent = (activeIdx + 1 < 10 ? '0' : '') + (activeIdx + 1);
+      if (live) live.textContent = (card.getAttribute('data-collection-title') || '') + ', ' + (activeIdx + 1) + ' of ' + total;
+      dots.forEach(function (d, i) {
+        var on = i === activeIdx;
+        d.classList.toggle('is-active', on);
+        d.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      var v = card.querySelector('video');
+      if (v) playVideo(v);
+      if (ring) ring.style.transform = 'rotate(' + ((360 / Math.max(total, 1)) * activeIdx) + 'deg)';
+    }
+
+    var cardObs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) setActive(e.target); });
+    }, { root: track, threshold: 0.65 });
+    cards.forEach(function (card) { cardObs.observe(card); });
+
+    dots.forEach(function (dot) {
+      dot.addEventListener('click', function () {
+        var target = cards[parseInt(dot.getAttribute('data-dot-index'), 10)];
+        if (target) target.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', inline: 'center', block: 'nearest' });
+      });
+    });
+
+    track.addEventListener('scroll', function () {
+      var sl = track.scrollLeft, mx = track.scrollWidth - track.clientWidth;
+      if (leftInd) leftInd.style.opacity = sl > 40 ? '0.6' : '0';
+      if (rightInd) rightInd.style.opacity = sl < (mx - 40) ? '0.6' : '0';
+    }, { passive: true });
+
+    track.addEventListener('keydown', function (e) {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      e.preventDefault();
+      var ni = e.key === 'ArrowRight' ? Math.min(activeIdx + 1, total - 1) : Math.max(activeIdx - 1, 0);
+      if (cards[ni]) cards[ni].scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', inline: 'center', block: 'nearest' });
+    });
+
+    /* lazy video */
+    var skipVideo = reducedMotion;
+    if (!skipVideo) {
+      var injected = false;
+      function injectVideos() {
+        if (injected) return; injected = true;
+        track.querySelectorAll('.orbit-media[data-video-src]').forEach(function (mediaDiv) {
+          var src = mediaDiv.getAttribute('data-video-src');
+          if (!src) return;
+          var video = document.createElement('video');
+          ['muted','playsinline','webkit-playsinline','autoplay','loop'].forEach(function (a) { video.setAttribute(a, ''); });
+          video.muted = true; video.loop = true; video.playsInline = true; video.preload = 'metadata';
+          var se = document.createElement('source'); se.src = src; se.type = 'video/mp4';
+          video.appendChild(se);
+          video.addEventListener('playing', function () { video.style.opacity = '1'; });
+          mediaDiv.appendChild(video);
+        });
+      }
+      var sectionObs = new IntersectionObserver(function (entries) {
+        if (entries[0].isIntersecting) { injectVideos(); sectionObs.disconnect(); }
+      }, { rootMargin: '400px' });
+      sectionObs.observe(root);
+    }
+
+    /* merchant countdown */
+    var cdCards = track.querySelectorAll('.orbit-card.is-locked[data-unlock-at]');
+    if (cdCards.length) {
+      function pad(n) { return (n < 10 ? '0' : '') + n; }
+      function cdTick() {
+        var now = Math.floor(Date.now() / 1000);
+        cdCards.forEach(function (card) {
+          var target = parseInt(card.getAttribute('data-unlock-at'), 10); if (!target) return;
+          var diff = target - now, cd = card.querySelector('[data-countdown]'); if (!cd) return;
+          if (diff <= 0) { cd.classList.remove('is-active'); return; }
+          cd.classList.add('is-active');
+          var setEl = function (sel, v) { var el = cd.querySelector(sel); if (el) el.textContent = pad(v); };
+          setEl('[data-d]', Math.floor(diff / 86400));
+          setEl('[data-h]', Math.floor((diff % 86400) / 3600));
+          setEl('[data-m]', Math.floor((diff % 3600) / 60));
+          setEl('[data-s]', diff % 60);
+        });
+      }
+      cdTick(); setInterval(cdTick, 1000);
+    }
+
+    /* modal */
+    var openerEl = null, currentCardData = null, modalReady = false;
+    function openModal(card) {
+      if (!modal) return;
+      ensureModal();
+      if (modal.parentNode !== document.body) document.body.appendChild(modal);
+      openerEl = document.activeElement;
+      currentCardData = {
+        handle: card.getAttribute('data-collection-handle') || '',
+        title: card.getAttribute('data-collection-title') || 'Collection',
+        url: card.getAttribute('data-collection-url') || ''
+      };
+      modal.querySelectorAll('[data-context-label]').forEach(function (el) { el.textContent = currentCardData.title; });
+      modal.style.display = 'flex';
+      modal.setAttribute('aria-hidden', 'false');
+      requestAnimationFrame(function () { modal.classList.add('is-open'); });
+    }
+    function closeModal() {
+      if (!modal) return;
+      modal.classList.remove('is-open');
+      modal.setAttribute('aria-hidden', 'true');
+      setTimeout(function () { modal.style.display = ''; }, 200);
+    }
+    function ensureModal() {
+      if (modalReady || !modal || !form) return;
+      modalReady = true;
+      var UNLOCK_HOURS = parseFloat(modal.getAttribute('data-unlock-hours') || '24');
+      var CD_ENABLED = modal.getAttribute('data-countdown-enabled') === '1';
+      var BUSINESS_TAG = (modal.getAttribute('data-business-tag') || 'business_partner').trim();
+      var nameInput = form.querySelector('input[name="contact[first_name]"]');
+      var emailInput = form.querySelector('input[name="contact[email]"]');
+      var bizChk = form.querySelector('[data-business]');
+      var tagsInput = form.querySelector('[data-tags]');
+      var honeypot = form.querySelector('input[name="contact[website]"]');
+      modal.querySelectorAll('[data-close]').forEach(function (btn) {
+        btn.addEventListener('click', function (e) { e.preventDefault(); closeModal(); });
+      });
+      modal.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { e.preventDefault(); closeModal(); }
+      });
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (honeypot && honeypot.value) { closeModal(); return; }
+        var ok = true;
+        if (!nameInput || !nameInput.value.trim()) ok = false;
+        if (!/[^\s@]+@[^\s@]+\.[^\s@]+/.test(emailInput ? emailInput.value.trim() : '')) ok = false;
+        if (!ok) return;
+        var isBiz = bizChk && bizChk.checked;
+        var tags = ['orbit-signup'];
+        if (isBiz && BUSINESS_TAG) tags.push(BUSINESS_TAG);
+        if (currentCardData && currentCardData.handle) tags.push('orbit-' + currentCardData.handle);
+        if (tagsInput) tagsInput.value = tags.join(',');
+        var unlocksAt = (isBiz || !CD_ENABLED) ? Date.now() - 1000 : Date.now() + UNLOCK_HOURS * 3600000;
+        if (currentCardData && currentCardData.handle) {
+          addCommitted(currentCardData.handle);
+          addUnlock(currentCardData.handle, unlocksAt);
+          track.querySelectorAll('.orbit-card[data-collection-handle="' + currentCardData.handle + '"]').forEach(function (c) {
+            c.setAttribute('data-committed', '1');
+          });
+        }
+        try { if (emailInput && emailInput.value) localStorage.setItem(EMAIL_KEY, emailInput.value.trim()); } catch (er) {}
+        fetch(form.getAttribute('action') || '/contact', {
+          method: 'POST', body: new FormData(form), credentials: 'same-origin'
+        }).catch(function () {});
+        closeModal();
+      });
+    }
+
+    function handleLocked(card) {
+      if (card._orbitUnlocked || card.getAttribute('data-unlocked-locally') === '1') {
+        var url = card.getAttribute('data-collection-url');
+        if (url) location.href = url;
+        return;
+      }
+      openModal(card);
+    }
+    cards.forEach(function (card) {
+      if (card.getAttribute('data-locked') !== '1') return;
+      card.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); handleLocked(card); });
+      card.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleLocked(card); }
+      });
+    });
+  });
+})();
+</script>
