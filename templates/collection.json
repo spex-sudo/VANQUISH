@@ -1,0 +1,95 @@
+{
+  "sections": {
+    "header": {
+      "type": "vanquishcollection-header",
+      "blocks": {
+        "carousel_card_1": {
+          "type": "carousel_card",
+          "settings": {
+            "image": "shopify://shop_images/vanquish_pro_1200.jpg",
+            "collection": "industrial-assets",
+            "label": "EXODUS COLLECTION",
+            "link": ""
+          }
+        },
+        "carousel_card_2": {
+          "type": "carousel_card",
+          "settings": {
+            "image": "shopify://shop_images/DEVICI_STUDIOS.jpg",
+            "collection": "maze",
+            "label": "MAZE COLLECTION",
+            "link": ""
+          }
+        },
+        "carousel_card_3": {
+          "type": "carousel_card",
+          "settings": {
+            "image": "shopify://shop_images/e3c1e618-a1e0-4a9a-9183-5964b783997b-Max.jpg",
+            "collection": "apparell",
+            "label": "VANQUISH COLLECTION",
+            "link": ""
+          }
+        }
+      },
+      "block_order": ["carousel_card_1", "carousel_card_2", "carousel_card_3"],
+      "settings": {
+        "font": "system_ui_n4",
+        "panel_source": "mixed",
+        "panel_collection": "",
+        "auto_limit": 16,
+        "hero_height": 420,
+        "hero_bg": "#0a0a0a",
+        "hero_layout": "grid",
+        "split_pct": 60,
+        "promo_bg": "#0a0a0a",
+        "promo_bg_image": "shopify://shop_images/IMG_0729.png",
+        "promo_fg": "#ffffff",
+        "promo_eyebrow": "Jersey Meets Streetwear",
+        "promo_headline": "Up To 50% Off",
+        "headline_size": 68,
+        "promo_sub": "Selected Styles",
+        "btn_bg": "#6a02fb",
+        "btn_fg": "#0a0a0a",
+        "hero_cta_label": "Shop Now",
+        "card_bg": "#f5f5f5",
+        "card_radius": 18,
+        "cards_visible": 5,
+        "cards_visible_mobile": 3,
+        "card_ratio": 155,
+        "autoplay_delay": 4,
+        "show_dots": true,
+        "dot_color": "#0a0a0a",
+        "show_card_label": true
+      }
+    },
+    "grid": {
+      "type": "luxury-collection",
+      "blocks": {
+        "title": { "type": "title", "settings": {} },
+        "rating": { "type": "rating", "settings": {} },
+        "price": { "type": "price", "settings": {} }
+      },
+      "block_order": ["title", "rating", "price"],
+      "settings": {
+        "page_limit": 12,
+        "pc_cols": 4,
+        "mb_cols": 2,
+        "max_w": 1300,
+        "gap": 16,
+        "p_v": 40,
+        "rd": 4,
+        "ratio": "1/1",
+        "ac": "#111111",
+        "sale_color": "#c8102e",
+        "show_quick_add": true,
+        "show_wishlist": true,
+        "show_savings": true,
+        "low_stock_threshold": 10,
+        "new_hours": 108,
+        "max_card_images": 4,
+        "max_swatches": 4
+      }
+    }
+  },
+  "order": ["header", "grid"]
+}

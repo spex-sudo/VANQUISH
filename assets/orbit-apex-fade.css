@@ -1,14 +1,15 @@
-/* Sovereign Orbit Apex — bottom fade into the next section.
-   Next section stays untouched.
+/* Sovereign Orbit Apex — bottom fade into the NEXT section.
+   Homepage stack is Orbit (black) → Trust banner (black), so default
+   is a short black fade. No white stripe on launch.
 
-   Theme editor (section Custom CSS):
-     .orbit-master { --orbit-fade-to: #ffffff; --orbit-fade-h: 160px; }
+   White section below? In Orbit Apex Custom CSS:
+     .orbit-master { --orbit-fade-to: #ffffff; --orbit-fade-h: 140px; }
    Disable:
      .orbit-master { --orbit-fade-h: 0px; }
 */
 .orbit-master {
-  --orbit-fade-to: #ffffff;
-  --orbit-fade-h: 140px;
+  --orbit-fade-to: #000000;
+  --orbit-fade-h: 72px;
 }
 .orbit-master::after {
   content: "";
