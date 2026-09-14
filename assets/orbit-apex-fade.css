@@ -1,8 +1,31 @@
-/* Defaults only. Per-section fade is painted by luxury-collectiongrid.liquid
-   so the editor can toggle color/height without a double overlay. */
+/* Sovereign Orbit Apex — bottom fade into the next section.
+   Next section stays untouched.
+
+   Theme editor (section Custom CSS):
+     .orbit-master { --orbit-fade-to: #ffffff; --orbit-fade-h: 160px; }
+   Disable:
+     .orbit-master { --orbit-fade-h: 0px; }
+*/
 .orbit-master {
   --orbit-fade-to: #ffffff;
   --orbit-fade-h: 140px;
+}
+.orbit-master::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--orbit-fade-h);
+  pointer-events: none;
+  z-index: 40;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    color-mix(in srgb, var(--orbit-fade-to) 10%, transparent) 36%,
+    color-mix(in srgb, var(--orbit-fade-to) 52%, transparent) 68%,
+    var(--orbit-fade-to) 100%
+  );
 }
 .section-orbit-apex {
   margin-bottom: 0;
