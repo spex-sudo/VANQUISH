@@ -116,6 +116,7 @@
         },
         "text_overlay_93YNGQ": {
           "type": "text_overlay",
+          "disabled": true,
           "settings": {
             "overlay_text": "LEXE",
             "font_family": "Bebas Neue",
