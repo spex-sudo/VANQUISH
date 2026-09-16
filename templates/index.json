@@ -390,7 +390,7 @@
         "name_tracking": 2,
         "name_transform": "uppercase",
         "autoplay": true,
-        "autoplay_speed": 22,
+        "autoplay_speed": 8,
         "edge_fade": true,
         "bg_color": "#ffffff",
         "text_color": "#404040",
