@@ -188,7 +188,7 @@
         "wall_btn_label_show": "",
         "wall_btn_label_hide": "Hide",
         "wall_btn_size": 10,
-        "wall_btn_pad_x": 12,
+        "wall_btn_pad_x": 30,
         "wall_btn_pad_y": 8,
         "wall_btn_radius": 18,
         "wall_btn_x": 86,
