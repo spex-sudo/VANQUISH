@@ -321,7 +321,7 @@
         "title_font": "tomorrow_n9",
         "title_size": 33,
         "enable_blur": true,
-        "show_ring": true,
+        "show_ring": false,
         "show_hud": false,
         "show_scanlines": false,
         "show_noise": true,
