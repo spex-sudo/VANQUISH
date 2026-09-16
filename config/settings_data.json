@@ -9,11 +9,11 @@
  */
 {
   "current": {
-    "logo": "shopify://shop_images/F2D848F7-A2A3-48D2-AE30-58B9FE04182F.png",
-    "logo_inverse": "shopify://shop_images/vanquish-logo8.png",
+    "logo": "shopify://shop_images/IMG_0066.jpg",
+    "logo_inverse": "shopify://shop_images/F16CC35F-32F4-4BD3-8C8D-90CB457D79DF.png",
     "logo_height": 36,
     "logo_height_mobile": 48,
-    "favicon": "shopify://shop_images/D09F46AD-6526-4D9E-8543-C2EAEF49FEDF.png",
+    "favicon": "shopify://shop_images/IMG_0066.jpg",
     "type_body_font": "geist_n4",
     "type_subheading_font": "geist_n5",
     "type_heading_font": "geist_n6",
@@ -109,11 +109,6 @@
           "loading_text_color": "#ffffff",
           "slow_text": "slow connection, fix your internet",
           "slow_ms": 3000,
-          "enable_grid_reveal": true,
-          "grid_cols": 9,
-          "grid_stagger": 45,
-          "grid_cell_dur": 300,
-          "grid_color": "#ffffff",
           "default_fit": "contain"
         }
       }
@@ -135,8 +130,6 @@
           "background_color": "#ffffff",
           "font_color": "#030302",
           "button_color": "#030302",
-          "secondary_color": "#ffffff",
-          "ternary_color": "#6a6a6a",
           "button_icon": "no_icon",
           "button_text": "need_help",
           "button_horizontal_position": "bottom_right",
