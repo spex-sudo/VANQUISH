@@ -144,8 +144,9 @@
       ],
       "name": "Ultimate Hero V11 + Signature Wall",
       "settings": {
-        "video_link": "https://cdn.shopify.com/videos/c/vp/57eaa7b0526d450f8515da161f020652/57eaa7b0526d450f8515da161f020652.SD-480p-0.9Mbps-94528265.mp4",
-        "video_poster": "shopify://shop_images/Not_Worth_it..jpg",
+        "image": "shopify://shop_images/8C0FBF90-90DD-43BF-843F-74B723EB403B.jpg",
+        "video_link": "",
+        "video_poster": "shopify://shop_images/8C0FBF90-90DD-43BF-843F-74B723EB403B.jpg",
         "image_fit": "cover",
         "height": 64,
         "height_mobile": 69,
