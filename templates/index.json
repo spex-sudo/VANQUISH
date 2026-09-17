@@ -117,7 +117,7 @@
         "text_overlay_93YNGQ": {
           "type": "text_overlay",
           "settings": {
-            "overlay_text": "THIS SEASON",
+            "overlay_text": "THIS SEASON!",
             "font_family": "Bebas Neue",
             "font_size": 54,
             "font_weight": "900",
@@ -143,9 +143,9 @@
       ],
       "name": "Ultimate Hero V11 + Signature Wall",
       "settings": {
-        "image": "shopify://shop_images/6332BB22-903D-4170-BF6C-7F8D8FDC4931.jpg",
+        "image": "shopify://shop_images/IMG-0326.jpg",
         "video_link": "https://cdn.shopify.com/videos/c/vp/addd0e92a48945e288f160c02d34ecf0/addd0e92a48945e288f160c02d34ecf0.SD-480p-1.2Mbps-94661812.mp4",
-        "video_poster": "shopify://shop_images/8C0FBF90-90DD-43BF-843F-74B723EB403B.jpg",
+        "video_poster": "shopify://shop_images/IMG-0326.jpg",
         "image_fit": "cover",
         "height": 64,
         "height_mobile": 69,
