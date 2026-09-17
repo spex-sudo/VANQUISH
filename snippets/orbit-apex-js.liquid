@@ -48,7 +48,10 @@
     var total = cards.length;
     var activeIdx = 0;
     var reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var gestureReady = false;
+    var sectionVisible = true;
+    var cdTimer = null;
+    var autoTimer = null;
+    var scrollRaf = 0;
 
     var _unlockCache = null;
     function getUnlocks() {
@@ -75,6 +78,10 @@
     }
 
     function setActive(card) {
+      if (!card) return;
+      var idx = cards.indexOf(card);
+      if (idx < 0) idx = 0;
+      if (card.classList.contains('is-active') && activeIdx === idx) return;
       cards.forEach(function (c) {
         if (c === card) return;
         c.classList.remove('is-active');
@@ -84,8 +91,6 @@
       });
       card.classList.add('is-active');
       card.setAttribute('aria-current', 'true');
-      var idx = cards.indexOf(card);
-      if (idx < 0) idx = 0;
       activeIdx = idx;
       if (counter) counter.textContent = (activeIdx + 1 < 10 ? '0' : '') + (activeIdx + 1);
       if (live) live.textContent = (card.getAttribute('data-collection-title') || '') + ', ' + (activeIdx + 1) + ' of ' + total;
@@ -95,14 +100,26 @@
         d.setAttribute('aria-selected', on ? 'true' : 'false');
       });
       var v = card.querySelector('video');
-      if (v) playVideo(v);
-      if (ring) ring.style.transform = 'rotate(' + ((360 / Math.max(total, 1)) * activeIdx) + 'deg)';
+      if (v && sectionVisible && !document.hidden) playVideo(v);
+      if (ring) ring.style.transform = 'rotate(' + ((360 / Math.max(total, 1)) * activeIdx) + 'deg');
     }
 
-    var cardObs = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) { if (e.isIntersecting) setActive(e.target); });
-    }, { root: track, threshold: 0.65 });
-    cards.forEach(function (card) { cardObs.observe(card); });
+    if ('IntersectionObserver' in window) {
+      var cardObs = new IntersectionObserver(function (entries) {
+        var best = null;
+        var bestRatio = 0;
+        entries.forEach(function (e) {
+          if (e.isIntersecting && e.intersectionRatio >= bestRatio) {
+            bestRatio = e.intersectionRatio;
+            best = e.target;
+          }
+        });
+        if (best) setActive(best);
+      }, { root: track, threshold: [0.5, 0.65, 0.8] });
+      cards.forEach(function (card) { cardObs.observe(card); });
+    } else if (cards[0]) {
+      setActive(cards[0]);
+    }
 
     dots.forEach(function (dot) {
       dot.addEventListener('click', function () {
@@ -111,11 +128,17 @@
       });
     });
 
-    track.addEventListener('scroll', function () {
+    function updateEdges() {
+      scrollRaf = 0;
       var sl = track.scrollLeft, mx = track.scrollWidth - track.clientWidth;
       if (leftInd) leftInd.style.opacity = sl > 40 ? '0.6' : '0';
       if (rightInd) rightInd.style.opacity = sl < (mx - 40) ? '0.6' : '0';
+    }
+    track.addEventListener('scroll', function () {
+      if (scrollRaf) return;
+      scrollRaf = requestAnimationFrame(updateEdges);
     }, { passive: true });
+    updateEdges();
 
     track.addEventListener('keydown', function (e) {
       if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
@@ -124,7 +147,6 @@
       if (cards[ni]) cards[ni].scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', inline: 'center', block: 'nearest' });
     });
 
-    /* lazy video */
     var skipVideo = reducedMotion;
     if (!skipVideo) {
       var injected = false;
@@ -134,42 +156,97 @@
           var src = mediaDiv.getAttribute('data-video-src');
           if (!src) return;
           var video = document.createElement('video');
-          ['muted','playsinline','webkit-playsinline','autoplay','loop'].forEach(function (a) { video.setAttribute(a, ''); });
-          video.muted = true; video.loop = true; video.playsInline = true; video.preload = 'metadata';
+          ['muted','playsinline','webkit-playsinline','loop'].forEach(function (a) { video.setAttribute(a, ''); });
+          video.muted = true; video.loop = true; video.playsInline = true; video.preload = 'none';
           var se = document.createElement('source'); se.src = src; se.type = 'video/mp4';
           video.appendChild(se);
           video.addEventListener('playing', function () { video.style.opacity = '1'; });
           mediaDiv.appendChild(video);
         });
       }
-      var sectionObs = new IntersectionObserver(function (entries) {
-        if (entries[0].isIntersecting) { injectVideos(); sectionObs.disconnect(); }
-      }, { rootMargin: '400px' });
-      sectionObs.observe(root);
-    }
-
-    /* merchant countdown */
-    var cdCards = track.querySelectorAll('.orbit-card.is-locked[data-unlock-at]');
-    if (cdCards.length) {
-      function pad(n) { return (n < 10 ? '0' : '') + n; }
-      function cdTick() {
-        var now = Math.floor(Date.now() / 1000);
-        cdCards.forEach(function (card) {
-          var target = parseInt(card.getAttribute('data-unlock-at'), 10); if (!target) return;
-          var diff = target - now, cd = card.querySelector('[data-countdown]'); if (!cd) return;
-          if (diff <= 0) { cd.classList.remove('is-active'); return; }
-          cd.classList.add('is-active');
-          var setEl = function (sel, v) { var el = cd.querySelector(sel); if (el) el.textContent = pad(v); };
-          setEl('[data-d]', Math.floor(diff / 86400));
-          setEl('[data-h]', Math.floor((diff % 86400) / 3600));
-          setEl('[data-m]', Math.floor((diff % 3600) / 60));
-          setEl('[data-s]', diff % 60);
-        });
+      if ('IntersectionObserver' in window) {
+        var sectionObs = new IntersectionObserver(function (entries) {
+          if (entries[0] && entries[0].isIntersecting) { injectVideos(); sectionObs.disconnect(); }
+        }, { rootMargin: '200px' });
+        sectionObs.observe(root);
       }
-      cdTick(); setInterval(cdTick, 1000);
     }
 
-    /* modal */
+    var cdCards = track.querySelectorAll('.orbit-card.is-locked[data-unlock-at]');
+    function pad(n) { return (n < 10 ? '0' : '') + n; }
+    function cdTick() {
+      if (!sectionVisible || document.hidden) return;
+      var now = Math.floor(Date.now() / 1000);
+      for (var i = 0; i < cdCards.length; i++) {
+        var card = cdCards[i];
+        var target = parseInt(card.getAttribute('data-unlock-at'), 10); if (!target) continue;
+        var diff = target - now, cd = card.querySelector('[data-countdown]'); if (!cd) continue;
+        if (diff <= 0) { cd.classList.remove('is-active'); continue; }
+        cd.classList.add('is-active');
+        var dEl = cd.querySelector('[data-d]');
+        var hEl = cd.querySelector('[data-h]');
+        var mEl = cd.querySelector('[data-m]');
+        var sEl = cd.querySelector('[data-s]');
+        if (dEl) dEl.textContent = pad(Math.floor(diff / 86400));
+        if (hEl) hEl.textContent = pad(Math.floor((diff % 86400) / 3600));
+        if (mEl) mEl.textContent = pad(Math.floor((diff % 3600) / 60));
+        if (sEl) sEl.textContent = pad(diff % 60);
+      }
+    }
+    function startCd() {
+      if (cdTimer || !cdCards.length) return;
+      cdTick();
+      cdTimer = setInterval(cdTick, 1000);
+    }
+    function stopCd() {
+      if (cdTimer) { clearInterval(cdTimer); cdTimer = null; }
+    }
+    if (cdCards.length) startCd();
+
+    var autoSec = parseFloat(root.getAttribute('data-autoscroll') || '0');
+    function startAuto() {
+      if (autoTimer || !autoSec || total < 2 || reducedMotion) return;
+      autoTimer = setInterval(function () {
+        if (!sectionVisible || document.hidden) return;
+        var ni = (activeIdx + 1) % total;
+        if (cards[ni]) cards[ni].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      }, Math.max(3, autoSec) * 1000);
+    }
+    function stopAuto() {
+      if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+    }
+    startAuto();
+
+    if ('IntersectionObserver' in window) {
+      var visObs = new IntersectionObserver(function (entries) {
+        sectionVisible = !!(entries[0] && entries[0].isIntersecting);
+        if (sectionVisible && !document.hidden) {
+          startCd();
+          startAuto();
+          var av = cards[activeIdx] && cards[activeIdx].querySelector('video');
+          if (av) playVideo(av);
+        } else {
+          stopCd();
+          stopAuto();
+          cards.forEach(function (c) { pauseVideo(c.querySelector('video')); });
+        }
+      }, { threshold: 0.08 });
+      visObs.observe(root);
+    }
+
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) {
+        stopCd();
+        stopAuto();
+        cards.forEach(function (c) { pauseVideo(c.querySelector('video')); });
+      } else if (sectionVisible) {
+        startCd();
+        startAuto();
+        var av = cards[activeIdx] && cards[activeIdx].querySelector('video');
+        if (av) playVideo(av);
+      }
+    });
+
     var openerEl = null, currentCardData = null, modalReady = false;
     function openModal(card) {
       if (!modal) return;
