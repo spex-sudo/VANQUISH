@@ -25,8 +25,6 @@
     position: relative;
     user-select: none;
     isolation: isolate;
-    content-visibility: auto;
-    contain-intrinsic-block-size: 900px;
   }
 
   {%- if show_noise -%}
@@ -114,12 +112,16 @@
   }
 
   .orbit-master-{{ sid }} .orbit-track {
-    display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
+    display: flex; overflow-x: auto; overflow-y: hidden;
+    scroll-snap-type: x mandatory;
     scrollbar-width: none; gap: var(--card-gap);
     padding: 16px calc((100% - var(--card-w-desktop)) / 2) 50px;
-    -webkit-overflow-scrolling: touch; scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
     position: relative; z-index: 1;
     scroll-padding-inline: calc((100% - var(--card-w-desktop)) / 2);
+    touch-action: pan-x;
+    overscroll-behavior-x: contain;
   }
   .orbit-master-{{ sid }} .orbit-track::-webkit-scrollbar { display: none; }
 
@@ -135,10 +137,8 @@
     border: 1px solid rgba(255,255,255,0.04);
     border-radius: var(--card-radius);
     overflow: hidden; cursor: pointer;
-    contain: layout style paint;
   }
   .orbit-master-{{ sid }} .orbit-card.is-active {
-    will-change: transform, filter;
     filter: grayscale(0) brightness(1) blur(0);
     transform: scale(1.04);
     border-color: var(--accent);
