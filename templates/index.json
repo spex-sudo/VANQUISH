@@ -120,7 +120,7 @@
             "overlay_text": "THIS SEASON!",
             "font_family": "Bebas Neue",
             "font_size": 54,
-            "font_weight": "900",
+            "font_weight": "300",
             "overlay_text_color": "#ffffff",
             "text_opacity": 90,
             "letter_spacing": 2,
