@@ -62,6 +62,9 @@
     var lastMoveT = 0;
     var momRaf = 0;
     var coasting = false;
+    var touchStartX = 0;
+    var touchStartY = 0;
+    var touchMoved = false;
 
     var _unlockCache = null;
     function getUnlocks() {
@@ -115,16 +118,20 @@
       if (ring) ring.style.transform = 'rotate(' + ((360 / Math.max(total, 1)) * activeIdx) + 'deg');
     }
 
+    function cardLeft(card) {
+      return card.offsetLeft;
+    }
+
     function cardNearestCenter() {
       if (!cards.length) return null;
-      var tRect = track.getBoundingClientRect();
-      var mid = tRect.left + tRect.width / 2;
+      var mid = track.scrollLeft + track.clientWidth / 2;
       var best = cards[0];
       var bestDist = Infinity;
       for (var i = 0; i < cards.length; i++) {
-        var r = cards[i].getBoundingClientRect();
-        var dist = Math.abs((r.left + r.width / 2) - mid);
-        if (dist < bestDist) { bestDist = dist; best = cards[i]; }
+        var c = cards[i];
+        var center = cardLeft(c) + c.offsetWidth / 2;
+        var dist = Math.abs(center - mid);
+        if (dist < bestDist) { bestDist = dist; best = c; }
       }
       return best;
     }
@@ -155,13 +162,21 @@
       scrollRaf = requestAnimationFrame(onScrollFrame);
     }, { passive: true });
 
+    track.addEventListener('scrollend', function () {
+      syncActive();
+      updateEdges();
+    });
+
     function goTo(idx, instant) {
       var target = cards[idx];
       if (!target) return;
-      var prev = track.style.scrollBehavior;
-      if (instant) track.style.scrollBehavior = 'auto';
-      target.scrollIntoView({ behavior: instant || reducedMotion ? 'auto' : 'smooth', inline: 'center', block: 'nearest' });
-      if (instant) track.style.scrollBehavior = prev || '';
+      var left = cardLeft(target) - (track.clientWidth - target.offsetWidth) / 2;
+      var mx = maxScroll();
+      left = Math.max(0, Math.min(mx, left));
+      track.scrollTo({
+        left: left,
+        behavior: instant || reducedMotion ? 'auto' : 'smooth'
+      });
       setActive(target);
     }
 
@@ -169,7 +184,6 @@
       var nearest = cardNearestCenter();
       if (nearest) goTo(cards.indexOf(nearest), false);
       else syncActive();
-      requestAnimationFrame(function () { track.style.scrollBehavior = ''; });
     }
 
     function stopMomentum() {
@@ -186,7 +200,6 @@
       var v = Math.max(-3.2, Math.min(3.2, v0));
       var last = performance.now();
       coasting = true;
-      track.style.scrollBehavior = 'auto';
       function step(now) {
         if (!coasting) return;
         var dt = Math.min(34, now - last);
@@ -226,11 +239,43 @@
       goTo(ni, false);
     });
 
-    track.style.touchAction = 'pan-x';
-    track.style.cursor = 'grab';
+    /* Touch / pen: native overflow + snap. Mouse: custom drag + momentum. */
+    track.addEventListener('touchstart', function (e) {
+      if (!e.touches || !e.touches[0]) return;
+      stopMomentum();
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      touchMoved = false;
+      dragMoved = false;
+    }, { passive: true });
+
+    track.addEventListener('touchmove', function (e) {
+      if (!e.touches || !e.touches[0]) return;
+      var dx = e.touches[0].clientX - touchStartX;
+      var dy = e.touches[0].clientY - touchStartY;
+      if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
+        touchMoved = true;
+        dragMoved = true;
+      }
+    }, { passive: true });
+
+    track.addEventListener('touchend', function () {
+      requestAnimationFrame(function () {
+        syncActive();
+        updateEdges();
+      });
+      setTimeout(function () {
+        syncActive();
+        updateEdges();
+      }, 80);
+      setTimeout(function () {
+        snapNearest();
+      }, 140);
+    }, { passive: true });
 
     track.addEventListener('pointerdown', function (e) {
-      if (e.button !== 0 && e.pointerType === 'mouse') return;
+      if (e.pointerType === 'touch' || e.pointerType === 'pen') return;
+      if (e.button !== 0) return;
       if (e.target && e.target.closest && e.target.closest('.orbit-dot, .m-card, button, input')) return;
       stopMomentum();
       dragging = true;
@@ -265,20 +310,20 @@
       if (!dragging) return;
       if (e && dragPointerId != null && e.pointerId !== dragPointerId) return;
       dragging = false;
-      track.style.cursor = 'grab';
+      track.style.cursor = '';
       try { if (e && e.pointerId != null) track.releasePointerCapture(e.pointerId); } catch (err) {}
       dragPointerId = null;
       var dt = performance.now() - lastMoveT;
       if (dt > 80) vel = 0;
       startMomentum(vel);
+      requestAnimationFrame(function () { track.style.scrollBehavior = ''; });
     }
 
     track.addEventListener('pointerup', endDrag);
     track.addEventListener('pointercancel', endDrag);
-    window.addEventListener('pointerup', endDrag);
 
     track.addEventListener('click', function (e) {
-      if (!dragMoved) return;
+      if (!dragMoved && !touchMoved) return;
       e.preventDefault();
       e.stopPropagation();
     }, true);
@@ -391,12 +436,11 @@
       }
     });
 
-    var openerEl = null, currentCardData = null, modalReady = false;
+    var currentCardData = null, modalReady = false;
     function openModal(card) {
       if (!modal) return;
       ensureModal();
       if (modal.parentNode !== document.body) document.body.appendChild(modal);
-      openerEl = document.activeElement;
       currentCardData = {
         handle: card.getAttribute('data-collection-handle') || '',
         title: card.getAttribute('data-collection-title') || 'Collection',
@@ -459,7 +503,7 @@
     }
 
     function handleLocked(card) {
-      if (dragMoved) return;
+      if (dragMoved || touchMoved) return;
       if (card._orbitUnlocked || card.getAttribute('data-unlocked-locally') === '1') {
         var url = card.getAttribute('data-collection-url');
         if (url) location.href = url;
@@ -470,7 +514,7 @@
     cards.forEach(function (card) {
       if (card.getAttribute('data-locked') !== '1') return;
       card.addEventListener('click', function (e) {
-        if (dragMoved) { e.preventDefault(); e.stopPropagation(); return; }
+        if (dragMoved || touchMoved) { e.preventDefault(); e.stopPropagation(); return; }
         e.preventDefault();
         e.stopPropagation();
         handleLocked(card);
