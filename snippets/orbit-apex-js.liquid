@@ -57,6 +57,11 @@
     var dragStartX = 0;
     var dragStartScroll = 0;
     var dragPointerId = null;
+    var vel = 0;
+    var lastMoveX = 0;
+    var lastMoveT = 0;
+    var momRaf = 0;
+    var coasting = false;
 
     var _unlockCache = null;
     function getUnlocks() {
@@ -124,13 +129,17 @@
       return best;
     }
 
+    function maxScroll() {
+      return Math.max(0, track.scrollWidth - track.clientWidth);
+    }
+
     function syncActive() {
       setActive(cardNearestCenter());
     }
 
     function updateEdges() {
       var sl = track.scrollLeft;
-      var mx = Math.max(0, track.scrollWidth - track.clientWidth);
+      var mx = maxScroll();
       if (leftInd) leftInd.style.opacity = sl > 24 ? '0.6' : '0';
       if (rightInd) rightInd.style.opacity = sl < (mx - 24) ? '0.6' : '0';
     }
@@ -156,8 +165,55 @@
       setActive(target);
     }
 
+    function snapNearest() {
+      var nearest = cardNearestCenter();
+      if (nearest) goTo(cards.indexOf(nearest), false);
+      else syncActive();
+      requestAnimationFrame(function () { track.style.scrollBehavior = ''; });
+    }
+
+    function stopMomentum() {
+      coasting = false;
+      if (momRaf) { cancelAnimationFrame(momRaf); momRaf = 0; }
+    }
+
+    function startMomentum(v0) {
+      stopMomentum();
+      if (reducedMotion || !isFinite(v0) || Math.abs(v0) < 0.18) {
+        snapNearest();
+        return;
+      }
+      var v = Math.max(-3.2, Math.min(3.2, v0));
+      var last = performance.now();
+      coasting = true;
+      track.style.scrollBehavior = 'auto';
+      function step(now) {
+        if (!coasting) return;
+        var dt = Math.min(34, now - last);
+        last = now;
+        v *= Math.pow(0.935, dt / 16.67);
+        var mx = maxScroll();
+        var next = track.scrollLeft + v * dt;
+        if (next <= 0 || next >= mx) {
+          track.scrollLeft = Math.max(0, Math.min(mx, next));
+          stopMomentum();
+          snapNearest();
+          return;
+        }
+        track.scrollLeft = next;
+        if (Math.abs(v) < 0.045) {
+          stopMomentum();
+          snapNearest();
+          return;
+        }
+        momRaf = requestAnimationFrame(step);
+      }
+      momRaf = requestAnimationFrame(step);
+    }
+
     dots.forEach(function (dot) {
       dot.addEventListener('click', function () {
+        stopMomentum();
         goTo(parseInt(dot.getAttribute('data-dot-index'), 10), false);
       });
     });
@@ -165,22 +221,26 @@
     track.addEventListener('keydown', function (e) {
       if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
       e.preventDefault();
+      stopMomentum();
       var ni = e.key === 'ArrowRight' ? Math.min(activeIdx + 1, total - 1) : Math.max(activeIdx - 1, 0);
       goTo(ni, false);
     });
 
-    /* Pointer swipe — native overflow does not drag with a mouse; touch still pans. */
     track.style.touchAction = 'pan-x';
     track.style.cursor = 'grab';
 
     track.addEventListener('pointerdown', function (e) {
       if (e.button !== 0 && e.pointerType === 'mouse') return;
       if (e.target && e.target.closest && e.target.closest('.orbit-dot, .m-card, button, input')) return;
+      stopMomentum();
       dragging = true;
       dragMoved = false;
       dragStartX = e.clientX;
       dragStartScroll = track.scrollLeft;
       dragPointerId = e.pointerId;
+      vel = 0;
+      lastMoveX = e.clientX;
+      lastMoveT = performance.now();
       track.style.scrollBehavior = 'auto';
       track.style.cursor = 'grabbing';
       try { track.setPointerCapture(e.pointerId); } catch (err) {}
@@ -188,9 +248,17 @@
 
     track.addEventListener('pointermove', function (e) {
       if (!dragging || (dragPointerId != null && e.pointerId !== dragPointerId)) return;
+      var now = performance.now();
       var dx = e.clientX - dragStartX;
       if (Math.abs(dx) > 6) dragMoved = true;
       track.scrollLeft = dragStartScroll - dx;
+      var dt = now - lastMoveT;
+      if (dt > 0) {
+        var inst = (lastMoveX - e.clientX) / dt;
+        vel = vel * 0.65 + inst * 0.35;
+      }
+      lastMoveX = e.clientX;
+      lastMoveT = now;
     });
 
     function endDrag(e) {
@@ -200,10 +268,9 @@
       track.style.cursor = 'grab';
       try { if (e && e.pointerId != null) track.releasePointerCapture(e.pointerId); } catch (err) {}
       dragPointerId = null;
-      var nearest = cardNearestCenter();
-      if (nearest) goTo(cards.indexOf(nearest), false);
-      else syncActive();
-      requestAnimationFrame(function () { track.style.scrollBehavior = ''; });
+      var dt = performance.now() - lastMoveT;
+      if (dt > 80) vel = 0;
+      startMomentum(vel);
     }
 
     track.addEventListener('pointerup', endDrag);
@@ -280,7 +347,7 @@
     function startAuto() {
       if (autoTimer || !autoSec || total < 2 || reducedMotion) return;
       autoTimer = setInterval(function () {
-        if (!sectionVisible || document.hidden || dragging) return;
+        if (!sectionVisible || document.hidden || dragging || coasting) return;
         var ni = (Math.max(activeIdx, 0) + 1) % total;
         goTo(ni, false);
       }, Math.max(3, autoSec) * 1000);
@@ -300,6 +367,7 @@
           var av = cards[activeIdx] && cards[activeIdx].querySelector('video');
           if (av) playVideo(av);
         } else {
+          stopMomentum();
           stopCd();
           stopAuto();
           cards.forEach(function (c) { pauseVideo(c.querySelector('video')); });
@@ -310,6 +378,7 @@
 
     document.addEventListener('visibilitychange', function () {
       if (document.hidden) {
+        stopMomentum();
         stopCd();
         stopAuto();
         cards.forEach(function (c) { pauseVideo(c.querySelector('video')); });
