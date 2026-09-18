@@ -49,6 +49,7 @@
     if (!total) return;
     var activeIdx = -1;
     var reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
     var sectionVisible = true;
     var cdTimer = null;
     var autoTimer = null;
@@ -83,7 +84,7 @@
     }
 
     function playVideo(v) {
-      if (!v || reducedMotion) return;
+      if (!v || reducedMotion || isTouch) return;
       v.muted = true;
       var p = v.play();
       if (p && p.catch) p.catch(function () {});
@@ -172,7 +173,7 @@
       var left = cardTargetLeft(card);
       programmatic = true;
       try {
-        track.scrollTo({ left: left, behavior: instant || reducedMotion ? 'auto' : 'smooth' });
+        track.scrollTo({ left: left, behavior: instant || reducedMotion || isTouch ? 'auto' : 'smooth' });
       } catch (err) {
         track.scrollLeft = left;
       }
@@ -267,18 +268,18 @@
 
     track.addEventListener('scroll', onTrackScroll, { passive: true });
 
-    track.addEventListener('touchstart', function (e) {
-      if (!e.changedTouches || !e.changedTouches[0]) return;
-      beginSwipe(e.changedTouches[0].clientX, e.changedTouches[0].clientY, 'touch');
-    }, { passive: true });
-
-    track.addEventListener('touchmove', function (e) {
-      if (!e.changedTouches || !e.changedTouches[0]) return;
-      moveSwipe(e.changedTouches[0].clientX, e.changedTouches[0].clientY, e);
-    }, { passive: false });
-
-    track.addEventListener('touchend', endSwipe, { passive: true });
-    track.addEventListener('touchcancel', endSwipe, { passive: true });
+    if (!isTouch) {
+      track.addEventListener('touchstart', function (e) {
+        if (!e.changedTouches || !e.changedTouches[0]) return;
+        beginSwipe(e.changedTouches[0].clientX, e.changedTouches[0].clientY, 'touch');
+      }, { passive: true });
+      track.addEventListener('touchmove', function (e) {
+        if (!e.changedTouches || !e.changedTouches[0]) return;
+        moveSwipe(e.changedTouches[0].clientX, e.changedTouches[0].clientY, e);
+      }, { passive: false });
+      track.addEventListener('touchend', endSwipe, { passive: true });
+      track.addEventListener('touchcancel', endSwipe, { passive: true });
+    }
 
     track.addEventListener('pointerdown', function (e) {
       if (e.pointerType === 'touch' || e.pointerType === 'pen') return;
@@ -324,7 +325,7 @@
       goTo(e.key === 'ArrowRight' ? activeIdx + 1 : activeIdx - 1, false);
     });
 
-    var skipVideo = reducedMotion;
+    var skipVideo = reducedMotion || isTouch;
     if (!skipVideo) {
       var injected = false;
       function injectVideos() {
@@ -536,10 +537,6 @@
       }, 80);
     }
     window.addEventListener('resize', onResize);
-    if (typeof ResizeObserver !== 'undefined') {
-      var ro = new ResizeObserver(onResize);
-      ro.observe(track);
-    }
   });
 })();
 </script>
