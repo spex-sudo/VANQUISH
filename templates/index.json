@@ -255,26 +255,6 @@
             "lock_unlock_at": ""
           }
         },
-        "collection_jQgwJn": {
-          "type": "collection",
-          "settings": {
-            "collection": "apparell",
-            "status_text": "DISCONTINUED",
-            "status_color": "#d43737",
-            "custom_image": "shopify://shop_images/b9949b91d60740f6af1cf2e09f46cb4c-Max-Origin.webp",
-            "cta_label": "Enter",
-            "price_from": "",
-            "badge_text": "SOLD OUT FOREVER",
-            "badge_bg": "#000000",
-            "badge_text_color": "#ff4d4d",
-            "lock_collection": true,
-            "lock_label": "ACCESS RESTRICTED",
-            "lock_cta_label": "Request Access",
-            "unlocked_cta_label": "Shop Now",
-            "lock_color": "#888888",
-            "lock_unlock_at": ""
-          }
-        },
         "collection_Ey3WHA": {
           "type": "collection",
           "settings": {
@@ -293,6 +273,26 @@
             "unlocked_cta_label": "Shop Now",
             "lock_color": "#888888",
             "lock_unlock_at": "2027-6-1"
+          }
+        },
+        "collection_jQgwJn": {
+          "type": "collection",
+          "settings": {
+            "collection": "apparell",
+            "status_text": "DISCONTINUED",
+            "status_color": "#d43737",
+            "custom_image": "shopify://shop_images/b9949b91d60740f6af1cf2e09f46cb4c-Max-Origin.webp",
+            "cta_label": "Enter",
+            "price_from": "",
+            "badge_text": "SOLD OUT FOREVER",
+            "badge_bg": "#000000",
+            "badge_text_color": "#ff4d4d",
+            "lock_collection": true,
+            "lock_label": "ACCESS RESTRICTED",
+            "lock_cta_label": "Request Access",
+            "unlocked_cta_label": "Shop Now",
+            "lock_color": "#888888",
+            "lock_unlock_at": ""
           }
         },
         "collection_zcXzR6": {
@@ -339,8 +339,8 @@
       "block_order": [
         "collection_4jbHhB",
         "collection_fCeNdr",
-        "collection_jQgwJn",
         "collection_Ey3WHA",
+        "collection_jQgwJn",
         "collection_zcXzR6",
         "collection_LHL9LP"
       ],
