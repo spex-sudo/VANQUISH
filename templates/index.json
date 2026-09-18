@@ -259,8 +259,8 @@
           "type": "collection",
           "settings": {
             "collection": "maze",
-            "status_text": "under development",
-            "status_color": "#d47137",
+            "status_text": "UNRELEASED",
+            "status_color": "#5E37D4",
             "custom_image": "shopify://shop_images/DEVICI_STUDIOS.jpg",
             "cta_label": "Enter",
             "price_from": "",
