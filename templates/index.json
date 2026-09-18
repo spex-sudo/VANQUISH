@@ -220,9 +220,9 @@
         "collection_4jbHhB": {
           "type": "collection",
           "settings": {
-            "collection": "specs",
+            "collection": "lexespecs",
             "status_text": "UNRELEASED",
-            "status_color": "#4C37D4",
+            "status_color": "#4c37d4",
             "cta_label": "Enter",
             "price_from": "",
             "badge_text": "",
@@ -260,7 +260,7 @@
           "settings": {
             "collection": "apparell",
             "status_text": "DISCONTINUED",
-            "status_color": "#D43737",
+            "status_color": "#d43737",
             "custom_image": "shopify://shop_images/b9949b91d60740f6af1cf2e09f46cb4c-Max-Origin.webp",
             "cta_label": "Enter",
             "price_from": "",
