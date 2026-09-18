@@ -146,35 +146,51 @@
   let raf = 0;
   let last = 0;
   let half = 0;
+  let carry = 0;
+  let wrapping = false;
 
   const measure = () => {
     if (looping) half = track.scrollWidth / 2;
   };
 
   const wrap = () => {
-    if (!looping || half <= 0) return;
+    if (!looping || half <= 0 || wrapping) return;
     const sl = track.scrollLeft;
-    if (sl >= half) track.scrollLeft = sl - half;
-    else if (sl < 0) track.scrollLeft = sl + half;
+    if (sl >= half) {
+      wrapping = true;
+      track.scrollLeft = sl - half;
+      wrapping = false;
+    } else if (sl < 0) {
+      wrapping = true;
+      track.scrollLeft = sl + half;
+      wrapping = false;
+    }
   };
 
   const step = (ts) => {
-    if (!autoplayOn || dragging || offscreen) {
+    if (!autoplayOn || dragging || offscreen || document.hidden) {
       raf = 0;
       last = 0;
+      carry = 0;
       return;
     }
     if (!last) last = ts;
-    const dt = Math.min(48, ts - last) / 1000;
+    const dt = Math.min(24, ts - last) / 1000;
     last = ts;
-    track.scrollLeft += pxPerSec * dt;
-    wrap();
+    carry += pxPerSec * dt;
+    const px = carry | 0;
+    if (px) {
+      carry -= px;
+      track.scrollLeft += px;
+      wrap();
+    }
     raf = requestAnimationFrame(step);
   };
 
   const play = () => {
-    if (!autoplayOn || dragging || offscreen || raf) return;
+    if (!autoplayOn || dragging || offscreen || document.hidden || raf) return;
     last = 0;
+    carry = 0;
     raf = requestAnimationFrame(step);
   };
 
@@ -182,6 +198,7 @@
     if (raf) cancelAnimationFrame(raf);
     raf = 0;
     last = 0;
+    carry = 0;
   };
 
   const page = (dir) => {
@@ -234,12 +251,9 @@
     }
   }, true);
 
-  let wrapLock = false;
   track.addEventListener('scroll', () => {
-    if (dragging || wrapLock) return;
-    wrapLock = true;
+    if (dragging || wrapping || raf) return;
     wrap();
-    wrapLock = false;
   }, { passive: true });
 
   track.addEventListener('touchstart', () => stop(), { passive: true });
@@ -258,6 +272,11 @@
     }, { threshold: 0.05 });
     io.observe(root);
   }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stop();
+    else play();
+  });
 
   measure();
   if (looping) track.scrollLeft = 1;
