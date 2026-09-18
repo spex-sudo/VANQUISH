@@ -63,6 +63,18 @@
     "signature_header_8dQTVX": {
       "type": "signature-header",
       "blocks": {
+        "collection_ienDgX": {
+          "type": "collection",
+          "settings": {
+            "collection": "lexe"
+          }
+        },
+        "collection_4XRPEG": {
+          "type": "collection",
+          "settings": {
+            "collection": "lexespecs"
+          }
+        },
         "flash_notif_VYkn6t": {
           "type": "flash_notif",
           "settings": {
@@ -99,44 +111,25 @@
             "text_color": "#ffffff"
           }
         },
-        "collection_UVDwwC": {
-          "type": "collection",
-          "settings": {
-            "collection": "amelia"
-          }
-        },
-        "collection_w468Gh": {
-          "type": "collection",
-          "settings": {
-            "collection": "industrial-assets"
-          }
-        },
         "collection_kTm6jJ": {
           "type": "collection",
           "settings": {
             "collection": "maze"
           }
-        },
-        "collection_ECmUQk": {
-          "type": "collection",
-          "settings": {
-            "collection": "apparell"
-          }
         }
       },
       "block_order": [
+        "collection_ienDgX",
+        "collection_4XRPEG",
         "flash_notif_VYkn6t",
         "flash_notif_LCEm8c",
         "flash_notif_DT4QLe",
         "flash_notif_REmTPj",
-        "collection_UVDwwC",
-        "collection_w468Gh",
-        "collection_kTm6jJ",
-        "collection_ECmUQk"
+        "collection_kTm6jJ"
       ],
       "name": "Apex Header V19",
       "settings": {
-        "notif_text": "NEW DROP UPCOMING",
+        "notif_text": "SEASON SPECIAL",
         "notif_url": "",
         "notif_pill_text": "#ffffff",
         "flash_interval": 15,
@@ -147,16 +140,16 @@
         "shrink_on_scroll": false,
         "height": 56,
         "max_width": 1400,
-        "padding_side": 24,
-        "pill_margin": 14,
-        "pill_radius": 80,
-        "frosted_blur": 18,
+        "padding_side": 18,
+        "pill_margin": 16,
+        "pill_radius": 50,
+        "frosted_blur": 11,
         "drawer_radius": 24,
-        "drawer_width": 35,
+        "drawer_width": 40,
         "drawer_max_width": 380,
         "pill_bg_color": "#ececec",
         "pill_text_color": "#000000",
-        "show_qn": true,
+        "show_qn": false,
         "qn_alignment": "flex-end",
         "qn_gap": 6,
         "qn_gap_x": 22,
@@ -167,7 +160,7 @@
         "back_home_label": "Back Home",
         "back_home_offset_y": 0,
         "menu": "main-menu",
-        "custom_logo_text": "devici",
+        "custom_logo_text": "LEXE",
         "logo": "shopify://shop_images/CF204A78-16E8-41A6-809E-C23841530D01.png",
         "logo_height": 50,
         "logo_subtext": "{currency}",
@@ -186,7 +179,7 @@
         "accent_color": "#5442b6",
         "scroll_bg_color": "#ffffff",
         "scroll_text_color": "#000000",
-        "vault_label": "COLLECTIONS",
+        "vault_label": "SNACKS",
         "vault_radius": 2
       }
     }
