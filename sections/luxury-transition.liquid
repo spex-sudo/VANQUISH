@@ -221,32 +221,29 @@
   {%- for block in section.blocks -%}
     {%- if block.settings.image != blank -%}
       {%- assign img = block.settings.image -%}
-      {%- assign img_h = 1800 | divided_by: img.aspect_ratio | ceil -%}
-      {%- capture img_srcset -%}
-        {{ img | image_url: width: 480 }} 480w,
-        {{ img | image_url: width: 800 }} 800w,
-        {{ img | image_url: width: 1200 }} 1200w,
-        {{ img | image_url: width: 1600 }} 1600w,
-        {{ img | image_url: width: 1800 }} 1800w
-      {%- endcapture -%}
-      {%- assign img_fallback = img | image_url: width: 1800 -%}
+      {%- assign img_h = 1200 | divided_by: img.aspect_ratio | ceil -%}
+      {%- assign img_phone = img | image_url: width: 800 -%}
+      {%- assign img_fallback = img | image_url: width: 1200 -%}
+      {%- capture img_srcset -%}{{ img_phone }} 800w, {{ img_fallback }} 1200w{%- endcapture -%}
       <div class="pt-slide-{{ sid }}"
         {% if block.settings.bg != blank %}style="background:{{ block.settings.bg }};"{% endif %}
         {{ block.shopify_attributes }}>
         <img
+          data-src="{{ img_fallback }}"
+          data-src-sm="{{ img_phone }}"
+          data-srcset="{{ img_srcset }}"
           {%- if forloop.first %}
-          src="{{ img_fallback }}"
+          src="{{ img_phone }}"
           srcset="{{ img_srcset }}"
           fetchpriority="high"
+          data-pt-ready="1"
           {%- else %}
-          data-src="{{ img_fallback }}"
-          data-srcset="{{ img_srcset }}"
-          loading="lazy"
           fetchpriority="low"
           {%- endif %}
+          loading="eager"
           sizes="100vw"
           decoding="async"
-          width="1800"
+          width="1200"
           height="{{ img_h }}"
           alt=""
           style="
@@ -307,42 +304,81 @@
       slides[0].classList.add('on');
     }
 
-    /* ── Progressive slide image loading ──────────────────
-       Only slide 0 ships with a real src (it needs to paint
-       immediately). Every other slide holds its URL in
-       data-src/data-srcset and is fetched one slide ahead of
-       whichever is current, via requestIdleCallback, so the
-       slideshow never competes with real page resources for
-       bandwidth on first load.
+    /* ── Slide image loading ─────────────────────────────
+       Do not use loading=lazy or requestIdleCallback here.
+       Android Chrome treats opacity:0 overlay slides as off-
+       screen, so lazy images never start, and idle callbacks
+       often never fire during first-load jank. Cycle only
+       onto frames that have actually decoded.
     ─────────────────────────────────────────────────────── */
+    var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
+    function slideImg(i) {
+      return slides[i] ? slides[i].querySelector('img') : null;
+    }
+    function imgReady(img) {
+      return !!(img && (img.getAttribute('data-pt-ready') === '1' || (img.complete && img.naturalWidth > 0)));
+    }
+    function imgFailed(img) {
+      return !!(img && img.getAttribute('data-pt-fail') === '1');
+    }
     function loadSlide(i) {
-      var slide = slides[i];
-      if (!slide) return;
-      var img = slide.querySelector('img[data-src]');
-      if (!img) return;
-      if (img.dataset.srcset) { img.srcset = img.dataset.srcset; img.removeAttribute('data-srcset'); }
-      img.src = img.dataset.src;
-      img.removeAttribute('data-src');
+      var img = slideImg(i);
+      if (!img || imgFailed(img) || img.getAttribute('data-pt-loading') === '1') return;
+      if (imgReady(img)) {
+        img.setAttribute('data-pt-ready', '1');
+        return;
+      }
+      img.setAttribute('data-pt-loading', '1');
+      img.loading = 'eager';
+      img.removeAttribute('loading');
+      var small = img.getAttribute('data-src-sm');
+      var full = img.getAttribute('data-src') || small;
+      var set = img.getAttribute('data-srcset');
+      if (isTouch) {
+        img.removeAttribute('srcset');
+        if (small && img.src !== small) img.src = small;
+      } else {
+        if (set) img.srcset = set;
+        if (full && !img.src) img.src = full;
+      }
+      function ok() {
+        if (img.naturalWidth > 0) img.setAttribute('data-pt-ready', '1');
+        else img.setAttribute('data-pt-fail', '1');
+      }
+      function bad() { img.setAttribute('data-pt-fail', '1'); }
+      if (img.complete) {
+        if (img.naturalWidth > 0) ok();
+        else img.addEventListener('load', ok, { once: true });
+      } else {
+        img.addEventListener('load', ok, { once: true });
+      }
+      img.addEventListener('error', bad, { once: true });
     }
-    function preload(i) {
-      var idle = window.requestIdleCallback || function (fn) { setTimeout(fn, 1); };
-      idle(function () { loadSlide(i % slides.length); });
+    function nextReady(from) {
+      var n = slides.length;
+      for (var k = 1; k <= n; k++) {
+        var i = (from + k) % n;
+        var img = slideImg(i);
+        if (imgFailed(img)) continue;
+        if (imgReady(img)) return i;
+        loadSlide(i);
+      }
+      return from;
     }
+
+    for (var s = 0; s < slides.length; s++) loadSlide(s);
 
     if (multiSlide) {
-      preload(1);
       cycleTimer = setInterval(function () {
+        var nxt = nextReady(cur);
+        if (nxt === cur) return;
         slides[cur].classList.remove('on');
-        cur = (cur + 1) % slides.length;
+        cur = nxt;
         slides[cur].classList.add('on');
-        preload(cur + 1);
-      }, Math.max(1000 / FPS, 16));
+      }, Math.max(1000 / FPS, 80));
     }
 
-    /* Bar fill eases toward ~92% on its own via the CSS
-       transition above (duration = Maximum display time).
-       JS only ever has to snap it the rest of the way on
-       dismiss — no per-frame width calculation needed. */
     if (barFill) {
       requestAnimationFrame(function () {
         requestAnimationFrame(function () { barFill.style.width = '92%'; });
@@ -369,9 +405,6 @@
       }
       if (bar) bar.style.opacity = '0';
 
-      /* Unblock clicks/scrolling the instant we decide to
-         dismiss — don't make shoppers wait out the fade
-         animation on top of everything else. */
       overlay.style.pointerEvents = 'none';
       overlay.style.willChange    = 'opacity';
       overlay.style.transition    = 'opacity ' + FADE + 'ms ease';
@@ -381,14 +414,6 @@
       }, FADE);
     }
 
-    /* ── Readiness ─────────────────────────────────────────
-       Dismiss once the HERO SLIDE IMAGE is actually ready —
-       not once every last third-party script/pixel on the
-       page has finished loading. Waiting on window 'load'
-       (the old approach) is what let one slow embed hang the
-       whole homepage. MAX is a hard ceiling regardless: the
-       overlay is gone by then no matter what else is running.
-    ─────────────────────────────────────────────────────── */
     var ready   = false;
     var minDone = (MIN <= 0);
 
@@ -417,15 +442,10 @@
     maxTimer = setTimeout(dismiss, MAX);
 
   } catch (err) {
-    /* A bug anywhere above should never hold the storefront
-       hostage — remove the overlay outright and move on.
-       overlayRef is used first (in case getElementById itself
-       is what's misbehaving); the inner try/catch means this
-       cleanup can't throw its way out of the IIFE either. */
     try {
       var el = overlayRef || document.getElementById('pt-' + SID);
       if (el && el.parentNode) { el.parentNode.removeChild(el); }
-    } catch (err2) { /* nothing more we can safely do from script */ }
+    } catch (err2) {}
   }
 })();
 </script>
