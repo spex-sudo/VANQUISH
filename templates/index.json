@@ -217,12 +217,31 @@
     "luxury_collectiongrid_jpK7Cz": {
       "type": "luxury-collectiongrid",
       "blocks": {
+        "collection_4jbHhB": {
+          "type": "collection",
+          "settings": {
+            "collection": "specs",
+            "status_text": "UNRELEASED",
+            "status_color": "#4C37D4",
+            "cta_label": "Enter",
+            "price_from": "",
+            "badge_text": "",
+            "badge_bg": "#000000",
+            "badge_text_color": "#ff4d4d",
+            "lock_collection": true,
+            "lock_label": "ACCESS RESTRICTED",
+            "lock_cta_label": "Request Access",
+            "unlocked_cta_label": "Shop Now",
+            "lock_color": "#888888",
+            "lock_unlock_at": ""
+          }
+        },
         "collection_fCeNdr": {
           "type": "collection",
           "settings": {
             "collection": "lexe",
             "status_text": "UNRELEASED",
-            "status_color": "#8537D4",
+            "status_color": "#8537d4",
             "cta_label": "Enter",
             "price_from": "",
             "badge_text": "",
@@ -240,15 +259,15 @@
           "type": "collection",
           "settings": {
             "collection": "apparell",
-            "status_text": "RE-STOCKING",
-            "status_color": "#3781d4",
+            "status_text": "DISCONTINUED",
+            "status_color": "#D43737",
             "custom_image": "shopify://shop_images/b9949b91d60740f6af1cf2e09f46cb4c-Max-Origin.webp",
             "cta_label": "Enter",
             "price_from": "",
-            "badge_text": "SOLD OUT",
+            "badge_text": "SOLD OUT FOREVER",
             "badge_bg": "#000000",
             "badge_text_color": "#ff4d4d",
-            "lock_collection": false,
+            "lock_collection": true,
             "lock_label": "ACCESS RESTRICTED",
             "lock_cta_label": "Request Access",
             "unlocked_cta_label": "Shop Now",
@@ -276,6 +295,25 @@
             "lock_unlock_at": "2027-6-1"
           }
         },
+        "collection_zcXzR6": {
+          "type": "collection",
+          "settings": {
+            "collection": "",
+            "status_text": "SYSTEM_READY",
+            "status_color": "#d4af37",
+            "cta_label": "Enter",
+            "price_from": "",
+            "badge_text": "",
+            "badge_bg": "#000000",
+            "badge_text_color": "#ff4d4d",
+            "lock_collection": false,
+            "lock_label": "ACCESS RESTRICTED",
+            "lock_cta_label": "Request Access",
+            "unlocked_cta_label": "Shop Now",
+            "lock_color": "#888888",
+            "lock_unlock_at": ""
+          }
+        },
         "collection_LHL9LP": {
           "type": "collection",
           "settings": {
@@ -296,34 +334,15 @@
             "lock_color": "#888888",
             "lock_unlock_at": "2027-5-28"
           }
-        },
-        "collection_dJGCfx": {
-          "type": "collection",
-          "settings": {
-            "collection": "amelia",
-            "status_text": "Under Development",
-            "status_color": "#d47137",
-            "custom_image": "shopify://shop_images/f9766fbf40af41b981bc57a978930717-Max-Origin.webp",
-            "cta_label": "Enter",
-            "price_from": "",
-            "badge_text": "",
-            "badge_bg": "#000000",
-            "badge_text_color": "#ff4d4d",
-            "lock_collection": true,
-            "lock_label": "ACCESS RESTRICTED",
-            "lock_cta_label": "Request Access",
-            "unlocked_cta_label": "Shop Now",
-            "lock_color": "#888888",
-            "lock_unlock_at": "2027-12-1"
-          }
         }
       },
       "block_order": [
+        "collection_4jbHhB",
         "collection_fCeNdr",
         "collection_jQgwJn",
         "collection_Ey3WHA",
-        "collection_LHL9LP",
-        "collection_dJGCfx"
+        "collection_zcXzR6",
+        "collection_LHL9LP"
       ],
       "name": "Sovereign Orbit Apex",
       "settings": {
