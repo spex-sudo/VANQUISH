@@ -158,7 +158,7 @@
     scrollbar-width: none;
     cursor: grab;
     touch-action: pan-x;
-    will-change: scroll-position;
+    contain: layout style;
   }
   #va-{{ sid }} .va-track::-webkit-scrollbar { display: none; }
   #va-{{ sid }} .va-track.is-dragging {
@@ -174,7 +174,7 @@
     display: flex;
     flex-direction: column;
     gap: {% if section.settings.show_names %}4px{% else %}0{% endif %};
-    contain: layout style;
+    contain: layout style paint;
   }
 
   #va-{{ sid }} .va-media {
