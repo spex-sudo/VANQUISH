@@ -120,8 +120,9 @@
     scroll-behavior: smooth;
     position: relative; z-index: 1;
     scroll-padding-inline: calc((100% - var(--card-w-desktop)) / 2);
-    touch-action: pan-x;
+    touch-action: pan-y pinch-zoom;
     overscroll-behavior-x: contain;
+    overscroll-behavior-y: auto;
   }
   .orbit-master-{{ sid }} .orbit-track::-webkit-scrollbar { display: none; }
 
@@ -137,6 +138,7 @@
     border: 1px solid rgba(255,255,255,0.04);
     border-radius: var(--card-radius);
     overflow: hidden; cursor: pointer;
+    touch-action: pan-y pinch-zoom;
   }
   .orbit-master-{{ sid }} .orbit-card.is-active {
     filter: grayscale(0) brightness(1) blur(0);
