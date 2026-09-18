@@ -217,6 +217,25 @@
     "luxury_collectiongrid_jpK7Cz": {
       "type": "luxury-collectiongrid",
       "blocks": {
+        "collection_fCeNdr": {
+          "type": "collection",
+          "settings": {
+            "collection": "lexe",
+            "status_text": "UNRELEASED",
+            "status_color": "#8537D4",
+            "cta_label": "Enter",
+            "price_from": "",
+            "badge_text": "",
+            "badge_bg": "#000000",
+            "badge_text_color": "#ff4d4d",
+            "lock_collection": true,
+            "lock_label": "ACCESS RESTRICTED",
+            "lock_cta_label": "Request Access",
+            "unlocked_cta_label": "Shop Now",
+            "lock_color": "#888888",
+            "lock_unlock_at": ""
+          }
+        },
         "collection_jQgwJn": {
           "type": "collection",
           "settings": {
@@ -300,6 +319,7 @@
         }
       },
       "block_order": [
+        "collection_fCeNdr",
         "collection_jQgwJn",
         "collection_Ey3WHA",
         "collection_LHL9LP",
@@ -373,14 +393,14 @@
         "collection": "",
         "card_count": 8,
         "show_header": false,
-        "title": "Atelier",
+        "title": "Ateliers",
         "show_arrows": false,
         "card_shape": "squircle",
         "landscape_ratio": "4 / 3",
         "card_width": 210,
         "squircle_radius": 64,
         "landscape_radius": 24,
-        "card_gap": 14,
+        "card_gap": 22,
         "show_names": true,
         "name_font": "bayon_n4",
         "heading_font": "bebas_neue_n4",
