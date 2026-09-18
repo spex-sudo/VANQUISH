@@ -306,8 +306,50 @@
     .orbit-master-{{ sid }} .orbit-track {
       padding: 16px calc((100% - var(--card-w-mobile)) / 2) 50px;
       scroll-padding-inline: calc((100% - var(--card-w-mobile)) / 2);
+      scroll-behavior: auto;
+      touch-action: pan-x pan-y pinch-zoom;
     }
     .orbit-master-{{ sid }} .orbit-card { flex: 0 0 var(--card-w-mobile); }
     .orbit-master-{{ sid }} .orbit-overlay { padding: 28px; }
+  }
+
+  /* Low-end / touch phones: no blur, grayscale, scale, or grain */
+  @media (max-width: 768px), (hover: none) and (pointer: coarse) {
+    .orbit-master-{{ sid }} { isolation: auto; }
+    .orbit-master-{{ sid }}::before { display: none !important; }
+    .orbit-master-{{ sid }} .orbit-track {
+      scroll-behavior: auto;
+      touch-action: pan-x pan-y pinch-zoom;
+    }
+    .orbit-master-{{ sid }} .orbit-card {
+      filter: none;
+      transform: none;
+      opacity: 0.42;
+      box-shadow: none;
+      touch-action: pan-x pan-y pinch-zoom;
+      transition: opacity 0.2s linear, border-color 0.2s linear;
+    }
+    .orbit-master-{{ sid }} .orbit-card.is-active {
+      filter: none;
+      transform: none;
+      opacity: 1;
+      box-shadow: none;
+    }
+    .orbit-master-{{ sid }} .orbit-media img,
+    .orbit-master-{{ sid }} .orbit-media video {
+      transform: none;
+      transition: none;
+    }
+    .orbit-master-{{ sid }} .orbit-overlay { transition: opacity 0.2s linear; }
+    .orbit-master-{{ sid }} .orbital-scanner { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .orbit-master-{{ sid }} .orbit-card,
+    .orbit-master-{{ sid }} .orbit-media img,
+    .orbit-master-{{ sid }} .orbit-media video,
+    .orbit-master-{{ sid }} .orbit-overlay {
+      transition: none !important;
+    }
   }
 {% endstyle %}
