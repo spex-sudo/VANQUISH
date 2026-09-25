@@ -77,7 +77,6 @@
             --col-span: {{ col_span }};
             --blog-post-card-scale: {{ scale }};
           }
-
           @media screen and (max-width: 749px) {
             [data-blog-index="{{ section.id }}-{{ forloop.index }}"] {
               --col-span: 6;
@@ -97,21 +96,63 @@
   </div>
 </blog-posts-list>
 
-{% stylesheet %}
-  .orbit-counter,
-  .perf-counter,
-  .fps-meter,
-  [data-perf-hud] {
-    display: none !important;
-  }
+{%- if blog.articles.size > 0 -%}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Blog",
+  "name": {{ blog.title | json }},
+  "url": {{ request.origin | append: blog.url | json }},
+  "publisher": {
+    "@type": "Organization",
+    "name": {{ shop.name | json }},
+    "url": {{ request.origin | json }}
+  },
+  "blogPost": [
+    {%- for article in blog.articles limit: 20 -%}
+    {
+      "@type": "BlogPosting",
+      "headline": {{ article.title | json }},
+      "url": {{ request.origin | append: article.url | json }},
+      "datePublished": {{ article.published_at | date: '%Y-%m-%d' | json }}
+      {%- if article.excerpt != blank -%},
+      "description": {{ article.excerpt | strip_html | truncate: 160 | json }}
+      {%- endif -%}
+      {%- if article.image -%},
+      "image": {{ article.image | image_url: width: 1200 | prepend: 'https:' | json }}
+      {%- endif -%}
+    }{% unless forloop.last %},{% endunless %}
+    {%- endfor -%}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": {{ blog.title | json }},
+  "itemListElement": [
+    {%- for article in blog.articles limit: 20 -%}
+    {
+      "@type": "ListItem",
+      "position": {{ forloop.index }},
+      "url": {{ request.origin | append: article.url | json }},
+      "name": {{ article.title | json }}
+    }{% unless forloop.last %},{% endunless %}
+    {%- endfor -%}
+  ]
+}
+</script>
+{%- endif -%}
 
+{% stylesheet %}
+  .orbit-counter, .perf-counter, .fps-meter, [data-perf-hud] { display: none !important; }
   .blog-posts {
     --page-content-width: var(--narrow-page-width);
     --page-width: calc(var(--page-content-width) + (var(--page-margin) * 2));
     --columns-gap: 28px;
     --rows-gap: 40px;
   }
-
   .blog-posts-container {
     display: grid;
     grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -119,67 +160,28 @@
     column-gap: var(--columns-gap);
     row-gap: var(--rows-gap);
   }
-
-  .blog-post-item {
-    grid-column: span var(--col-span);
-    min-width: 0;
-  }
-
+  .blog-post-item { grid-column: span var(--col-span); min-width: 0; }
   .blog-post-item:not(:has(.blog-post-card__image-container)) {
     border: 1px solid rgb(var(--color-foreground-rgb) / var(--opacity-20, 0.16));
     padding: 1.1rem 1.15rem 1.25rem;
   }
-
-  .blog-post-item:has(.blog-post-card__image-container) {
-    border: none;
-    padding: 0;
-  }
+  .blog-post-item:has(.blog-post-card__image-container) { border: none; padding: 0; }
 {% endstylesheet %}
 
 {% schema %}
 {
   "name": "t:names.blog_posts",
   "blocks": [
-    { "type": "@theme" },
-    { "type": "@app" },
-    { "type": "text" },
-    { "type": "icon" },
-    { "type": "image" },
-    { "type": "button" },
-    { "type": "video" },
-    { "type": "group" },
-    { "type": "spacer" },
-    { "type": "_divider" }
+    { "type": "@theme" }, { "type": "@app" }, { "type": "text" }, { "type": "icon" },
+    { "type": "image" }, { "type": "button" }, { "type": "video" }, { "type": "group" },
+    { "type": "spacer" }, { "type": "_divider" }
   ],
   "disabled_on": { "groups": ["header"] },
   "settings": [
-    {
-      "type": "color_scheme",
-      "id": "color_scheme",
-      "label": "t:settings.color_scheme",
-      "default": "scheme-1"
-    },
+    { "type": "color_scheme", "id": "color_scheme", "label": "t:settings.color_scheme", "default": "scheme-1" },
     { "type": "header", "content": "t:content.padding" },
-    {
-      "type": "range",
-      "id": "padding-block-start",
-      "label": "t:settings.top",
-      "min": 0,
-      "max": 100,
-      "step": 1,
-      "unit": "px",
-      "default": 0
-    },
-    {
-      "type": "range",
-      "id": "padding-block-end",
-      "label": "t:settings.bottom",
-      "min": 0,
-      "max": 100,
-      "step": 1,
-      "unit": "px",
-      "default": 0
-    }
+    { "type": "range", "id": "padding-block-start", "label": "t:settings.top", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0 },
+    { "type": "range", "id": "padding-block-end", "label": "t:settings.bottom", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0 }
   ]
 }
 {% endschema %}
