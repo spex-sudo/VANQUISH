@@ -1,18 +1,18 @@
+<nav class="article-liquid__crumbs" aria-label="Breadcrumb">
+  <ol>
+    <li><a href="{{ routes.root_url }}">{{ shop.name }}</a></li>
+    {%- if blog.url != blank -%}
+      <li><a href="{{ blog.url }}">{{ blog.title | escape }}</a></li>
+    {%- endif -%}
+    <li aria-current="page">{{ article.title | escape }}</li>
+  </ol>
+</nav>
+
 <div class="section-background color-{{ section.settings.color_scheme }}"></div>
 <div class="section color-{{ section.settings.color_scheme }} article-liquid">
   <div
-    class="
-      spacing-style
-      layout-panel-flex
-      layout-panel-flex--column
-      section-content-wrapper
-      mobile-column
-      article-liquid__frame
-    "
-    style="
-      {% render 'layout-panel-style', settings: section.settings %}
-      {% render 'spacing-style', settings: section.settings %}
-    "
+    class="spacing-style layout-panel-flex layout-panel-flex--column section-content-wrapper mobile-column article-liquid__frame"
+    style="{% render 'layout-panel-style', settings: section.settings %}{% render 'spacing-style', settings: section.settings %}"
   >
     <header class="article-liquid__header">
       {%- content_for 'block', id: 'blog-post-title', type: 'text' %}
@@ -26,13 +26,42 @@
     {%- endif -%}
 
     {%- content_for 'block', id: 'blog-post-content', type: '_blog-post-content' %}
-
     {% content_for 'blocks' %}
+
+    {%- if article.tags.size > 0 -%}
+      <ul class="article-liquid__tags" aria-label="Topics">
+        {%- for tag in article.tags -%}
+          <li><a href="{{ blog.url }}/tagged/{{ tag | handle }}">{{ tag | escape }}</a></li>
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+
+    {%- assign related_count = 0 -%}
+    {%- capture related_items -%}
+      {%- for related in blog.articles limit: 8 -%}
+        {%- if related.id == article.id -%}{%- continue -%}{%- endif -%}
+        {%- assign related_count = related_count | plus: 1 -%}
+        {%- if related_count > 3 -%}{%- break -%}{%- endif -%}
+        <li>
+          <a href="{{ related.url }}">
+            {%- if related.image -%}
+              <img src="{{ related.image | image_url: width: 480 }}" alt="{{ related.image.alt | default: related.title | escape }}" width="480" height="{{ 480 | divided_by: related.image.aspect_ratio | default: 1.5 | ceil }}" loading="lazy" decoding="async">
+            {%- endif -%}
+            <span>{{ related.title | escape }}</span>
+          </a>
+        </li>
+      {%- endfor -%}
+    {%- endcapture -%}
+    {%- if related_count > 0 -%}
+      <aside class="article-liquid__related" aria-labelledby="article-related-heading">
+        <h2 id="article-related-heading">More from {{ blog.title | escape }}</h2>
+        <ul>{{ related_items }}</ul>
+      </aside>
+    {%- endif -%}
 
     {% if blog.comments_enabled? %}
       <div class="blog-post-comments-container">
         <h2 class="h3">{{- 'blogs.article.comments_heading' | t: count: article.comments_count -}}</h2>
-
         <div class="blog-post-comments">
           {% paginate article.comments by 10 %}
             {% for comment in article.comments %}
@@ -41,155 +70,73 @@
                 <div class="blog-post-comment__author">
                   <span class="blog-post-comment__author-name">{{- comment.author -}}</span>
                   <span>{{- 'blogs.article.comment_author_separator' | t -}}</span>
-                  <span class="blog-post-comment__date">
-                    {{- comment.created_at | time_tag: format: 'date' -}}
-                  </span>
+                  <span class="blog-post-comment__date">{{- comment.created_at | time_tag: format: 'date' -}}</span>
                 </div>
               </div>
             {% endfor %}
-
-            <div class="blog-post-comments-pagination">
-              {{- paginate | default_pagination -}}
-            </div>
+            <div class="blog-post-comments-pagination">{{- paginate | default_pagination -}}</div>
           {% endpaginate %}
         </div>
-
         {% render 'blog-comment-form', article: article, section_id: section.id %}
       </div>
     {% endif %}
   </div>
 </div>
 
+<script type="application/ld+json">{{ article | structured_data }}</script>
 <script type="application/ld+json">
-  {{ article | structured_data }}
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": {{ shop.name | json }}, "item": {{ request.origin | json }} }
+    {%- if blog.url != blank -%},
+    { "@type": "ListItem", "position": 2, "name": {{ blog.title | json }}, "item": {{ request.origin | append: blog.url | json }} },
+    { "@type": "ListItem", "position": 3, "name": {{ article.title | json }}, "item": {{ request.origin | append: article.url | json }} }
+    {%- else -%},
+    { "@type": "ListItem", "position": 2, "name": {{ article.title | json }}, "item": {{ request.origin | append: article.url | json }} }
+    {%- endif -%}
+  ]
+}
 </script>
 
 {% stylesheet %}
-  .orbit-counter,
-  .perf-counter,
-  .fps-meter,
-  [data-perf-hud] {
-    display: none !important;
-  }
-
-  .article-liquid__header {
-    width: 100%;
-    max-width: min(46rem, var(--normal-content-width, 46rem));
-    margin: 0 auto 1.25rem;
-    text-wrap: balance;
-  }
-
-  .article-liquid__hero {
-    width: 100%;
-    margin: 0 auto 2.25rem;
-    overflow: hidden;
-  }
-
-  .article-liquid__hero img {
-    width: 100%;
-    height: auto;
-    display: block;
-    object-fit: cover;
-  }
-
-  .blog-post-comments-container {
-    width: 100%;
-    max-width: var(--normal-content-width);
-    margin: 3rem auto 0;
-  }
-
-  .blog-post-comments {
-    display: flex;
-    flex-direction: column;
-    gap: var(--gap-3xl);
-  }
-
-  .blog-post-comment__author {
-    display: flex;
-    align-items: center;
-    gap: var(--gap-2xs);
-    margin-top: var(--margin-md);
-    font-size: var(--font-size--body-sm);
-    color: rgb(var(--color-foreground-rgb) / var(--opacity-subdued-text));
-  }
-
-  .blog-post-comments-pagination {
-    display: flex;
-    justify-content: center;
-    gap: var(--gap-2xs);
-  }
-
-  .blog-post-comments-pagination,
-  .blog-post-comments-pagination a {
-    color: var(--color-foreground);
-  }
-
-  .blog-post-comments-pagination .current,
-  .blog-post-comments-pagination a {
-    display: block;
-    padding: var(--padding-2xs) var(--padding-xs);
-  }
-
-  .blog-post-comments-pagination .current,
-  .blog-post-comments-pagination a:hover {
-    border-bottom: 1px solid var(--color-foreground);
-  }
+  .orbit-counter, .perf-counter, .fps-meter, [data-perf-hud] { display: none !important; }
+  .article-liquid__crumbs { width: min(72rem, calc(100% - 2.5rem)); margin: 1rem auto 0; font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; opacity: 0.62; }
+  .article-liquid__crumbs ol { display: flex; flex-wrap: wrap; gap: 0.4rem 0.7rem; list-style: none; margin: 0; padding: 0; }
+  .article-liquid__crumbs a { color: inherit; text-decoration: none; }
+  .article-liquid__crumbs a:hover { text-decoration: underline; }
+  .article-liquid__header { width: 100%; max-width: min(46rem, var(--normal-content-width, 46rem)); margin: 0 auto 1.25rem; text-wrap: balance; }
+  .article-liquid__hero { width: 100%; margin: 0 auto 2.25rem; overflow: hidden; }
+  .article-liquid__hero img { width: 100%; height: auto; display: block; object-fit: cover; }
+  .article-liquid__tags { display: flex; flex-wrap: wrap; gap: 0.5rem; list-style: none; margin: 2rem auto 0; padding: 0; max-width: min(42rem, var(--normal-content-width, 42rem)); width: 100%; }
+  .article-liquid__tags a { display: inline-block; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none; color: inherit; border: 1px solid rgb(var(--color-foreground-rgb) / 0.18); padding: 0.35rem 0.7rem; }
+  .article-liquid__related { width: 100%; max-width: min(46rem, var(--normal-content-width, 46rem)); margin: 3rem auto 0; }
+  .article-liquid__related h2 { font-size: 1rem; letter-spacing: 0.12em; text-transform: uppercase; margin: 0 0 1rem; }
+  .article-liquid__related ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 1rem; }
+  .article-liquid__related a { display: grid; grid-template-columns: 96px 1fr; gap: 0.85rem; align-items: center; text-decoration: none; color: inherit; }
+  .article-liquid__related img { width: 96px; height: 72px; object-fit: cover; display: block; }
+  .blog-post-comments-container { width: 100%; max-width: var(--normal-content-width); margin: 3rem auto 0; }
+  .blog-post-comments { display: flex; flex-direction: column; gap: var(--gap-3xl); }
+  .blog-post-comment__author { display: flex; align-items: center; gap: var(--gap-2xs); margin-top: var(--margin-md); font-size: var(--font-size--body-sm); color: rgb(var(--color-foreground-rgb) / var(--opacity-subdued-text)); }
+  .blog-post-comments-pagination { display: flex; justify-content: center; gap: var(--gap-2xs); }
+  .blog-post-comments-pagination, .blog-post-comments-pagination a { color: var(--color-foreground); }
+  .blog-post-comments-pagination .current, .blog-post-comments-pagination a { display: block; padding: var(--padding-2xs) var(--padding-xs); }
+  .blog-post-comments-pagination .current, .blog-post-comments-pagination a:hover { border-bottom: 1px solid var(--color-foreground); }
 {% endstylesheet %}
 
 {% schema %}
 {
   "name": "t:names.blog_post",
-  "blocks": [
-    { "type": "@theme" },
-    { "type": "@app" }
-  ],
+  "blocks": [{ "type": "@theme" }, { "type": "@app" }],
   "class": "section-wrapper",
   "settings": [
-    {
-      "type": "select",
-      "id": "content_direction",
-      "label": "t:settings.direction",
-      "options": [{ "value": "column", "label": "t:options.vertical" }],
-      "default": "column",
-      "visible_if": "{{ section.settings.gap < 0 }}"
-    },
-    {
-      "type": "range",
-      "id": "gap",
-      "label": "t:settings.gap",
-      "min": 0,
-      "max": 100,
-      "step": 1,
-      "unit": "px",
-      "default": 12
-    },
-    {
-      "type": "color_scheme",
-      "id": "color_scheme",
-      "label": "t:settings.color_scheme",
-      "default": "scheme-1"
-    },
+    { "type": "select", "id": "content_direction", "label": "t:settings.direction", "options": [{ "value": "column", "label": "t:options.vertical" }], "default": "column", "visible_if": "{{ section.settings.gap < 0 }}" },
+    { "type": "range", "id": "gap", "label": "t:settings.gap", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 12 },
+    { "type": "color_scheme", "id": "color_scheme", "label": "t:settings.color_scheme", "default": "scheme-1" },
     { "type": "header", "content": "t:content.padding" },
-    {
-      "type": "range",
-      "id": "padding-block-start",
-      "label": "t:settings.top",
-      "min": 0,
-      "max": 100,
-      "step": 1,
-      "unit": "px",
-      "default": 0
-    },
-    {
-      "type": "range",
-      "id": "padding-block-end",
-      "label": "t:settings.bottom",
-      "min": 0,
-      "max": 100,
-      "step": 1,
-      "unit": "px",
-      "default": 0
-    }
+    { "type": "range", "id": "padding-block-start", "label": "t:settings.top", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0 },
+    { "type": "range", "id": "padding-block-end", "label": "t:settings.bottom", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0 }
   ],
   "presets": []
 }
