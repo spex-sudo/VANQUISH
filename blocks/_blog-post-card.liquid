@@ -1,9 +1,7 @@
-
-
 {%- assign block_settings = block.settings -%}
 
-<div
-  class="blog-post-card"
+<article
+  class="blog-post-card blog-post-card--liquid"
   style="--text-align: {{ block_settings.alignment }}"
 >
   {% if article.image %}
@@ -13,6 +11,7 @@
   <div class="blog-post-card__content">
     <a
       href="{{ article.url }}"
+      class="blog-post-card__title-link"
       data-testid="blog-post-link"
     >
       {%- content_for 'block', id: 'heading', type: '_heading', text: article.title -%}
@@ -27,30 +26,47 @@
 
     {% content_for 'block', id: 'content', type: '_blog-post-description', article: article, show_read_more: true %}
   </div>
-</div>
+</article>
 
 {% stylesheet %}
+  .orbit-counter,
+  .orbit-master .orbit-counter,
+  [data-perf],
+  .perf-counter,
+  .fps-meter,
+  .performance-hud {
+    display: none !important;
+  }
+
   .blog-post-card {
     display: flex;
     flex-direction: column;
     text-align: var(--text-align);
     column-gap: var(--columns-gap);
+    position: relative;
+    height: 100%;
+  }
+
+  .blog-post-card--liquid {
+    isolation: isolate;
   }
 
   .blog-post-item--horizontal:has(.blog-post-card__image-container) .blog-post-card {
     & > *:first-child {
-      flex-basis: 70%;
+      flex-basis: 62%;
     }
 
     & > *:last-child {
-      flex-basis: 30%;
+      flex-basis: 38%;
     }
   }
 
   .blog-post-card__content {
-    padding-block-start: 0.4rem;
+    padding-block-start: 0.85rem;
     display: flex;
     flex-direction: column;
+    gap: 0.35rem;
+    min-width: 0;
   }
 
   .blog-post-item .blog-post-card__image-container,
@@ -58,37 +74,33 @@
     width: 100%;
   }
 
-  /**
-   * Horizontal layout (image left, content right)
-   * Applied to hero posts based on total article count
-   * Only applies the split layout when an image is actually present
-   */
   .blog-post-item--horizontal .blog-post-card {
     flex-direction: row;
+    align-items: stretch;
+    gap: 1.75rem;
 
     @media screen and (max-width: 749px) {
       flex-direction: column;
+      gap: 0.85rem;
     }
   }
 
-  .blog-post-card__content a {
+  .blog-post-card__title-link {
     display: block;
     text-wrap: pretty;
     text-decoration: none;
-    padding-block-start: 0.75rem;
+    color: inherit;
+    padding-block-start: 0.2rem;
+    transition: opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  .blog-post-card__content a:hover,
-  .blog-post-card__content a:hover [style*='--color: var(--color-primary)'] {
-    color: var(--color-primary-hover);
+  .blog-post-card__title-link:hover {
+    opacity: 0.62;
   }
 
-  .blog-post-card__content a:hover [style*='--color: var(--color-foreground-heading)'] {
-    color: rgb(var(--color-foreground-heading-rgb) / var(--opacity-subdued-text));
-  }
-
-  .blog-post-card__content a:hover [style*='--color: var(--color-foreground)'] {
-    color: rgb(var(--color-foreground-rgb) / var(--opacity-subdued-text));
+  .blog-post-card__title-link:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 4px;
   }
 {% endstylesheet %}
 
