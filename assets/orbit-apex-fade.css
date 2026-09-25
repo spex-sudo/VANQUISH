@@ -42,3 +42,15 @@
 .section-orbit-apex + .shopify-section {
   margin-top: 0;
 }
+
+/* Never show performance / index counters on editorial templates */
+.template-article .orbit-counter,
+.template-blog .orbit-counter,
+.article-liquid .orbit-counter,
+.blog-posts .orbit-counter,
+.orbit-counter[data-perf],
+.fps-meter,
+.perf-counter,
+.performance-hud {
+  display: none !important;
+}
