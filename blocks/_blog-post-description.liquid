@@ -64,14 +64,68 @@
   <{{ element }} {{ attributes }}>
     {{ content | strip_html | truncatewords: truncatewords }}
     {% if show_read_more %}
-      <a href="{{ article.url }}">{{- 'content.read_more' | t -}}</a>
+      <a class="blog-read-more" href="{{ article.url }}">{{- 'content.read_more' | t -}}</a>
     {% endif %}
   </{{ element }}>
 {% endif %}
 
 {% stylesheet %}
-  .blog-post-card__content-text a {
+  .blog-post-card__content-text a:not(.blog-read-more) {
     color: var(--color-primary);
+  }
+
+  .blog-post-card__content-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.85rem;
+  }
+
+  .blog-read-more {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-block-start: 0.15rem;
+    padding: 0.42rem 0.95rem;
+    border-radius: 999px;
+    text-decoration: none;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1;
+    color: inherit;
+    background:
+      linear-gradient(180deg, rgb(255 255 255 / 0.22), rgb(255 255 255 / 0.06) 46%, rgb(255 255 255 / 0.03));
+    background-color: rgb(255 255 255 / 0.08);
+    border: 1px solid rgb(255 255 255 / 0.28);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.38),
+      inset 0 -1px 0 rgb(0 0 0 / 0.08),
+      0 0 0 1px rgb(0 0 0 / 0.04);
+    -webkit-backdrop-filter: blur(14px) saturate(1.35);
+    backdrop-filter: blur(14px) saturate(1.35);
+    transition: background-color 0.28s ease, border-color 0.28s ease, box-shadow 0.28s ease;
+  }
+
+  .blog-read-more:hover {
+    background-color: rgb(255 255 255 / 0.14);
+    border-color: rgb(255 255 255 / 0.42);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.5),
+      inset 0 -1px 0 rgb(0 0 0 / 0.06),
+      0 0 0 1px rgb(0 0 0 / 0.05);
+  }
+
+  .blog-read-more:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .blog-read-more {
+      transition: none;
+    }
   }
 
   .custom-color,
@@ -93,42 +147,15 @@
       "id": "type_preset",
       "label": "t:settings.preset",
       "options": [
-        {
-          "value": "rte",
-          "label": "t:options.default"
-        },
-        {
-          "value": "paragraph",
-          "label": "t:options.paragraph"
-        },
-        {
-          "value": "h1",
-          "label": "t:options.h1"
-        },
-        {
-          "value": "h2",
-          "label": "t:options.h2"
-        },
-        {
-          "value": "h3",
-          "label": "t:options.h3"
-        },
-        {
-          "value": "h4",
-          "label": "t:options.h4"
-        },
-        {
-          "value": "h5",
-          "label": "t:options.h5"
-        },
-        {
-          "value": "h6",
-          "label": "t:options.h6"
-        },
-        {
-          "value": "custom",
-          "label": "t:options.custom"
-        }
+        { "value": "rte", "label": "t:options.default" },
+        { "value": "paragraph", "label": "t:options.paragraph" },
+        { "value": "h1", "label": "t:options.h1" },
+        { "value": "h2", "label": "t:options.h2" },
+        { "value": "h3", "label": "t:options.h3" },
+        { "value": "h4", "label": "t:options.h4" },
+        { "value": "h5", "label": "t:options.h5" },
+        { "value": "h6", "label": "t:options.h6" },
+        { "value": "custom", "label": "t:options.custom" }
       ],
       "default": "rte",
       "info": "t:info.edit_presets_in_theme_settings"
@@ -138,22 +165,10 @@
       "id": "font",
       "label": "t:settings.font",
       "options": [
-        {
-          "value": "var(--font-body--family)",
-          "label": "t:options.body"
-        },
-        {
-          "value": "var(--font-subheading--family)",
-          "label": "t:options.subheading"
-        },
-        {
-          "value": "var(--font-heading--family)",
-          "label": "t:options.heading"
-        },
-        {
-          "value": "var(--font-accent--family)",
-          "label": "t:options.accent"
-        }
+        { "value": "var(--font-body--family)", "label": "t:options.body" },
+        { "value": "var(--font-subheading--family)", "label": "t:options.subheading" },
+        { "value": "var(--font-heading--family)", "label": "t:options.heading" },
+        { "value": "var(--font-accent--family)", "label": "t:options.accent" }
       ],
       "default": "var(--font-body--family)",
       "visible_if": "{{ block.settings.type_preset == 'custom' }}"
@@ -163,74 +178,23 @@
       "id": "font_size",
       "label": "t:settings.size",
       "options": [
-        {
-          "value": "",
-          "label": "t:options.default"
-        },
-        {
-          "value": "0.625rem",
-          "label": "10px"
-        },
-        {
-          "value": "0.75rem",
-          "label": "12px"
-        },
-        {
-          "value": "0.875rem",
-          "label": "14px"
-        },
-        {
-          "value": "1rem",
-          "label": "16px"
-        },
-        {
-          "value": "1.125rem",
-          "label": "18px"
-        },
-        {
-          "value": "1.25rem",
-          "label": "20px"
-        },
-        {
-          "value": "1.5rem",
-          "label": "24px"
-        },
-        {
-          "value": "2rem",
-          "label": "32px"
-        },
-        {
-          "value": "2.5rem",
-          "label": "40px"
-        },
-        {
-          "value": "3rem",
-          "label": "48px"
-        },
-        {
-          "value": "3.5rem",
-          "label": "56px"
-        },
-        {
-          "value": "4.5rem",
-          "label": "72px"
-        },
-        {
-          "value": "5.5rem",
-          "label": "88px"
-        },
-        {
-          "value": "7.5rem",
-          "label": "120px"
-        },
-        {
-          "value": "9.5rem",
-          "label": "152px"
-        },
-        {
-          "value": "11.5rem",
-          "label": "184px"
-        }
+        { "value": "", "label": "t:options.default" },
+        { "value": "0.625rem", "label": "10px" },
+        { "value": "0.75rem", "label": "12px" },
+        { "value": "0.875rem", "label": "14px" },
+        { "value": "1rem", "label": "16px" },
+        { "value": "1.125rem", "label": "18px" },
+        { "value": "1.25rem", "label": "20px" },
+        { "value": "1.5rem", "label": "24px" },
+        { "value": "2rem", "label": "32px" },
+        { "value": "2.5rem", "label": "40px" },
+        { "value": "3rem", "label": "48px" },
+        { "value": "3.5rem", "label": "56px" },
+        { "value": "4.5rem", "label": "72px" },
+        { "value": "5.5rem", "label": "88px" },
+        { "value": "7.5rem", "label": "120px" },
+        { "value": "9.5rem", "label": "152px" },
+        { "value": "11.5rem", "label": "184px" }
       ],
       "default": "1rem",
       "visible_if": "{{ block.settings.type_preset == 'custom' }}"
@@ -240,18 +204,9 @@
       "id": "line_height",
       "label": "t:settings.line_height",
       "options": [
-        {
-          "value": "tight",
-          "label": "t:options.tight"
-        },
-        {
-          "value": "normal",
-          "label": "t:options.normal"
-        },
-        {
-          "value": "loose",
-          "label": "t:options.loose"
-        }
+        { "value": "tight", "label": "t:options.tight" },
+        { "value": "normal", "label": "t:options.normal" },
+        { "value": "loose", "label": "t:options.loose" }
       ],
       "default": "normal",
       "visible_if": "{{ block.settings.type_preset == 'custom' }}"
@@ -261,18 +216,9 @@
       "id": "letter_spacing",
       "label": "t:settings.letter_spacing",
       "options": [
-        {
-          "value": "tight",
-          "label": "t:options.tight"
-        },
-        {
-          "value": "normal",
-          "label": "t:options.normal"
-        },
-        {
-          "value": "loose",
-          "label": "t:options.loose"
-        }
+        { "value": "tight", "label": "t:options.tight" },
+        { "value": "normal", "label": "t:options.normal" },
+        { "value": "loose", "label": "t:options.loose" }
       ],
       "default": "normal",
       "visible_if": "{{ block.settings.type_preset == 'custom' }}"
@@ -282,14 +228,8 @@
       "id": "case",
       "label": "t:settings.case",
       "options": [
-        {
-          "value": "none",
-          "label": "t:options.default"
-        },
-        {
-          "value": "uppercase",
-          "label": "t:options.uppercase"
-        }
+        { "value": "none", "label": "t:options.default" },
+        { "value": "uppercase", "label": "t:options.uppercase" }
       ],
       "default": "none",
       "visible_if": "{{ block.settings.type_preset == 'custom' }}"
@@ -299,18 +239,9 @@
       "id": "wrap",
       "label": "t:settings.wrap",
       "options": [
-        {
-          "value": "pretty",
-          "label": "t:options.pretty"
-        },
-        {
-          "value": "balance",
-          "label": "t:options.balance"
-        },
-        {
-          "value": "nowrap",
-          "label": "t:options.none"
-        }
+        { "value": "pretty", "label": "t:options.pretty" },
+        { "value": "balance", "label": "t:options.balance" },
+        { "value": "nowrap", "label": "t:options.none" }
       ],
       "visible_if": "{{ block.settings.type_preset == 'custom' }}"
     },
@@ -319,18 +250,9 @@
       "id": "color",
       "label": "t:settings.color",
       "options": [
-        {
-          "value": "var(--color-foreground)",
-          "label": "t:options.text"
-        },
-        {
-          "value": "var(--color-foreground-heading)",
-          "label": "t:options.heading"
-        },
-        {
-          "value": "var(--color-primary)",
-          "label": "t:options.link"
-        }
+        { "value": "var(--color-foreground)", "label": "t:options.text" },
+        { "value": "var(--color-foreground-heading)", "label": "t:options.heading" },
+        { "value": "var(--color-primary)", "label": "t:options.link" }
       ],
       "default": "var(--color-foreground)",
       "visible_if": "{{ block.settings.type_preset != 'rte' }}"
@@ -360,10 +282,6 @@
       "default": 0
     }
   ],
-  "presets": [
-    {
-      "name": "t:names.description"
-    }
-  ]
+  "presets": [{ "name": "t:names.description" }]
 }
 {% endschema %}
