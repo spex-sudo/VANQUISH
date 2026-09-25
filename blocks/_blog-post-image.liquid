@@ -1,5 +1,3 @@
-
-
 {%- doc -%}
   Renders the blog post image block.
 
@@ -7,10 +5,11 @@
 {%- enddoc -%}
 
 {%- assign image = article.image -%}
-
 {%- assign block_settings = block.settings -%}
+
 <div class="blog-post-card__image-container">
-  <a href="{{ article.url }}">
+  <a href="{{ article.url }}" class="blog-post-card__image-link" aria-hidden="true" tabindex="-1">
+    <span class="blog-post-card__image-sheen" aria-hidden="true"></span>
     <img
       srcset="
         {% if image.width >= 350 %}{{ image | image_url: width: 350 }} 350w,{% endif %}
@@ -20,11 +19,11 @@
         {{ image | image_url }} {{ image.width }}w
       "
       src="{{ image | image_url: width: 1100 }}"
-      loading="eager"
-      fetchpriority="high"
+      loading="lazy"
+      decoding="async"
       width="{{ image.width }}"
       height="{{ image.height }}"
-      alt="{{ image.alt | escape }}"
+      alt="{{ image.alt | default: article.title | escape }}"
       class="
         border-style
         blog-post-card__image
@@ -36,24 +35,75 @@
 </div>
 
 {% stylesheet %}
+  .blog-post-card__image-container {
+    overflow: hidden;
+    position: relative;
+    background: rgb(var(--color-foreground-rgb) / 0.04);
+  }
+
+  .blog-post-card__image-link {
+    display: block;
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
   .blog-post-card__image {
     width: 100%;
     object-fit: cover;
     object-position: center center;
-    height: calc(var(--blog-post-card-img-height) * var(--blog-post-card-scale));
+    height: calc(var(--blog-post-card-img-height) * var(--blog-post-card-scale, 1));
+    display: block;
+    transform: scale(1.015);
+    transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  .blog-post-card__image--small {
-    --blog-post-card-img-height: 280px;
+  .blog-post-card__image-sheen {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background: linear-gradient(
+      115deg,
+      transparent 32%,
+      rgb(255 255 255 / 0.14) 48%,
+      transparent 64%
+    );
+    transform: translateX(-120%);
+    opacity: 0;
   }
 
-  .blog-post-card__image--medium {
-    --blog-post-card-img-height: 340px;
+  .blog-post-card:hover .blog-post-card__image,
+  .blog-post-card__image-link:hover .blog-post-card__image {
+    transform: scale(1.06);
   }
 
-  .blog-post-card__image--large {
-    --blog-post-card-img-height: 400px;
+  .blog-post-card:hover .blog-post-card__image-sheen,
+  .blog-post-card__image-link:hover .blog-post-card__image-sheen {
+    opacity: 1;
+    animation: blog-liquid-sheen 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
+
+  @keyframes blog-liquid-sheen {
+    from { transform: translateX(-120%); }
+    to { transform: translateX(120%); }
+  }
+
+  @media (hover: none), (prefers-reduced-motion: reduce) {
+    .blog-post-card__image {
+      transform: none;
+      transition: none;
+    }
+    .blog-post-card__image-sheen,
+    .blog-post-card:hover .blog-post-card__image-sheen {
+      display: none;
+      animation: none;
+    }
+  }
+
+  .blog-post-card__image--small { --blog-post-card-img-height: 280px; }
+  .blog-post-card__image--medium { --blog-post-card-img-height: 340px; }
+  .blog-post-card__image--large { --blog-post-card-img-height: 400px; }
 {% endstylesheet %}
 
 {% schema %}
@@ -66,18 +116,9 @@
       "id": "height",
       "label": "t:settings.height",
       "options": [
-        {
-          "value": "small",
-          "label": "t:options.small"
-        },
-        {
-          "value": "medium",
-          "label": "t:options.medium"
-        },
-        {
-          "value": "large",
-          "label": "t:options.large"
-        }
+        { "value": "small", "label": "t:options.small" },
+        { "value": "medium", "label": "t:options.medium" },
+        { "value": "large", "label": "t:options.large" }
       ],
       "default": "large"
     },
@@ -86,14 +127,8 @@
       "id": "border",
       "label": "t:settings.border",
       "options": [
-        {
-          "value": "none",
-          "label": "t:options.none"
-        },
-        {
-          "value": "solid",
-          "label": "t:options.solid"
-        }
+        { "value": "none", "label": "t:options.none" },
+        { "value": "solid", "label": "t:options.solid" }
       ],
       "default": "none"
     },
