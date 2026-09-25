@@ -1,7 +1,5 @@
-
-
 <div class="section-background color-{{ section.settings.color_scheme }}"></div>
-<div class="section color-{{ section.settings.color_scheme }}">
+<div class="section color-{{ section.settings.color_scheme }} article-liquid">
   <div
     class="
       spacing-style
@@ -9,23 +7,26 @@
       layout-panel-flex--column
       section-content-wrapper
       mobile-column
+      article-liquid__frame
     "
     style="
       {% render 'layout-panel-style', settings: section.settings %}
       {% render 'spacing-style', settings: section.settings %}
     "
   >
-    <header>
+    <header class="article-liquid__header">
       {%- content_for 'block', id: 'blog-post-title', type: 'text' %}
       {%- content_for 'block', id: 'blog-post-details', type: '_blog-post-info-text' %}
     </header>
 
     {%- if article.image -%}
-      {%- content_for 'block', id: 'blog-post-image', type: '_blog-post-featured-image' %}
+      <div class="article-liquid__hero">
+        {%- content_for 'block', id: 'blog-post-image', type: '_blog-post-featured-image' %}
+      </div>
     {%- endif -%}
+
     {%- content_for 'block', id: 'blog-post-content', type: '_blog-post-content' %}
 
-    {% comment %} Dynamic area for @app blocks only, at the bottom {% endcomment %}
     {% content_for 'blocks' %}
 
     {% if blog.comments_enabled? %}
@@ -64,10 +65,37 @@
 </script>
 
 {% stylesheet %}
+  .orbit-counter,
+  .perf-counter,
+  .fps-meter,
+  [data-perf-hud] {
+    display: none !important;
+  }
+
+  .article-liquid__header {
+    width: 100%;
+    max-width: min(46rem, var(--normal-content-width, 46rem));
+    margin: 0 auto 1.25rem;
+    text-wrap: balance;
+  }
+
+  .article-liquid__hero {
+    width: 100%;
+    margin: 0 auto 2.25rem;
+    overflow: hidden;
+  }
+
+  .article-liquid__hero img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+  }
+
   .blog-post-comments-container {
     width: 100%;
     max-width: var(--normal-content-width);
-    margin: 0 auto;
+    margin: 3rem auto 0;
   }
 
   .blog-post-comments {
@@ -96,10 +124,6 @@
     color: var(--color-foreground);
   }
 
-  .blog-post-comments-pagination .current {
-    color: var(--color-foreground);
-  }
-
   .blog-post-comments-pagination .current,
   .blog-post-comments-pagination a {
     display: block;
@@ -116,12 +140,8 @@
 {
   "name": "t:names.blog_post",
   "blocks": [
-    {
-      "type": "@theme"
-    },
-    {
-      "type": "@app"
-    }
+    { "type": "@theme" },
+    { "type": "@app" }
   ],
   "class": "section-wrapper",
   "settings": [
@@ -129,12 +149,7 @@
       "type": "select",
       "id": "content_direction",
       "label": "t:settings.direction",
-      "options": [
-        {
-          "value": "column",
-          "label": "t:options.vertical"
-        }
-      ],
+      "options": [{ "value": "column", "label": "t:options.vertical" }],
       "default": "column",
       "visible_if": "{{ section.settings.gap < 0 }}"
     },
@@ -154,10 +169,7 @@
       "label": "t:settings.color_scheme",
       "default": "scheme-1"
     },
-    {
-      "type": "header",
-      "content": "t:content.padding"
-    },
+    { "type": "header", "content": "t:content.padding" },
     {
       "type": "range",
       "id": "padding-block-start",
