@@ -1,7 +1,5 @@
 {%- comment -%}
   VANQUISH — Related products grid on the product page.
-  Same Apex card snippet + collection-matching grid.
-  First page_limit products render immediately; the rest load on scroll.
 {%- endcomment -%}
 
 {%- liquid
@@ -33,12 +31,7 @@
     --rd: {{ section.settings.rd }}px;
     --ac: {{ acc }};
     --sale: {{ sale_c }};
-    --ink: #111;
-    --dim: #6b6b6b;
-    --line: #ececec;
-    --soft: #f7f7f7;
-    --new: #2d6a4f;
-    --low: #c8102e;
+    --ink: #111; --dim: #6b6b6b; --line: #ececec; --soft: #f7f7f7;
     max-width: {{ section.settings.max_w }}px;
     margin: 0 auto;
     padding: {{ section.settings.p_v }}px 20px;
@@ -46,51 +39,19 @@
     color: var(--ink);
   }
   .apex-rel-head-{{ sid }} { display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin:0 0 28px; }
-  .apex-rel-title-{{ sid }} { margin:0; font-size:13px; font-weight:700; letter-spacing:.22em; text-transform:uppercase; line-height:1; }
+  .apex-rel-title-{{ sid }} { margin:0; font-size:13px; font-weight:700; letter-spacing:.22em; text-transform:uppercase; }
   .apex-rel-rule-{{ sid }} { flex:1; height:1px; background:var(--line); }
-  .apex-rel-count-{{ sid }} { font-size:10px; font-weight:500; letter-spacing:.16em; text-transform:uppercase; color:var(--dim); white-space:nowrap; }
+  .apex-rel-count-{{ sid }} { font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--dim); }
   .apex-grid-{{ sid }} { display:grid; gap:var(--gap); grid-template-columns:repeat({{ section.settings.pc_cols }}, minmax(0,1fr)); }
-  .apex-card { position:relative; display:flex; flex-direction:column; transition:transform .32s cubic-bezier(.32,.72,0,1); }
-  .apex-card:hover { transform:translateY(-3px); }
-  .apex-media { position:relative; width:100%; aspect-ratio:{{ section.settings.ratio }}; border-radius:var(--rd); overflow:hidden; background:var(--soft); margin-bottom:12px; }
-  .apex-img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; opacity:0; transition:opacity .35s, transform .7s ease; }
-  .apex-img.is-active { opacity:1; }
-  .apex-media:hover .apex-img.is-active { transform:scale(1.04); }
-  .apex-link { position:absolute; inset:0; z-index:1; }
-  .apex-info { padding:4px 2px 0; display:flex; flex-direction:column; gap:5px; }
-  .apex-title { position:relative; z-index:2; font-size:13.5px; font-weight:500; line-height:1.32; color:var(--ink); text-decoration:none; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-  .apex-price-row { display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
-  .apex-price { font-size:14px; font-weight:600; }
-  .apex-price.is-sale { color:var(--sale); }
-  .apex-price-was { font-size:12px; color:var(--dim); text-decoration:line-through; }
-  .apex-savings { font-size:10px; font-weight:600; color:var(--sale); margin-left:auto; }
-  .apex-swatches { position:relative; z-index:2; display:flex; align-items:center; gap:5px; }
-  .apex-sw { width:13px; height:13px; border-radius:50%; border:1px solid rgba(0,0,0,.12); }
-  .apex-badges { position:absolute; top:10px; left:10px; z-index:5; display:flex; flex-direction:column; gap:4px; }
-  .apex-bdg { display:inline-flex; padding:5px 9px; border-radius:3px; font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:#fff; }
-  .apex-bdg-sale { background:var(--sale); }
-  .apex-bdg-new { background:var(--new); }
-  .apex-bdg-low { background:var(--low); }
-  .apex-bdg-best { background:#111; }
-  .apex-wish, .apex-qa { position:absolute; z-index:6; border:none; cursor:pointer; border-radius:50%; display:flex; align-items:center; justify-content:center; }
-  .apex-wish { top:10px; right:10px; width:32px; height:32px; background:rgba(255,255,255,.92); }
-  .apex-qa { bottom:10px; right:10px; width:36px; height:36px; background:#111; color:#fff; }
-  .apex-status-{{ sid }} { margin-top:48px; text-align:center; font-size:10.5px; letter-spacing:.26em; text-transform:uppercase; color:var(--dim); }
-  #ApexAscend-{{ sid }} { position:fixed; bottom:30px; right:30px; z-index:99; width:44px; height:44px; background:#fff; border:1px solid var(--line); border-radius:50%; cursor:pointer; display:none; }
-  #ApexAscend-{{ sid }}.is-visible { display:flex; align-items:center; justify-content:center; }
-  @media (max-width:768px) {
-    .apex-grid-{{ sid }} { grid-template-columns:repeat({{ section.settings.mb_cols }}, minmax(0,1fr)); }
-  }
+  .apex-status-{{ sid }} { margin-top:48px; text-align:center; }
+  @media (max-width:768px) { .apex-grid-{{ sid }} { grid-template-columns:repeat({{ section.settings.mb_cols }}, minmax(0,1fr)); } }
 </style>
 
-<div id="ApexZenith-{{ sid }}" data-apex-section="{{ sid }}">
+<div id="ApexZenith-{{ sid }}">
   {%- if section.settings.show_heading and section.settings.heading != blank -%}
     <div class="apex-rel-head-{{ sid }}">
       <h2 class="apex-rel-title-{{ sid }}">{{ section.settings.heading | escape }}</h2>
       <div class="apex-rel-rule-{{ sid }}"></div>
-      {%- if rel_coll != blank -%}
-        <span class="apex-rel-count-{{ sid }}">{{ rel_coll.products_count | minus: 1 | at_least: 0 }} pieces</span>
-      {%- endif -%}
     </div>
   {%- endif -%}
 
@@ -98,25 +59,19 @@
     {%- paginate collections[rel_handle].products by section.settings.page_limit -%}
       <div class="apex-grid-{{ sid }}" id="ApexGrid-{{ sid }}">
         {%- for product in collections[rel_handle].products -%}
-          {%- if product.id == current_id -%}{%- continue -%}{%- endif -%}
-          {%- liquid
-            assign is_eager = false
-            if forloop.index0 < section.settings.pc_cols
-              assign is_eager = true
-            endif
-          -%}
-          {% include 'apex-zenith-card' %}
+          {%- unless product.id == current_id -%}
+            {% render 'apex-zenith-card', product: product, is_eager: forloop.first %}
+          {%- endunless -%}
         {%- endfor -%}
       </div>
       {%- if paginate.next -%}
         <div id="ApexSentinel-{{ sid }}" data-next-url="{{ request.path }}?section_id={{ section.id }}&page={{ paginate.current_page | plus: 1 }}" class="apex-status-{{ sid }}">Discovering more</div>
+      {%- else -%}
+        <div class="apex-status-{{ sid }}" id="ApexSentinel-{{ sid }}"></div>
+        <script>if(window.vaGridEnd) window.vaGridEnd(document.getElementById('ApexSentinel-{{ sid }}'));</script>
       {%- endif -%}
     {%- endpaginate -%}
   {%- endif -%}
-
-  <button id="ApexAscend-{{ sid }}" type="button" aria-label="Back to top">
-    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>
-  </button>
 </div>
 
 <script>
@@ -124,46 +79,35 @@
   var SID = '{{ sid }}';
   var grid = document.getElementById('ApexGrid-' + SID);
   var sentinel = document.getElementById('ApexSentinel-' + SID);
-  var ascend = document.getElementById('ApexAscend-' + SID);
-  if (sentinel && grid) {
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (ent) {
-        if (ent.isIntersecting && !sentinel.classList.contains('is-loading')) loadNext();
-      });
-    }, { rootMargin: '600px' });
-    function loadNext() {
-      sentinel.classList.add('is-loading');
-      var nextUrl = sentinel.getAttribute('data-next-url');
-      try {
-        var u = new URL(nextUrl, window.location.origin);
-        if (!u.searchParams.get('section_id')) u.searchParams.set('section_id', SID);
-        nextUrl = u.pathname + u.search;
-      } catch (e) {}
-      fetch(nextUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' }})
-        .then(function (r) { if (!r.ok) throw new Error(); return r.text(); })
-        .then(function (html) {
-          var doc = new DOMParser().parseFromString(html, 'text/html');
-          var items = doc.querySelectorAll('#' + grid.id + ' > *');
-          var nextSent = doc.getElementById(sentinel.id);
-          items.forEach(function (item) { grid.appendChild(item); });
-          if (nextSent) {
-            sentinel.setAttribute('data-next-url', nextSent.getAttribute('data-next-url'));
-            sentinel.classList.remove('is-loading');
-          } else {
-            sentinel.textContent = 'All products loaded';
-            io.disconnect();
-          }
-        })
-        .catch(function () { sentinel.classList.remove('is-loading'); });
-    }
-    io.observe(sentinel);
+  if (!sentinel || !grid) return;
+  if (!sentinel.getAttribute('data-next-url')) {
+    if (window.vaGridEnd) window.vaGridEnd(sentinel);
+    return;
   }
-  if (ascend) {
-    window.addEventListener('scroll', function () {
-      ascend.classList.toggle('is-visible', window.scrollY > 800);
-    }, { passive: true });
-    ascend.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (ent) {
+      if (ent.isIntersecting && !sentinel.classList.contains('is-loading')) loadNext();
+    });
+  }, { rootMargin: '600px' });
+  function loadNext() {
+    sentinel.classList.add('is-loading');
+    fetch(sentinel.getAttribute('data-next-url'), { headers: { 'X-Requested-With': 'XMLHttpRequest' }})
+      .then(function (r) { return r.text(); })
+      .then(function (html) {
+        var doc = new DOMParser().parseFromString(html, 'text/html');
+        doc.querySelectorAll('#' + grid.id + ' > *').forEach(function (item) { grid.appendChild(item); });
+        var nextSent = doc.getElementById(sentinel.id);
+        if (nextSent && nextSent.getAttribute('data-next-url')) {
+          sentinel.setAttribute('data-next-url', nextSent.getAttribute('data-next-url'));
+          sentinel.classList.remove('is-loading');
+        } else {
+          if (window.vaGridEnd) window.vaGridEnd(sentinel);
+          io.disconnect();
+        }
+      })
+      .catch(function () { sentinel.classList.remove('is-loading'); });
   }
+  io.observe(sentinel);
 })();
 </script>
 
@@ -172,13 +116,10 @@
   "name": "Atelier Related Grid",
   "class": "va-related-grid-section",
   "enabled_on": { "templates": ["product"] },
-  "max_blocks": 12,
   "settings": [
-    { "type": "header", "content": "Content" },
     { "type": "checkbox", "id": "show_heading", "label": "Show heading", "default": true },
     { "type": "text", "id": "heading", "label": "Heading", "default": "Continue Shopping" },
-    { "type": "collection", "id": "related_collection", "label": "Related collection", "info": "Leave empty to use the product's first collection." },
-    { "type": "header", "content": "Layout" },
+    { "type": "collection", "id": "related_collection", "label": "Related collection" },
     { "type": "range", "id": "page_limit", "label": "Products loaded first", "min": 4, "max": 48, "step": 4, "default": 12 },
     { "type": "range", "id": "pc_cols", "label": "Desktop columns", "min": 2, "max": 6, "step": 1, "default": 4 },
     { "type": "range", "id": "mb_cols", "label": "Mobile columns", "min": 1, "max": 3, "step": 1, "default": 2 },
@@ -189,26 +130,11 @@
     { "type": "select", "id": "ratio", "label": "Image ratio", "options": [
       { "value": "1/1", "label": "Square" },
       { "value": "3/4", "label": "Portrait (3:4)" },
-      { "value": "4/5", "label": "Portrait (4:5)" },
-      { "value": "4/3", "label": "Landscape" }
+      { "value": "4/5", "label": "Portrait (4:5)" }
     ], "default": "1/1" },
     { "type": "color", "id": "ac", "label": "Accent", "default": "#111111" },
-    { "type": "color", "id": "sale_color", "label": "Sale color", "default": "#c8102e" },
-    { "type": "checkbox", "id": "show_quick_add", "label": "Show quick-add", "default": true },
-    { "type": "checkbox", "id": "show_wishlist", "label": "Show wishlist", "default": true },
-    { "type": "checkbox", "id": "show_savings", "label": "Show savings", "default": true },
-    { "type": "range", "id": "low_stock_threshold", "label": "Low stock threshold", "min": 0, "max": 20, "step": 1, "default": 10 },
-    { "type": "range", "id": "new_hours", "label": "New badge hours", "min": 0, "max": 200, "step": 2, "unit": "h", "default": 108 },
-    { "type": "range", "id": "max_card_images", "label": "Max images per card", "min": 1, "max": 8, "step": 1, "default": 4 },
-    { "type": "range", "id": "max_swatches", "label": "Max swatches", "min": 2, "max": 8, "step": 1, "default": 4 }
+    { "type": "color", "id": "sale_color", "label": "Sale color", "default": "#c8102e" }
   ],
-  "blocks": [
-    { "type": "@app" },
-    { "type": "title", "name": "Title", "limit": 1 },
-    { "type": "rating", "name": "Rating", "limit": 1 },
-    { "type": "price", "name": "Price", "limit": 1 },
-    { "type": "swatches", "name": "Color swatches", "limit": 1 }
-  ],
-  "presets": [{ "name": "Atelier Related Grid", "blocks": [{ "type": "swatches" }, { "type": "title" }, { "type": "rating" }, { "type": "price" }] }]
+  "presets": [{ "name": "Atelier Related Grid" }]
 }
 {% endschema %}
