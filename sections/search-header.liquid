@@ -1,56 +1,50 @@
 {%- liquid
   assign sid = section.id
   assign q = search.terms | default: ''
-  assign stype = request.params.type | default: 'product'
-  if stype == blank
-    assign stype = 'product'
-  endif
-  assign count = search.results_count | default: 0
 -%}
 <style>
-#vsh{{ sid }}{background:#fff;color:#111;padding:18px 20px 12px;border-bottom:1px solid #ececec;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
-.vsh-wrap{{ sid }}{max-width:{{ section.settings.max_w }}px;margin:0 auto;}
-.vsh-bar{{ sid }}{display:flex;align-items:center;border:1px solid #111;border-radius:{{ section.settings.radius }}px;overflow:hidden;}
-.vsh-icon{{ sid }}{width:44px;height:46px;display:grid;place-items:center;color:#6b6b6b;}
-.vsh-input{{ sid }}{flex:1;min-width:0;border:0;outline:0;font-size:16px;padding:12px 8px;-webkit-appearance:none;}
-.vsh-go{{ sid }}{border:0;background:#111;color:#fff;font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;padding:0 16px;height:46px;cursor:pointer;}
-.vsh-types{{ sid }}{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
-.vsh-type{{ sid }}{border:1px solid #ececec;background:#fff;color:#6b6b6b;font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;padding:7px 12px;border-radius:100px;cursor:pointer;}
-.vsh-type{{ sid }}.is-on{background:#111;color:#fff;border-color:#111;}
-.vsh-count{{ sid }}{margin:8px 0 0;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#6b6b6b;}
+#vsh{{ sid }}{
+  position:sticky; top:0; z-index:40; background:#fff;
+  padding:10px 12px 8px; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+}
+.vsh-row{{ sid }}{display:flex; align-items:center; gap:8px; max-width:720px; margin:0 auto;}
+.vsh-back{{ sid }}{
+  width:36px; height:36px; border:0; background:transparent; color:#111;
+  display:grid; place-items:center; text-decoration:none; flex-shrink:0;
+}
+.vsh-form{{ sid }}{flex:1; display:flex; align-items:center; min-width:0; height:40px;
+  border:1px solid #111; border-radius:10px; overflow:hidden; background:#fff;}
+.vsh-input{{ sid }}{flex:1; min-width:0; border:0; outline:0; height:40px; padding:0 12px; font-size:16px; background:transparent; -webkit-appearance:none;}
+.vsh-go{{ sid }}{width:44px; height:40px; border:0; background:#111; color:#fff; display:grid; place-items:center; cursor:pointer; flex-shrink:0;}
+.vsh-go{{ sid }} svg{width:16px; height:16px;}
 </style>
 <section id="vsh{{ sid }}">
-  <div class="vsh-wrap{{ sid }}">
-    <form action="{{ routes.search_url }}" method="get" role="search">
+  <div class="vsh-row{{ sid }}">
+    <a class="vsh-back{{ sid }}" href="{{ routes.root_url }}" aria-label="Back">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+    </a>
+    <form class="vsh-form{{ sid }}" action="{{ routes.search_url }}" method="get" role="search">
+      <input type="hidden" name="type" value="product">
       <input type="hidden" name="options[prefix]" value="last">
-      <input type="hidden" name="type" id="vsh-type{{ sid }}" value="{{ stype | escape }}">
-      <div class="vsh-bar{{ sid }}">
-        <span class="vsh-icon{{ sid }}" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></span>
-        <input class="vsh-input{{ sid }}" type="search" name="q" value="{{ q | escape }}" placeholder="{{ section.settings.placeholder | escape }}" autocomplete="off" enterkeyhint="search" aria-label="Search">
-        <button class="vsh-go{{ sid }}" type="submit">{{ section.settings.cta | escape }}</button>
-      </div>
-      <div class="vsh-types{{ sid }}">
-        {%- assign types = 'product,collection,page,article' | split: ',' -%}
-        {%- assign labels = section.settings.type_labels | default: 'Products,Collections,Pages,Journal' | split: ',' -%}
-        {%- for t in types -%}
-          <button type="button" class="vsh-type{{ sid }}{% if stype == t %} is-on{% endif %}" data-type="{{ t }}">{{ labels[forloop.index0] | default: t | strip }}</button>
-        {%- endfor -%}
-      </div>
-      {%- if search.performed and q != blank -%}<p class="vsh-count{{ sid }}"><b>{{ count }}</b> {{ section.settings.results_label | escape }} “{{ q | escape }}”</p>{%- endif -%}
+      <input class="vsh-input{{ sid }}" type="search" name="q" value="{{ q | escape }}" placeholder="{{ section.settings.placeholder | escape }}" autocomplete="off" enterkeyhint="search" aria-label="Search">
+      <button class="vsh-go{{ sid }}" type="submit" aria-label="Search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.2-3.2"/></svg>
+      </button>
     </form>
   </div>
 </section>
 <script>
 (function(){
-  var root=document.getElementById('vsh{{ sid }}'); if(!root) return;
-  var form=root.querySelector('form');
-  var typeInput=document.getElementById('vsh-type{{ sid }}');
-  root.querySelectorAll('.vsh-type{{ sid }}').forEach(function(btn){
-    btn.addEventListener('click',function(){
-      typeInput.value=btn.getAttribute('data-type');
-      root.querySelectorAll('.vsh-type{{ sid }}').forEach(function(b){ b.classList.toggle('is-on', b===btn); });
-      if(form.querySelector('[name="q"]').value.trim()) form.submit();
-    });
+  var form=document.querySelector('#vsh{{ sid }} form');
+  if(!form) return;
+  form.addEventListener('submit',function(){
+    var q=(form.querySelector('[name="q"]').value||'').trim();
+    if(!q) return;
+    try{
+      var key='va-recent-search';
+      var list=JSON.parse(localStorage.getItem(key)||'[]').filter(function(x){return x!==q;});
+      list.unshift(q); localStorage.setItem(key, JSON.stringify(list.slice(0,16)));
+    }catch(e){}
   });
 })();
 </script>
@@ -60,12 +54,7 @@
   "tag": "section",
   "class": "va-search-header",
   "settings": [
-    {"type":"text","id":"placeholder","label":"Placeholder","default":"Search products"},
-    {"type":"text","id":"cta","label":"Button","default":"Search"},
-    {"type":"text","id":"results_label","label":"Results label","default":"results for"},
-    {"type":"text","id":"type_labels","label":"Type labels","default":"Products,Collections,Pages,Journal"},
-    {"type":"range","id":"max_w","label":"Max width","min":800,"max":1400,"step":20,"unit":"px","default":1280},
-    {"type":"range","id":"radius","label":"Bar radius","min":0,"max":24,"step":1,"unit":"px","default":8}
+    {"type":"text","id":"placeholder","label":"Placeholder","default":"Search"}
   ]
 }
 {% endschema %}
