@@ -1,0 +1,105 @@
+{%- comment -%}
+  Sticky chrome lock
+  iOS Safari promotes position:fixed + transform/backdrop-filter onto the
+  visual viewport, so the header and ATC bar jump up when the URL bar
+  hides or the page rubber-bands. Keep the fixed shells untransformed
+  and only compensate while visualViewport drift is actually present.
+{%- endcomment -%}
+<style id="sticky-lock-css">
+  html { overscroll-behavior-y: none; }
+
+  #ApexRoot {
+    transform: none !important;
+    -webkit-transform: none !important;
+    will-change: auto !important;
+  }
+
+  /* Product ATC bar ids are ap-bar + section id */
+  [id^="ap-bar"] {
+    transform: none !important;
+    -webkit-transform: none !important;
+    will-change: auto !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    bottom: 0 !important;
+    top: auto !important;
+  }
+  [id^="ap-bar"] > :first-child {
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    backdrop-filter: blur(16px) saturate(180%);
+  }
+  [id^="ap-bar"].hide {
+    transform: translate3d(0, calc(100% + 20px), 0) !important;
+    -webkit-transform: translate3d(0, calc(100% + 20px), 0) !important;
+  }
+
+  /* Prefer small viewport so chrome show/hide does not resize the PDP grid */
+  [class*="ap-grid"] {
+    height: calc(100svh - var(--top) - var(--bar-h));
+  }
+
+  html.is-vv-drift #ApexRoot {
+    transform: translate3d(0, var(--vv-top, 0px), 0) !important;
+  }
+  html.is-vv-drift [id^="ap-bar"]:not(.hide) {
+    transform: translate3d(0, calc(-1 * var(--vv-bottom, 0px)), 0) !important;
+  }
+</style>
+<script>
+(function () {
+  if (window.__apexStickyLock) return;
+  window.__apexStickyLock = true;
+
+  var root = document.documentElement;
+  var pending = false;
+  var KEYBOARD_GAP = 120;
+
+  function lockHeaderVar() {
+    var el = document.getElementById('ApexRoot');
+    if (!el) return;
+    var h = el.offsetHeight;
+    if (h > 0) {
+      root.style.setProperty('--apex-shell-bottom', (Math.ceil(h) + 8) + 'px');
+    }
+  }
+
+  function sync() {
+    pending = false;
+    lockHeaderVar();
+
+    var vv = window.visualViewport;
+    if (!vv) return;
+
+    var top = vv.offsetTop || 0;
+    var bottom = (window.innerHeight - vv.height - top) || 0;
+    var keyboard = (window.innerHeight - vv.height) > KEYBOARD_GAP;
+
+    if (keyboard || (Math.abs(top) <= 0.5 && Math.abs(bottom) <= 0.5)) {
+      root.classList.remove('is-vv-drift');
+      return;
+    }
+
+    root.style.setProperty('--vv-top', top.toFixed(2) + 'px');
+    root.style.setProperty('--vv-bottom', bottom.toFixed(2) + 'px');
+    root.classList.add('is-vv-drift');
+  }
+
+  function requestSync() {
+    if (pending) return;
+    pending = true;
+    requestAnimationFrame(sync);
+  }
+
+  window.addEventListener('scroll', requestSync, { passive: true });
+  window.addEventListener('resize', requestSync, { passive: true });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('scroll', requestSync, { passive: true });
+    window.visualViewport.addEventListener('resize', requestSync, { passive: true });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', sync);
+  } else {
+    sync();
+  }
+})();
+</script>
