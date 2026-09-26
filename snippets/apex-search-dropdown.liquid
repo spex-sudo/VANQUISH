@@ -1,83 +1,196 @@
 {%- comment -%}
-  SHEIN-style search: field lives in the header pill.
-  Submit goes to /search?q=keyword — a product grid, not an overlay.
+  Header search — SHEIN pattern.
+  Desktop: persistent field in the pill. Type → keyword + product suggest. Enter → /search?q=
+  Mobile: icon opens the search products page.
+  Overlay is disabled.
 {%- endcomment -%}
 <style>
-#ApexSearch{display:none !important;}
-.apex-inline-search{
-  display:flex; align-items:center; gap:8px;
-  min-width:0; flex:1 1 220px; max-width:420px;
-  margin:0 8px 0 12px; height:36px;
-  padding:0 12px 0 12px;
+#ApexSearch{display:none !important; visibility:hidden !important; pointer-events:none !important;}
+@media (min-width:901px){
+  #ApexSearchBtn{display:none !important;}
+}
+.apex-ss{
+  position:relative;
+  display:flex; align-items:center;
+  flex:1 1 280px; min-width:180px; max-width:520px;
+  margin:0 10px 0 14px; height:38px;
+}
+.apex-ss form{
+  display:flex; align-items:center; gap:8px; width:100%; height:38px;
+  padding:0 6px 0 14px;
   border-radius:100px;
-  background:rgba(255,255,255,.18);
-  border:1px solid rgba(255,255,255,.28);
+  background:rgba(255,255,255,.22);
+  border:1px solid rgba(255,255,255,.32);
 }
-#ApexRoot:not(.apex-at-top) .apex-inline-search,
-.apex-shell.scrolled .apex-inline-search{
-  background:rgba(0,0,0,.06);
-  border-color:rgba(0,0,0,.08);
+#ApexRoot:not(.apex-at-top) .apex-ss form,
+.apex-shell.scrolled .apex-ss form{
+  background:rgba(0,0,0,.05);
+  border-color:rgba(0,0,0,.1);
 }
-.apex-inline-search input{
-  flex:1; min-width:0; height:36px; border:0; outline:0; background:transparent;
+.apex-ss input{
+  flex:1; min-width:0; height:38px; border:0; outline:0; background:transparent;
   color:inherit; font-size:14px; font-family:inherit; -webkit-appearance:none;
 }
-.apex-inline-search input::placeholder{color:currentColor; opacity:.45;}
-.apex-inline-search button{
-  border:0; background:transparent; color:inherit; cursor:pointer;
-  font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;
-  padding:0; height:36px;
+.apex-ss input::placeholder{color:currentColor; opacity:.42;}
+.apex-ss .apex-ss-go{
+  width:30px; height:30px; border:0; border-radius:50%;
+  background:currentColor; color:var(--apex-pill-bg, #fff);
+  display:grid; place-items:center; cursor:pointer; flex-shrink:0;
+}
+.apex-ss .apex-ss-go svg{width:14px; height:14px; stroke:var(--apex-pill-bg,#fff); fill:none; stroke-width:2;}
+#ApexRoot:not(.apex-at-top) .apex-ss .apex-ss-go,
+.apex-shell.scrolled .apex-ss .apex-ss-go{
+  background:#111; color:#fff;
+}
+#ApexRoot:not(.apex-at-top) .apex-ss .apex-ss-go svg,
+.apex-shell.scrolled .apex-ss .apex-ss-go svg{stroke:#fff;}
+.apex-ss-panel{
+  position:absolute; left:0; right:0; top:calc(100% + 8px);
+  background:#fff; color:#111; border-radius:12px;
+  box-shadow:0 16px 40px rgba(0,0,0,.14);
+  border:1px solid #eee; overflow:hidden; z-index:990;
+  display:none; max-height:min(70vh,520px); overflow-y:auto;
+}
+.apex-ss-panel.is-open{display:block;}
+.apex-ss-label{
+  padding:10px 14px 4px; font-size:10px; font-weight:800;
+  letter-spacing:.16em; text-transform:uppercase; color:#888;
+}
+.apex-ss-kw{
+  display:flex; align-items:center; gap:10px;
+  padding:9px 14px; text-decoration:none; color:#111; font-size:14px;
+}
+.apex-ss-kw:hover{background:#f6f6f6;}
+.apex-ss-kw em{font-style:normal; font-weight:700;}
+.apex-ss-hit{
+  display:grid; grid-template-columns:44px 1fr auto; gap:10px; align-items:center;
+  padding:8px 14px; text-decoration:none; color:#111;
+}
+.apex-ss-hit:hover{background:#f6f6f6;}
+.apex-ss-hit img{width:44px; height:56px; object-fit:cover; border-radius:4px; background:#f3f3f3;}
+.apex-ss-hit span{font-size:13px; line-height:1.3;}
+.apex-ss-hit b{font-size:13px; white-space:nowrap;}
+.apex-ss-all{
+  display:block; padding:12px 14px; text-align:center;
+  font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;
+  color:#111; text-decoration:none; border-top:1px solid #f0f0f0;
 }
 @media (max-width:900px){
-  .apex-inline-search{display:none;}
+  .apex-ss{display:none;}
 }
 </style>
 <script>
 (function(){
   var SEARCH_URL='{{ routes.search_url }}';
+  var KEY='va-recent-search';
+  function money(cents){
+    try{return (cents/100).toLocaleString(undefined,{style:'currency',currency:(window.Shopify&&Shopify.currency&&Shopify.currency.active)||'USD'});}
+    catch(e){return '$'+(cents/100).toFixed(2);}
+  }
+  function recents(){
+    try{return JSON.parse(localStorage.getItem(KEY)||'[]');}catch(e){return [];}
+  }
+  function saveRecent(q){
+    if(!q) return;
+    var list=recents().filter(function(x){return x!==q;});
+    list.unshift(q); localStorage.setItem(KEY, JSON.stringify(list.slice(0,8)));
+  }
   function go(q){
-    var url=SEARCH_URL+'?q='+encodeURIComponent(q||'')+'&type=product&options[prefix]=last';
-    window.location.href=url;
+    saveRecent(q);
+    window.location.href=SEARCH_URL+'?q='+encodeURIComponent(q||'')+'&type=product&options[prefix]=last';
   }
   function boot(){
+    var overlay=document.getElementById('ApexSearch');
+    if(overlay){ overlay.hidden=true; overlay.classList.remove('open'); }
     var btn=document.getElementById('ApexSearchBtn');
     var right=document.querySelector('#ApexRoot .apex-right');
-    var overlay=document.getElementById('ApexSearch');
-    if(overlay) overlay.setAttribute('hidden','hidden');
-
-    if(right && !document.querySelector('.apex-inline-search')){
-      var form=document.createElement('form');
-      form.className='apex-inline-search';
-      form.setAttribute('role','search');
-      form.action=SEARCH_URL;
-      form.method='get';
-      form.innerHTML='<input type="hidden" name="type" value="product"><input type="hidden" name="options[prefix]" value="last"><input type="search" name="q" placeholder="Search products" autocomplete="off" enterkeyhint="search" aria-label="Search products"><button type="submit">Go</button>';
-      if(btn) right.insertBefore(form, btn);
-      else right.appendChild(form);
-      form.addEventListener('submit',function(e){
-        e.preventDefault();
-        go((form.querySelector('[name="q"]').value||'').trim());
-      });
+    if(!right || document.querySelector('.apex-ss')) {
+      wireBtn(btn); return;
     }
-
-    window.apexOpenSearch=function(){
-      var field=document.querySelector('.apex-inline-search input');
-      if(field && window.matchMedia('(min-width:901px)').matches){
-        field.focus();
-        field.select();
-        return;
+    var wrap=document.createElement('div');
+    wrap.className='apex-ss';
+    wrap.innerHTML='<form role="search" action="'+SEARCH_URL+'" method="get">'+
+      '<input type="hidden" name="type" value="product">'+
+      '<input type="hidden" name="options[prefix]" value="last">'+
+      '<input type="search" name="q" placeholder="Search" autocomplete="off" enterkeyhint="search" aria-label="Search products">'+
+      '<button class="apex-ss-go" type="submit" aria-label="Search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.2-3.2"/></svg></button>'+
+      '</form><div class="apex-ss-panel" hidden></div>';
+    if(btn) right.insertBefore(wrap, btn); else right.appendChild(wrap);
+    var form=wrap.querySelector('form');
+    var input=wrap.querySelector('input[type="search"]');
+    var panel=wrap.querySelector('.apex-ss-panel');
+    var timer=null;
+    function openPanel(html){
+      panel.innerHTML=html||'';
+      panel.hidden=!html;
+      panel.classList.toggle('is-open', !!html);
+    }
+    function renderIdle(){
+      var r=recents();
+      if(!r.length){ openPanel(''); return; }
+      openPanel('<div class="apex-ss-label">Recent</div>'+r.map(function(t){
+        return '<a class="apex-ss-kw" href="'+SEARCH_URL+'?q='+encodeURIComponent(t)+'&type=product&options[prefix]=last">'+t.replace(/</g,'')+'</a>';
+      }).join(''));
+    }
+    function renderSuggest(q, data){
+      var queries=(data&&data.resources&&data.resources.results&&data.resources.results.queries)||[];
+      var products=(data&&data.resources&&data.resources.results&&data.resources.results.products)||[];
+      var html='';
+      if(queries.length){
+        html+='<div class="apex-ss-label">Suggestions</div>';
+        html+=queries.slice(0,6).map(function(item){
+          var text=item.text||item;
+          return '<a class="apex-ss-kw" href="'+SEARCH_URL+'?q='+encodeURIComponent(text)+'&type=product&options[prefix]=last"><em>'+String(text).replace(/</g,'')+'</em></a>';
+        }).join('');
       }
+      if(products.length){
+        html+='<div class="apex-ss-label">Products</div>';
+        html+=products.slice(0,5).map(function(p){
+          var img=p.image||p.featured_image||'';
+          if(img && img.indexOf('width=')===-1) img+=(img.indexOf('?')>-1?'&':'?')+'width=120';
+          var url=p.url||('/products/'+(p.handle||''));
+          var price=typeof p.price==='number'?p.price:(p.price_min||0);
+          return '<a class="apex-ss-hit" href="'+url+'">'+(img?'<img src="'+img+'" alt="">':'<span></span>')+'<span>'+String(p.title||'').replace(/</g,'')+'</span><b>'+money(price)+'</b></a>';
+        }).join('');
+      }
+      html+='<a class="apex-ss-all" href="'+SEARCH_URL+'?q='+encodeURIComponent(q)+'&type=product&options[prefix]=last">View all results</a>';
+      openPanel(html);
+    }
+    form.addEventListener('submit',function(e){
+      e.preventDefault();
+      go((input.value||'').trim());
+    });
+    input.addEventListener('focus',function(){
+      if(!(input.value||'').trim()) renderIdle();
+    });
+    input.addEventListener('input',function(){
+      var q=(input.value||'').trim();
+      clearTimeout(timer);
+      if(!q){ renderIdle(); return; }
+      timer=setTimeout(function(){
+        fetch('/search/suggest.json?q='+encodeURIComponent(q)+'&resources[type]=query,product&resources[limit]=6&resources[options][fields]=title,product_type,variants.title')
+          .then(function(r){return r.json();})
+          .then(function(data){ renderSuggest(q,data); })
+          .catch(function(){});
+      },140);
+    });
+    document.addEventListener('click',function(e){
+      if(!wrap.contains(e.target)) openPanel('');
+    });
+    wireBtn(btn);
+    window.apexOpenSearch=function(){
+      if(window.matchMedia('(min-width:901px)').matches){ input.focus(); return; }
       go('');
     };
-    window.apexCloseSearch=function(){};
-
-    if(btn){
-      btn.addEventListener('click',function(e){
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        window.apexOpenSearch();
-      }, true);
-    }
+    window.apexCloseSearch=function(){ openPanel(''); };
+  }
+  function wireBtn(btn){
+    if(!btn || btn.dataset.ssBound) return;
+    btn.dataset.ssBound='1';
+    btn.addEventListener('click',function(e){
+      e.preventDefault(); e.stopImmediatePropagation();
+      window.apexOpenSearch();
+    }, true);
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
