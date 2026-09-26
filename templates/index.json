@@ -459,7 +459,7 @@
         "show_discount_pct": true,
         "sale_badge_bg": "#111111",
         "sale_badge_fg": "#ffffff",
-        "new_tag": "",
+        "new_tag": "LIMITED TIME",
         "new_tag_label": "New",
         "show_low_stock": true,
         "low_stock_threshold": 10,
