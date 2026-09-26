@@ -80,7 +80,7 @@
           "settings": {
             "text": "LEXE COLLECTION IS LIVE",
             "url": "",
-            "bg_color": "#B64242",
+            "bg_color": "#b64242",
             "text_color": "#ffffff"
           }
         },
@@ -96,9 +96,9 @@
         "flash_notif_REmTPj": {
           "type": "flash_notif",
           "settings": {
-            "text": "LIMITED STOCK",
+            "text": "LIMITED EDITON",
             "url": "",
-            "bg_color": "#2e6395",
+            "bg_color": "#CDB4FF",
             "text_color": "#ffffff"
           }
         },
