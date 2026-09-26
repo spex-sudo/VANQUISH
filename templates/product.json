@@ -107,6 +107,12 @@
     "vanquish_transittimer_4G4aRN": {
       "type": "vanquish-transittimer",
       "blocks": {
+        "message_RYcRgq": {
+          "type": "message",
+          "settings": {
+            "text": "USA Warehouse"
+          }
+        },
         "message_cikf9r": {
           "type": "message",
           "settings": {
@@ -127,6 +133,7 @@
         }
       },
       "block_order": [
+        "message_RYcRgq",
         "message_cikf9r",
         "message_yLgV6H",
         "message_mkgWBG"
