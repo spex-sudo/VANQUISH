@@ -40,13 +40,17 @@
           }
         }
       },
-      "block_order": ["carousel_card_1", "carousel_card_2", "carousel_card_3"],
+      "block_order": [
+        "carousel_card_1",
+        "carousel_card_2",
+        "carousel_card_3"
+      ],
       "settings": {
         "font": "system_ui_n4",
         "panel_source": "mixed",
-        "panel_collection": "",
+        "panel_collection": "lexe",
         "auto_limit": 16,
-        "hero_height": 420,
+        "hero_height": 180,
         "hero_bg": "#0a0a0a",
         "hero_layout": "grid",
         "split_pct": 60,
@@ -57,28 +61,41 @@
         "promo_headline": "Up To 50% Off",
         "headline_size": 68,
         "promo_sub": "Selected Styles",
-        "btn_bg": "#6a02fb",
-        "btn_fg": "#0a0a0a",
+        "btn_bg": "#D4B6FF",
+        "btn_fg": "#000000",
         "hero_cta_label": "Shop Now",
         "card_bg": "#f5f5f5",
-        "card_radius": 18,
+        "card_radius": 8,
         "cards_visible": 5,
         "cards_visible_mobile": 3,
-        "card_ratio": 155,
+        "card_ratio": 125,
         "autoplay_delay": 4,
         "show_dots": true,
-        "dot_color": "#0a0a0a",
+        "dot_color": "#D4B6FF",
         "show_card_label": true
       }
     },
     "grid": {
       "type": "luxury-collection",
       "blocks": {
-        "title": { "type": "title", "settings": {} },
-        "rating": { "type": "rating", "settings": {} },
-        "price": { "type": "price", "settings": {} }
+        "title": {
+          "type": "title",
+          "settings": {}
+        },
+        "rating": {
+          "type": "rating",
+          "settings": {}
+        },
+        "price": {
+          "type": "price",
+          "settings": {}
+        }
       },
-      "block_order": ["title", "rating", "price"],
+      "block_order": [
+        "title",
+        "rating",
+        "price"
+      ],
       "settings": {
         "page_limit": 12,
         "pc_cols": 4,
@@ -100,5 +117,8 @@
       }
     }
   },
-  "order": ["header", "grid"]
+  "order": [
+    "header",
+    "grid"
+  ]
 }
