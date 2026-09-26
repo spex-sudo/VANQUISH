@@ -10,6 +10,9 @@
   endif
   assign max_imgs = section.settings.max_card_images | default: 4
   assign img_count = product.images.size | at_most: max_imgs
+  if img_count < 1
+    assign img_count = product.images.size
+  endif
   assign color_opt_idx = 0
   for opt in product.options_with_values
     assign opt_lc = opt.name | downcase
@@ -18,6 +21,7 @@
       break
     endif
   endfor
+  assign max_swatches = section.settings.max_swatches | default: 5
 -%}
 <div class="apex-card" data-pid="{{ product.id }}" data-handle="{{ product.handle }}">
   <div class="apex-media">
@@ -26,37 +30,27 @@
     {%- for img in product.images limit: img_count -%}
       <img class="apex-img{% if forloop.first %} is-active{% endif %}" src="{{ img | image_url: width: 800 }}" srcset="{{ img | image_url: width: 400 }} 400w, {{ img | image_url: width: 800 }} 800w" sizes="(max-width:768px) 50vw, 25vw" alt="{{ img.alt | default: product.title | escape }}" loading="{% if forloop.first and is_eager %}eager{% else %}lazy{% endif %}" decoding="async" width="800" height="800">
     {%- endfor -%}
-    {%- if section.settings.show_quick_add and product.available -%}
+    {%- if product.available -%}
       <a class="apex-qa" href="{{ product.url }}" aria-label="View {{ product.title | escape }}">+</a>
     {%- endif -%}
   </div>
   <div class="apex-info">
-    {%- for block in section.blocks -%}
-      {%- case block.type -%}
-        {%- when 'title' -%}
-          <a href="{{ product.url }}" class="apex-title">{{ product.title | escape }}</a>
-        {%- when 'price' -%}
-          <div class="apex-price-row">
-            <span class="apex-price{% if on_sale %} is-sale{% endif %}">{{ product.price | money }}</span>
-            {%- if on_sale -%}
-              <span class="apex-price-was">{{ product.compare_at_price | money }}</span>
-              {%- if section.settings.show_savings -%}<span class="apex-savings">Save {{ savings | money_without_trailing_zeros }}</span>{%- endif -%}
-            {%- endif -%}
-          </div>
-        {%- when 'swatches' -%}
-          {%- if color_opt_idx > 0 -%}
-            {%- assign color_idx = color_opt_idx | minus: 1 -%}
-            {%- assign color_opt = product.options_with_values[color_idx] -%}
-            {%- if color_opt and color_opt.values.size > 0 -%}
-              <div class="apex-swatches">
-                {%- for val in color_opt.values limit: section.settings.max_swatches -%}
-                  <span class="apex-sw" title="{{ val | escape }}" style="background-color: {{ val | handle }};"></span>
-                {%- endfor -%}
-              </div>
-            {%- endif -%}
-          {%- endif -%}
-      {%- endcase -%}
-    {%- endfor -%}
+    <a href="{{ product.url }}" class="apex-title">{{ product.title | escape }}</a>
+    <div class="apex-price-row">
+      <span class="apex-price{% if on_sale %} is-sale{% endif %}">{{ product.price | money }}</span>
+      {%- if on_sale -%}<span class="apex-price-was">{{ product.compare_at_price | money }}</span>{%- endif -%}
+    </div>
+    {%- if color_opt_idx > 0 -%}
+      {%- assign color_idx = color_opt_idx | minus: 1 -%}
+      {%- assign color_opt = product.options_with_values[color_idx] -%}
+      {%- if color_opt and color_opt.values.size > 0 -%}
+        <div class="apex-swatches">
+          {%- for val in color_opt.values limit: max_swatches -%}
+            <span class="apex-sw" title="{{ val | escape }}" style="background-color: {{ val | handle }};"></span>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    {%- endif -%}
   </div>
 </div>
 {%- endif -%}
