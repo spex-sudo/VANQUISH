@@ -1,0 +1,149 @@
+{%- comment -%}
+  VANQUISH — Related products grid for the product page.
+  Same Apex Zenith cards, quick-add, wishlist, and infinite scroll
+  as the collection listing. Carousel ("You May Also Like") stays separate.
+{%- endcomment -%}
+
+{%- liquid
+  assign sid    = section.id
+  assign acc    = section.settings.ac
+  assign sale_c = section.settings.sale_color
+  assign rel_handle = ''
+  if section.settings.related_collection != blank
+    assign rel_handle = section.settings.related_collection.handle
+  endif
+  if rel_handle == blank
+    for c in product.collections
+      if c.handle != 'all' and c.products_count > 1
+        assign rel_handle = c.handle
+        break
+      endif
+    endfor
+  endif
+  if rel_handle == blank
+    assign rel_handle = 'all'
+  endif
+  assign rel_coll = collections[rel_handle]
+  assign current_id = product.id
+-%}
+
+{% include 'apex-zenith-related-style' %}
+
+<div id="ApexZenith-{{ sid }}" data-apex-section="{{ sid }}">
+  {%- if section.settings.show_heading and section.settings.heading != blank -%}
+    <div class="apex-rel-head-{{ sid }}">
+      <h2 class="apex-rel-title-{{ sid }}">{{ section.settings.heading | escape }}</h2>
+      <div class="apex-rel-rule-{{ sid }}"></div>
+      {%- if rel_coll != blank -%}
+        <span class="apex-rel-count-{{ sid }}">{{ rel_coll.products_count | minus: 1 | at_least: 0 }} pieces</span>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+
+  {%- if rel_coll != blank and rel_coll.products_count > 1 -%}
+    {%- paginate collections[rel_handle].products by section.settings.page_limit -%}
+      <div class="apex-grid-{{ sid }}" id="ApexGrid-{{ sid }}">
+        {%- for product in collections[rel_handle].products -%}
+          {%- if product.id == current_id -%}{%- continue -%}{%- endif -%}
+          {%- liquid
+            assign eager_max = section.settings.pc_cols
+            assign is_eager = false
+            if forloop.index0 < eager_max
+              assign is_eager = true
+            endif
+          -%}
+          {% include 'apex-zenith-card' %}
+        {%- endfor -%}
+      </div>
+
+      {%- if paginate.next -%}
+        <div
+          id="ApexSentinel-{{ sid }}"
+          data-next-url="{{ request.path }}?section_id={{ section.id }}&page={{ paginate.current_page | plus: 1 }}"
+          class="apex-status-{{ sid }}"
+        >
+          <span class="apex-status-text">Discovering more</span>
+          <div class="apex-pulse"></div>
+        </div>
+      {%- endif -%}
+    {%- endpaginate -%}
+  {%- endif -%}
+
+  <button id="ApexAscend-{{ sid }}" type="button" aria-label="Back to top">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>
+  </button>
+</div>
+
+<div class="apex-toast-{{ sid }}" id="ApexToast-{{ sid }}" role="status" aria-live="polite">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="ApexToastText-{{ sid }}">Added to cart</span>
+  <a href="{{ routes.cart_url }}">View bag</a>
+</div>
+<div class="apex-drawer-bd-{{ sid }}" id="ApexDrawerBd-{{ sid }}" aria-hidden="true"></div>
+<div class="apex-drawer-{{ sid }}" id="ApexDrawer-{{ sid }}" role="dialog" aria-modal="true" aria-labelledby="ApexDrTitle-{{ sid }}" aria-hidden="true">
+  <div class="apex-dr-handle" aria-hidden="true"></div>
+  <div class="apex-dr-head">
+    <h3 class="apex-dr-title" id="ApexDrTitle-{{ sid }}">Select options</h3>
+    <button type="button" class="apex-dr-close" id="ApexDrClose-{{ sid }}" aria-label="Close">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="apex-dr-body" id="ApexDrBody-{{ sid }}"></div>
+  <div class="apex-dr-foot">
+    <button type="button" class="apex-dr-cta" id="ApexDrCta-{{ sid }}" disabled>
+      <span class="apex-dr-cta-text">Add to cart</span>
+    </button>
+  </div>
+</div>
+
+{% include 'apex-zenith-related-js' %}
+
+{% schema %}
+{
+  "name": "Atelier Related Grid",
+  "class": "va-related-grid-section",
+  "enabled_on": { "templates": ["product"] },
+  "max_blocks": 12,
+  "settings": [
+    { "type": "header", "content": "Content" },
+    { "type": "checkbox", "id": "show_heading", "label": "Show heading", "default": true },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Continue Shopping" },
+    { "type": "collection", "id": "related_collection", "label": "Related collection", "info": "Leave empty to use the product's first collection (excluding All)." },
+    { "type": "header", "content": "Layout" },
+    { "type": "range", "id": "page_limit", "label": "Products loaded first", "min": 4, "max": 48, "step": 4, "default": 12, "info": "First paint. The rest load as the shopper scrolls." },
+    { "type": "range", "id": "pc_cols", "label": "Desktop columns", "min": 2, "max": 6, "step": 1, "default": 4 },
+    { "type": "range", "id": "mb_cols", "label": "Mobile columns", "min": 1, "max": 3, "step": 1, "default": 2 },
+    { "type": "range", "id": "max_w", "label": "Max width", "min": 800, "max": 1600, "step": 50, "default": 1300 },
+    { "type": "range", "id": "gap", "label": "Card gap", "min": 6, "max": 50, "step": 2, "default": 16 },
+    { "type": "range", "id": "p_v", "label": "Vertical padding", "min": 0, "max": 100, "step": 5, "default": 40 },
+    { "type": "range", "id": "rd", "label": "Image rounding", "min": 0, "max": 40, "step": 2, "default": 4 },
+    { "type": "select", "id": "ratio", "label": "Image ratio", "options": [
+      { "value": "1/1", "label": "Square" },
+      { "value": "3/4", "label": "Portrait (3:4)" },
+      { "value": "4/5", "label": "Portrait (4:5)" },
+      { "value": "4/3", "label": "Landscape" }
+    ], "default": "1/1" },
+    { "type": "header", "content": "Colors" },
+    { "type": "color", "id": "ac", "label": "Accent", "default": "#111111" },
+    { "type": "color", "id": "sale_color", "label": "Sale color", "default": "#c8102e" },
+    { "type": "header", "content": "Conversion Features" },
+    { "type": "checkbox", "id": "show_quick_add", "label": "Show quick-add (+) button", "default": true },
+    { "type": "checkbox", "id": "show_wishlist", "label": "Show wishlist heart", "default": true },
+    { "type": "checkbox", "id": "show_savings", "label": "Show Save $X on sale items", "default": true },
+    { "type": "range", "id": "low_stock_threshold", "label": "Low stock threshold", "min": 0, "max": 20, "step": 1, "default": 10 },
+    { "type": "range", "id": "new_hours", "label": "Hours a product counts as New", "min": 0, "max": 200, "step": 2, "unit": "h", "default": 108 },
+    { "type": "range", "id": "max_card_images", "label": "Max images per card", "min": 1, "max": 8, "step": 1, "default": 4 },
+    { "type": "range", "id": "max_swatches", "label": "Max color swatches shown", "min": 2, "max": 8, "step": 1, "default": 4 }
+  ],
+  "blocks": [
+    { "type": "@app" },
+    { "type": "title", "name": "Title", "limit": 1 },
+    { "type": "rating", "name": "Rating (Judge.me)", "limit": 1 },
+    { "type": "price", "name": "Price", "limit": 1 },
+    { "type": "swatches", "name": "Color swatches", "limit": 1 }
+  ],
+  "presets": [
+    { "name": "Atelier Related Grid", "blocks": [ { "type": "swatches" }, { "type": "title" }, { "type": "rating" }, { "type": "price" } ] }
+  ]
+}
+{% endschema %}
