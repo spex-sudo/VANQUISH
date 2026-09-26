@@ -408,7 +408,24 @@
       "name": "Product Atelier",
       "settings": {
         "display_mode": "products",
-        "products": [],
+        "products": [
+          "hooded-ultra-short-motorcycle-leather-long-sleeved-pure-black-jacket",
+          "womens-fashion-long-sleeved-zippered-short-cut-navel-exposed-slim-fitting-hooded-faux-leather-jacket-for-women",
+          "suitable-for-iphone-16-promax-phone-case-apple-15-pro-five-corner-anti-drop-case-all-inclusive-14p-protective-case",
+          "waist-slimming-leather-slimming-long-sleeved-jacket",
+          "new-in-cat-eye-women-sunglasses-fashion-snake-wrapped-round-vintage-shades-eyewear-luxury-brand-design-uv400-sun-glasses",
+          "retro-dark-leather-pocket-patchwork-workwear-jacket",
+          "iphone-17-electroplated-phone-case-with-magsafe-magnetic-attachment",
+          "retro-motorcycle-style-shiny-topcoat-leather-exposed-waist-short-jacket",
+          "lexe-rimless-galets",
+          "stand-up-collar-zipper-fake-two-lychee-leather-patterned-jackets",
+          "new-butterfly-suitable-13-apple-15-promax-phone-case-iphone-14",
+          "retro-punk-street-loose-pu-leather-jacket-motorcycle-jacket",
+          "simple-and-advanced-13-suitable-for-iphone-14-iphone-case-14-pro-max-weaving-15-knitted-pattern-x-solid-color-11",
+          "retro-fur-collar-pu-leather-hooded-cotton-jacket",
+          "magnetic-suction-suitable-for-iphone-17-promax-lens-holder-phone-case",
+          "lexe-polygon-optics"
+        ],
         "collection": "",
         "card_count": 8,
         "show_header": false,
@@ -443,7 +460,7 @@
       "settings": {
         "display_mode": "grid",
         "source_mode": "collection",
-        "source_collection": "lexe",
+        "source_collection": "faux-leather-jackets",
         "grid_max_products": 13,
         "grid_cols_desktop": "4",
         "grid_cols_tablet": "3",
@@ -452,7 +469,7 @@
         "grid_gap": 12,
         "grid_info_padding": 12,
         "grid_hero_first": true,
-        "grid_hero_product": "rectangle-uv-protection-sunglasses",
+        "grid_hero_product": "short-leather-jacket-black-loose-jacket-top",
         "grid_hero_aspect": "1 / 1",
         "grid_aspect": "4 / 5",
         "grid_second_image": true,
@@ -484,7 +501,7 @@
         "row_gap": 6,
         "max_products": 10,
         "eyebrow": "",
-        "title": "Featured",
+        "title": "The Faux Leather Edit",
         "title_size": 28,
         "section_bg_color": "#ffffff",
         "card_bg_color": "#000000",
@@ -508,19 +525,19 @@
         "message_jg8KUx": {
           "type": "message",
           "settings": {
-            "text": "Protected by reCAPCHA"
+            "text": "Secure checkout"
           }
         },
         "message_BwbQHN": {
           "type": "message",
           "settings": {
-            "text": "Double check your shipping address when ordering"
+            "text": "Double-check your shipping address when ordering"
           }
         },
         "message_DJNPdF": {
           "type": "message",
           "settings": {
-            "text": "All major payment methods regulated"
+            "text": "30-day returns on eligible apparel"
           }
         }
       },
@@ -630,7 +647,7 @@
         "max_content_width": 1280,
         "padding_top": 20,
         "padding_bottom": 20,
-        "product": "vanquish-basic",
+        "product": "tailed-slim-fit-waist-versatile-jacket-motorcycle-willow-nail-leather-jacket",
         "layout": "text_first"
       }
     }
