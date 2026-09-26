@@ -1,18 +1,15 @@
+{%- if product != blank -%}
 {%- liquid
   assign on_sale = false
   assign discount_pct = 0
   assign savings = 0
-  if product.compare_at_price > product.price
+  if product.compare_at_price > product.price and product.compare_at_price > 0
     assign on_sale = true
     assign savings = product.compare_at_price | minus: product.price
-    assign discount_pct = savings | times: 100 | divided_by: product.compare_at_price | round
+    assign discount_pct = savings | times: 100.0 | divided_by: product.compare_at_price | round
   endif
-  assign first_var = product.selected_or_first_available_variant
   assign max_imgs = section.settings.max_card_images | default: 4
-  assign img_count = product.images.size
-  if img_count > max_imgs
-    assign img_count = max_imgs
-  endif
+  assign img_count = product.images.size | at_most: max_imgs
   assign color_opt_idx = 0
   for opt in product.options_with_values
     assign opt_lc = opt.name | downcase
@@ -26,11 +23,9 @@
   <div class="apex-media">
     <a href="{{ product.url }}" class="apex-link" aria-label="{{ product.title | escape }}"></a>
     {%- if on_sale -%}<div class="apex-badges"><span class="apex-bdg apex-bdg-sale">−{{ discount_pct }}%</span></div>{%- endif -%}
-    {%- if img_count > 0 -%}
-      {%- for img in product.images limit: img_count -%}
-        <img class="apex-img{% if forloop.first %} is-active{% endif %}" src="{{ img | image_url: width: 800 }}" srcset="{{ img | image_url: width: 400 }} 400w, {{ img | image_url: width: 800 }} 800w" sizes="(max-width:768px) 50vw, 25vw" alt="{{ img.alt | default: product.title | escape }}" loading="{% if forloop.first and is_eager %}eager{% else %}lazy{% endif %}" decoding="async" width="800" height="800">
-      {%- endfor -%}
-    {%- endif -%}
+    {%- for img in product.images limit: img_count -%}
+      <img class="apex-img{% if forloop.first %} is-active{% endif %}" src="{{ img | image_url: width: 800 }}" srcset="{{ img | image_url: width: 400 }} 400w, {{ img | image_url: width: 800 }} 800w" sizes="(max-width:768px) 50vw, 25vw" alt="{{ img.alt | default: product.title | escape }}" loading="{% if forloop.first and is_eager %}eager{% else %}lazy{% endif %}" decoding="async" width="800" height="800">
+    {%- endfor -%}
     {%- if section.settings.show_quick_add and product.available -%}
       <a class="apex-qa" href="{{ product.url }}" aria-label="View {{ product.title | escape }}">+</a>
     {%- endif -%}
@@ -39,7 +34,7 @@
     {%- for block in section.blocks -%}
       {%- case block.type -%}
         {%- when 'title' -%}
-          <a href="{{ product.url }}" class="apex-title">{{ product.title }}</a>
+          <a href="{{ product.url }}" class="apex-title">{{ product.title | escape }}</a>
         {%- when 'price' -%}
           <div class="apex-price-row">
             <span class="apex-price{% if on_sale %} is-sale{% endif %}">{{ product.price | money }}</span>
@@ -52,13 +47,16 @@
           {%- if color_opt_idx > 0 -%}
             {%- assign color_idx = color_opt_idx | minus: 1 -%}
             {%- assign color_opt = product.options_with_values[color_idx] -%}
-            <div class="apex-swatches">
-              {%- for val in color_opt.values limit: section.settings.max_swatches -%}
-                <span class="apex-sw" title="{{ val }}" style="background-color: {{ val | handle }};"></span>
-              {%- endfor -%}
-            </div>
+            {%- if color_opt and color_opt.values.size > 0 -%}
+              <div class="apex-swatches">
+                {%- for val in color_opt.values limit: section.settings.max_swatches -%}
+                  <span class="apex-sw" title="{{ val | escape }}" style="background-color: {{ val | handle }};"></span>
+                {%- endfor -%}
+              </div>
+            {%- endif -%}
           {%- endif -%}
       {%- endcase -%}
     {%- endfor -%}
   </div>
 </div>
+{%- endif -%}
