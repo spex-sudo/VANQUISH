@@ -106,16 +106,16 @@
         "flash_notif_LCEm8c": {
           "type": "flash_notif",
           "settings": {
-            "text": "LEXE COLLECTION IS LIVE",
+            "text": "TRY CLICKING THE SEARCH ICON",
             "url": "",
-            "bg_color": "#b64242",
+            "bg_color": "#B4A6FF",
             "text_color": "#ffffff"
           }
         },
         "flash_notif_DT4QLe": {
           "type": "flash_notif",
           "settings": {
-            "text": "FIRST TIMERS GET FREE SHIPPING",
+            "text": "FIRST TIME?",
             "url": "",
             "bg_color": "#111111",
             "text_color": "#ffffff"
