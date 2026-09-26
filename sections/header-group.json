@@ -63,6 +63,15 @@
     "signature_header_8dQTVX": {
       "type": "signature-header",
       "blocks": {
+        "flash_notif_iqJFMf": {
+          "type": "flash_notif",
+          "settings": {
+            "text": "YOU DONT HAVE ALL DAY JUST PICK SOMETHING ALREADY",
+            "url": "",
+            "bg_color": "#E52B2B",
+            "text_color": "#ffffff"
+          }
+        },
         "quick_link_zAzjAV": {
           "type": "quick_link",
           "settings": {
@@ -106,7 +115,7 @@
         "flash_notif_LCEm8c": {
           "type": "flash_notif",
           "settings": {
-            "text": "TRY CLICKING THE SEARCH ICON",
+            "text": "HAVE YOU TRIED USING THE SEARCH ICON?",
             "url": "",
             "bg_color": "#B4A6FF",
             "text_color": "#ffffff"
@@ -138,6 +147,7 @@
         }
       },
       "block_order": [
+        "flash_notif_iqJFMf",
         "quick_link_zAzjAV",
         "quick_link_cpRJLp",
         "collection_pwjyeg",
