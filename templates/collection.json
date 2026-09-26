@@ -69,7 +69,7 @@
         "promo_sub": "Selected Styles",
         "btn_bg": "#d4b6ff",
         "btn_fg": "#000000",
-        "hero_cta_label": "Shop Now",
+        "hero_cta_label": "",
         "card_bg": "#f5f5f5",
         "card_radius": 8,
         "cards_visible": 5,
