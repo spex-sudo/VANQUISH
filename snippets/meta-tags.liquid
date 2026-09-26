@@ -9,7 +9,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="view-transition" content="same-origin">
 <meta name="theme-color" content="">
+{%- comment -%} LEXE sitemap pass: tag-filtered blog/collection pages are thin duplicates; keep links followable {%- endcomment -%}
+{%- if current_tags -%}
+<meta name="robots" content="noindex, follow">
+{%- else -%}
 <meta name="robots" content="max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+{%- endif -%}
 
 {%- liquid
   # LEXE SEO pass 2: brand-aware title + home override (Preferences field not exposed via API)
@@ -114,3 +119,4 @@
 {%- elsif og_description != blank -%}
   <meta name="description" content="{{ og_description | escape }}">
 {%- endif -%}
+
