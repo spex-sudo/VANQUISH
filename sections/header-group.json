@@ -63,6 +63,12 @@
     "signature_header_8dQTVX": {
       "type": "signature-header",
       "blocks": {
+        "collection_pwjyeg": {
+          "type": "collection",
+          "settings": {
+            "collection": "industrial-assets"
+          }
+        },
         "collection_ienDgX": {
           "type": "collection",
           "settings": {
@@ -110,6 +116,7 @@
         }
       },
       "block_order": [
+        "collection_pwjyeg",
         "collection_ienDgX",
         "collection_4XRPEG",
         "flash_notif_LCEm8c",
