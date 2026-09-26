@@ -12,38 +12,44 @@
     "header": {
       "type": "vanquishcollection-header",
       "blocks": {
-        "carousel_card_1": {
+        "carousel_card_x76JMB": {
           "type": "carousel_card",
           "settings": {
-            "image": "shopify://shop_images/vanquish_pro_1200.jpg",
             "collection": "industrial-assets",
-            "label": "EXODUS COLLECTION",
+            "label": "",
             "link": ""
           }
         },
-        "carousel_card_2": {
+        "carousel_card_xbU89z": {
           "type": "carousel_card",
           "settings": {
-            "image": "shopify://shop_images/DEVICI_STUDIOS.jpg",
+            "collection": "lexespecs",
+            "label": "",
+            "link": ""
+          }
+        },
+        "carousel_card_f9Y6Vy": {
+          "type": "carousel_card",
+          "settings": {
             "collection": "maze",
-            "label": "MAZE COLLECTION",
+            "label": "",
             "link": ""
           }
         },
-        "carousel_card_3": {
+        "carousel_card_mxUadY": {
           "type": "carousel_card",
           "settings": {
-            "image": "shopify://shop_images/e3c1e618-a1e0-4a9a-9183-5964b783997b-Max.jpg",
-            "collection": "apparell",
-            "label": "VANQUISH COLLECTION",
+            "collection": "lexe",
+            "label": "",
             "link": ""
           }
         }
       },
       "block_order": [
-        "carousel_card_1",
-        "carousel_card_2",
-        "carousel_card_3"
+        "carousel_card_x76JMB",
+        "carousel_card_xbU89z",
+        "carousel_card_f9Y6Vy",
+        "carousel_card_mxUadY"
       ],
       "settings": {
         "font": "system_ui_n4",
@@ -61,7 +67,7 @@
         "promo_headline": "Up To 50% Off",
         "headline_size": 68,
         "promo_sub": "Selected Styles",
-        "btn_bg": "#D4B6FF",
+        "btn_bg": "#d4b6ff",
         "btn_fg": "#000000",
         "hero_cta_label": "Shop Now",
         "card_bg": "#f5f5f5",
@@ -71,7 +77,7 @@
         "card_ratio": 125,
         "autoplay_delay": 4,
         "show_dots": true,
-        "dot_color": "#D4B6FF",
+        "dot_color": "#d4b6ff",
         "show_card_label": true
       }
     },
