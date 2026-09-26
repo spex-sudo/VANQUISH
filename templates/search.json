@@ -2,42 +2,18 @@
   "sections": {
     "search": {
       "type": "search-header",
-      "name": "Vanquish search header",
       "settings": {
-        "kicker": "Atelier search",
-        "title": "Find the piece",
-        "results_title": "Search results",
-        "placeholder": "Search by name, color, drop…",
-        "cta": "Search",
-        "hint": "Try a color, silhouette, or collection name",
-        "results_label": "results for",
-        "type_labels": "Products,Collections,Pages,Journal",
-        "title_size": 36,
-        "max_w": 1280,
-        "pad_v": 36,
-        "radius": 8
+        "placeholder": "Search"
       }
     },
     "main": {
       "type": "search-results",
-      "name": "Vanquish search results",
       "settings": {
+        "hot_title": "Hot List",
+        "discovery_keywords": "new, sale, black, leather, rings, wallet",
         "per_page": 24,
         "pc_cols": 4,
-        "mb_cols": 2,
-        "gap": 16,
-        "rd": 4,
-        "ratio": "3/4",
-        "max_w": 1280,
-        "pad_v": 28,
-        "empty_title": "Nothing matched",
-        "empty_body": "No results for [q]. Try another keyword or a shorter term.",
-        "idle_title": "Start with a keyword",
-        "idle_body": "Search products, collections, and the journal.",
-        "s1": "black",
-        "s2": "leather",
-        "s3": "new",
-        "s4": "sale"
+        "max_w": 1100
       }
     }
   },
