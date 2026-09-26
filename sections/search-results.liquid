@@ -1,7 +1,3 @@
-{%- comment -%}
-  VANQUISH search results — Apex cards, filters, sort, infinite scroll.
-{%- endcomment -%}
-
 {%- liquid
   assign sid = section.id
   assign q = search.terms | default: ''
@@ -12,27 +8,22 @@
   assign per_page = section.settings.per_page | default: 24
   assign current_sort = search.sort_by | default: 'relevance'
 -%}
-
 <style>
-#vsr{{ sid }}{--ink:#111;--dim:#6b6b6b;--line:#ececec;--soft:#f7f7f7;--sale:#c8102e;--bg:#fff;--gap:{{ section.settings.gap }}px;--rd:{{ section.settings.rd }}px;max-width:{{ section.settings.max_w }}px;margin:0 auto;padding:{{ section.settings.pad_v }}px 20px 64px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--ink);}
+#vsr{{ sid }}{--ink:#111;--dim:#6b6b6b;--line:#ececec;--soft:#f7f7f7;--sale:#c8102e;--gap:{{ section.settings.gap }}px;--rd:{{ section.settings.rd }}px;max-width:{{ section.settings.max_w }}px;margin:0 auto;padding:{{ section.settings.pad_v }}px 20px 64px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--ink);}
 .vsr-tools{{ sid }}{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:0 0 22px;}
 .vsr-sort{{ sid }}{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);}
-.vsr-sort{{ sid }} select{border:1px solid var(--line);background:var(--bg);font-size:12px;padding:8px 10px;border-radius:6px;color:var(--ink);}
+.vsr-sort{{ sid }} select{border:1px solid var(--line);background:#fff;font-size:12px;padding:8px 10px;border-radius:6px;}
 .vsr-grid{{ sid }}{display:grid;gap:var(--gap);grid-template-columns:repeat({{ section.settings.pc_cols }},minmax(0,1fr));}
-.vsr-list{{ sid }}{display:flex;flex-direction:column;border-top:1px solid var(--line);}
-.vsr-row{{ sid }}{display:grid;grid-template-columns:72px 1fr auto;gap:14px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line);text-decoration:none;color:inherit;}
-.vsr-row{{ sid }} img{width:72px;height:72px;object-fit:cover;border-radius:4px;background:var(--soft);}
-.vsr-row{{ sid }} h3{margin:0 0 4px;font-size:14px;font-weight:600;}
-.vsr-row{{ sid }} p{margin:0;font-size:12px;color:var(--dim);}
-.vsr-empty{{ sid }}{padding:40px 0 20px;text-align:center;}
-.vsr-empty{{ sid }} h2{margin:0 0 8px;font-size:22px;letter-spacing:.04em;text-transform:uppercase;}
-.vsr-empty{{ sid }} p{margin:0 0 24px;color:var(--dim);}
-.vsr-sugs{{ sid }}{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;}
+.vsr-empty{{ sid }}{padding:48px 0;text-align:center;}
+.vsr-empty{{ sid }} p{color:var(--dim);}
+.vsr-sugs{{ sid }}{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:16px;}
 .vsr-sugs{{ sid }} a{border:1px solid var(--line);border-radius:100px;padding:8px 14px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;text-decoration:none;color:var(--ink);}
-.apex-card{position:relative;display:flex;flex-direction:column;}
+.apex-card{position:relative;display:flex;flex-direction:column;transition:transform .32s cubic-bezier(.32,.72,0,1);}
+.apex-card:hover{transform:translateY(-3px);}
 .apex-media{position:relative;width:100%;aspect-ratio:{{ section.settings.ratio }};border-radius:var(--rd);overflow:hidden;background:var(--soft);margin-bottom:12px;}
-.apex-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;}
+.apex-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .35s,transform .7s ease;}
 .apex-img.is-active{opacity:1;}
+.apex-media:hover .apex-img.is-active{transform:scale(1.04);}
 .apex-link{position:absolute;inset:0;z-index:1;}
 .apex-info{padding:2px;display:flex;flex-direction:column;gap:5px;}
 .apex-title{position:relative;z-index:2;font-size:13.5px;font-weight:500;line-height:1.32;color:var(--ink);text-decoration:none;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
@@ -47,13 +38,13 @@
 .apex-qa{position:absolute;z-index:6;bottom:10px;right:10px;width:36px;height:36px;border-radius:50%;background:#111;color:#fff;display:flex;align-items:center;justify-content:center;text-decoration:none;}
 .vsr-status{{ sid }}{margin-top:40px;text-align:center;font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);}
 .vsr-filters{{ sid }}{display:flex;flex-wrap:wrap;gap:8px;width:100%;}
-.vsr-filter{{ sid }} details{border:1px solid var(--line);border-radius:8px;background:var(--bg);}
+.vsr-filter{{ sid }} details{border:1px solid var(--line);border-radius:8px;}
 .vsr-filter{{ sid }} summary{list-style:none;cursor:pointer;padding:8px 12px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;}
-.vsr-filter{{ sid }} summary::-webkit-details-marker{display:none;}
 .vsr-filter{{ sid }} .vsr-opts{padding:0 12px 10px;display:flex;flex-direction:column;gap:6px;max-height:220px;overflow:auto;}
 .vsr-filter{{ sid }} a{font-size:13px;color:var(--ink);text-decoration:none;}
 .vsr-filter{{ sid }} a.is-active{font-weight:700;}
-@media (max-width:768px){.vsr-grid{{ sid }}{grid-template-columns:repeat({{ section.settings.mb_cols }},minmax(0,1fr));}.vsr-sort{{ sid }}{margin-left:0;width:100%;}.vsr-sort{{ sid }} select{flex:1;}}
+@media (max-width:768px){.vsr-grid{{ sid }}{grid-template-columns:repeat({{ section.settings.mb_cols }},minmax(0,1fr));}.vsr-sort{{ sid }}{margin-left:0;width:100%;}}
+@media (prefers-reduced-motion:reduce){.apex-card,.apex-img{transition:none;}.apex-card:hover{transform:none;}}
 </style>
 
 {%- paginate search.results by per_page -%}
@@ -96,54 +87,27 @@
 
   {%- if search.performed and search.results_count == 0 -%}
     <div class="vsr-empty{{ sid }}">
-      <h2>{{ section.settings.empty_title | escape }}</h2>
-      <p>{{ section.settings.empty_body | replace: '[q]', q | escape }}</p>
+      <p>No products for “{{ q | escape }}”</p>
       <div class="vsr-sugs{{ sid }}">
-        {%- if section.settings.s1 != blank -%}<a href="{{ routes.search_url }}?q={{ section.settings.s1 | url_encode }}&type=product&options[prefix]=last">{{ section.settings.s1 | escape }}</a>{%- endif -%}
-        {%- if section.settings.s2 != blank -%}<a href="{{ routes.search_url }}?q={{ section.settings.s2 | url_encode }}&type=product&options[prefix]=last">{{ section.settings.s2 | escape }}</a>{%- endif -%}
-        {%- if section.settings.s3 != blank -%}<a href="{{ routes.search_url }}?q={{ section.settings.s3 | url_encode }}&type=product&options[prefix]=last">{{ section.settings.s3 | escape }}</a>{%- endif -%}
-        {%- if section.settings.s4 != blank -%}<a href="{{ routes.search_url }}?q={{ section.settings.s4 | url_encode }}&type=product&options[prefix]=last">{{ section.settings.s4 | escape }}</a>{%- endif -%}
         <a href="{{ routes.all_products_collection_url }}">Shop all</a>
       </div>
     </div>
   {%- elsif search.performed -%}
-    {%- if stype == 'product' or stype == blank -%}
-      <div class="vsr-grid{{ sid }}" id="VsrGrid-{{ sid }}">
-        {%- for item in search.results -%}
+    <div class="vsr-grid{{ sid }}" id="VsrGrid-{{ sid }}">
+      {%- for item in search.results -%}
+        {%- if item.object_type == 'product' or stype == 'product' -%}
           {%- if item.object_type == 'product' -%}
             {%- render 'apex-zenith-card', product: item, is_eager: forloop.first -%}
           {%- endif -%}
-        {%- endfor -%}
-      </div>
-    {%- else -%}
-      <div class="vsr-list{{ sid }}" id="VsrGrid-{{ sid }}">
-        {%- for item in search.results -%}
-          <a class="vsr-row{{ sid }}" href="{{ item.url }}">
-            {%- if item.featured_image -%}<img src="{{ item.featured_image | image_url: width: 160 }}" alt="{{ item.title | escape }}" width="72" height="72" loading="lazy">
-            {%- elsif item.image -%}<img src="{{ item.image | image_url: width: 160 }}" alt="{{ item.title | escape }}" width="72" height="72" loading="lazy">
-            {%- else -%}<span></span>{%- endif -%}
-            <div>
-              <h3>{{ item.title | escape }}</h3>
-              <p>{{ item.object_type | replace: '_',' ' | capitalize }}{% if item.content %} · {{ item.content | strip_html | truncate: 90 | escape }}{% endif %}</p>
-            </div>
-            <span aria-hidden="true">→</span>
-          </a>
-        {%- endfor -%}
-      </div>
-    {%- endif -%}
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
     {%- if paginate.next -%}
       <div id="VsrSentinel-{{ sid }}" class="vsr-status{{ sid }}" data-next-url="{{ request.path }}?q={{ q | url_encode }}&type={{ stype | url_encode }}&page={{ paginate.current_page | plus: 1 }}&section_id={{ section.id }}">Loading more</div>
     {%- endif -%}
   {%- else -%}
     <div class="vsr-empty{{ sid }}">
-      <h2>{{ section.settings.idle_title | escape }}</h2>
-      <p>{{ section.settings.idle_body | escape }}</p>
-      <div class="vsr-sugs{{ sid }}">
-        {%- if section.settings.s1 != blank -%}<a href="{{ routes.search_url }}?q={{ section.settings.s1 | url_encode }}&type=product&options[prefix]=last">{{ section.settings.s1 | escape }}</a>{%- endif -%}
-        {%- if section.settings.s2 != blank -%}<a href="{{ routes.search_url }}?q={{ section.settings.s2 | url_encode }}&type=product&options[prefix]=last">{{ section.settings.s2 | escape }}</a>{%- endif -%}
-        {%- if section.settings.s3 != blank -%}<a href="{{ routes.search_url }}?q={{ section.settings.s3 | url_encode }}&type=product&options[prefix]=last">{{ section.settings.s3 | escape }}</a>{%- endif -%}
-        <a href="{{ routes.all_products_collection_url }}">Shop all</a>
-      </div>
+      <p>Type a keyword above to shop the grid.</p>
     </div>
   {%- endif -%}
 </section>
@@ -161,19 +125,18 @@
   function load(){
     sent.classList.add('is-loading');
     fetch(sent.getAttribute('data-next-url'),{headers:{'X-Requested-With':'XMLHttpRequest'}})
-      .then(function(r){return r.text()})
+      .then(function(r){return r.text();})
       .then(function(html){
         var doc=new DOMParser().parseFromString(html,'text/html');
-        doc.querySelectorAll('#VsrGrid-'+sid+' > *').forEach(function(n){grid.appendChild(n)});
+        doc.querySelectorAll('#VsrGrid-'+sid+' > *').forEach(function(n){grid.appendChild(n);});
         var next=doc.getElementById('VsrSentinel-'+sid);
         if(next){sent.setAttribute('data-next-url',next.getAttribute('data-next-url'));sent.classList.remove('is-loading');}
-        else {sent.textContent='All results loaded';io.disconnect();}
-      }).catch(function(){sent.classList.remove('is-loading')});
+        else {sent.textContent='All products loaded';io.disconnect();}
+      }).catch(function(){sent.classList.remove('is-loading');});
   }
   io.observe(sent);
 })();
 </script>
-
 {% schema %}
 {
   "name": "Vanquish search results",
@@ -187,16 +150,7 @@
     {"type":"range","id":"rd","label":"Image radius","min":0,"max":24,"step":2,"unit":"px","default":4},
     {"type":"text","id":"ratio","label":"Image ratio","default":"3/4"},
     {"type":"range","id":"max_w","label":"Max width","min":800,"max":1400,"step":20,"unit":"px","default":1280},
-    {"type":"range","id":"pad_v","label":"Padding","min":8,"max":64,"step":2,"unit":"px","default":28},
-    {"type":"text","id":"empty_title","label":"No results title","default":"Nothing matched"},
-    {"type":"text","id":"empty_body","label":"No results body","default":"No results for [q]. Try another keyword or a shorter term."},
-    {"type":"text","id":"idle_title","label":"Idle title","default":"Start with a keyword"},
-    {"type":"text","id":"idle_body","label":"Idle body","default":"Search products, collections, and the journal."},
-    {"type":"text","id":"s1","label":"Suggestion 1","default":"black"},
-    {"type":"text","id":"s2","label":"Suggestion 2","default":"leather"},
-    {"type":"text","id":"s3","label":"Suggestion 3","default":"new"},
-    {"type":"text","id":"s4","label":"Suggestion 4","default":"sale"}
-  ],
-  "presets":[{"name":"Vanquish search results"}]
+    {"type":"range","id":"pad_v","label":"Padding","min":8,"max":64,"step":2,"unit":"px","default":28}
+  ]
 }
 {% endschema %}
