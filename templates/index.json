@@ -443,7 +443,7 @@
       "settings": {
         "display_mode": "grid",
         "source_mode": "collection",
-        "source_collection": "apparell",
+        "source_collection": "lexe",
         "grid_max_products": 13,
         "grid_cols_desktop": "4",
         "grid_cols_tablet": "3",
