@@ -63,6 +63,28 @@
     "signature_header_8dQTVX": {
       "type": "signature-header",
       "blocks": {
+        "quick_link_zAzjAV": {
+          "type": "quick_link",
+          "settings": {
+            "label": "NEW",
+            "url": "shopify://collections/women",
+            "badge_text": "QUEENS",
+            "badge_bg": "#000000",
+            "badge_text_color": "#ffffff",
+            "pulse_badge": false
+          }
+        },
+        "quick_link_cpRJLp": {
+          "type": "quick_link",
+          "settings": {
+            "label": "NEW",
+            "url": "shopify://collections/men",
+            "badge_text": "KING",
+            "badge_bg": "#000000",
+            "badge_text_color": "#ffffff",
+            "pulse_badge": false
+          }
+        },
         "collection_pwjyeg": {
           "type": "collection",
           "settings": {
@@ -116,6 +138,8 @@
         }
       },
       "block_order": [
+        "quick_link_zAzjAV",
+        "quick_link_cpRJLp",
         "collection_pwjyeg",
         "collection_ienDgX",
         "collection_4XRPEG",
