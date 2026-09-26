@@ -78,7 +78,7 @@
         "autoplay_delay": 4,
         "show_dots": true,
         "dot_color": "#d4b6ff",
-        "show_card_label": true
+        "show_card_label": false
       }
     },
     "grid": {
