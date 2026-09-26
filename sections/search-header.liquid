@@ -1,7 +1,3 @@
-{%- comment -%}
-  VANQUISH search header — keyword-first atelier search.
-{%- endcomment -%}
-
 {%- liquid
   assign sid = section.id
   assign q = search.terms | default: ''
@@ -9,82 +5,50 @@
   if stype == blank
     assign stype = 'product'
   endif
-  assign performed = search.performed
   assign count = search.results_count | default: 0
 -%}
-
 <style>
-#vsh{{ sid }}{
-  --ink:#111;--dim:#6b6b6b;--line:#ececec;--bg:#fff;
-  background:var(--bg);color:var(--ink);
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-  -webkit-font-smoothing:antialiased;
-  padding:{{ section.settings.pad_v }}px 20px {{ section.settings.pad_v | times: 0.55 | round }}px;
-  border-bottom:1px solid var(--line);
-}
+#vsh{{ sid }}{background:#fff;color:#111;padding:18px 20px 12px;border-bottom:1px solid #ececec;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
 .vsh-wrap{{ sid }}{max-width:{{ section.settings.max_w }}px;margin:0 auto;}
-.vsh-kicker{{ sid }}{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);margin:0 0 8px;}
-.vsh-title{{ sid }}{margin:0 0 18px;font-size:{{ section.settings.title_size }}px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;line-height:.95;}
-.vsh-form{{ sid }}{display:flex;flex-direction:column;gap:14px;}
-.vsh-bar{{ sid }}{display:flex;align-items:center;border:1px solid var(--ink);border-radius:{{ section.settings.radius }}px;overflow:hidden;background:var(--bg);}
-.vsh-bar{{ sid }}:focus-within{box-shadow:0 0 0 1px var(--ink);}
-.vsh-icon{{ sid }}{width:48px;height:52px;display:grid;place-items:center;flex-shrink:0;color:var(--dim);}
-.vsh-icon{{ sid }} svg{width:16px;height:16px;}
-.vsh-input{{ sid }}{flex:1;min-width:0;border:0;outline:none;background:transparent;font-size:16px;padding:14px 8px;color:var(--ink);-webkit-appearance:none;}
-.vsh-input{{ sid }}::placeholder{color:#9a9a9a;}
-.vsh-clear{{ sid }}{width:44px;height:52px;display:grid;place-items:center;text-decoration:none;color:var(--dim);}
-.vsh-go{{ sid }}{border:0;background:var(--ink);color:var(--bg);font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;padding:0 20px;height:52px;cursor:pointer;white-space:nowrap;}
-.vsh-types{{ sid }}{display:flex;gap:8px;flex-wrap:wrap;}
-.vsh-type{{ sid }}{appearance:none;border:1px solid var(--line);background:var(--bg);color:var(--dim);font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;padding:8px 12px;border-radius:100px;cursor:pointer;}
-.vsh-type{{ sid }}.is-on{background:var(--ink);color:var(--bg);border-color:var(--ink);}
-.vsh-count{{ sid }}{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin:4px 0 0;}
-.vsh-count{{ sid }} b{color:var(--ink);}
-@media (max-width:749px){
-  .vsh-title{{ sid }}{font-size:{{ section.settings.title_size | times: 0.72 | round }}px;}
-  .vsh-go{{ sid }}{padding:0 14px;}
-}
+.vsh-bar{{ sid }}{display:flex;align-items:center;border:1px solid #111;border-radius:{{ section.settings.radius }}px;overflow:hidden;}
+.vsh-icon{{ sid }}{width:44px;height:46px;display:grid;place-items:center;color:#6b6b6b;}
+.vsh-input{{ sid }}{flex:1;min-width:0;border:0;outline:0;font-size:16px;padding:12px 8px;-webkit-appearance:none;}
+.vsh-go{{ sid }}{border:0;background:#111;color:#fff;font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;padding:0 16px;height:46px;cursor:pointer;}
+.vsh-types{{ sid }}{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+.vsh-type{{ sid }}{border:1px solid #ececec;background:#fff;color:#6b6b6b;font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;padding:7px 12px;border-radius:100px;cursor:pointer;}
+.vsh-type{{ sid }}.is-on{background:#111;color:#fff;border-color:#111;}
+.vsh-count{{ sid }}{margin:8px 0 0;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#6b6b6b;}
 </style>
-
 <section id="vsh{{ sid }}">
   <div class="vsh-wrap{{ sid }}">
-    <p class="vsh-kicker{{ sid }}">{{ section.settings.kicker | escape }}</p>
-    <h1 class="vsh-title{{ sid }}">
-      {%- if performed and q != blank -%}{{ section.settings.results_title | escape }}{%- else -%}{{ section.settings.title | escape }}{%- endif -%}
-    </h1>
-    <form class="vsh-form{{ sid }}" action="{{ routes.search_url }}" method="get" role="search">
+    <form action="{{ routes.search_url }}" method="get" role="search">
       <input type="hidden" name="options[prefix]" value="last">
       <input type="hidden" name="type" id="vsh-type{{ sid }}" value="{{ stype | escape }}">
       <div class="vsh-bar{{ sid }}">
-        <span class="vsh-icon{{ sid }}" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></span>
-        <input class="vsh-input{{ sid }}" id="vsh-q{{ sid }}" type="search" name="q" value="{{ q | escape }}" placeholder="{{ section.settings.placeholder | escape }}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" aria-label="{{ section.settings.placeholder | escape }}">
-        {%- if q != blank -%}<a class="vsh-clear{{ sid }}" href="{{ routes.search_url }}?type={{ stype | url_encode }}" aria-label="Clear search">×</a>{%- endif -%}
+        <span class="vsh-icon{{ sid }}" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></span>
+        <input class="vsh-input{{ sid }}" type="search" name="q" value="{{ q | escape }}" placeholder="{{ section.settings.placeholder | escape }}" autocomplete="off" enterkeyhint="search" aria-label="Search">
         <button class="vsh-go{{ sid }}" type="submit">{{ section.settings.cta | escape }}</button>
       </div>
-      <div class="vsh-types{{ sid }}" role="tablist" aria-label="Search type">
+      <div class="vsh-types{{ sid }}">
         {%- assign types = 'product,collection,page,article' | split: ',' -%}
         {%- assign labels = section.settings.type_labels | default: 'Products,Collections,Pages,Journal' | split: ',' -%}
         {%- for t in types -%}
-          <button type="button" class="vsh-type{{ sid }}{% if stype == t %} is-on{% endif %}" data-type="{{ t }}" aria-pressed="{% if stype == t %}true{% else %}false{% endif %}">{{ labels[forloop.index0] | default: t | strip }}</button>
+          <button type="button" class="vsh-type{{ sid }}{% if stype == t %} is-on{% endif %}" data-type="{{ t }}">{{ labels[forloop.index0] | default: t | strip }}</button>
         {%- endfor -%}
       </div>
-      <p class="vsh-count{{ sid }}">
-        {%- if performed and q != blank -%}<b>{{ count }}</b> {{ section.settings.results_label | escape }} “{{ q | escape }}”{%- else -%}{{ section.settings.hint | escape }}{%- endif -%}
-      </p>
+      {%- if search.performed and q != blank -%}<p class="vsh-count{{ sid }}"><b>{{ count }}</b> {{ section.settings.results_label | escape }} “{{ q | escape }}”</p>{%- endif -%}
     </form>
   </div>
 </section>
 <script>
 (function(){
-  var root=document.getElementById('vsh{{ sid }}');
-  if(!root) return;
+  var root=document.getElementById('vsh{{ sid }}'); if(!root) return;
   var form=root.querySelector('form');
   var typeInput=document.getElementById('vsh-type{{ sid }}');
   root.querySelectorAll('.vsh-type{{ sid }}').forEach(function(btn){
     btn.addEventListener('click',function(){
       typeInput.value=btn.getAttribute('data-type');
-      root.querySelectorAll('.vsh-type{{ sid }}').forEach(function(b){
-        var on=b===btn; b.classList.toggle('is-on',on); b.setAttribute('aria-pressed', on?'true':'false');
-      });
+      root.querySelectorAll('.vsh-type{{ sid }}').forEach(function(b){ b.classList.toggle('is-on', b===btn); });
       if(form.querySelector('[name="q"]').value.trim()) form.submit();
     });
   });
@@ -96,19 +60,12 @@
   "tag": "section",
   "class": "va-search-header",
   "settings": [
-    {"type":"text","id":"kicker","label":"Kicker","default":"Atelier search"},
-    {"type":"text","id":"title","label":"Empty title","default":"Find the piece"},
-    {"type":"text","id":"results_title","label":"Results title","default":"Search results"},
-    {"type":"text","id":"placeholder","label":"Placeholder","default":"Search by name, color, drop…"},
+    {"type":"text","id":"placeholder","label":"Placeholder","default":"Search products"},
     {"type":"text","id":"cta","label":"Button","default":"Search"},
-    {"type":"text","id":"hint","label":"Hint","default":"Try a color, silhouette, or collection name"},
     {"type":"text","id":"results_label","label":"Results label","default":"results for"},
-    {"type":"text","id":"type_labels","label":"Type labels (comma)","default":"Products,Collections,Pages,Journal"},
-    {"type":"range","id":"title_size","label":"Title size","min":22,"max":56,"step":1,"unit":"px","default":36},
+    {"type":"text","id":"type_labels","label":"Type labels","default":"Products,Collections,Pages,Journal"},
     {"type":"range","id":"max_w","label":"Max width","min":800,"max":1400,"step":20,"unit":"px","default":1280},
-    {"type":"range","id":"pad_v","label":"Padding","min":16,"max":80,"step":2,"unit":"px","default":36},
     {"type":"range","id":"radius","label":"Bar radius","min":0,"max":24,"step":1,"unit":"px","default":8}
-  ],
-  "presets":[{"name":"Vanquish search header"}]
+  ]
 }
 {% endschema %}
