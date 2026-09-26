@@ -84,6 +84,10 @@
     "grid": {
       "type": "luxury-collection",
       "blocks": {
+        "swatches_icre89": {
+          "type": "swatches",
+          "settings": {}
+        },
         "title": {
           "type": "title",
           "settings": {}
@@ -98,6 +102,7 @@
         }
       },
       "block_order": [
+        "swatches_icre89",
         "title",
         "rating",
         "price"
