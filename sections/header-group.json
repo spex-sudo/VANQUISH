@@ -75,28 +75,19 @@
             "collection": "lexespecs"
           }
         },
-        "flash_notif_VYkn6t": {
-          "type": "flash_notif",
-          "settings": {
-            "text": "Free shipping on orders over $77",
-            "url": "",
-            "bg_color": "#e92fbe",
-            "text_color": "#ffffff"
-          }
-        },
         "flash_notif_LCEm8c": {
           "type": "flash_notif",
           "settings": {
-            "text": "UPDATE IN PROGRESS",
+            "text": "LEXE COLLECTION IS LIVE",
             "url": "",
-            "bg_color": "#5442b6",
+            "bg_color": "#B64242",
             "text_color": "#ffffff"
           }
         },
         "flash_notif_DT4QLe": {
           "type": "flash_notif",
           "settings": {
-            "text": "Use code: \"FRSHIP1\" at checkout for free shipping.",
+            "text": "FIRST TIMERS GET FREE SHIPPING",
             "url": "",
             "bg_color": "#111111",
             "text_color": "#ffffff"
@@ -105,7 +96,7 @@
         "flash_notif_REmTPj": {
           "type": "flash_notif",
           "settings": {
-            "text": "Limited stock — Grab yours now.",
+            "text": "LIMITED STOCK",
             "url": "",
             "bg_color": "#2e6395",
             "text_color": "#ffffff"
@@ -121,7 +112,6 @@
       "block_order": [
         "collection_ienDgX",
         "collection_4XRPEG",
-        "flash_notif_VYkn6t",
         "flash_notif_LCEm8c",
         "flash_notif_DT4QLe",
         "flash_notif_REmTPj",
