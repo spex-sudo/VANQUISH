@@ -1,121 +1,140 @@
 {%- liquid
   assign sid = section.id
   assign q = search.terms | default: ''
-  assign stype = request.params.type | default: 'product'
-  if stype == blank
-    assign stype = 'product'
-  endif
+  assign stype = 'product'
   assign per_page = section.settings.per_page | default: 24
   assign current_sort = search.sort_by | default: 'relevance'
+  assign hot = section.settings.hot_collection
+  assign disc = section.settings.discovery_keywords | default: 'new,sale,black,leather,rings,wallet'
+  assign disc_list = disc | split: ','
 -%}
 <style>
-#vsr{{ sid }}{--ink:#111;--dim:#6b6b6b;--line:#ececec;--soft:#f7f7f7;--sale:#c8102e;--gap:{{ section.settings.gap }}px;--rd:{{ section.settings.rd }}px;max-width:{{ section.settings.max_w }}px;margin:0 auto;padding:{{ section.settings.pad_v }}px 20px 64px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--ink);}
-.vsr-tools{{ sid }}{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:0 0 22px;}
-.vsr-sort{{ sid }}{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);}
-.vsr-sort{{ sid }} select{border:1px solid var(--line);background:#fff;font-size:12px;padding:8px 10px;border-radius:6px;}
-.vsr-grid{{ sid }}{display:grid;gap:var(--gap);grid-template-columns:repeat({{ section.settings.pc_cols }},minmax(0,1fr));}
-.vsr-empty{{ sid }}{padding:48px 0;text-align:center;}
-.vsr-empty{{ sid }} p{color:var(--dim);}
-.vsr-sugs{{ sid }}{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:16px;}
-.vsr-sugs{{ sid }} a{border:1px solid var(--line);border-radius:100px;padding:8px 14px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;text-decoration:none;color:var(--ink);}
-.apex-card{position:relative;display:flex;flex-direction:column;transition:transform .32s cubic-bezier(.32,.72,0,1);}
-.apex-card:hover{transform:translateY(-3px);}
-.apex-media{position:relative;width:100%;aspect-ratio:{{ section.settings.ratio }};border-radius:var(--rd);overflow:hidden;background:var(--soft);margin-bottom:12px;}
-.apex-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .35s,transform .7s ease;}
+#vsr{{ sid }}{max-width:720px;margin:0 auto;padding:8px 14px 72px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#111;}
+.vs-h{{ sid }}{display:flex;align-items:center;justify-content:space-between;margin:18px 0 10px;}
+.vs-h{{ sid }} h2{margin:0;font-size:18px;font-weight:800;}
+.vs-clear{{ sid }}{border:0;background:transparent;color:#888;cursor:pointer;padding:4px;}
+.vs-chips{{ sid }}{display:flex;flex-wrap:wrap;gap:8px;}
+.vs-chip{{ sid }}{display:inline-flex;align-items:center;gap:6px;background:#f3f3f3;color:#111;text-decoration:none;border-radius:8px;padding:8px 12px;font-size:13px;}
+.vs-chip{{ sid }} img{width:22px;height:22px;object-fit:cover;border-radius:4px;}
+.vs-hot{{ sid }}{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
+.vs-hotcard{{ sid }}{display:block;text-decoration:none;color:#111;}
+.vs-hotcard{{ sid }} img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;background:#f4f4f4;display:block;}
+.vs-rank{{ sid }}{margin:8px 6px 0;display:inline-flex;align-items:center;justify-content:center;background:#f6e7c1;color:#8a6a1d;font-size:11px;font-weight:800;letter-spacing:.04em;padding:4px 10px;border-radius:6px;}
+.vs-hotcard{{ sid }} p{margin:6px 6px 0;font-size:13px;line-height:1.3;color:#6a4f16;}
+.vsr-tools{{ sid }}{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:6px 0 16px;}
+.vsr-sort{{ sid }}{margin-left:auto;font-size:12px;}
+.vsr-sort{{ sid }} select{border:1px solid #ececec;border-radius:8px;padding:8px 10px;background:#fff;}
+.vsr-grid{{ sid }}{display:grid;gap:12px;grid-template-columns:repeat(2,minmax(0,1fr));}
+@media (min-width:900px){.vsr-grid{{ sid }}{grid-template-columns:repeat({{ section.settings.pc_cols }},minmax(0,1fr));} #vsr{{ sid }}{max-width:{{ section.settings.max_w }}px;}}
+.apex-card{position:relative;display:flex;flex-direction:column;}
+.apex-media{position:relative;width:100%;aspect-ratio:3/4;border-radius:8px;overflow:hidden;background:#f7f7f7;margin-bottom:8px;}
+.apex-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;}
 .apex-img.is-active{opacity:1;}
-.apex-media:hover .apex-img.is-active{transform:scale(1.04);}
 .apex-link{position:absolute;inset:0;z-index:1;}
-.apex-info{padding:2px;display:flex;flex-direction:column;gap:5px;}
-.apex-title{position:relative;z-index:2;font-size:13.5px;font-weight:500;line-height:1.32;color:var(--ink);text-decoration:none;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
-.apex-price-row{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;}
+.apex-title{position:relative;z-index:2;font-size:13px;color:#111;text-decoration:none;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .apex-price{font-size:14px;font-weight:600;}
-.apex-price.is-sale{color:var(--sale);}
-.apex-price-was{font-size:12px;color:var(--dim);text-decoration:line-through;}
-.apex-swatches{display:flex;gap:5px;}
-.apex-sw{width:13px;height:13px;border-radius:50%;border:1px solid rgba(0,0,0,.12);}
-.apex-badges{position:absolute;top:10px;left:10px;z-index:5;}
-.apex-bdg{display:inline-flex;padding:5px 9px;border-radius:3px;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#fff;background:var(--sale);}
-.apex-qa{position:absolute;z-index:6;bottom:10px;right:10px;width:36px;height:36px;border-radius:50%;background:#111;color:#fff;display:flex;align-items:center;justify-content:center;text-decoration:none;}
-.vsr-status{{ sid }}{margin-top:40px;text-align:center;font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);}
-.vsr-filters{{ sid }}{display:flex;flex-wrap:wrap;gap:8px;width:100%;}
-.vsr-filter{{ sid }} details{border:1px solid var(--line);border-radius:8px;}
-.vsr-filter{{ sid }} summary{list-style:none;cursor:pointer;padding:8px 12px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;}
-.vsr-filter{{ sid }} .vsr-opts{padding:0 12px 10px;display:flex;flex-direction:column;gap:6px;max-height:220px;overflow:auto;}
-.vsr-filter{{ sid }} a{font-size:13px;color:var(--ink);text-decoration:none;}
-.vsr-filter{{ sid }} a.is-active{font-weight:700;}
-@media (max-width:768px){.vsr-grid{{ sid }}{grid-template-columns:repeat({{ section.settings.mb_cols }},minmax(0,1fr));}.vsr-sort{{ sid }}{margin-left:0;width:100%;}}
-@media (prefers-reduced-motion:reduce){.apex-card,.apex-img{transition:none;}.apex-card:hover{transform:none;}}
+.apex-price.is-sale{color:#c8102e;}
+.apex-price-was{font-size:12px;color:#6b6b6b;text-decoration:line-through;margin-left:6px;}
+.apex-badges{position:absolute;top:8px;left:8px;z-index:5;}
+.apex-bdg{background:#c8102e;color:#fff;font-size:10px;font-weight:700;padding:4px 7px;border-radius:3px;}
+.apex-qa{position:absolute;z-index:6;bottom:8px;right:8px;width:32px;height:32px;border-radius:50%;background:#111;color:#fff;display:grid;place-items:center;text-decoration:none;}
+.vsr-status{{ sid }}{margin-top:28px;text-align:center;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#888;}
+.vsr-empty{{ sid }}{padding:24px 0;color:#666;}
 </style>
 
 {%- paginate search.results by per_page -%}
 <section id="vsr{{ sid }}">
-  {%- if search.performed -%}
-    <div class="vsr-tools{{ sid }}">
-      {%- if search.filters != blank -%}
-        <div class="vsr-filters{{ sid }}">
-          {%- for filter in search.filters limit: 6 -%}
-            {%- if filter.values.size > 0 -%}
-              <div class="vsr-filter{{ sid }}">
-                <details>
-                  <summary>{{ filter.label | escape }}</summary>
-                  <div class="vsr-opts">
-                    {%- for value in filter.values limit: 12 -%}
-                      <a class="{% if value.active %}is-active{% endif %}" href="{{ value.url }}">{{ value.label | escape }}{% if value.count %} ({{ value.count }}){% endif %}</a>
-                    {%- endfor -%}
-                  </div>
-                </details>
-              </div>
-            {%- endif -%}
+{%- if search.performed and q != blank -%}
+  <div class="vsr-tools{{ sid }}">
+    {%- if search.sort_options.size > 0 -%}
+      <form class="vsr-sort{{ sid }}" method="get" action="{{ routes.search_url }}">
+        <input type="hidden" name="q" value="{{ q | escape }}">
+        <input type="hidden" name="type" value="product">
+        <input type="hidden" name="options[prefix]" value="last">
+        <select name="sort_by" onchange="this.form.submit()">
+          {%- for option in search.sort_options -%}
+            <option value="{{ option.value }}" {% if option.value == current_sort %}selected{% endif %}>{{ option.name }}</option>
           {%- endfor -%}
-        </div>
-      {%- endif -%}
-      {%- if search.sort_options.size > 0 -%}
-        <form class="vsr-sort{{ sid }}" method="get" action="{{ routes.search_url }}">
-          <input type="hidden" name="q" value="{{ q | escape }}">
-          <input type="hidden" name="type" value="{{ stype | escape }}">
-          <input type="hidden" name="options[prefix]" value="last">
-          <label for="vsr-sort{{ sid }}">Sort</label>
-          <select id="vsr-sort{{ sid }}" name="sort_by" onchange="this.form.submit()">
-            {%- for option in search.sort_options -%}
-              <option value="{{ option.value }}" {% if option.value == current_sort %}selected{% endif %}>{{ option.name }}</option>
-            {%- endfor -%}
-          </select>
-        </form>
-      {%- endif -%}
-    </div>
-  {%- endif -%}
-
-  {%- if search.performed and search.results_count == 0 -%}
-    <div class="vsr-empty{{ sid }}">
-      <p>No products for “{{ q | escape }}”</p>
-      <div class="vsr-sugs{{ sid }}">
-        <a href="{{ routes.all_products_collection_url }}">Shop all</a>
-      </div>
-    </div>
-  {%- elsif search.performed -%}
+        </select>
+      </form>
+    {%- endif -%}
+  </div>
+  {%- if search.results_count == 0 -%}
+    <p class="vsr-empty{{ sid }}">No products for “{{ q | escape }}”</p>
+  {%- else -%}
     <div class="vsr-grid{{ sid }}" id="VsrGrid-{{ sid }}">
       {%- for item in search.results -%}
-        {%- if item.object_type == 'product' or stype == 'product' -%}
-          {%- if item.object_type == 'product' -%}
-            {%- render 'apex-zenith-card', product: item, is_eager: forloop.first -%}
-          {%- endif -%}
+        {%- if item.object_type == 'product' -%}
+          {%- render 'apex-zenith-card', product: item, is_eager: forloop.first -%}
         {%- endif -%}
       {%- endfor -%}
     </div>
     {%- if paginate.next -%}
-      <div id="VsrSentinel-{{ sid }}" class="vsr-status{{ sid }}" data-next-url="{{ request.path }}?q={{ q | url_encode }}&type={{ stype | url_encode }}&page={{ paginate.current_page | plus: 1 }}&section_id={{ section.id }}">Loading more</div>
+      <div id="VsrSentinel-{{ sid }}" class="vsr-status{{ sid }}" data-next-url="{{ request.path }}?q={{ q | url_encode }}&type=product&page={{ paginate.current_page | plus: 1 }}&section_id={{ section.id }}">Loading more</div>
     {%- endif -%}
-  {%- else -%}
-    <div class="vsr-empty{{ sid }}">
-      <p>Type a keyword above to shop the grid.</p>
-    </div>
   {%- endif -%}
+{%- else -%}
+  <div class="vs-h{{ sid }}">
+    <h2>Recently Searched</h2>
+    <button type="button" class="vs-clear{{ sid }}" id="VsClear-{{ sid }}" aria-label="Clear recent">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M9 7V5h6v2M6 7l1 14h10l1-14"/></svg>
+    </button>
+  </div>
+  <div class="vs-chips{{ sid }}" id="VsRecent-{{ sid }}"></div>
+
+  <div class="vs-h{{ sid }}"><h2>Search Discovery</h2></div>
+  <div class="vs-chips{{ sid }}">
+    {%- for word in disc_list -%}
+      {%- assign w = word | strip -%}
+      {%- if w != blank -%}
+        <a class="vs-chip{{ sid }}" href="{{ routes.search_url }}?q={{ w | url_encode }}&type=product&options[prefix]=last">{{ w | escape }}</a>
+      {%- endif -%}
+    {%- endfor -%}
+    {%- for col in collections limit: 8 -%}
+      {%- if col != blank and col.products_count > 0 -%}
+        <a class="vs-chip{{ sid }}" href="{{ col.url }}">
+          {%- if col.featured_image -%}<img src="{{ col.featured_image | image_url: width: 80 }}" alt="">{%- endif -%}
+          {{ col.title | escape }}
+        </a>
+      {%- endif -%}
+    {%- endfor -%}
+  </div>
+
+  <div class="vs-h{{ sid }}"><h2>{{ section.settings.hot_title | default: 'Hot List' }}</h2></div>
+  <div class="vs-hot{{ sid }}">
+    {%- assign hot_products = hot.products | default: collections.all.products -%}
+    {%- for product in hot_products limit: 9 -%}
+      <a class="vs-hotcard{{ sid }}" href="{{ product.url }}">
+        {%- if product.featured_image -%}
+          <img src="{{ product.featured_image | image_url: width: 600 }}" alt="{{ product.title | escape }}" loading="lazy">
+        {%- endif -%}
+        <span class="vs-rank{{ sid }}">TOP {{ forloop.index }}</span>
+        <p>{{ product.title | escape }}</p>
+      </a>
+    {%- endfor -%}
+  </div>
+{%- endif -%}
 </section>
 {%- endpaginate -%}
 
 <script>
 (function(){
   var sid='{{ sid }}';
+  var key='va-recent-search';
+  var box=document.getElementById('VsRecent-'+sid);
+  var clr=document.getElementById('VsClear-'+sid);
+  function list(){ try{return JSON.parse(localStorage.getItem(key)||'[]');}catch(e){return [];} }
+  function draw(){
+    if(!box) return;
+    var items=list();
+    if(!items.length){ box.innerHTML='<span style="color:#999;font-size:13px">Your searches will show here</span>'; return; }
+    box.innerHTML=items.map(function(t){
+      return '<a class="vs-chip{{ sid }}" href="{{ routes.search_url }}?q='+encodeURIComponent(t)+'&type=product&options[prefix]=last">'+String(t).replace(/</g,'')+'</a>';
+    }).join('');
+  }
+  draw();
+  if(clr) clr.addEventListener('click',function(){ localStorage.removeItem(key); draw(); });
+
   var grid=document.getElementById('VsrGrid-'+sid);
   var sent=document.getElementById('VsrSentinel-'+sid);
   if(!grid||!sent||!('IntersectionObserver' in window)) return;
@@ -143,14 +162,12 @@
   "tag": "section",
   "class": "va-search-results",
   "settings": [
+    {"type":"text","id":"hot_title","label":"Hot list title","default":"Hot List"},
+    {"type":"collection","id":"hot_collection","label":"Hot list collection"},
+    {"type":"textarea","id":"discovery_keywords","label":"Discovery keywords","default":"new, sale, black, leather, rings, wallet"},
     {"type":"range","id":"per_page","label":"Results per page","min":8,"max":48,"step":4,"default":24},
-    {"type":"range","id":"pc_cols","label":"Desktop columns","min":2,"max":6,"step":1,"default":4},
-    {"type":"range","id":"mb_cols","label":"Mobile columns","min":1,"max":3,"step":1,"default":2},
-    {"type":"range","id":"gap","label":"Gap","min":8,"max":32,"step":2,"unit":"px","default":16},
-    {"type":"range","id":"rd","label":"Image radius","min":0,"max":24,"step":2,"unit":"px","default":4},
-    {"type":"text","id":"ratio","label":"Image ratio","default":"3/4"},
-    {"type":"range","id":"max_w","label":"Max width","min":800,"max":1400,"step":20,"unit":"px","default":1280},
-    {"type":"range","id":"pad_v","label":"Padding","min":8,"max":64,"step":2,"unit":"px","default":28}
+    {"type":"range","id":"pc_cols","label":"Desktop result columns","min":2,"max":6,"step":1,"default":4},
+    {"type":"range","id":"max_w","label":"Max width","min":720,"max":1400,"step":20,"unit":"px","default":1100}
   ]
 }
 {% endschema %}
