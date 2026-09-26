@@ -1071,7 +1071,11 @@
 </div>
 
 <script type="application/ld+json">
-{"@context":"https://schema.org/","@type":"Product","name":{{ product.title | json }},"description":{{ product.description | strip_html | truncate: 500 | json }},"url":{{ shop.url | append: product.url | json }},"sku":{{ current_variant.sku | default: product.id | json }},"brand":{"@type":"Brand","name":{{ product.vendor | json }}},"image":[{% for img in product.images %}"{{ img | image_url: width: 1200 }}"{% unless forloop.last %},{% endunless %}{% endfor %}],"offers":{"@type":"AggregateOffer","priceCurrency":{{ cart.currency.iso_code | json }},"lowPrice":{{ product.price_min | divided_by: 100.0 }},"highPrice":{{ product.price_max | divided_by: 100.0 }},"offerCount":{{ product.variants | size }},"availability":"{% if product.available %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}"}}
+{%- liquid
+  assign ld_desc = page_description | default: product.description | strip_html | strip_newlines | truncate: 500
+  assign ld_variant = product.selected_or_first_available_variant
+-%}
+{"@context":"https://schema.org/","@type":"Product","name":{{ product.title | json }},"description":{{ ld_desc | json }},"url":{{ request.origin | append: product.url | json }},"sku":{{ ld_variant.sku | default: product.id | json }},"brand":{"@type":"Brand","name":"LEXE"},{% if product.type != blank %}"category":{{ product.type | json }},{% endif %}"image":[{% for img in product.images limit: 10 %}"https:{{ img | image_url: width: 1200 }}"{% unless forloop.last %},{% endunless %}{% endfor %}],"offers":{"@type":"AggregateOffer","priceCurrency":{{ cart.currency.iso_code | json }},"lowPrice":{{ product.price_min | divided_by: 100.0 }},"highPrice":{{ product.price_max | divided_by: 100.0 }},"offerCount":{{ product.variants | size }},"availability":"{% if product.available %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}","itemCondition":"https://schema.org/NewCondition","seller":{"@type":"Organization","name":"LEXE by Devici Studios"}}}
 </script>
 
 <script>

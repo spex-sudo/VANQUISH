@@ -6,7 +6,8 @@
  * or related systems. Please exercise caution as any changes
  * made to this file may be overwritten.
  * ------------------------------------------------------------
- */{
+ */
+{
   "sections": {
     "section": {
       "type": "main-blog-post",
@@ -16,7 +17,7 @@
           "name": "Title",
           "static": true,
           "settings": {
-            "text": "<h1>{{ article.title }}</h1>",
+            "text": "<h1>{{ article.title }}<\/h1>",
             "width": "100%",
             "max_width": "normal",
             "alignment": "center",
@@ -44,7 +45,7 @@
           "static": true,
           "settings": {
             "show_date": true,
-            "show_author": false,
+            "show_author": true,
             "type_preset": "",
             "alignment": "center",
             "show_alignment": true,
