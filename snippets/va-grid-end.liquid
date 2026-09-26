@@ -1,0 +1,36 @@
+<style>
+.va-end{display:flex;justify-content:center;gap:14px;margin:36px 0 8px;flex-wrap:wrap;}
+.va-neo{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-width:132px;height:48px;padding:0 22px;border-radius:16px;
+  text-decoration:none;color:#1a1a1a;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  background:#efefef;border:0;
+  box-shadow:8px 8px 16px #d8d8d8,-8px -8px 16px #ffffff;
+  transition:box-shadow .2s ease, transform .2s ease;
+}
+.va-neo:hover{transform:translateY(-1px);box-shadow:10px 10px 18px #d0d0d0,-10px -10px 18px #ffffff;}
+.va-neo:active{transform:translateY(1px);box-shadow:inset 6px 6px 12px #d4d4d4, inset -6px -6px 12px #ffffff;}
+</style>
+<script>
+window.vaGridEnd=function(el){
+  if(!el) return;
+  el.innerHTML='<div class="va-end"><a class="va-neo" href="{{ routes.root_url }}">Home</a><a class="va-neo" href="{{ routes.search_url }}">Search</a></div>';
+};
+(function(){
+  function swap(node){
+    if(!node||node.querySelector&&node.querySelector('.va-neo')) return;
+    var t=(node.textContent||'').replace(/\s+/g,' ').trim();
+    if(/all products loaded/i.test(t)||/all results loaded/i.test(t)) window.vaGridEnd(node);
+  }
+  document.addEventListener('DOMContentLoaded',function(){
+    document.querySelectorAll('[class*="status"], .apex-status-text').forEach(swap);
+    var mo=new MutationObserver(function(muts){
+      muts.forEach(function(m){
+        if(m.type==='characterData') swap(m.target.parentElement);
+        m.addedNodes&&m.addedNodes.forEach(function(n){ if(n.nodeType===1) swap(n); });
+      });
+    });
+    mo.observe(document.body,{childList:true,subtree:true,characterData:true});
+  });
+})();
+</script>
