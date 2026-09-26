@@ -1,84 +1,81 @@
 {%- liquid
   assign sid = section.id
-  assign q = search.terms | default: ''
-  assign stype = 'product'
+  assign q = search.terms | strip
   assign per_page = section.settings.per_page | default: 24
   assign current_sort = search.sort_by | default: 'relevance'
-  assign hot = section.settings.hot_collection
   assign disc = section.settings.discovery_keywords | default: 'new,sale,black,leather,rings,wallet'
   assign disc_list = disc | split: ','
+  assign hot_coll = section.settings.hot_collection
+  if hot_coll == blank
+    assign hot_coll = collections.all
+  endif
 -%}
 <style>
 #vsr{{ sid }}{max-width:720px;margin:0 auto;padding:8px 14px 72px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#111;}
 .vs-h{{ sid }}{display:flex;align-items:center;justify-content:space-between;margin:18px 0 10px;}
 .vs-h{{ sid }} h2{margin:0;font-size:18px;font-weight:800;}
-.vs-clear{{ sid }}{border:0;background:transparent;color:#888;cursor:pointer;padding:4px;}
+.vs-clear{{ sid }}{border:0;background:transparent;color:#888;cursor:pointer;}
 .vs-chips{{ sid }}{display:flex;flex-wrap:wrap;gap:8px;}
 .vs-chip{{ sid }}{display:inline-flex;align-items:center;gap:6px;background:#f3f3f3;color:#111;text-decoration:none;border-radius:8px;padding:8px 12px;font-size:13px;}
 .vs-chip{{ sid }} img{width:22px;height:22px;object-fit:cover;border-radius:4px;}
 .vs-hot{{ sid }}{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
 .vs-hotcard{{ sid }}{display:block;text-decoration:none;color:#111;}
 .vs-hotcard{{ sid }} img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;background:#f4f4f4;display:block;}
-.vs-rank{{ sid }}{margin:8px 6px 0;display:inline-flex;align-items:center;justify-content:center;background:#f6e7c1;color:#8a6a1d;font-size:11px;font-weight:800;letter-spacing:.04em;padding:4px 10px;border-radius:6px;}
-.vs-hotcard{{ sid }} p{margin:6px 6px 0;font-size:13px;line-height:1.3;color:#6a4f16;}
-.vsr-tools{{ sid }}{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:6px 0 16px;}
-.vsr-sort{{ sid }}{margin-left:auto;font-size:12px;}
+.vs-rank{{ sid }}{margin:8px 4px 0;display:inline-block;background:#f6e7c1;color:#8a6a1d;font-size:11px;font-weight:800;padding:4px 8px;border-radius:6px;}
+.vs-hotcard{{ sid }} p{margin:6px 4px 0;font-size:13px;line-height:1.3;color:#6a4f16;}
+.vsr-tools{{ sid }}{display:flex;justify-content:flex-end;margin:0 0 16px;}
 .vsr-sort{{ sid }} select{border:1px solid #ececec;border-radius:8px;padding:8px 10px;background:#fff;}
 .vsr-grid{{ sid }}{display:grid;gap:12px;grid-template-columns:repeat(2,minmax(0,1fr));}
-@media (min-width:900px){.vsr-grid{{ sid }}{grid-template-columns:repeat({{ section.settings.pc_cols }},minmax(0,1fr));} #vsr{{ sid }}{max-width:{{ section.settings.max_w }}px;}}
+@media (min-width:900px){.vsr-grid{{ sid }}{grid-template-columns:repeat({{ section.settings.pc_cols }},minmax(0,1fr));}#vsr{{ sid }}{max-width:{{ section.settings.max_w }}px;}}
 .apex-card{position:relative;display:flex;flex-direction:column;}
 .apex-media{position:relative;width:100%;aspect-ratio:3/4;border-radius:8px;overflow:hidden;background:#f7f7f7;margin-bottom:8px;}
 .apex-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;}
 .apex-img.is-active{opacity:1;}
 .apex-link{position:absolute;inset:0;z-index:1;}
-.apex-title{position:relative;z-index:2;font-size:13px;color:#111;text-decoration:none;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.apex-title{position:relative;z-index:2;font-size:13px;color:#111;text-decoration:none;}
 .apex-price{font-size:14px;font-weight:600;}
-.apex-price.is-sale{color:#c8102e;}
-.apex-price-was{font-size:12px;color:#6b6b6b;text-decoration:line-through;margin-left:6px;}
-.apex-badges{position:absolute;top:8px;left:8px;z-index:5;}
 .apex-bdg{background:#c8102e;color:#fff;font-size:10px;font-weight:700;padding:4px 7px;border-radius:3px;}
+.apex-badges{position:absolute;top:8px;left:8px;z-index:5;}
 .apex-qa{position:absolute;z-index:6;bottom:8px;right:8px;width:32px;height:32px;border-radius:50%;background:#111;color:#fff;display:grid;place-items:center;text-decoration:none;}
-.vsr-status{{ sid }}{margin-top:28px;text-align:center;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#888;}
-.vsr-empty{{ sid }}{padding:24px 0;color:#666;}
+.vsr-status{{ sid }}{margin-top:28px;text-align:center;font-size:11px;color:#888;}
 </style>
 
-{%- paginate search.results by per_page -%}
 <section id="vsr{{ sid }}">
-{%- if search.performed and q != blank -%}
-  <div class="vsr-tools{{ sid }}">
-    {%- if search.sort_options.size > 0 -%}
-      <form class="vsr-sort{{ sid }}" method="get" action="{{ routes.search_url }}">
-        <input type="hidden" name="q" value="{{ q | escape }}">
-        <input type="hidden" name="type" value="product">
-        <input type="hidden" name="options[prefix]" value="last">
-        <select name="sort_by" onchange="this.form.submit()">
-          {%- for option in search.sort_options -%}
-            <option value="{{ option.value }}" {% if option.value == current_sort %}selected{% endif %}>{{ option.name }}</option>
-          {%- endfor -%}
-        </select>
-      </form>
-    {%- endif -%}
-  </div>
-  {%- if search.results_count == 0 -%}
-    <p class="vsr-empty{{ sid }}">No products for “{{ q | escape }}”</p>
-  {%- else -%}
-    <div class="vsr-grid{{ sid }}" id="VsrGrid-{{ sid }}">
-      {%- for item in search.results -%}
-        {%- if item.object_type == 'product' -%}
-          {%- render 'apex-zenith-card', product: item, is_eager: forloop.first -%}
-        {%- endif -%}
-      {%- endfor -%}
+{%- if q != blank -%}
+  {%- paginate search.results by per_page -%}
+    <div class="vsr-tools{{ sid }}">
+      {%- if search.sort_options.size > 0 -%}
+        <form class="vsr-sort{{ sid }}" method="get" action="{{ routes.search_url }}">
+          <input type="hidden" name="q" value="{{ q | escape }}">
+          <input type="hidden" name="type" value="product">
+          <input type="hidden" name="options[prefix]" value="last">
+          <select name="sort_by" onchange="this.form.submit()">
+            {%- for option in search.sort_options -%}
+              <option value="{{ option.value }}" {% if option.value == current_sort %}selected{% endif %}>{{ option.name }}</option>
+            {%- endfor -%}
+          </select>
+        </form>
+      {%- endif -%}
     </div>
-    {%- if paginate.next -%}
-      <div id="VsrSentinel-{{ sid }}" class="vsr-status{{ sid }}" data-next-url="{{ request.path }}?q={{ q | url_encode }}&type=product&page={{ paginate.current_page | plus: 1 }}&section_id={{ section.id }}">Loading more</div>
+    {%- if search.results_count == 0 -%}
+      <p>No products for “{{ q | escape }}”</p>
+    {%- else -%}
+      <div class="vsr-grid{{ sid }}" id="VsrGrid-{{ sid }}">
+        {%- for item in search.results -%}
+          {%- if item.object_type == 'product' -%}
+            {%- render 'apex-zenith-card', product: item, is_eager: forloop.first -%}
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+      {%- if paginate.next -%}
+        <div id="VsrSentinel-{{ sid }}" class="vsr-status{{ sid }}" data-next-url="{{ request.path }}?q={{ q | url_encode }}&type=product&page={{ paginate.current_page | plus: 1 }}&section_id={{ section.id }}">Loading more</div>
+      {%- endif -%}
     {%- endif -%}
-  {%- endif -%}
+  {%- endpaginate -%}
 {%- else -%}
   <div class="vs-h{{ sid }}">
     <h2>Recently Searched</h2>
-    <button type="button" class="vs-clear{{ sid }}" id="VsClear-{{ sid }}" aria-label="Clear recent">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M9 7V5h6v2M6 7l1 14h10l1-14"/></svg>
-    </button>
+    <button type="button" class="vs-clear{{ sid }}" id="VsClear-{{ sid }}" aria-label="Clear recent">⌫</button>
   </div>
   <div class="vs-chips{{ sid }}" id="VsRecent-{{ sid }}"></div>
 
@@ -91,19 +88,18 @@
       {%- endif -%}
     {%- endfor -%}
     {%- for col in collections limit: 8 -%}
-      {%- if col != blank and col.products_count > 0 -%}
+      {%- unless col.handle == 'all' -%}
         <a class="vs-chip{{ sid }}" href="{{ col.url }}">
-          {%- if col.featured_image -%}<img src="{{ col.featured_image | image_url: width: 80 }}" alt="">{%- endif -%}
+          {%- if col.image -%}<img src="{{ col.image | image_url: width: 80 }}" alt="">{%- elsif col.featured_image -%}<img src="{{ col.featured_image | image_url: width: 80 }}" alt="">{%- endif -%}
           {{ col.title | escape }}
         </a>
-      {%- endif -%}
+      {%- endunless -%}
     {%- endfor -%}
   </div>
 
   <div class="vs-h{{ sid }}"><h2>{{ section.settings.hot_title | default: 'Hot List' }}</h2></div>
   <div class="vs-hot{{ sid }}">
-    {%- assign hot_products = hot.products | default: collections.all.products -%}
-    {%- for product in hot_products limit: 9 -%}
+    {%- for product in hot_coll.products limit: 9 -%}
       <a class="vs-hotcard{{ sid }}" href="{{ product.url }}">
         {%- if product.featured_image -%}
           <img src="{{ product.featured_image | image_url: width: 600 }}" alt="{{ product.title | escape }}" loading="lazy">
@@ -115,7 +111,6 @@
   </div>
 {%- endif -%}
 </section>
-{%- endpaginate -%}
 
 <script>
 (function(){
@@ -134,7 +129,6 @@
   }
   draw();
   if(clr) clr.addEventListener('click',function(){ localStorage.removeItem(key); draw(); });
-
   var grid=document.getElementById('VsrGrid-'+sid);
   var sent=document.getElementById('VsrSentinel-'+sid);
   if(!grid||!sent||!('IntersectionObserver' in window)) return;
@@ -143,15 +137,13 @@
   },{rootMargin:'700px'});
   function load(){
     sent.classList.add('is-loading');
-    fetch(sent.getAttribute('data-next-url'),{headers:{'X-Requested-With':'XMLHttpRequest'}})
-      .then(function(r){return r.text();})
-      .then(function(html){
-        var doc=new DOMParser().parseFromString(html,'text/html');
-        doc.querySelectorAll('#VsrGrid-'+sid+' > *').forEach(function(n){grid.appendChild(n);});
-        var next=doc.getElementById('VsrSentinel-'+sid);
-        if(next){sent.setAttribute('data-next-url',next.getAttribute('data-next-url'));sent.classList.remove('is-loading');}
-        else {sent.textContent='All products loaded';io.disconnect();}
-      }).catch(function(){sent.classList.remove('is-loading');});
+    fetch(sent.getAttribute('data-next-url')).then(function(r){return r.text();}).then(function(html){
+      var doc=new DOMParser().parseFromString(html,'text/html');
+      doc.querySelectorAll('#VsrGrid-'+sid+' > *').forEach(function(n){grid.appendChild(n);});
+      var next=doc.getElementById('VsrSentinel-'+sid);
+      if(next){sent.setAttribute('data-next-url',next.getAttribute('data-next-url'));sent.classList.remove('is-loading');}
+      else {sent.textContent='All products loaded';io.disconnect();}
+    }).catch(function(){sent.classList.remove('is-loading');});
   }
   io.observe(sent);
 })();
