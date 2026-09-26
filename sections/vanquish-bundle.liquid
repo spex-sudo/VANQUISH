@@ -1,1 +1,125 @@
-{% comment %}see artifacts{% endcomment %}
+{%- comment -%} sections/vanquish-bundle.liquid — Cross-sell bundle suggestions {%- endcomment -%}
+{%- liquid
+  assign sid = section.id
+  assign hf = section.settings.heading_font
+  assign bf = section.settings.body_font
+  assign max_items = section.settings.max_items | default: 3
+-%}
+<style>
+{{ hf | font_face: font_display: 'swap' }}
+{{ bf | font_face: font_display: 'swap' }}
+#vxb{{ sid }},#vxb{{ sid }} *,#vxb{{ sid }} *::before,#vxb{{ sid }} *::after{box-sizing:border-box;margin:0;padding:0}
+#vxb{{ sid }}{--bg:{{ section.settings.bg_color }};--ink:{{ section.settings.text_color }};--sub:{{ section.settings.text_color | color_mix: section.settings.bg_color, 48 }};--dim:{{ section.settings.text_color | color_mix: section.settings.bg_color, 24 }};--line:{{ section.settings.text_color | color_mix: section.settings.bg_color, 12 }};--accent:{{ section.settings.accent_color }};--fh:{{ hf.family | default: "'Barlow Condensed'" }},{{ hf.fallback_families | default: 'Helvetica Neue' }},sans-serif;--fb:{{ bf.family | default: 'Barlow' }},{{ bf.fallback_families | default: 'Helvetica' }},sans-serif;--pad:{{ section.settings.section_padding }}px;--radius:{{ section.settings.card_radius }}px;background:var(--bg);color:var(--ink);font-family:var(--fb);-webkit-font-smoothing:antialiased}
+.vxb-wrap{{ sid }}{max-width:{{ section.settings.max_w }}px;margin:0 auto;padding:var(--pad) {{ section.settings.section_padding | times: 0.75 | round }}px}
+.vxb-kicker{{ sid }}{font-size:10px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+.vxb-title{{ sid }}{font-family:var(--fh);font-size:{{ section.settings.title_size }}px;font-weight:900;text-transform:uppercase;letter-spacing:.04em;line-height:.95;margin-bottom:6px}
+.vxb-sub{{ sid }}{font-size:13px;color:var(--sub);max-width:42rem;line-height:1.45;margin-bottom:28px}
+.vxb-grid{{ sid }}{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(260px,.7fr);gap:28px;align-items:start}
+.vxb-items{{ sid }}{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:14px}
+.vxb-card{{ sid }}{position:relative;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--bg);transition:border-color .2s,box-shadow .2s}
+.vxb-card{{ sid }}[data-on="true"]{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.vxb-img{{ sid }}{display:block;width:100%;aspect-ratio:{{ section.settings.card_ratio }};object-fit:cover;background:var(--line)}
+.vxb-body{{ sid }}{padding:12px 12px 14px;display:flex;flex-direction:column;gap:6px}
+.vxb-flag{{ sid }}{font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+.vxb-name{{ sid }}{font-family:var(--fh);font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;line-height:1.1;text-decoration:none;color:var(--ink)}
+.vxb-price{{ sid }}{font-size:12px;color:var(--sub);letter-spacing:.04em}
+.vxb-check{{ sid }}{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--sub);cursor:pointer;user-select:none}
+.vxb-check{{ sid }} input{appearance:none;width:14px;height:14px;border:1px solid var(--ink);border-radius:2px;display:grid;place-items:center;background:transparent}
+.vxb-check{{ sid }} input:checked{background:var(--ink)}
+.vxb-check{{ sid }} input:checked::after{content:'';width:6px;height:3px;border-left:1.5px solid var(--bg);border-bottom:1.5px solid var(--bg);transform:rotate(-45deg) translateY(-1px)}
+.vxb-summary{{ sid }}{border:1px solid var(--line);border-radius:var(--radius);padding:22px 22px 20px;position:sticky;top:96px}
+.vxb-sum-kicker{{ sid }}{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin-bottom:10px}
+.vxb-sum-rows{{ sid }}{display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
+.vxb-row{{ sid }}{display:flex;justify-content:space-between;gap:12px;font-size:13px;color:var(--sub)}
+.vxb-row{{ sid }} strong{color:var(--ink);font-weight:600}
+.vxb-total{{ sid }}{display:flex;justify-content:space-between;align-items:baseline;padding-top:14px;border-top:1px solid var(--line);margin-bottom:18px}
+.vxb-total{{ sid }} span{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+.vxb-total{{ sid }} b{font-family:var(--fh);font-size:26px;font-weight:900}
+.vxb-save{{ sid }}{font-size:12px;color:var(--accent);margin:-10px 0 16px;min-height:16px}
+.vxb-btn{{ sid }}{width:100%;border:0;background:var(--ink);color:var(--bg);font-family:var(--fh);font-size:13px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;padding:14px 16px;border-radius:{{ section.settings.btn_radius }}px;cursor:pointer}
+.vxb-btn{{ sid }}:disabled{opacity:.45;cursor:not-allowed}
+.vxb-note{{ sid }}{margin-top:10px;font-size:11px;color:var(--dim);line-height:1.4}
+@media (max-width:860px){.vxb-grid{{ sid }}{grid-template-columns:1fr}.vxb-summary{{ sid }}{position:static}.vxb-title{{ sid }}{font-size:{{ section.settings.title_size | times: 0.78 | round }}px}}
+</style>
+<section id="vxb{{ sid }}" data-product-id="{{ product.id }}" data-limit="{{ max_items }}" data-discount="{{ section.settings.bundle_discount_pct }}" data-fallback="{{ section.settings.fallback_collection }}" data-manual='[{%- if section.settings.product_1 != blank -%}{"id":{{ section.settings.product_1.id }},"handle":{{ section.settings.product_1.handle | json }},"title":{{ section.settings.product_1.title | json }},"price":{{ section.settings.product_1.price }},"url":{{ section.settings.product_1.url | json }},"image":{{ section.settings.product_1.featured_image | image_url: width: 600 | json }},"variant":{{ section.settings.product_1.selected_or_first_available_variant.id }}}{%- endif -%}{%- if section.settings.product_2 != blank -%},{"id":{{ section.settings.product_2.id }},"handle":{{ section.settings.product_2.handle | json }},"title":{{ section.settings.product_2.title | json }},"price":{{ section.settings.product_2.price }},"url":{{ section.settings.product_2.url | json }},"image":{{ section.settings.product_2.featured_image | image_url: width: 600 | json }},"variant":{{ section.settings.product_2.selected_or_first_available_variant.id }}}{%- endif -%}{%- if section.settings.product_3 != blank -%},{"id":{{ section.settings.product_3.id }},"handle":{{ section.settings.product_3.handle | json }},"title":{{ section.settings.product_3.title | json }},"price":{{ section.settings.product_3.price }},"url":{{ section.settings.product_3.url | json }},"image":{{ section.settings.product_3.featured_image | image_url: width: 600 | json }},"variant":{{ section.settings.product_3.selected_or_first_available_variant.id }}}{%- endif -%}]'>
+  <div class="vxb-wrap{{ sid }}">
+    {% if section.settings.kicker != blank %}<p class="vxb-kicker{{ sid }}">{{ section.settings.kicker | escape }}</p>{% endif %}
+    <h2 class="vxb-title{{ sid }}">{{ section.settings.title | escape }}</h2>
+    {% if section.settings.subtitle != blank %}<p class="vxb-sub{{ sid }}">{{ section.settings.subtitle | escape }}</p>{% endif %}
+    <div class="vxb-grid{{ sid }}">
+      <div class="vxb-items{{ sid }}" id="vxb-items{{ sid }}">
+        <article class="vxb-card{{ sid }}" data-on="true" data-locked="true" data-variant="{{ product.selected_or_first_available_variant.id }}" data-price="{{ product.selected_or_first_available_variant.price }}" data-title="{{ product.title | escape }}">
+          {% if product.featured_image %}<img class="vxb-img{{ sid }}" src="{{ product.featured_image | image_url: width: 700 }}" alt="{{ product.title | escape }}" width="700" height="900" loading="lazy">{% endif %}
+          <div class="vxb-body{{ sid }}">
+            <span class="vxb-flag{{ sid }}">This piece</span>
+            <a class="vxb-name{{ sid }}" href="{{ product.url }}">{{ product.title | escape }}</a>
+            <div class="vxb-price{{ sid }}">{{ product.selected_or_first_available_variant.price | money }}</div>
+            <label class="vxb-check{{ sid }}"><input type="checkbox" checked disabled> Included</label>
+          </div>
+        </article>
+      </div>
+      <aside class="vxb-summary{{ sid }}">
+        <p class="vxb-sum-kicker{{ sid }}">{{ section.settings.summary_label | escape }}</p>
+        <div class="vxb-sum-rows{{ sid }}" id="vxb-rows{{ sid }}"></div>
+        <div class="vxb-total{{ sid }}"><span>Bundle total</span><b id="vxb-total{{ sid }}">{{ product.selected_or_first_available_variant.price | money }}</b></div>
+        <p class="vxb-save{{ sid }}" id="vxb-save{{ sid }}"></p>
+        <button type="button" class="vxb-btn{{ sid }}" id="vxb-btn{{ sid }}">{{ section.settings.cta_text | escape }}</button>
+        {% if section.settings.note != blank %}<p class="vxb-note{{ sid }}">{{ section.settings.note | escape }}</p>{% endif %}
+      </aside>
+    </div>
+  </div>
+</section>
+<script>
+(function(){
+  var sid='{{ sid }}', root=document.getElementById('vxb'+sid); if(!root) return;
+  var itemsEl=document.getElementById('vxb-items'+sid), rowsEl=document.getElementById('vxb-rows'+sid), totalEl=document.getElementById('vxb-total'+sid), saveEl=document.getElementById('vxb-save'+sid), btn=document.getElementById('vxb-btn'+sid);
+  var productId=Number(root.getAttribute('data-product-id')), limit=Number(root.getAttribute('data-limit')||3), discountPct=Number(root.getAttribute('data-discount')||0), fallback=root.getAttribute('data-fallback')||'';
+  var currency=(window.Shopify&&Shopify.currency&&Shopify.currency.active)||'USD';
+  var manual=[]; try{manual=JSON.parse(root.getAttribute('data-manual')||'[]')}catch(e){manual=[]}
+  function money(cents){try{return new Intl.NumberFormat(undefined,{style:'currency',currency:currency}).format(cents/100)}catch(e){return '$'+(cents/100).toFixed(2)}}
+  function cardHtml(p,opts){opts=opts||{};var variant=p.variant||(p.variants&&p.variants[0]&&p.variants[0].id);var price=typeof p.price==='number'?p.price:(p.variants&&p.variants[0]?p.variants[0].price:0);var img=p.image||(p.featured_image?(typeof p.featured_image==='string'?p.featured_image:p.featured_image.src):'');if(img&&img.indexOf('http')===0&&img.indexOf('width=')===-1)img+=(img.indexOf('?')>-1?'&':'?')+'width=700';var url=p.url||('/products/'+(p.handle||''));var checked=opts.checked!==false;return '<article class="vxb-card'+sid+'" data-on="'+checked+'" data-variant="'+variant+'" data-price="'+price+'" data-title="'+String(p.title||'').replace(/"/g,'"')+'">'+(img?'<img class="vxb-img'+sid+'" src="'+img+'" alt="" loading="lazy" width="700" height="900">':'')+'<div class="vxb-body'+sid+'"><span class="vxb-flag'+sid+'">'+(opts.flag||'Add-on')+'</span><a class="vxb-name'+sid+'" href="'+url+'">'+(p.title||'')+'</a><div class="vxb-price'+sid+'">'+money(price)+'</div><label class="vxb-check'+sid+'"><input type="checkbox"'+(checked?' checked':'')+'> Include</label></div></article>';}
+  function selectedCards(){return Array.prototype.slice.call(root.querySelectorAll('.vxb-card'+sid)).filter(function(c){return c.getAttribute('data-on')==='true'})}
+  function renderSummary(){var cards=selectedCards(), subtotal=0; rowsEl.innerHTML=cards.map(function(c){var price=Number(c.getAttribute('data-price')||0); subtotal+=price; return '<div class="vxb-row'+sid+'"><span>'+c.getAttribute('data-title')+'</span><strong>'+money(price)+'</strong></div>'}).join(''); var discount=Math.round(subtotal*(discountPct/100)); totalEl.textContent=money(Math.max(0,subtotal-discount)); saveEl.textContent=discount>0&&cards.length>1?'You save '+money(discount)+' on this bundle':''; btn.disabled=cards.length<1}
+  itemsEl.addEventListener('change',function(e){var card=e.target.closest('.vxb-card'+sid); if(!card||card.getAttribute('data-locked')==='true')return; card.setAttribute('data-on',e.target.checked?'true':'false'); renderSummary()});
+  function uniqueById(list){var seen={}; return list.filter(function(p){var id=p.id||p.product_id; if(!id||id==productId||seen[id])return false; seen[id]=true; return true})}
+  function normalize(p){var v=p.variants&&p.variants[0]?p.variants[0]:null; return {id:p.id,title:p.title,handle:p.handle,url:p.url||('/products/'+p.handle),price:typeof p.price==='number'?p.price:(v?v.price:0),image:p.image||p.featured_image,variant:p.variant||(v?v.id:null)}}
+  function mount(products){products=uniqueById(products).slice(0,limit).map(normalize); if(!products.length){root.style.display='none'; return} itemsEl.insertAdjacentHTML('beforeend',products.map(function(p,i){return cardHtml(p,{flag:i===0?'Pairs with':'Also add',checked:true})}).join('')); renderSummary()}
+  function fetchJson(url){return fetch(url).then(function(r){return r.ok?r.json():{products:[]}})}
+  Promise.resolve(manual.filter(Boolean)).then(function(seed){if(seed.length>=limit)return seed; return fetchJson('/recommendations/products.json?product_id='+productId+'&limit='+limit+'&intent=complementary').then(function(data){return seed.concat(data.products||[])})}).then(function(list){if(uniqueById(list).length>=1||!fallback)return list; return fetchJson('/collections/'+fallback+'/products.json?limit='+(limit+2)).then(function(data){return list.concat(data.products||[])})}).then(mount).catch(function(){if(manual.length)mount(manual); else root.style.display='none'});
+  btn.addEventListener('click',function(){var items=selectedCards().map(function(c){return {id:Number(c.getAttribute('data-variant')),quantity:1}}).filter(function(i){return i.id}); if(!items.length)return; btn.disabled=true; btn.textContent='Adding…'; fetch('/cart/add.js',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({items:items})}).then(function(r){if(!r.ok)throw new Error('cart'); return r.json()}).then(function(){btn.textContent='Added'; document.dispatchEvent(new CustomEvent('cart:refresh')); document.dispatchEvent(new CustomEvent('cart:updated')); if(window.Shopify&&Shopify.designMode)return; setTimeout(function(){window.location.href='/cart'},350)}).catch(function(){btn.textContent='Try again'; btn.disabled=false})});
+  renderSummary();
+})();
+</script>
+{% schema %}
+{
+  "name": "Cross-sell bundle",
+  "tag": "section",
+  "class": "section-vanquish-bundle",
+  "settings": [
+    {"type":"text","id":"kicker","label":"Kicker","default":"Complete the look"},
+    {"type":"text","id":"title","label":"Heading","default":"Bundle & save"},
+    {"type":"textarea","id":"subtitle","label":"Subtitle","default":"Pair this piece with suggested add-ons."},
+    {"type":"text","id":"summary_label","label":"Summary label","default":"Your bundle"},
+    {"type":"text","id":"cta_text","label":"Button label","default":"Add bundle to bag"},
+    {"type":"textarea","id":"note","label":"Fine print","default":"Uses complementary products from Search & Discovery when available."},
+    {"type":"range","id":"max_items","label":"Max suggested products","min":1,"max":4,"step":1,"default":3},
+    {"type":"range","id":"bundle_discount_pct","label":"Bundle discount %","min":0,"max":40,"step":1,"unit":"%","default":0,"info":"Display only unless a Shopify automatic discount also exists."},
+    {"type":"text","id":"fallback_collection","label":"Fallback collection handle"},
+    {"type":"product","id":"product_1","label":"Suggested product 1"},
+    {"type":"product","id":"product_2","label":"Suggested product 2"},
+    {"type":"product","id":"product_3","label":"Suggested product 3"},
+    {"type":"color","id":"bg_color","label":"Background","default":"#ffffff"},
+    {"type":"color","id":"text_color","label":"Text","default":"#111111"},
+    {"type":"color","id":"accent_color","label":"Accent","default":"#1a1a1a"},
+    {"type":"font_picker","id":"heading_font","label":"Heading font","default":"barlow_condensed_n9"},
+    {"type":"font_picker","id":"body_font","label":"Body font","default":"barlow_n4"},
+    {"type":"range","id":"title_size","label":"Title size","min":18,"max":56,"step":1,"unit":"px","default":32},
+    {"type":"range","id":"max_w","label":"Max width","min":900,"max":1600,"step":20,"unit":"px","default":1280},
+    {"type":"range","id":"section_padding","label":"Padding","min":16,"max":80,"step":2,"unit":"px","default":40},
+    {"type":"text","id":"card_ratio","label":"Image ratio","default":"3/4"},
+    {"type":"range","id":"card_radius","label":"Card radius","min":0,"max":24,"step":1,"unit":"px","default":8},
+    {"type":"range","id":"btn_radius","label":"Button radius","min":0,"max":40,"step":1,"unit":"px","default":10}
+  ],
+  "presets": [{"name":"Cross-sell bundle","category":"Product"}]
+}
+{% endschema %}
