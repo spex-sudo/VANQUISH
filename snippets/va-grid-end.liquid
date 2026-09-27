@@ -22,8 +22,12 @@
 </style>
 <script>
 window.vaGridEnd=function(el){
-  if(!el || el.querySelector('.va-end')) return;
-  el.innerHTML='<div class="va-end">'+
+  if(!el) return;
+  var host = (el.closest && (el.closest('[id^="ApexSentinel"], [id^="VsrSentinel"], [class*="status"]'))) || el;
+  if(host.querySelector && host.querySelector('.va-end')) return;
+  var pulse = host.querySelector && host.querySelector('.apex-pulse');
+  if(pulse) pulse.remove();
+  host.innerHTML='<div class="va-end">'+
     '<a class="va-neo" data-va-search href="{{ routes.search_url }}">'+
       '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>'+
       'Search</a>'+
@@ -31,29 +35,28 @@ window.vaGridEnd=function(el){
       '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7"></path><path d="M6 10.5V20h12v-9.5"></path></svg>'+
       'Home</a>'+
   '</div>';
-  var s=el.querySelector('[data-va-search]');
+  var s=host.querySelector('[data-va-search]');
   if(s) s.addEventListener('click',function(e){
     if(typeof window.apexOpenSearch==='function'){ e.preventDefault(); window.apexOpenSearch(); }
   });
 };
 (function(){
-  function swap(node){
-    if(!node) return;
-    if(node.querySelector && node.querySelector('.va-end')) return;
-    var t=(node.textContent||'').replace(/\s+/g,' ').trim();
-    if(/all products loaded/i.test(t)||/all results loaded/i.test(t)) window.vaGridEnd(node);
+  function looksLoaded(node){
+    if(!node || node.querySelector && node.querySelector('.va-end')) return false;
+    var t=(node.textContent||'').replace(/\s+/g,' ').trim().toLowerCase();
+    return t==='all products loaded' || t==='all results loaded';
+  }
+  function scan(){
+    var nodes=document.querySelectorAll('span,div,p');
+    for(var i=0;i<nodes.length;i++){
+      if(looksLoaded(nodes[i])) window.vaGridEnd(nodes[i]);
+    }
   }
   function boot(){
-    document.querySelectorAll('[class*="status"], .apex-status-text').forEach(swap);
-    var mo=new MutationObserver(function(muts){
-      muts.forEach(function(m){
-        if(m.type==='characterData') swap(m.target.parentElement);
-        m.addedNodes && m.addedNodes.forEach(function(n){
-          if(n.nodeType===1){ swap(n); n.querySelectorAll && n.querySelectorAll('[class*="status"], .apex-status-text').forEach(swap); }
-        });
-      });
-    });
+    scan();
+    var mo=new MutationObserver(function(){ scan(); });
     mo.observe(document.body,{childList:true,subtree:true,characterData:true});
+    setInterval(scan, 600);
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot);
   else boot();
