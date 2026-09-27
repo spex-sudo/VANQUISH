@@ -254,7 +254,7 @@
         "max_w": 1280,
         "section_padding": 40,
         "card_ratio": "2,3",
-        "card_radius": 8,
+        "card_radius": 5,
         "btn_radius": 10
       }
     },
