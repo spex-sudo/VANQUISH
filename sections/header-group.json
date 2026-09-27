@@ -66,9 +66,9 @@
         "flash_notif_7gJABh": {
           "type": "flash_notif",
           "settings": {
-            "text": "IM A SENTIENT WEBSITE",
+            "text": "CHOOSE WISELY",
             "url": "",
-            "bg_color": "#111111",
+            "bg_color": "#B175FA",
             "text_color": "#ffffff"
           }
         },
@@ -77,7 +77,7 @@
           "settings": {
             "text": "YOU DONT HAVE ALL DAY JUST PICK SOMETHING ALREADY",
             "url": "",
-            "bg_color": "#E52B2B",
+            "bg_color": "#e52b2b",
             "text_color": "#ffffff"
           }
         },
@@ -126,7 +126,7 @@
           "settings": {
             "text": "HAVE YOU TRIED USING THE SEARCH ICON?",
             "url": "",
-            "bg_color": "#B4A6FF",
+            "bg_color": "#b4a6ff",
             "text_color": "#ffffff"
           }
         },
@@ -172,7 +172,7 @@
       "settings": {
         "notif_text": "LEXE — RUNWAY FASHION OUTLET",
         "notif_url": "",
-        "notif_pill_text": "#FFFFFF",
+        "notif_pill_text": "#ffffff",
         "flash_interval": 15,
         "flash_duration": 4,
         "ship_threshold": 17,
@@ -210,7 +210,7 @@
         "text_logo_spacing": 3,
         "search_placeholder": "Search products…",
         "icon_size": 20,
-        "badge_bg_color": "#B4A6FF",
+        "badge_bg_color": "#b4a6ff",
         "badge_text_color": "#ffffff",
         "custom_cart_url": "",
         "footer_link_1_text": "Contact",
