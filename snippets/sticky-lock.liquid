@@ -1,9 +1,5 @@
 {%- comment -%}
-  Sticky chrome lock
-  iOS Safari promotes position:fixed + transform/backdrop-filter onto the
-  visual viewport, so the header and ATC bar jump up when the URL bar
-  hides or the page rubber-bands. Keep the fixed shells untransformed
-  and only compensate while visualViewport drift is actually present.
+  Sticky chrome lock + grid end buttons
 {%- endcomment -%}
 <style id="sticky-lock-css">
   html { overscroll-behavior-y: none; }
@@ -14,7 +10,6 @@
     will-change: auto !important;
   }
 
-  /* Product ATC bar ids are ap-bar + section id */
   [id^="ap-bar"] {
     transform: none !important;
     -webkit-transform: none !important;
@@ -33,71 +28,113 @@
     -webkit-transform: translate3d(0, calc(100% + 20px), 0) !important;
   }
 
-  /* Do not touch .ap-grid height. Forcing 100svh collapsed the PDP
-     section on mobile (height:auto) so trust + related painted over it. */
-
   html.is-vv-drift #ApexRoot {
     transform: translate3d(0, var(--vv-top, 0px), 0) !important;
   }
   html.is-vv-drift [id^="ap-bar"]:not(.hide) {
     transform: translate3d(0, calc(-1 * var(--vv-bottom, 0px)), 0) !important;
   }
+
+  .va-end{
+    display:flex;justify-content:center;align-items:center;gap:16px;
+    margin:40px 0 16px;flex-wrap:wrap;
+  }
+  .va-neo{
+    display:inline-flex;align-items:center;justify-content:center;gap:10px;
+    min-width:148px;height:52px;padding:0 24px;border-radius:18px;
+    text-decoration:none;color:#1a1a1a;
+    font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+    background:#ececec;border:0;cursor:pointer;
+    box-shadow:8px 8px 16px #d4d4d4, -8px -8px 16px #ffffff;
+    transition:box-shadow .2s ease, transform .2s ease;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .va-neo svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+  .va-neo:hover{transform:translateY(-1px);box-shadow:10px 10px 20px #cfcfcf, -10px -10px 20px #ffffff;}
+  .va-neo:active{transform:translateY(1px);box-shadow:inset 6px 6px 12px #d0d0d0, inset -6px -6px 12px #ffffff;}
 </style>
 <script>
 (function () {
-  if (window.__apexStickyLock) return;
-  window.__apexStickyLock = true;
+  if (!window.__apexStickyLock) {
+    window.__apexStickyLock = true;
+    var root = document.documentElement;
+    var pending = false;
+    var KEYBOARD_GAP = 120;
+    function lockHeaderVar() {
+      var el = document.getElementById('ApexRoot');
+      if (!el) return;
+      var h = el.offsetHeight;
+      if (h > 0) root.style.setProperty('--apex-shell-bottom', (Math.ceil(h) + 8) + 'px');
+    }
+    function sync() {
+      pending = false;
+      lockHeaderVar();
+      var vv = window.visualViewport;
+      if (!vv) return;
+      var top = vv.offsetTop || 0;
+      var bottom = (window.innerHeight - vv.height - top) || 0;
+      var keyboard = (window.innerHeight - vv.height) > KEYBOARD_GAP;
+      if (keyboard || (Math.abs(top) <= 0.5 && Math.abs(bottom) <= 0.5)) {
+        root.classList.remove('is-vv-drift');
+        return;
+      }
+      root.style.setProperty('--vv-top', top.toFixed(2) + 'px');
+      root.style.setProperty('--vv-bottom', bottom.toFixed(2) + 'px');
+      root.classList.add('is-vv-drift');
+    }
+    function requestSync() {
+      if (pending) return;
+      pending = true;
+      requestAnimationFrame(sync);
+    }
+    window.addEventListener('scroll', requestSync, { passive: true });
+    window.addEventListener('resize', requestSync, { passive: true });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('scroll', requestSync, { passive: true });
+      window.visualViewport.addEventListener('resize', requestSync, { passive: true });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', sync);
+    else sync();
+  }
+})();
 
-  var root = document.documentElement;
-  var pending = false;
-  var KEYBOARD_GAP = 120;
-
-  function lockHeaderVar() {
-    var el = document.getElementById('ApexRoot');
-    if (!el) return;
-    var h = el.offsetHeight;
-    if (h > 0) {
-      root.style.setProperty('--apex-shell-bottom', (Math.ceil(h) + 8) + 'px');
+window.vaGridEnd=function(el){
+  if(!el) return;
+  var host = (el.closest && el.closest('[id^="ApexSentinel"], [id^="VsrSentinel"], [class*="status"]')) || el;
+  if(host.querySelector && host.querySelector('.va-end')) return;
+  var pulse = host.querySelector && host.querySelector('.apex-pulse');
+  if(pulse) pulse.remove();
+  host.innerHTML='<div class="va-end">'+
+    '<a class="va-neo" data-va-search href="{{ routes.search_url }}">'+
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>Search</a>'+
+    '<a class="va-neo" href="{{ routes.root_url }}">'+
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7"></path><path d="M6 10.5V20h12v-9.5"></path></svg>Home</a>'+
+  '</div>';
+  var s=host.querySelector('[data-va-search]');
+  if(s) s.addEventListener('click',function(e){
+    if(typeof window.apexOpenSearch==='function'){ e.preventDefault(); window.apexOpenSearch(); }
+  });
+};
+(function(){
+  if(window.__vaGridEndScan) return;
+  window.__vaGridEndScan=true;
+  function scan(){
+    var walker=document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null);
+    var n, hits=[];
+    while((n=walker.nextNode())){
+      var t=(n.nodeValue||'').replace(/\s+/g,' ').trim().toLowerCase();
+      if(t==='all products loaded' || t==='all results loaded') hits.push(n.parentElement);
+    }
+    hits.forEach(function(el){ if(window.vaGridEnd) window.vaGridEnd(el); });
+  }
+  function boot(){
+    scan();
+    setInterval(scan, 400);
+    if(window.MutationObserver){
+      new MutationObserver(scan).observe(document.body,{childList:true,subtree:true,characterData:true});
     }
   }
-
-  function sync() {
-    pending = false;
-    lockHeaderVar();
-
-    var vv = window.visualViewport;
-    if (!vv) return;
-
-    var top = vv.offsetTop || 0;
-    var bottom = (window.innerHeight - vv.height - top) || 0;
-    var keyboard = (window.innerHeight - vv.height) > KEYBOARD_GAP;
-
-    if (keyboard || (Math.abs(top) <= 0.5 && Math.abs(bottom) <= 0.5)) {
-      root.classList.remove('is-vv-drift');
-      return;
-    }
-
-    root.style.setProperty('--vv-top', top.toFixed(2) + 'px');
-    root.style.setProperty('--vv-bottom', bottom.toFixed(2) + 'px');
-    root.classList.add('is-vv-drift');
-  }
-
-  function requestSync() {
-    if (pending) return;
-    pending = true;
-    requestAnimationFrame(sync);
-  }
-
-  window.addEventListener('scroll', requestSync, { passive: true });
-  window.addEventListener('resize', requestSync, { passive: true });
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener('scroll', requestSync, { passive: true });
-    window.visualViewport.addEventListener('resize', requestSync, { passive: true });
-  }
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', sync);
-  } else {
-    sync();
-  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot);
+  else boot();
 })();
 </script>
