@@ -72,15 +72,6 @@
             "text_color": "#ffffff"
           }
         },
-        "flash_notif_iqJFMf": {
-          "type": "flash_notif",
-          "settings": {
-            "text": "YOU DONT HAVE ALL DAY JUST PICK SOMETHING ALREADY",
-            "url": "",
-            "bg_color": "#e52b2b",
-            "text_color": "#ffffff"
-          }
-        },
         "quick_link_zAzjAV": {
           "type": "quick_link",
           "settings": {
@@ -157,7 +148,6 @@
       },
       "block_order": [
         "flash_notif_7gJABh",
-        "flash_notif_iqJFMf",
         "quick_link_zAzjAV",
         "quick_link_cpRJLp",
         "collection_pwjyeg",
