@@ -241,7 +241,7 @@
         "note": "Uses complementary products from Search & Discovery when available.",
         "max_items": 3,
         "bundle_discount_pct": 0,
-        "fallback_collection": "",
+        "fallback_collection": "Specs",
         "product_1": "lexe-pyramid-optics-exclusive",
         "product_2": "",
         "product_3": "",
@@ -253,7 +253,7 @@
         "title_size": 32,
         "max_w": 1280,
         "section_padding": 40,
-        "card_ratio": "3/4",
+        "card_ratio": "2,3",
         "card_radius": 8,
         "btn_radius": 10
       }
