@@ -67,6 +67,24 @@
       method="post"
     >
       {%- render 'lexe-gift-progress' -%}
+      <script>
+        /* LEXE: gift lines (_lexe_gift=1) are limited to 1 per order */
+        (function () {
+          try { if (sessionStorage.getItem('lexe_gift_qty_fix') === '1') { sessionStorage.removeItem('lexe_gift_qty_fix'); return; } } catch (e) {}
+          fetch('/cart.js', { credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(function (cart) {
+            var extra = (cart.items || []).filter(function (it) { return it.properties && it.properties._lexe_gift === '1' && it.quantity > 1; });
+            if (!extra.length) return;
+            return extra.reduce(function (p, it) {
+              return p.then(function () {
+                return fetch('/cart/change.js', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify({ id: it.key, quantity: 1 }) });
+              });
+            }, Promise.resolve()).then(function () {
+              try { sessionStorage.setItem('lexe_gift_qty_fix', '1'); } catch (e) {}
+              window.location.reload();
+            });
+          }).catch(function () {});
+        })();
+      </script>
       <div
         class="cart-items spacing-style{% if block_settings.dividers %} cart-items--dividers{% endif %}"
         style="{%  render 'spacing-style', settings: block_settings %} --cart-items-gap:{{ block_settings.gap | append: "px" }};"
@@ -306,6 +324,9 @@
                   {% assign can_update_quantity = item.instructions.can_update_quantity
                     | default: true, allow_false: true
                   %}
+                  {% if item.properties['_lexe_gift'] == '1' %}
+                    {% assign can_update_quantity = false %}
+                  {% endif %}
                   <div class="cart-items__quantity-controls">
                     {% render 'volume-pricing-info',
                       variant: item.variant,
@@ -941,4 +962,5 @@
     }
   }
 {% endstylesheet %}
+
 

@@ -1420,11 +1420,13 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
           '<a href="' + escapeHTML(item.url) + '" class="cart-title">' + escapeHTML(item.product_title) + '</a>' +
           (item.variant_title && item.variant_title !== 'Default Title' ? '<span class="cart-variant">' + escapeHTML(item.variant_title) + '</span>' : '') +
           '<div class="cart-line-bottom">' +
-            '<div class="cart-qty">' +
-              '<button type="button" data-cart-qty-down="' + escapeHTML(item.key) + '" aria-label="Decrease">−</button>' +
-              '<span class="cart-qty-val">' + item.quantity + '</span>' +
-              '<button type="button" data-cart-qty-up="' + escapeHTML(item.key) + '" aria-label="Increase">+</button>' +
-            '</div>' +
+            (lexeGift
+              ? '<div class="cart-qty cart-qty--locked" aria-label="Quantity 1, limited to one per order"><span class="cart-qty-val" style="padding:0 10px;">1</span></div>'
+              : '<div class="cart-qty">' +
+                  '<button type="button" data-cart-qty-down="' + escapeHTML(item.key) + '" aria-label="Decrease">−</button>' +
+                  '<span class="cart-qty-val">' + item.quantity + '</span>' +
+                  '<button type="button" data-cart-qty-up="' + escapeHTML(item.key) + '" aria-label="Increase">+</button>' +
+                '</div>') +
             '<div>' + priceHTML + '</div>' +
           '</div>' +
         '</div>' +
@@ -1434,6 +1436,12 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
       '</div>';
     });
     cartBody.innerHTML = html;
+    /* LEXE: gift lines are limited to 1 per order */
+    var lexeExtra = cart.items.filter(function (it) { return it.properties && it.properties._lexe_gift === '1' && it.quantity > 1; })[0];
+    if (lexeExtra && !renderCart._lexeFixing) {
+      renderCart._lexeFixing = true;
+      setTimeout(function () { cartChange(lexeExtra.key, 1); setTimeout(function () { renderCart._lexeFixing = false; }, 3000); }, 0);
+    }
     /* LEXE free-pair progress (Liquid-rendered, only when a gift line is in the cart) */
     if (cart.items.some(function (it) { return it.properties && it.properties._lexe_gift === '1'; })) {
       fetch('/?sections=lexe-cart-gift', { credentials: 'same-origin' })
@@ -2509,4 +2517,5 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
   ]
 }
 {% endschema %}
+
 
