@@ -16,8 +16,8 @@
           "type": "shipping",
           "settings": {
             "title": "Shipping & Returns",
-            "content": "<p>Free standard shipping on orders over $77.</p><p>30-day returns — items must be unworn with original tags.</p>",
-            "image": "shopify://shop_images/view-of-a-low-flying-plane-above.jpg",
+            "content": "<p>Free Standard Shipping On Eligible Orders.</p><p>30-day returns — items must be unworn with original tags.</p>",
+            "image": "shopify://shop_images/66DF17D4-1451-49D4-81A7-8EA0B47D6FB5.jpg",
             "redirect_url": ""
           }
         }
