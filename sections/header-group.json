@@ -68,7 +68,7 @@
           "settings": {
             "text": "CHOOSE WISELY",
             "url": "",
-            "bg_color": "#B175FA",
+            "bg_color": "#020202",
             "text_color": "#ffffff"
           }
         },
@@ -124,10 +124,10 @@
         "flash_notif_LCEm8c": {
           "type": "flash_notif",
           "settings": {
-            "text": "HAVE YOU TRIED USING THE SEARCH ICON?",
+            "text": "TRY USING THE SEARCH ICON",
             "url": "",
-            "bg_color": "#b4a6ff",
-            "text_color": "#ffffff"
+            "bg_color": "#050505",
+            "text_color": "#EFEFEF"
           }
         },
         "flash_notif_DT4QLe": {
