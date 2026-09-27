@@ -33,10 +33,8 @@
     -webkit-transform: translate3d(0, calc(100% + 20px), 0) !important;
   }
 
-  /* Prefer small viewport so chrome show/hide does not resize the PDP grid */
-  [class*="ap-grid"] {
-    height: calc(100svh - var(--top) - var(--bar-h));
-  }
+  /* Do not touch .ap-grid height. Forcing 100svh collapsed the PDP
+     section on mobile (height:auto) so trust + related painted over it. */
 
   html.is-vv-drift #ApexRoot {
     transform: translate3d(0, var(--vv-top, 0px), 0) !important;
