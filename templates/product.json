@@ -281,38 +281,38 @@
         "section_padding": 32
       }
     },
-    "luxury_relatedgrid_dpLNeW": {
+    "luxury_relatedgrid_88rbjE": {
       "type": "luxury-relatedgrid",
       "blocks": {
-        "swatches_J9DD89": {
+        "swatches_GFgKQP": {
           "type": "swatches",
           "settings": {}
         },
-        "title_AGDk7F": {
+        "title_GVaknH": {
           "type": "title",
           "settings": {}
         },
-        "rating_kHPajX": {
+        "rating_zeFF3J": {
           "type": "rating",
           "settings": {}
         },
-        "price_z3WUDz": {
+        "price_83XC6f": {
           "type": "price",
           "settings": {}
         }
       },
       "block_order": [
-        "swatches_J9DD89",
-        "title_AGDk7F",
-        "rating_kHPajX",
-        "price_z3WUDz"
+        "swatches_GFgKQP",
+        "title_GVaknH",
+        "rating_zeFF3J",
+        "price_83XC6f"
       ],
       "name": "Atelier Related Grid",
       "settings": {
         "show_heading": true,
         "heading": "Continue Shopping",
         "related_collection": "",
-        "page_limit": 8,
+        "page_limit": 12,
         "pc_cols": 4,
         "mb_cols": 2,
         "max_w": 1300,
@@ -338,6 +338,6 @@
     "177726641206da3e13",
     "vanquish_bundle_pdp",
     "luxury_relatedproductbar_Lek7wd",
-    "luxury_relatedgrid_dpLNeW"
+    "luxury_relatedgrid_88rbjE"
   ]
 }
