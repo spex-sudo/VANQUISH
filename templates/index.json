@@ -485,7 +485,7 @@
         "view_all_text": "View all",
         "show_quick_add": true,
         "quick_add_text": "Quick Add",
-        "options_text": "Choose Options",
+        "options_text": "",
         "added_text": "Added",
         "show_vendor": false,
         "autoscroll_enabled": false,
