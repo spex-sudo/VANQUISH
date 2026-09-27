@@ -747,6 +747,9 @@
 .apex-single-price-{{ sid }} .price-compare {
   font-size: 16px; color: var(--apex-fg-soft); text-decoration: line-through; margin-left: 10px;
 }
+.apex-free-{{ sid }} .free-label { color: {{ s.free_color | default: '#9966CC' }}; font-weight: 600; letter-spacing: 0.02em; }
+.apex-free-{{ sid }} .free-condition { display: block; margin-top: 6px; font-size: 14px; font-weight: 400; color: var(--apex-fg-muted); }
+.apex-free-{{ sid }} .free-condition a { color: inherit; text-decoration: underline; }
 .apex-single-desc-{{ sid }} {
   font-size: 16px; line-height: 1.55; color: var(--apex-fg-muted); margin: 0 0 24px;
 }
@@ -785,12 +788,33 @@
         </div>
         <div class="apex-single-info-{{ sid }}">
           <h1>{{ product.title | escape }}</h1>
+          {%- liquid
+            assign lexe_free = false
+            if s.free_offer_enabled and s.free_gift_handles != blank
+              assign lexe_free_handles = s.free_gift_handles | split: ','
+              for fh in lexe_free_handles
+                if fh == product.handle
+                  assign lexe_free = true
+                endif
+              endfor
+            endif
+          -%}
+          {%- if lexe_free -%}
+            <div class="apex-single-price-{{ sid }} apex-free-{{ sid }}" data-lexe-free="true">
+              <span class="free-label">{{ s.free_label | default: 'FREE' | escape }}</span>
+              <span class="price-compare"><span class="visually-hidden">Regular price </span>{{ cv.price | money }}</span>
+              {%- if s.free_condition_text != blank -%}
+                <span class="free-condition">{{ s.free_condition_text | escape }}{% if s.free_link_text != blank and s.free_link_url != blank %} <a href="{{ s.free_link_url }}">{{ s.free_link_text | escape }}</a>{% endif %}</span>
+              {%- endif -%}
+            </div>
+          {%- else -%}
           <div class="apex-single-price-{{ sid }}">
             <span>{{ cv.price | money }}</span>
             {%- if cv.compare_at_price > cv.price -%}
               <span class="price-compare">{{ cv.compare_at_price | money }}</span>
             {%- endif -%}
           </div>
+          {%- endif -%}
           {%- if product.description != blank -%}
             <div class="apex-single-desc-{{ sid }}">
               {{ product.description | strip_html | truncate: 280 }}
@@ -1893,6 +1917,13 @@
 
     { "type": "header", "content": "Single Product Mode" },
     { "type": "product", "id": "product", "label": "Fallback product" },
+    { "type": "checkbox", "id": "free_offer_enabled", "label": "Show FREE price for gift products", "default": false },
+    { "type": "text", "id": "free_gift_handles", "label": "Gift product handles (comma-separated)" },
+    { "type": "text", "id": "free_label", "label": "Free label", "default": "FREE" },
+    { "type": "text", "id": "free_condition_text", "label": "Condition text", "default": "with orders of $49+ in" },
+    { "type": "text", "id": "free_link_text", "label": "Condition link text", "default": "eligible items" },
+    { "type": "url", "id": "free_link_url", "label": "Condition link" },
+    { "type": "color", "id": "free_color", "label": "Free label colour", "default": "#9966CC" },
     {
       "type": "select", "id": "layout", "label": "Media position",
       "options": [
@@ -1909,3 +1940,4 @@
   ]
 }
 {% endschema %}
+
