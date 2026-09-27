@@ -765,11 +765,12 @@
 .apex-single-buy-{{ sid }}:active { transform: scale(0.99); }
 .apex-single-buy-{{ sid }}:disabled { opacity: 0.5; cursor: not-allowed; }
 /* ── LEXE pair selector (single mode, free offer) ── */
-.lx-sel-{{ sid }} { --lx-amethyst: {{ s.free_color | default: '#9966CC' }}; --lx-deep: {{ s.accent_color | default: '#3c2366' }}; --lx-size: min(58vw, 240px); display: grid; gap: 28px; text-align: center; color: var(--apex-fg); }
+.lx-sel-{{ sid }} { --lx-amethyst: {{ s.free_color | default: '#9966CC' }}; --lx-deep: {{ s.accent_color | default: '#3c2366' }}; --lx-size: min(58vw, 240px); display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; text-align: center; color: var(--apex-fg); }
 @media (min-width: 750px) {
-  .lx-sel-{{ sid }} { grid-template-columns: 1fr 1fr; align-items: center; text-align: left; gap: clamp(24px, 4vw, 56px); --lx-size: 260px; }
+  .lx-sel-{{ sid }} { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; text-align: left; gap: clamp(24px, 4vw, 56px); --lx-size: 260px; }
   .lx-sel-{{ sid }} .lx-col-media { text-align: center; }
 }
+.lx-sel-{{ sid }} .lx-col { min-width: 0; }
 .lx-sel-{{ sid }} .lx-eyebrow { font-size: 13px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--apex-fg-muted); margin: 0 0 8px; }
 .lx-sel-{{ sid }} .lx-viewport { position: relative; overflow: hidden; padding: 18px 0; touch-action: pan-y; border-radius: 8px; outline: none; }
 .lx-sel-{{ sid }} .lx-viewport:focus-visible { box-shadow: 0 0 0 2px var(--lx-amethyst); }
