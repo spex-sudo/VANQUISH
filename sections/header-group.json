@@ -177,7 +177,7 @@
         "flash_duration": 4,
         "ship_threshold": 17,
         "ship_msg_before": "⏱️ ADD {amount} TO CART FOR FRE SHIPPING",
-        "ship_msg_after": "🗽 FREE SHIPPING UNLOCKED",
+        "ship_msg_after": "🗽 FREE SHIPPING",
         "shrink_on_scroll": false,
         "height": 56,
         "max_width": 1400,
