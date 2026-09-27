@@ -67,6 +67,10 @@
       method="post"
     >
       {%- render 'lexe-gift-progress' -%}
+      <style>
+        .lexe-gift-line .quantity-plus, .lexe-gift-line .quantity-minus { visibility: hidden; pointer-events: none; }
+        .lexe-gift-line .cart-items__quantity input { pointer-events: none; }
+      </style>
       <script>
         /* LEXE: gift lines (_lexe_gift=1) are limited to 1 per order */
         (function () {
@@ -144,7 +148,7 @@
             {% for item in cart.items %}
               <tr
                 role="row"
-                class="cart-items__table-row{% if item.parent_relationship.parent != null %} cart-items__nested-line{% endif %}{% unless item.unit_price_measurement %} cart-items__table-row--full-width-variants{% endunless %}"
+                class="cart-items__table-row{% if item.properties['_lexe_gift'] == '1' %} lexe-gift-line{% endif %}{% if item.parent_relationship.parent != null %} cart-items__nested-line{% endif %}{% unless item.unit_price_measurement %} cart-items__table-row--full-width-variants{% endunless %}"
                 ref="cartItemRows[]"
                 data-parent-key="{{ item.parent_relationship.parent.key }}"
                 data-key="{{ item.key }}"
