@@ -242,7 +242,7 @@
         "max_items": 3,
         "bundle_discount_pct": 0,
         "fallback_collection": "",
-        "product_1": "",
+        "product_1": "lexe-pyramid-optics-exclusive",
         "product_2": "",
         "product_3": "",
         "bg_color": "#ffffff",
@@ -281,31 +281,31 @@
         "section_padding": 32
       }
     },
-    "atelier_related_grid": {
+    "luxury_relatedgrid_dpLNeW": {
       "type": "luxury-relatedgrid",
       "blocks": {
-        "swatches_pdp": {
+        "swatches_J9DD89": {
           "type": "swatches",
           "settings": {}
         },
-        "title_pdp": {
+        "title_AGDk7F": {
           "type": "title",
           "settings": {}
         },
-        "rating_pdp": {
+        "rating_kHPajX": {
           "type": "rating",
           "settings": {}
         },
-        "price_pdp": {
+        "price_z3WUDz": {
           "type": "price",
           "settings": {}
         }
       },
       "block_order": [
-        "swatches_pdp",
-        "title_pdp",
-        "rating_pdp",
-        "price_pdp"
+        "swatches_J9DD89",
+        "title_AGDk7F",
+        "rating_kHPajX",
+        "price_z3WUDz"
       ],
       "name": "Atelier Related Grid",
       "settings": {
@@ -338,6 +338,6 @@
     "177726641206da3e13",
     "vanquish_bundle_pdp",
     "luxury_relatedproductbar_Lek7wd",
-    "atelier_related_grid"
+    "luxury_relatedgrid_dpLNeW"
   ]
 }
