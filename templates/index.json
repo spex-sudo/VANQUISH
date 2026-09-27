@@ -658,7 +658,16 @@
         "free_color": "#9966CC",
         "single_btn_text_color": "#ffffff",
         "free_button_label": "Add free pair to cart",
-        "free_description": "Hand-shaped resin frames with mirrored lenses. Add them to your cart, bring your order to $49+ in eligible items, and use your code from the LEXE list below."
+        "free_description": "Hand-shaped resin frames with mirrored lenses. Add them to your cart, bring your order to $49+ in eligible items, and use your code from the LEXE list below.",
+        "free_gift_products": [
+          "asymmetrical-edgy-handmade-resin-sunglasses-unique-mutant-personality-venom-halloween-fashion-statement-sun-glasses",
+          "new-steampunk-oversized-sunglasses-women-trends-one-piece-punk-sun-glasses"
+        ],
+        "pair_selector_enabled": true,
+        "selector_eyebrow": "Pick your free pair",
+        "gift_blurbs": "asymmetrical-edgy-handmade-resin-sunglasses-unique-mutant-personality-venom-halloween-fashion-statement-sun-glasses | Hand-shaped resin frames with mirrored lenses.\nnew-steampunk-oversized-sunglasses-women-trends-one-piece-punk-sun-glasses | An oversized one-piece shield lens in a steampunk-style frame.",
+        "claim_button_label": "Claim now",
+        "free_discount_code": "LEXESPECS"
       }
     },
     "lexe_specs_offer": {
@@ -675,7 +684,8 @@
         "consent": "You're joining LEXE emails about new pieces and offers. You can unsubscribe anytime.",
         "success_heading": "You're on the list",
         "terms": "One pair per customer. Sunglasses and items outside the eligible list don't count toward the $49."
-      }
+      },
+      "disabled": true
     }
   },
   "order": [

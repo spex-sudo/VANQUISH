@@ -258,7 +258,7 @@
                           role="list"
                         >
                           {%- for discount in item.line_level_discount_allocations -%}
-                            <li>{{ discount.discount_application.title | escape }}</li>
+                            {%- if discount.amount > 0 -%}<li>{{ discount.discount_application.title | escape }}</li>{%- endif -%}
                           {%- endfor -%}
                         </ul>
                       {%- endif -%}
