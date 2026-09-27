@@ -66,6 +66,7 @@
       id="cart-form"
       method="post"
     >
+      {%- render 'lexe-gift-progress' -%}
       <div
         class="cart-items spacing-style{% if block_settings.dividers %} cart-items--dividers{% endif %}"
         style="{%  render 'spacing-style', settings: block_settings %} --cart-items-gap:{{ block_settings.gap | append: "px" }};"
@@ -266,7 +267,9 @@
 
                   <div class="cart-items__unit-price-wrapper">
                     <div>
-                      {% if item.original_price != item.final_price %}
+                      {% if item.properties['_lexe_gift'] == '1' and item.final_price == 0 %}
+                        <span class="lexe-gift-free" style="color:#9966CC;font-weight:600;">FREE</span>
+                      {% elsif item.original_price != item.final_price %}
                         <span class="visually-hidden">{{ 'content.price_sale' | t }}</span>
                         <span>{{ item.final_price | money }}</span>
                         <span class="visually-hidden">{{ 'content.price_regular' | t }}</span>
@@ -367,7 +370,14 @@
                   role="cell"
                   headers="productTotal"
                 >
-                  <text-component value="{{ price | strip_html }}">{{ price }}</text-component>
+                  {%- if item.properties['_lexe_gift'] == '1' and item.final_line_price == 0 -%}
+                    <span class="lexe-gift-free" style="color:#9966CC;font-weight:600;">FREE</span>
+                  {%- else -%}
+                    <text-component value="{{ price | strip_html }}">{{ price }}</text-component>
+                    {%- if item.properties['_lexe_gift'] == '1' -%}
+                      <small style="display:block;font-size:12px;color:#9966CC;">FREE with $49+ in eligible items</small>
+                    {%- endif -%}
+                  {%- endif -%}
                   {%- if item.unit_price_measurement -%}
                     <div class="cart-items__price-unit cart-secondary-typography">
                       {% render 'unit-price', price: unit_price, measurement: item.unit_price_measurement %}
@@ -931,3 +941,4 @@
     }
   }
 {% endstylesheet %}
+

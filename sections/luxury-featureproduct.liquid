@@ -764,6 +764,54 @@
 .apex-single-buy-{{ sid }}:hover { background: var(--apex-accent);{% if s.single_btn_text_color != blank %} color: {{ s.single_btn_text_color }};{% endif %} }
 .apex-single-buy-{{ sid }}:active { transform: scale(0.99); }
 .apex-single-buy-{{ sid }}:disabled { opacity: 0.5; cursor: not-allowed; }
+/* ── LEXE pair selector (single mode, free offer) ── */
+.lx-sel-{{ sid }} { --lx-amethyst: {{ s.free_color | default: '#9966CC' }}; --lx-deep: {{ s.accent_color | default: '#3c2366' }}; --lx-size: min(58vw, 240px); display: grid; gap: 28px; text-align: center; color: var(--apex-fg); }
+@media (min-width: 750px) {
+  .lx-sel-{{ sid }} { grid-template-columns: 1fr 1fr; align-items: center; text-align: left; gap: clamp(24px, 4vw, 56px); --lx-size: 260px; }
+  .lx-sel-{{ sid }} .lx-col-media { text-align: center; }
+}
+.lx-sel-{{ sid }} .lx-eyebrow { font-size: 13px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--apex-fg-muted); margin: 0 0 8px; }
+.lx-sel-{{ sid }} .lx-viewport { position: relative; overflow: hidden; padding: 18px 0; touch-action: pan-y; border-radius: 8px; outline: none; }
+.lx-sel-{{ sid }} .lx-viewport:focus-visible { box-shadow: 0 0 0 2px var(--lx-amethyst); }
+.lx-sel-{{ sid }} .lx-track { position: relative; display: flex; gap: 12px; width: max-content; transition: transform 0.45s var(--apex-ease); will-change: transform; }
+.lx-sel-{{ sid }} .lx-slide { flex: 0 0 var(--lx-size); width: var(--lx-size); height: var(--lx-size); padding: 0; border: 0; border-radius: 50%; overflow: hidden; background: #f4effa; cursor: pointer; transform: scale(0.7); opacity: 0.55; transition: transform 0.45s var(--apex-ease), opacity 0.45s var(--apex-ease), box-shadow 0.3s var(--apex-ease); }
+.lx-sel-{{ sid }} .lx-slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.lx-sel-{{ sid }} .lx-slide.is-active { transform: scale(1); opacity: 1; box-shadow: 0 0 0 4px #fff, 0 0 0 7px var(--lx-amethyst); }
+.lx-sel-{{ sid }} .lx-slide:focus-visible { outline: 2px solid var(--lx-deep); outline-offset: 10px; }
+.lx-sel-{{ sid }} .lx-arrows { display: flex; justify-content: center; gap: 12px; margin-top: 6px; }
+.lx-sel-{{ sid }} .lx-arrow { width: 48px; height: 48px; border-radius: 50%; border: 1.5px solid var(--lx-amethyst); background: transparent; color: var(--lx-deep); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s, color 0.2s; }
+.lx-sel-{{ sid }} .lx-arrow svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.lx-sel-{{ sid }} .lx-arrow:hover { background: var(--lx-amethyst); color: #fff; }
+.lx-sel-{{ sid }} .lx-arrow:focus-visible { outline: 2px solid var(--lx-deep); outline-offset: 3px; }
+.lx-sel-{{ sid }} .lx-name { font-size: clamp(26px, 3.6vw, 40px); font-weight: 600; letter-spacing: -0.02em; line-height: 1.08; margin: 0 0 10px; }
+.lx-sel-{{ sid }} .lx-free { margin: 0 0 16px; }
+.lx-sel-{{ sid }} .lx-free-label { display: block; font-size: 24px; font-weight: 600; letter-spacing: 0.03em; color: var(--lx-amethyst); }
+.lx-sel-{{ sid }} .lx-free-condition { display: block; margin-top: 4px; font-size: 14px; color: var(--apex-fg-muted); }
+.lx-sel-{{ sid }} .lx-free-condition a { color: inherit; text-decoration: underline; }
+.lx-sel-{{ sid }} .lx-blurb { font-size: 16px; line-height: 1.55; color: var(--apex-fg-muted); margin: 0 0 18px; }
+.lx-sel-{{ sid }} .lx-pills { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 22px; justify-content: center; }
+@media (min-width: 750px) { .lx-sel-{{ sid }} .lx-pills { justify-content: flex-start; } }
+.lx-sel-{{ sid }} .lx-pill { position: relative; cursor: pointer; }
+.lx-sel-{{ sid }} .lx-pill input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.lx-sel-{{ sid }} .lx-pill span { display: inline-block; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--apex-hairline); border-color: {{ s.text_color }}33; font-size: 14px; line-height: 1.2; transition: border-color 0.2s, background 0.2s; }
+.lx-sel-{{ sid }} .lx-pill:hover span { border-color: var(--lx-amethyst); }
+.lx-sel-{{ sid }} .lx-pill input:checked + span { border-color: var(--lx-amethyst); background: {{ s.free_color | default: '#9966CC' }}1f; font-weight: 500; }
+.lx-sel-{{ sid }} .lx-pill input:focus-visible + span { outline: 2px solid var(--lx-deep); outline-offset: 2px; }
+.lx-sel-{{ sid }} .lx-claim-row { display: flex; flex-direction: column; gap: 10px; }
+@media (min-width: 990px) { .lx-sel-{{ sid }} .lx-claim-row { flex-direction: row; } .lx-sel-{{ sid }} .lx-email { flex: 1; } }
+.lx-sel-{{ sid }} .lx-email { font: inherit; font-size: 16px; padding: 14px 20px; border-radius: 999px; border: 1px solid {{ s.text_color }}40; background: #fff; color: var(--apex-fg); min-width: 0; }
+.lx-sel-{{ sid }} .lx-email:focus { outline: none; border-color: var(--lx-amethyst); box-shadow: 0 0 0 3px {{ s.free_color | default: '#9966CC' }}33; }
+.lx-sel-{{ sid }} .lx-claim-btn { font: inherit; font-size: 16px; font-weight: 700; padding: 15px 34px; border: 0; border-radius: 999px; background: var(--lx-deep); color: #fff; cursor: pointer; transition: background 0.2s, transform 0.15s; white-space: nowrap; }
+.lx-sel-{{ sid }} .lx-claim-btn:hover { background: #4e2f85; }
+.lx-sel-{{ sid }} .lx-claim-btn:active { transform: scale(0.98); }
+.lx-sel-{{ sid }} .lx-claim-btn:focus-visible { outline: 2px solid var(--lx-amethyst); outline-offset: 3px; }
+.lx-sel-{{ sid }} .lx-claim-btn[disabled] { opacity: 0.6; cursor: wait; }
+.lx-sel-{{ sid }} .lx-consent { font-size: 12.5px; line-height: 1.5; color: var(--apex-fg-muted); margin: 10px 0 0; }
+.lx-sel-{{ sid }} .lx-consent a { color: inherit; text-decoration: underline; }
+.lx-sel-{{ sid }} .lx-msg { font-size: 14px; margin: 8px 0 0; min-height: 1em; }
+.lx-sel-{{ sid }} .lx-msg.is-error { color: #b3261e; }
+.lx-sel-{{ sid }} .lx-details { display: inline-block; margin-top: 12px; color: var(--apex-accent); text-decoration: none; font-size: 14px; font-weight: 500; }
+@media (prefers-reduced-motion: reduce) { .lx-sel-{{ sid }} .lx-track, .lx-sel-{{ sid }} .lx-slide { transition: none; } }
 </style>
 
 <div class="apex-{{ sid }}">
@@ -771,6 +819,157 @@
 
   {%- if mode == 'single' -%}
     {%- if product != blank -%}
+      {%- liquid
+        assign lexe_free = false
+        assign lexe_gift_handles = ''
+        for gp in s.free_gift_products
+          assign lexe_gift_handles = lexe_gift_handles | append: gp.handle | append: ','
+        endfor
+        if s.free_gift_handles != blank
+          assign lexe_gift_handles = lexe_gift_handles | append: s.free_gift_handles
+        endif
+        assign lexe_gift_handle_list = lexe_gift_handles | split: ','
+        if s.free_offer_enabled
+          for fh in lexe_gift_handle_list
+            assign fh_clean = fh | strip
+            if fh_clean == product.handle
+              assign lexe_free = true
+            endif
+          endfor
+        endif
+        assign lexe_selector = false
+        assign lexe_sel_count = 0
+        if lexe_free and s.pair_selector_enabled
+          for gp in s.free_gift_products
+            if gp.available
+              assign lexe_sel_count = lexe_sel_count | plus: 1
+            endif
+          endfor
+          if lexe_sel_count > 0
+            assign lexe_selector = true
+          endif
+        endif
+        assign lexe_free_color = s.free_color | default: '#9966CC'
+      -%}
+      {%- if lexe_selector -%}
+        {%- liquid
+          assign lx_blurb_lines = s.gift_blurbs | newline_to_br | split: '<br />'
+          assign lx_start = 0
+          assign lx_i = 0
+          for gp in s.free_gift_products
+            if gp.available
+              if gp.handle == product.handle
+                assign lx_start = lx_i
+              endif
+              assign lx_i = lx_i | plus: 1
+            endif
+          endfor
+          assign lx_form_id = 'lx-claim-' | append: sid
+        -%}
+        <div class="lx-sel-{{ sid }}" id="lx-sel-{{ sid }}" data-start="{{ lx_start }}" data-code="{{ s.free_discount_code | default: 'LEXESPECS' | escape }}">
+          <div class="lx-col lx-col-media">
+            {%- if s.selector_eyebrow != blank -%}<p class="lx-eyebrow">{{ s.selector_eyebrow | escape }}</p>{%- endif -%}
+            <div class="lx-viewport" data-lx-viewport tabindex="0" role="group" aria-roledescription="carousel" aria-label="{{ s.selector_eyebrow | default: 'Pick your free pair' | escape }}">
+              <div class="lx-track" data-lx-track>
+                {%- assign lx_i = 0 -%}
+                {%- for gp in s.free_gift_products -%}
+                  {%- if gp.available -%}
+                    {%- assign gp_img = gp.featured_image -%}
+                    <button type="button" class="lx-slide{% if lx_i == lx_start %} is-active{% endif %}" data-lx-slide="{{ lx_i }}"
+                      aria-label="{{ gp.title | escape }}" aria-pressed="{% if lx_i == lx_start %}true{% else %}false{% endif %}">
+                      {%- if gp_img -%}
+                        <img src="{{ gp_img | image_url: width: 560 }}" alt="" width="280" height="280" loading="{% if lx_i == lx_start %}eager{% else %}lazy{% endif %}" data-lx-img>
+                      {%- endif -%}
+                    </button>
+                    {%- assign lx_i = lx_i | plus: 1 -%}
+                  {%- endif -%}
+                {%- endfor -%}
+              </div>
+            </div>
+            <div class="lx-arrows">
+              <button type="button" class="lx-arrow" data-lx-prev aria-label="Previous pair" aria-controls="lx-sel-{{ sid }}">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 5l-7 7 7 7"/></svg>
+              </button>
+              <button type="button" class="lx-arrow" data-lx-next aria-label="Next pair" aria-controls="lx-sel-{{ sid }}">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 5l7 7-7 7"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="lx-col lx-col-info">
+            <p class="visually-hidden" aria-live="polite" data-lx-announce></p>
+            {%- assign lx_i = 0 -%}
+            {%- for gp in s.free_gift_products -%}
+              {%- if gp.available -%}
+                {%- liquid
+                  assign gp_blurb = ''
+                  for line in lx_blurb_lines
+                    assign parts = line | split: '|'
+                    assign l_handle = parts.first | strip
+                    if l_handle == gp.handle and parts.size > 1
+                      assign gp_blurb = parts.last | strip
+                    endif
+                  endfor
+                -%}
+                <div class="lx-panel" data-lx-panel="{{ lx_i }}" data-url="{{ gp.url }}"{% unless lx_i == lx_start %} hidden{% endunless %}>
+                  <h2 class="lx-name">{{ gp.title | escape }}</h2>
+                  <div class="lx-free">
+                    <span class="lx-free-label">{{ s.free_label | default: 'FREE' | escape }}</span>
+                    {%- if s.free_condition_text != blank -%}
+                      <span class="lx-free-condition">{{ s.free_condition_text | escape }}{% if s.free_link_text != blank and s.free_link_url != blank %} <a href="{{ s.free_link_url }}">{{ s.free_link_text | escape }}</a>{% endif %}</span>
+                    {%- endif -%}
+                  </div>
+                  {%- if gp_blurb != blank -%}<p class="lx-blurb">{{ gp_blurb | escape }}</p>{%- endif -%}
+                  {%- assign gp_first = gp.selected_or_first_available_variant -%}
+                  {%- unless gp.has_only_default_variant -%}
+                    <div class="lx-pills" role="radiogroup" aria-label="{{ gp.options.first | default: 'Colour' | escape }} for {{ gp.title | escape }}">
+                      {%- for v in gp.variants -%}
+                        {%- if v.available -%}
+                          {%- liquid
+                            assign v_img = ''
+                            if v.featured_image
+                              assign v_img = v.featured_image | image_url: width: 560
+                            elsif gp.featured_image
+                              assign v_img = gp.featured_image | image_url: width: 560
+                            endif
+                            assign v_label = v.title | downcase | split: ' ' 
+                          -%}
+                          <label class="lx-pill">
+                            <input type="radio" name="lx-v-{{ sid }}-{{ lx_i }}" value="{{ v.id }}" data-img="{{ v_img }}"{% if v.id == gp_first.id %} checked{% endif %}>
+                            <span>{% for w in v_label %}{{ w | capitalize }}{% unless forloop.last %} {% endunless %}{% endfor %}</span>
+                          </label>
+                        {%- endif -%}
+                      {%- endfor -%}
+                    </div>
+                  {%- else -%}
+                    <input type="radio" hidden name="lx-v-{{ sid }}-{{ lx_i }}" value="{{ gp_first.id }}" checked>
+                  {%- endunless -%}
+                </div>
+                {%- assign lx_i = lx_i | plus: 1 -%}
+              {%- endif -%}
+            {%- endfor -%}
+
+            {%- form 'customer', id: lx_form_id, class: 'lx-claim' -%}
+              {%- liquid
+                assign lx_posted = false
+                if form.posted_successfully?
+                  assign lx_posted = true
+                endif
+              -%}
+              <input type="hidden" name="contact[tags]" value="newsletter,specs-offer">
+              <input type="hidden" data-lx-variant value="">
+              <div class="lx-claim-row">
+                <label class="visually-hidden" for="lx-email-{{ sid }}">Email</label>
+                <input class="lx-email" id="lx-email-{{ sid }}" type="email" name="contact[email]" required autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="Email address" aria-describedby="lx-consent-{{ sid }} lx-msg-{{ sid }}">
+                <button type="submit" class="lx-claim-btn" data-lx-claim>{{ s.claim_button_label | default: 'Claim now' | escape }}</button>
+              </div>
+              <p class="lx-consent" id="lx-consent-{{ sid }}">You're joining LEXE emails about new pieces and offers. You can unsubscribe anytime. <a href="{{ shop.privacy_policy.url | default: '/policies/privacy-policy' }}">Privacy policy</a></p>
+              <p class="lx-msg" id="lx-msg-{{ sid }}" role="status" aria-live="polite" data-lx-msg{% if lx_posted %} data-posted="true"{% endif %}{% if form.errors %} data-error="{{ form.errors.translated_fields.email | append: ' ' | append: form.errors.messages.email | strip | escape }}"{% endif %}></p>
+            {%- endform -%}
+            <a class="lx-details" href="{{ product.url }}" data-lx-details>{{ 'products.product.view_full_details' | t | default: 'View full details' }} &rarr;</a>
+          </div>
+        </div>
+      {%- else -%}
       <div class="apex-single-{{ sid }}{% if s.layout == 'text_first' %} is-text-first{% endif %}">
         <div class="apex-single-media-{{ sid }}">
           {%- if first_image -%}
@@ -788,21 +987,9 @@
         </div>
         <div class="apex-single-info-{{ sid }}">
           <h1>{{ product.title | escape }}</h1>
-          {%- liquid
-            assign lexe_free = false
-            if s.free_offer_enabled and s.free_gift_handles != blank
-              assign lexe_free_handles = s.free_gift_handles | split: ','
-              for fh in lexe_free_handles
-                if fh == product.handle
-                  assign lexe_free = true
-                endif
-              endfor
-            endif
-          -%}
           {%- if lexe_free -%}
             <div class="apex-single-price-{{ sid }} apex-free-{{ sid }}" data-lexe-free="true">
               <span class="free-label">{{ s.free_label | default: 'FREE' | escape }}</span>
-              <span class="price-compare"><span class="visually-hidden">Regular price </span>{{ cv.price | money }}</span>
               {%- if s.free_condition_text != blank -%}
                 <span class="free-condition">{{ s.free_condition_text | escape }}{% if s.free_link_text != blank and s.free_link_url != blank %} <a href="{{ s.free_link_url }}">{{ s.free_link_text | escape }}</a>{% endif %}</span>
               {%- endif -%}
@@ -849,6 +1036,7 @@
           </a>
         </div>
       </div>
+      {%- endif -%}
     {%- else -%}
       <p style="text-align:center;color:var(--apex-fg-muted);">Add a product in the section settings.</p>
     {%- endif -%}
@@ -1662,6 +1850,196 @@
 })();
 </script>
 
+{%- if mode == 'single' -%}
+<script>
+(function () {
+  'use strict';
+  var root = document.getElementById('lx-sel-{{ sid }}');
+  if (!root) return;
+  var KEY = 'lexe_gift_pending';
+  var CODE = root.getAttribute('data-code') || 'LEXESPECS';
+  var vp = root.querySelector('[data-lx-viewport]');
+  var track = root.querySelector('[data-lx-track]');
+  var slides = Array.prototype.slice.call(root.querySelectorAll('[data-lx-slide]'));
+  var panels = Array.prototype.slice.call(root.querySelectorAll('[data-lx-panel]'));
+  var announce = root.querySelector('[data-lx-announce]');
+  var form = root.querySelector('form.lx-claim');
+  var email = root.querySelector('.lx-email');
+  var btn = root.querySelector('[data-lx-claim]');
+  var msg = root.querySelector('[data-lx-msg]');
+  var hiddenVariant = root.querySelector('[data-lx-variant]');
+  var details = root.querySelector('[data-lx-details]');
+  var n = slides.length;
+  var idx = parseInt(root.getAttribute('data-start'), 10) || 0;
+  var btnText = btn ? btn.textContent : '';
+
+  function ss() { try { return window.sessionStorage; } catch (e) { return null; } }
+  function say(text, isError) {
+    if (!msg) return;
+    msg.textContent = text || '';
+    msg.classList.toggle('is-error', !!isError);
+  }
+  function busy(on, label) {
+    if (!btn) return;
+    btn.disabled = !!on;
+    btn.textContent = on ? (label || 'Claiming…') : btnText;
+  }
+  function currentRadio() {
+    var p = panels[idx];
+    return p ? p.querySelector('input[type="radio"]:checked') : null;
+  }
+  function syncVariant() {
+    var r = currentRadio();
+    if (hiddenVariant) hiddenVariant.value = r ? r.value : '';
+    var img = slides[idx] && slides[idx].querySelector('[data-lx-img]');
+    if (r && img && r.getAttribute('data-img')) img.src = r.getAttribute('data-img');
+  }
+  function center() {
+    var s = slides[idx];
+    if (!s || !vp) return;
+    var tx = vp.clientWidth / 2 - (s.offsetLeft + s.offsetWidth / 2);
+    track.style.transform = 'translateX(' + Math.round(tx) + 'px)';
+  }
+  function select(i, quiet) {
+    if (!n) return;
+    idx = ((i % n) + n) % n;
+    slides.forEach(function (s, k) {
+      s.classList.toggle('is-active', k === idx);
+      s.setAttribute('aria-pressed', k === idx ? 'true' : 'false');
+    });
+    panels.forEach(function (p, k) { p.hidden = k !== idx; });
+    if (details && panels[idx]) details.href = panels[idx].getAttribute('data-url');
+    center();
+    syncVariant();
+    if (!quiet && announce && panels[idx]) {
+      var name = panels[idx].querySelector('.lx-name');
+      announce.textContent = (name ? name.textContent : '') + ' selected, ' + (idx + 1) + ' of ' + n;
+    }
+  }
+
+  var prev = root.querySelector('[data-lx-prev]');
+  var next = root.querySelector('[data-lx-next]');
+  if (prev) prev.addEventListener('click', function () { select(idx - 1); });
+  if (next) next.addEventListener('click', function () { select(idx + 1); });
+  slides.forEach(function (s, k) { s.addEventListener('click', function () { select(k); }); });
+  if (vp) {
+    vp.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); select(idx - 1); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); select(idx + 1); }
+    });
+    var x0 = null, y0 = null;
+    vp.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+    vp.addEventListener('touchend', function (e) {
+      if (x0 === null) return;
+      var dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) select(dx < 0 ? idx + 1 : idx - 1);
+      x0 = null;
+    }, { passive: true });
+  }
+  root.addEventListener('change', function (e) {
+    if (e.target && e.target.matches('.lx-pill input')) syncVariant();
+  });
+  window.addEventListener('resize', center);
+  window.addEventListener('load', center);
+
+  /* ── Claim flow ── */
+  function json(url, body) {
+    return fetch(url, {
+      method: 'POST', credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(body)
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (d) {
+        if (!r.ok) throw new Error(d.description || d.message || 'Something went wrong. Please try again.');
+        return d;
+      });
+    });
+  }
+  function finish(variantId) {
+    busy(true, 'Adding your pair…');
+    return fetch('/cart.js', { credentials: 'same-origin' }).then(function (r) { return r.json(); })
+      .then(function (cart) {
+        /* one gift per order: drop any earlier gift line */
+        var updates = {}, had = false;
+        (cart.items || []).forEach(function (it) {
+          if (it.properties && it.properties._lexe_gift === '1') { updates[it.key] = 0; had = true; }
+        });
+        var codes = (cart.discount_codes || []).map(function (d) { return d.code; })
+          .filter(function (c) { return c && c.toUpperCase() !== CODE.toUpperCase(); });
+        codes.push(CODE);
+        return (had ? json('/cart/update.js', { updates: updates }) : Promise.resolve())
+          .then(function () { return json('/cart/add.js', { items: [{ id: Number(variantId), quantity: 1, properties: { _lexe_gift: '1' } }] }); })
+          .then(function () { return json('/cart/update.js', { discount: codes.join(',') }).catch(function () { return null; }); });
+      })
+      .then(function (cart) {
+        var applied = cart && (cart.discount_codes || []).some(function (d) { return d.code && d.code.toUpperCase() === CODE.toUpperCase(); });
+        var s = ss(); if (s) s.removeItem(KEY);
+        document.dispatchEvent(new CustomEvent('cart:updated', { detail: { cart: cart } }));
+        window.location.href = applied ? '/cart' : '/discount/' + encodeURIComponent(CODE) + '?redirect=/cart';
+      })
+      .catch(function (err) {
+        var s = ss(); if (s) s.removeItem(KEY);
+        busy(false);
+        say(/sold out|not available|already sold/i.test(err.message) ? 'Sorry, that colour just sold out. Please pick another.' : err.message, true);
+      });
+  }
+  function nativeSubmit() {
+    form.setAttribute('data-lx-native', '1');
+    if (typeof form.requestSubmit === 'function') form.requestSubmit(); else form.submit();
+  }
+  if (form) {
+    document.addEventListener('submit', function (e) {
+      if (e.target !== form) return;
+      if (form.getAttribute('data-lx-native') === '1') return; /* let Shopify's own form handling (incl. CAPTCHA) run */
+      e.preventDefault();
+      e.stopPropagation();
+      say('');
+      var v = email.value.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) { say('Please enter a valid email address.', true); email.focus(); return; }
+      syncVariant();
+      var variantId = hiddenVariant && hiddenVariant.value;
+      if (!variantId) { say('Please pick a colour first.', true); return; }
+      var s = ss();
+      if (s) s.setItem(KEY, JSON.stringify({ v: variantId, i: idx, t: Date.now() }));
+      busy(true);
+      fetch(form.action, { method: 'POST', body: new FormData(form), credentials: 'same-origin', headers: { 'Accept': 'text/html' } })
+        .then(function (r) {
+          if (r.ok && /customer_posted=true/.test(r.url)) return finish(variantId);
+          nativeSubmit(); /* CAPTCHA, challenge or validation: fall back to a normal post, resume on return */
+        })
+        .catch(function () { nativeSubmit(); });
+    }, true);
+  }
+
+  /* ── Resume after a normal form post ── */
+  (function resume() {
+    var s = ss(); if (!s) return;
+    var raw = s.getItem(KEY); if (!raw) return;
+    var p; try { p = JSON.parse(raw); } catch (e) { s.removeItem(KEY); return; }
+    if (!p || Date.now() - (p.t || 0) > 30 * 60 * 1000) { s.removeItem(KEY); return; }
+    if (typeof p.i === 'number' && p.i < n) {
+      select(p.i, true);
+      var r = panels[idx] && panels[idx].querySelector('input[type="radio"][value="' + p.v + '"]');
+      if (r) { r.checked = true; syncVariant(); }
+    }
+    var posted = /[?&]customer_posted=true/.test(window.location.search) || (msg && msg.getAttribute('data-posted') === 'true');
+    var errText = msg && msg.getAttribute('data-error');
+    if (posted) {
+      if (root.scrollIntoView) root.scrollIntoView({ block: 'center' });
+      say('Thanks, you are on the list.');
+      finish(p.v);
+    } else if (errText !== null && errText !== undefined) {
+      s.removeItem(KEY);
+      if (root.scrollIntoView) root.scrollIntoView({ block: 'center' });
+      say(errText || 'Please check your email address and try again.', true);
+    }
+  })();
+
+  select(idx, true);
+})();
+</script>
+{%- endif -%}
+
 {% schema %}
 {
   "name": "Apex Featured",
@@ -1937,6 +2315,12 @@
     { "type": "text", "id": "free_button_label", "label": "Free offer: button label", "default": "Add free pair to cart" },
     { "type": "textarea", "id": "free_description", "label": "Free offer: short description", "info": "Replaces the product excerpt in single mode while the free offer shows. Leave blank to keep the excerpt." },
     { "type": "color", "id": "single_btn_text_color", "label": "Single mode: button text colour", "info": "Leave blank to use the card background colour." },
+    { "type": "product_list", "id": "free_gift_products", "label": "Gift products", "limit": 8, "info": "Products that show as FREE and appear in the pair selector." },
+    { "type": "checkbox", "id": "pair_selector_enabled", "label": "Show pair selector with email claim", "default": false },
+    { "type": "text", "id": "selector_eyebrow", "label": "Pair selector: small heading", "default": "Pick your free pair" },
+    { "type": "textarea", "id": "gift_blurbs", "label": "Pair selector: short text per product", "info": "One line per product: product-handle | short text" },
+    { "type": "text", "id": "claim_button_label", "label": "Pair selector: button label", "default": "Claim now" },
+    { "type": "text", "id": "free_discount_code", "label": "Pair selector: discount code applied to the cart", "default": "LEXESPECS" },
     {
       "type": "select", "id": "layout", "label": "Media position",
       "options": [
@@ -1953,5 +2337,6 @@
   ]
 }
 {% endschema %}
+
 
 

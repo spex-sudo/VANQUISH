@@ -1406,6 +1406,12 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
     cart.items.forEach(function (item) {
       var img = item.image || (item.featured_image && item.featured_image.url) || '';
       var sale = item.original_line_price && item.original_line_price > item.final_line_price;
+      var lexeGift = item.properties && item.properties._lexe_gift === '1';
+      var priceHTML = (lexeGift && item.final_line_price === 0)
+        ? '<span class="cart-line-price" style="color:#9966CC;font-weight:600;">FREE</span>'
+        : (sale ? '<span class="cart-line-price-was">' + formatMoney(item.original_line_price) + '</span>' : '') +
+          '<span class="cart-line-price">' + formatMoney(item.final_line_price) + '</span>' +
+          (lexeGift ? '<small style="display:block;font-size:11px;color:#9966CC;">FREE with $49+ in eligible items</small>' : '');
       html += '<div class="cart-item" data-cart-key="' + escapeHTML(item.key) + '">' +
         '<a href="' + escapeHTML(item.url) + '" class="cart-thumb"' +
           (img ? ' style="background-image:url(' + escapeHTML(img) + ')"' : '') +
@@ -1419,10 +1425,7 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
               '<span class="cart-qty-val">' + item.quantity + '</span>' +
               '<button type="button" data-cart-qty-up="' + escapeHTML(item.key) + '" aria-label="Increase">+</button>' +
             '</div>' +
-            '<div>' +
-              (sale ? '<span class="cart-line-price-was">' + formatMoney(item.original_line_price) + '</span>' : '') +
-              '<span class="cart-line-price">' + formatMoney(item.final_line_price) + '</span>' +
-            '</div>' +
+            '<div>' + priceHTML + '</div>' +
           '</div>' +
         '</div>' +
         '<button type="button" class="cart-remove" data-cart-remove="' + escapeHTML(item.key) + '" aria-label="Remove">' +
@@ -1431,6 +1434,21 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
       '</div>';
     });
     cartBody.innerHTML = html;
+    /* LEXE free-pair progress (Liquid-rendered, only when a gift line is in the cart) */
+    if (cart.items.some(function (it) { return it.properties && it.properties._lexe_gift === '1'; })) {
+      fetch('/?sections=lexe-cart-gift', { credentials: 'same-origin' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          if (!d || !d['lexe-cart-gift'] || !cartBody) return;
+          var old = cartBody.querySelector('[data-lexe-gift-wrap]');
+          if (old) old.remove();
+          var w = document.createElement('div');
+          w.setAttribute('data-lexe-gift-wrap', '');
+          w.innerHTML = d['lexe-cart-gift'];
+          cartBody.insertBefore(w, cartBody.firstChild);
+        })
+        .catch(function () {});
+    }
     if (cartFoot)     cartFoot.hidden = false;
     if (cartSubtotal) cartSubtotal.textContent = formatMoney(cart.total_price);
     if (cartShip && SHIP_THRESHOLD > 0) {
@@ -2491,3 +2509,4 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
   ]
 }
 {% endschema %}
+

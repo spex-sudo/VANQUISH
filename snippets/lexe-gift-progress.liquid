@@ -1,0 +1,52 @@
+{%- comment -%}
+  LEXE free-pair progress. Shown only when the cart holds a gift line (_lexe_gift = 1).
+  Eligible subtotal = lines whose product is in the specs-offer-eligible collection, gift lines excluded.
+  Used by snippets/cart-products.liquid (cart page) and sections/lexe-cart-gift.liquid (cart drawer).
+{%- endcomment -%}
+{%- liquid
+  assign lgp_threshold = 4900
+  assign lgp_handle = 'specs-offer-eligible'
+  assign lgp_code = 'LEXESPECS'
+  assign lgp_has_gift = false
+  assign lgp_gift_free = false
+  assign lgp_eligible = 0
+  for item in cart.items
+    if item.properties['_lexe_gift'] == '1'
+      assign lgp_has_gift = true
+      if item.final_line_price == 0
+        assign lgp_gift_free = true
+      endif
+      continue
+    endif
+    assign lgp_cols = item.product.collections | map: 'handle'
+    if lgp_cols contains lgp_handle
+      assign lgp_eligible = lgp_eligible | plus: item.final_line_price
+    endif
+  endfor
+  assign lgp_remaining = lgp_threshold | minus: lgp_eligible
+  assign lgp_pct = lgp_eligible | times: 100 | divided_by: lgp_threshold
+  if lgp_pct > 100
+    assign lgp_pct = 100
+  endif
+-%}
+{%- if lgp_has_gift -%}
+  <div class="lexe-gift-progress" data-lexe-gift-progress data-eligible="{{ lgp_eligible }}">
+    <style>
+      .lexe-gift-progress { margin: 0 0 16px; padding: 12px 14px; border: 1px solid #9966CC40; border-radius: 10px; background: #9966CC0d; font-size: 14px; line-height: 1.45; text-align: left; }
+      .lexe-gift-progress p { margin: 0; }
+      .lexe-gift-progress a { color: inherit; text-decoration: underline; }
+      .lexe-gift-progress__bar { height: 4px; margin-top: 8px; border-radius: 4px; background: #9966CC26; overflow: hidden; }
+      .lexe-gift-progress__fill { height: 100%; background: #9966CC; border-radius: 4px; }
+    </style>
+    {%- if lgp_eligible < lgp_threshold -%}
+      <p>Add <strong>{{ lgp_remaining | money }}</strong> more in <a href="/collections/{{ lgp_handle }}">eligible items</a> to unlock your free pair.</p>
+      <div class="lexe-gift-progress__bar" role="progressbar" aria-label="Progress toward your free pair" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ lgp_pct }}">
+        <div class="lexe-gift-progress__fill" style="width: {{ lgp_pct }}%;"></div>
+      </div>
+    {%- elsif lgp_gift_free -%}
+      <p>Your free pair is unlocked.</p>
+    {%- else -%}
+      <p>You have {{ lgp_threshold | money_without_trailing_zeros }}+ in eligible items. Code {{ lgp_code }} makes your pair free at checkout.</p>
+    {%- endif -%}
+  </div>
+{%- endif -%}
