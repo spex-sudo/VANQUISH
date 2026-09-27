@@ -932,11 +932,17 @@
                             elsif gp.featured_image
                               assign v_img = gp.featured_image | image_url: width: 560
                             endif
-                            assign v_label = v.title | downcase | split: ' ' 
+                            assign v_words = v.title | downcase | split: ' '
+                            assign v_label = ''
+                            for w in v_words
+                              assign v_cw = w | capitalize
+                              assign v_label = v_label | append: ' ' | append: v_cw
+                            endfor
+                            assign v_label = v_label | strip
                           -%}
                           <label class="lx-pill">
                             <input type="radio" name="lx-v-{{ sid }}-{{ lx_i }}" value="{{ v.id }}" data-img="{{ v_img }}"{% if v.id == gp_first.id %} checked{% endif %}>
-                            <span>{% for w in v_label %}{{ w | capitalize }}{% unless forloop.last %} {% endunless %}{% endfor %}</span>
+                            <span>{{ v_label | escape }}</span>
                           </label>
                         {%- endif -%}
                       {%- endfor -%}
