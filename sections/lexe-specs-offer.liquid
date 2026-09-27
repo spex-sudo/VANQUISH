@@ -6,6 +6,7 @@
 {%- liquid
   assign s = section.settings
   assign gift = s.gift_product
+  assign gift2 = s.gift_product_2
   assign sid = section.id
 -%}
 <section id="lexe-specs-offer-{{ sid }}" class="lso-{{ sid }}" aria-labelledby="lso-title-{{ sid }}">
@@ -30,14 +31,14 @@
           <p>Your code:</p>
           <div class="lso-code">{{ s.code | escape }}</div>
           <p>
-            Add {% if gift != blank %}the <a href="{{ gift.url }}">{{ gift.title | escape }}</a>{% else %}the gift sunglasses{% endif %}
-            to your cart with {{ s.threshold | escape }} or more of other eligible items, then enter {{ s.code | escape }} at checkout.
+            Add {% if gift != blank %}the <a href="{{ gift.url }}">{{ gift.title | escape }}</a>{% else %}the gift glasses{% endif %}{% if gift2 != blank %} or the <a href="{{ gift2.url }}">{{ gift2.title | escape }}</a>{% endif %}
+            to your cart with {{ s.threshold | escape }} or more of {% if s.eligible_url != blank %}<a href="{{ s.eligible_url }}">eligible items</a>{% else %}eligible items{% endif %}, then enter {{ s.code | escape }} at checkout.
           </p>
           <p class="lso-note">{{ s.terms | escape }}</p>
         </div>
       {%- else -%}
         <h2 id="lso-title-{{ sid }}">{{ s.heading | escape }}</h2>
-        <p>{{ s.text | escape }}</p>
+        <p>{{ s.text | escape }}{% if s.eligible_url != blank %} <a href="{{ s.eligible_url }}" style="color:inherit;text-decoration:underline">See what counts</a>.{% endif %}</p>
         <input type="hidden" name="contact[tags]" value="newsletter,specs-offer">
         <div class="lso-row">
           <label for="lso-email-{{ sid }}" class="visually-hidden">Email address</label>
@@ -62,6 +63,8 @@
   "name": "LEXE Specs offer signup",
   "settings": [
     { "type": "product", "id": "gift_product", "label": "Gift product" },
+    { "type": "product", "id": "gift_product_2", "label": "Second gift product (optional)" },
+    { "type": "url", "id": "eligible_url", "label": "Link to eligible items (optional)" },
     { "type": "text", "id": "code", "label": "Discount code (must match the live code)", "default": "LEXESPECS" },
     { "type": "text", "id": "threshold", "label": "Threshold shown to customers", "default": "$75" },
     { "type": "text", "id": "heading", "label": "Heading", "default": "Free LEXE Specs" },
@@ -79,3 +82,4 @@
   "presets": [{ "name": "LEXE Specs offer signup" }]
 }
 {% endschema %}
+
