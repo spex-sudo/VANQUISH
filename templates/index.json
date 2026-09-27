@@ -209,9 +209,9 @@
         "addname_privacy_label": "Privacy Policy",
         "addname_privacy_url": "shopify://pages/contact",
         "addname_submit_label": "Add Me to the Wall",
-        "addname_submit_loading": "Sending\u2026",
+        "addname_submit_loading": "Sending…",
         "addname_success_title": "You're on the list!",
-        "addname_success_body": "Thanks for joining. Your name will appear on the wall after a quick review \u2014 usually within 24 hours."
+        "addname_success_body": "Thanks for joining. Your name will appear on the wall after a quick review — usually within 24 hours."
       }
     },
     "luxury_collectiongrid_jpK7Cz": {
@@ -384,7 +384,7 @@
         "countdown_second_label": "sec",
         "sr_showing_label": "Showing",
         "sr_of_label": "of",
-        "committed_badge": "YOU\u2019RE ON THE LIST",
+        "committed_badge": "YOU’RE ON THE LIST",
         "modal_bg": "#ffffff",
         "modal_fg": "#000000",
         "modal_accent": "#ece6fd",
@@ -648,14 +648,14 @@
         "padding_top": 20,
         "padding_bottom": 20,
         "product": "asymmetrical-edgy-handmade-resin-sunglasses-unique-mutant-personality-venom-halloween-fashion-statement-sun-glasses",
-        "layout": "text_first",
         "free_offer_enabled": true,
         "free_gift_handles": "asymmetrical-edgy-handmade-resin-sunglasses-unique-mutant-personality-venom-halloween-fashion-statement-sun-glasses,new-steampunk-oversized-sunglasses-women-trends-one-piece-punk-sun-glasses",
         "free_label": "FREE",
         "free_condition_text": "with orders of $49+ in",
         "free_link_text": "eligible items",
         "free_link_url": "shopify://collections/specs-offer-eligible",
-        "free_color": "#9966CC"
+        "free_color": "#9966CC",
+        "layout": "text_first"
       }
     },
     "lexe_specs_offer": {

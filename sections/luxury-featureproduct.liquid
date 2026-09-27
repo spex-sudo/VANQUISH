@@ -755,13 +755,13 @@
 }
 .apex-single-buy-{{ sid }} {
   display: block; width: 100%; padding: 14px 20px;
-  background: var(--apex-fg); color: var(--apex-card-bg);
+  background: var(--apex-fg); color: {% if s.single_btn_text_color != blank %}{{ s.single_btn_text_color }}{% else %}var(--apex-card-bg){% endif %};
   border: 0; border-radius: var(--apex-r-btn);
   font-size: 15px; font-weight: 500; cursor: pointer;
   transition: background 0.2s var(--apex-ease), transform 0.18s var(--apex-ease);
   font-family: inherit; text-align: center; text-decoration: none;
 }
-.apex-single-buy-{{ sid }}:hover { background: var(--apex-accent); }
+.apex-single-buy-{{ sid }}:hover { background: var(--apex-accent);{% if s.single_btn_text_color != blank %} color: {{ s.single_btn_text_color }};{% endif %} }
 .apex-single-buy-{{ sid }}:active { transform: scale(0.99); }
 .apex-single-buy-{{ sid }}:disabled { opacity: 0.5; cursor: not-allowed; }
 </style>
@@ -815,18 +815,28 @@
             {%- endif -%}
           </div>
           {%- endif -%}
-          {%- if product.description != blank -%}
+          {%- if lexe_free and s.free_description != blank -%}
+            <div class="apex-single-desc-{{ sid }}">
+              {{ s.free_description | escape }}
+            </div>
+          {%- elsif product.description != blank -%}
             <div class="apex-single-desc-{{ sid }}">
               {{ product.description | strip_html | truncate: 280 }}
             </div>
           {%- endif -%}
           {%- if cv.available -%}
+            {%- liquid
+                assign lexe_atc_label = 'products.product.add_to_cart' | t
+                if lexe_free and s.free_button_label != blank
+                  assign lexe_atc_label = s.free_button_label
+                endif
+              -%}
             <form action="{{ routes.cart_add_url }}" method="post" class="apex-atc-form-{{ sid }}"
-              data-orig="{{ 'products.product.add_to_cart' | t | escape }}">
+              data-orig="{{ lexe_atc_label | escape }}">
               <input type="hidden" name="id"       value="{{ cv.id }}">
               <input type="hidden" name="quantity" value="1">
               <button type="submit" class="apex-single-buy-{{ sid }}">
-                {{ 'products.product.add_to_cart' | t }}
+                {{ lexe_atc_label | escape }}
               </button>
             </form>
           {%- else -%}
@@ -1924,6 +1934,9 @@
     { "type": "text", "id": "free_link_text", "label": "Condition link text", "default": "eligible items" },
     { "type": "url", "id": "free_link_url", "label": "Condition link" },
     { "type": "color", "id": "free_color", "label": "Free label colour", "default": "#9966CC" },
+    { "type": "text", "id": "free_button_label", "label": "Free offer: button label", "default": "Add free pair to cart" },
+    { "type": "textarea", "id": "free_description", "label": "Free offer: short description", "info": "Replaces the product excerpt in single mode while the free offer shows. Leave blank to keep the excerpt." },
+    { "type": "color", "id": "single_btn_text_color", "label": "Single mode: button text colour", "info": "Leave blank to use the card background colour." },
     {
       "type": "select", "id": "layout", "label": "Media position",
       "options": [
@@ -1940,4 +1953,5 @@
   ]
 }
 {% endschema %}
+
 
