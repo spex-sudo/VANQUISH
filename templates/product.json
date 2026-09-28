@@ -52,7 +52,7 @@
         "single_label": "Single",
         "single_sublabel": "Best for trying it out",
         "duo_label": "Duo",
-        "duo_sublabel": "Free shipping + 10% off",
+        "duo_sublabel": "Best value",
         "duo_ribbon": "Most Popular",
         "duo_qty": 2,
         "duo_discount_pct": 5,
@@ -110,20 +110,21 @@
         "message_RYcRgq": {
           "type": "message",
           "settings": {
-            "text": "USA Warehouse"
+            "text": "Tracked shipping"
           }
         },
         "message_cikf9r": {
           "type": "message",
           "settings": {
-            "text": "Globally 5-10 Buisness Days"
+            "text": "Delivery in 5–10 business days"
           }
         },
         "message_yLgV6H": {
           "type": "message",
           "settings": {
-            "text": "USA 5 - 10 Buisness Days"
-          }
+            "text": "Delivery in 5–10 business days"
+          },
+          "disabled": true
         },
         "message_mkgWBG": {
           "type": "message",
