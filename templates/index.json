@@ -209,9 +209,9 @@
         "addname_privacy_label": "Privacy Policy",
         "addname_privacy_url": "shopify://pages/contact",
         "addname_submit_label": "Add Me to the Wall",
-        "addname_submit_loading": "Sending\u2026",
+        "addname_submit_loading": "Sending…",
         "addname_success_title": "You're on the list!",
-        "addname_success_body": "Thanks for joining. Your name will appear on the wall after a quick review \u2014 usually within 24 hours."
+        "addname_success_body": "Thanks for joining. Your name will appear on the wall after a quick review — usually within 24 hours."
       }
     },
     "luxury_collectiongrid_jpK7Cz": {
@@ -384,7 +384,7 @@
         "countdown_second_label": "sec",
         "sr_showing_label": "Showing",
         "sr_of_label": "of",
-        "committed_badge": "YOU\u2019RE ON THE LIST",
+        "committed_badge": "YOU’RE ON THE LIST",
         "modal_bg": "#ffffff",
         "modal_fg": "#000000",
         "modal_accent": "#ece6fd",
@@ -571,7 +571,7 @@
         "icon_size": 26,
         "carousel_speed": 4,
         "show_timer": false,
-        "timer_label": "Free shipping",
+        "timer_label": "",
         "timer_seconds": 96000,
         "expiry_text": "Ended",
         "timer_color": "#1a1a1a",

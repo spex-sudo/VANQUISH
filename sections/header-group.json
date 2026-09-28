@@ -165,7 +165,7 @@
         "notif_pill_text": "#ffffff",
         "flash_interval": 15,
         "flash_duration": 4,
-        "ship_threshold": 17,
+        "ship_threshold": 0,
         "ship_msg_before": "⏱️ ADD {amount} TO CART FOR FREE SHIPPING",
         "ship_msg_after": "🗽 FREE SHIPPING",
         "shrink_on_scroll": false,
