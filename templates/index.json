@@ -722,7 +722,7 @@
         "trigger_delay": 7,
         "scroll_percent": 20,
         "dismiss_days": 14,
-        "hide_logged_in": true,
+        "hide_logged_in": false,
         "kicker": "",
         "headline": "TRY YOUR LUCK",
         "subheadline": "Scratch below to see what you win",
