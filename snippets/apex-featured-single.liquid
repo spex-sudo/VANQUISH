@@ -1,0 +1,163 @@
+{%- comment -%}
+  Apex Featured — single mode pair source.
+  Collection (section) → settings.apex_specs_collection → gift products list.
+  Hard cap 12 so the selector stays light.
+{%- endcomment -%}
+{%- liquid
+  assign gift_col = s.source_collection
+  if gift_col == blank and settings.apex_specs_collection != blank
+    assign gift_col = settings.apex_specs_collection
+  endif
+  if gift_col != blank and gift_col.products_count > 0
+    assign gift_list = gift_col.products
+  else
+    assign gift_list = s.free_gift_products
+  endif
+
+  assign lexe_gift_handles = ''
+  for gp in gift_list limit: 12
+    assign lexe_gift_handles = lexe_gift_handles | append: gp.handle | append: ','
+  endfor
+  if s.free_gift_handles != blank
+    assign lexe_gift_handles = lexe_gift_handles | append: s.free_gift_handles
+  endif
+-%}
+{%- if product != blank -%}
+  {%- liquid
+    assign lexe_free = false
+    assign lexe_gift_handle_list = lexe_gift_handles | split: ','
+    if s.free_offer_enabled
+      for fh in lexe_gift_handle_list
+        assign fh_clean = fh | strip
+        if fh_clean == product.handle
+          assign lexe_free = true
+        endif
+      endfor
+    endif
+    assign lexe_selector = false
+    assign lexe_sel_count = 0
+    if lexe_free and s.pair_selector_enabled
+      for gp in gift_list limit: 12
+        if gp.available
+          assign lexe_sel_count = lexe_sel_count | plus: 1
+        endif
+      endfor
+      if lexe_sel_count > 0
+        assign lexe_selector = true
+      endif
+    endif
+    assign lx_blurb_lines = s.gift_blurbs | newline_to_br | split: '<br />'
+    assign lx_start = 0
+    assign lx_i = 0
+    for gp in gift_list limit: 12
+      if gp.available
+        if gp.handle == product.handle
+          assign lx_start = lx_i
+        endif
+        assign lx_i = lx_i | plus: 1
+      endif
+    endfor
+  -%}
+
+  {%- if lexe_selector -%}
+    <div class="lx-sel-{{ sid }}" id="lx-sel-{{ sid }}" data-start="{{ lx_start }}" data-code="{{ s.free_discount_code | default: 'LEXESPECS' | escape }}">
+      <div class="lx-col lx-col-media">
+        {%- if s.selector_eyebrow != blank -%}<p class="lx-eyebrow">{{ s.selector_eyebrow | escape }}</p>{%- endif -%}
+        <div class="lx-viewport" data-lx-viewport tabindex="0" role="group" aria-label="{{ s.selector_eyebrow | default: 'Pick your pair' | escape }}">
+          <div class="lx-track" data-lx-track>
+            {%- assign lx_i = 0 -%}
+            {%- for gp in gift_list limit: 12 -%}
+              {%- if gp.available -%}
+                {%- assign gp_img = gp.featured_image -%}
+                <button type="button" class="lx-slide{% if lx_i == lx_start %} is-active{% endif %}" data-lx-slide="{{ lx_i }}" aria-label="{{ gp.title | escape }}" aria-pressed="{% if lx_i == lx_start %}true{% else %}false{% endif %}">
+                  {%- if gp_img -%}
+                    <img src="{{ gp_img | image_url: width: 560 }}" alt="" width="280" height="280" loading="{% if lx_i == lx_start %}eager{% else %}lazy{% endif %}" decoding="async" data-lx-img>
+                  {%- endif -%}
+                </button>
+                {%- assign lx_i = lx_i | plus: 1 -%}
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+        </div>
+        <div class="lx-arrows">
+          <button type="button" class="lx-arrow" data-lx-prev aria-label="Previous pair"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 5l-7 7 7 7"/></svg></button>
+          <button type="button" class="lx-arrow" data-lx-next aria-label="Next pair"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 5l7 7-7 7"/></svg></button>
+        </div>
+      </div>
+      <div class="lx-col lx-col-info">
+        <p class="visually-hidden" aria-live="polite" data-lx-announce></p>
+        {%- assign lx_i = 0 -%}
+        {%- for gp in gift_list limit: 12 -%}
+          {%- if gp.available -%}
+            {%- liquid
+              assign gp_blurb = ''
+              for line in lx_blurb_lines
+                assign parts = line | split: '|'
+                assign l_handle = parts.first | strip
+                if l_handle == gp.handle and parts.size > 1
+                  assign gp_blurb = parts.last | strip
+                endif
+              endfor
+              assign gpv = gp.selected_or_first_available_variant
+            -%}
+            <div class="lx-panel" data-lx-panel data-url="{{ gp.url }}" {% unless lx_i == lx_start %}hidden{% endunless %}>
+              <h2 class="lx-name">{{ gp.title | escape }}</h2>
+              {%- if gp_blurb != blank -%}<p class="lx-blurb">{{ gp_blurb | escape }}</p>{%- endif -%}
+              <p class="lx-price"><span class="free-label">{{ s.free_label | default: 'FREE' }}</span></p>
+              <input type="hidden" data-lx-variant value="{{ gpv.id }}">
+            </div>
+            {%- assign lx_i = lx_i | plus: 1 -%}
+          {%- endif -%}
+        {%- endfor -%}
+        <form class="lx-claim" method="post" action="/cart/add">
+          <input type="hidden" name="id" data-lx-variant value="">
+          <input type="hidden" name="quantity" value="1">
+          <input type="hidden" name="properties[_lexe_gift]" value="1">
+          <div class="lx-claim-row">
+            <input class="lx-email" type="email" name="contact[email]" autocomplete="email" placeholder="Email" required>
+            <button type="submit" class="lx-claim-btn" data-lx-claim>{{ s.claim_button_label | default: 'Claim now' }}</button>
+          </div>
+          <p class="lx-msg" data-lx-msg></p>
+        </form>
+        <a class="lx-details" href="{{ product.url }}" data-lx-details>{{ 'products.product.view_full_details' | t | default: 'View full details' }} &rarr;</a>
+      </div>
+    </div>
+  {%- else -%}
+    <div class="apex-single-{{ sid }}{% if s.layout == 'text_first' %} is-text-first{% endif %}">
+      <div class="apex-single-media-{{ sid }}">
+        {%- if first_image -%}
+          <img src="{{ first_image | image_url: width: 1200 }}" alt="{{ product.title | escape }}" width="800" height="800" loading="eager" decoding="async">
+        {%- endif -%}
+      </div>
+      <div class="apex-single-info-{{ sid }}">
+        <h1>{{ product.title | escape }}</h1>
+        <div class="apex-single-price-{{ sid }}{% if lexe_free %} apex-free-{{ sid }}{% endif %}">
+          {%- if lexe_free -%}
+            <span class="free-label">{{ s.free_label | default: 'FREE' }}</span>
+            {%- if s.free_condition_text != blank -%}
+              <span class="free-condition">{{ s.free_condition_text | escape }}{% if s.free_link_url != blank %} <a href="{{ s.free_link_url }}">{{ s.free_link_text | escape }}</a>{% endif %}</span>
+            {%- endif -%}
+          {%- else -%}
+            <span>{{ cv.price | money }}</span>
+          {%- endif -%}
+        </div>
+        {%- if lexe_free and s.free_description != blank -%}
+          <div class="apex-single-desc-{{ sid }}">{{ s.free_description | escape }}</div>
+        {%- elsif product.description != blank -%}
+          <div class="apex-single-desc-{{ sid }}">{{ product.description | strip_html | truncate: 280 }}</div>
+        {%- endif -%}
+        {%- if cv.available -%}
+          <form action="{{ routes.cart_add_url }}" method="post">
+            <input type="hidden" name="id" value="{{ cv.id }}">
+            <input type="hidden" name="quantity" value="1">
+            <button type="submit" class="apex-single-buy-{{ sid }}">{% if lexe_free and s.free_button_label != blank %}{{ s.free_button_label | escape }}{% else %}{{ 'products.product.add_to_cart' | t }}{% endif %}</button>
+          </form>
+        {%- else -%}
+          <button class="apex-single-buy-{{ sid }}" disabled>{{ 'products.product.sold_out' | t }}</button>
+        {%- endif -%}
+      </div>
+    </div>
+  {%- endif -%}
+{%- else -%}
+  <p style="text-align:center;color:var(--apex-fg-muted);">Pick a collection or a fallback product in this section.</p>
+{%- endif -%}
