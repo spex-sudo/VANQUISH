@@ -1,1 +1,368 @@
-PLACEHOLDER_LIQ
+{%- comment -%}
+  Vanquish Scratch — conversion funnel
+  Modes: overlay (default fullscreen), page (in-flow full section), tag (edge tab — pull or tap to open)
+{%- endcomment -%}
+
+{%- liquid
+  assign sid = section.id
+  assign s   = section.settings
+
+  assign enabled       = s.enabled
+  assign display_mode  = s.display_mode | default: 'overlay'
+  assign headline      = s.headline | default: 'TRY YOUR LUCK'
+  assign subheadline   = s.subheadline | default: 'Scratch below to see what you win'
+  assign foil_label    = s.foil_label | default: 'SCRATCH HERE'
+  assign progress_keep = s.progress_keep | default: 'KEEP SCRATCHING'
+  assign prize_headline = s.prize_headline | default: "YOU'VE GOT A MYSTERY DISCOUNT"
+  assign reveal_under  = s.reveal_under | default: 'Claim your surprise offer'
+  assign prize_sub     = s.prize_sub
+  assign claim_label   = s.claim_label | default: 'CLAIM'
+  assign claimed_label = s.claimed_label | default: 'CLAIMED!'
+  assign email_placeholder = s.email_placeholder | default: 'Your email address'
+  assign submit_label  = s.submit_label | default: 'CLAIM MYSTERY DISCOUNT'
+  assign success_headline = s.success_headline | default: "You're in."
+  assign success_message  = s.success_message | default: 'Your code is ready — use it at checkout.'
+  assign success_cta      = s.success_cta | default: 'Start shopping'
+  assign success_url      = s.success_url
+  assign offer_code    = s.offer_code | strip
+  assign trust_text    = s.trust_text | default: 'No spam. Unsubscribe any time.'
+  assign tag_text      = s.tag_text | default: 'PULL HERE'
+  assign tag_side      = s.tag_side | default: 'right'
+  assign tag_offset    = s.tag_offset | default: 42
+  assign pull_distance = s.pull_distance | default: 56
+
+  assign bg_color      = s.bg_color | default: '#2f7a72'
+  assign text_color    = s.text_color | default: '#ffffff'
+  assign muted_color   = s.muted_color | default: '#d7efe9'
+  assign accent_color  = s.accent_color | default: '#22c55e'
+  assign accent_text   = s.accent_text | default: '#06210f'
+  assign foil_color_a  = s.foil_color_a | default: '#f3d36a'
+  assign foil_color_b  = s.foil_color_b | default: '#c9a227'
+  assign card_radius   = s.card_radius | default: 18
+  assign btn_radius    = s.btn_radius | default: 999
+
+  assign scratch_threshold = s.scratch_threshold | default: 52
+  assign brush_size    = s.brush_size | default: 42
+  assign trigger_type  = s.trigger_type | default: 'delay'
+  assign trigger_delay = s.trigger_delay | default: 1
+  assign scroll_percent = s.scroll_percent | default: 20
+  assign dismiss_days  = s.dismiss_days | default: 14
+  assign show_on_routes = s.show_on_routes | default: 'all'
+  assign hide_logged_in = s.hide_logged_in
+
+  assign img_tl = s.image_tl
+  assign img_tr = s.image_tr
+  assign img_bl = s.image_bl
+  assign img_br = s.image_br
+  assign bg_image = s.bg_image
+
+  assign current_route = 'other'
+  if template.name == 'index'
+    assign current_route = 'home'
+  elsif template.name == 'product' or template.name == 'collection'
+    assign current_route = 'shop'
+  endif
+
+  assign route_allowed = false
+  if show_on_routes == 'all'
+    assign route_allowed = true
+  elsif show_on_routes == 'home' and current_route == 'home'
+    assign route_allowed = true
+  elsif show_on_routes == 'home_shop' and current_route != 'other'
+    assign route_allowed = true
+  endif
+
+  if template.name == 'customers/login' or template.name == 'customers/register' or template.name == 'customers/account' or template.name == 'password'
+    assign route_allowed = false
+  endif
+
+  if hide_logged_in and customer != null and display_mode != 'page'
+    assign route_allowed = false
+  endif
+
+  if request.design_mode
+    assign route_allowed = true
+  endif
+
+  assign render_widget = false
+  if enabled and route_allowed
+    assign render_widget = true
+  endif
+  if display_mode == 'page' and enabled
+    assign render_widget = true
+  endif
+-%}
+
+{%- if customer != null -%}
+  <script>try{localStorage.setItem('vqsc_v_{{ sid }}','1');}catch(e){}</script>
+{%- endif -%}
+
+{%- if render_widget -%}
+
+{%- style -%}
+  .vqsc-{{ sid }} {
+    --vqsc-bg: {{ bg_color }};
+    --vqsc-fg: {{ text_color }};
+    --vqsc-muted: {{ muted_color }};
+    --vqsc-accent: {{ accent_color }};
+    --vqsc-accent-fg: {{ accent_text }};
+    --vqsc-foil-a: {{ foil_color_a }};
+    --vqsc-foil-b: {{ foil_color_b }};
+    --vqsc-r: {{ card_radius }}px;
+    --vqsc-btn-r: {{ btn_radius }}px;
+    --vqsc-spring: cubic-bezier(0.22, 1, 0.36, 1);
+    --vqsc-tag-offset: {{ tag_offset }}vh;
+  }
+{%- endstyle -%}
+
+<link rel="stylesheet" href="{{ 'vanquish-scratch.css' | asset_url }}" media="all">
+<style>
+.vqsc-{{ sid }}[data-shell="overlay"],
+.vqsc-{{ sid }}[data-shell="tag"] .vqsc-stage {
+  position: fixed; inset: 0; z-index: 2147482500;
+  display: flex; align-items: center; justify-content: center;
+  padding: clamp(16px, 4vw, 36px);
+  background: var(--vqsc-bg);
+  overflow: hidden; overscroll-behavior: contain;
+}
+.vqsc-{{ sid }}[data-shell="overlay"] {
+  visibility: hidden; opacity: 0; pointer-events: none;
+  transition: opacity 280ms var(--vqsc-spring), visibility 0s linear 280ms;
+}
+.vqsc-{{ sid }}[data-shell="overlay"].is-open,
+.vqsc-{{ sid }}[data-shell="tag"].is-open .vqsc-stage {
+  visibility: visible; opacity: 1; pointer-events: auto;
+  transition: opacity 280ms var(--vqsc-spring);
+}
+.vqsc-{{ sid }}[data-shell="page"] {
+  position: relative; min-height: 100svh; width: 100%;
+  background: var(--vqsc-bg); overflow: hidden;
+}
+.vqsc-{{ sid }}[data-shell="page"] .vqsc-stage {
+  position: relative; min-height: 100svh; width: 100%;
+  display: flex; align-items: center; justify-content: center;
+  padding: clamp(24px, 5vw, 56px) clamp(16px, 4vw, 36px);
+}
+.vqsc-{{ sid }}[data-shell="tag"] .vqsc-stage {
+  visibility: hidden; opacity: 0; pointer-events: none;
+}
+body.vqsc-lock-{{ sid }} { overflow: hidden; }
+.vqsc-{{ sid }}[data-shell="page"] .vqsc-close { display: none; }
+.vqsc-{{ sid }}[data-shell="tag"].is-open .vqsc-tag,
+.vqsc-{{ sid }}[data-shell="tag"][data-done="true"] .vqsc-tag { display: none; }
+.vqsc-{{ sid }}[data-shell="overlay"] .vqsc-tag,
+.vqsc-{{ sid }}[data-shell="page"] .vqsc-tag { display: none; }
+</style>
+
+<div
+  class="vqsc vqsc-{{ sid }}"
+  id="vqsc-{{ sid }}"
+  data-shell="{{ display_mode }}"
+  data-trigger="{{ trigger_type }}"
+  data-delay="{{ trigger_delay }}"
+  data-scroll="{{ scroll_percent }}"
+  data-dismiss="{{ dismiss_days }}"
+  data-threshold="{{ scratch_threshold }}"
+  data-brush="{{ brush_size }}"
+  data-mode="{{ display_mode }}"
+  data-editor="{% if request.design_mode %}1{% else %}0{% endif %}"
+  data-keep="{{ progress_keep | escape }}"
+  data-claimed="{{ claimed_label | escape }}"
+  data-foil-a="{{ foil_color_a }}"
+  data-foil-b="{{ foil_color_b }}"
+  data-pull="{{ pull_distance }}"
+  data-tag-side="{{ tag_side }}"
+>
+  {%- if display_mode == 'tag' -%}
+    <button type="button" class="vqsc-tag" data-side="{{ tag_side }}" data-vqsc-open aria-label="{{ tag_text | escape }}">{{ tag_text | escape }}</button>
+  {%- endif -%}
+
+  <div class="vqsc-stage">
+    <div class="vqsc-bg" aria-hidden="true">
+      {%- if bg_image != blank -%}
+        {{ bg_image | image_url: width: 1600 | image_tag: loading: 'lazy', widths: '800,1200,1600', alt: '' }}
+      {%- endif -%}
+    </div>
+    {%- if img_tl != blank -%}<div class="vqsc-deco vqsc-deco--tl" aria-hidden="true">{{ img_tl | image_url: width: 700 | image_tag: loading: 'lazy', widths: '280,480,700', alt: '' }}</div>{%- endif -%}
+    {%- if img_tr != blank -%}<div class="vqsc-deco vqsc-deco--tr" aria-hidden="true">{{ img_tr | image_url: width: 700 | image_tag: loading: 'lazy', widths: '280,480,700', alt: '' }}</div>{%- endif -%}
+    {%- if img_bl != blank -%}<div class="vqsc-deco vqsc-deco--bl" aria-hidden="true">{{ img_bl | image_url: width: 700 | image_tag: loading: 'lazy', widths: '280,480,700', alt: '' }}</div>{%- endif -%}
+    {%- if img_br != blank -%}<div class="vqsc-deco vqsc-deco--br" aria-hidden="true">{{ img_br | image_url: width: 700 | image_tag: loading: 'lazy', widths: '280,480,700', alt: '' }}</div>{%- endif -%}
+
+    {%- unless display_mode == 'page' -%}
+      <button type="button" class="vqsc-close" data-vqsc-close aria-label="Close">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 2l10 10M12 2L2 12"/></svg>
+      </button>
+    {%- endunless -%}
+
+    <div class="vqsc-panel">
+      <div class="vqsc-view is-on" data-view="scratch">
+        {%- if s.kicker != blank -%}<p class="vqsc-kicker">{{ s.kicker | escape }}</p>{%- endif -%}
+        <h2 class="vqsc-h" id="vqsc-h-{{ sid }}">{{ headline | escape }}</h2>
+        {%- if subheadline != blank -%}<p class="vqsc-sub">{{ subheadline | escape }}</p>{%- endif -%}
+        <div class="vqsc-card" data-card>
+          <div class="vqsc-prize">
+            <span class="vqsc-prize-title">{{ prize_headline | escape }}</span>
+            {%- if reveal_under != blank -%}
+              <span class="vqsc-prize-under">{{ reveal_under | escape }}</span>
+            {%- endif -%}
+          </div>
+          <div class="vqsc-foil" data-foil>
+            <div class="vqsc-foil-fill"></div>
+            <div class="vqsc-foil-label" data-foil-label>{{ foil_label | escape }}</div>
+            <canvas class="vqsc-canvas" data-canvas aria-label="Scratch card"></canvas>
+          </div>
+        </div>
+        <p class="vqsc-progress" data-progress></p>
+        <button type="button" class="vqsc-hint" data-skip>Can't scratch? Reveal prize</button>
+      </div>
+
+      <div class="vqsc-view" data-view="claim">
+        <h2 class="vqsc-h">{{ prize_headline | escape }}</h2>
+        {%- if reveal_under != blank -%}<p class="vqsc-sub">{{ reveal_under | escape }}</p>{%- endif -%}
+        {%- if prize_sub != blank -%}<p class="vqsc-sub">{{ prize_sub | escape }}</p>{%- endif -%}
+        <button type="button" class="vqsc-btn" data-claim>{{ claim_label | escape }}</button>
+      </div>
+
+      <div class="vqsc-view" data-view="email">
+        <h2 class="vqsc-h">{{ prize_headline | escape }}</h2>
+        <p class="vqsc-sub">{{ s.email_prompt | default: 'Enter your email to claim it.' | escape }}</p>
+        <p class="vqsc-error" data-error></p>
+        {%- assign vqsc_form_id = 'vqsc-form-' | append: sid -%}
+        {% form 'customer', id: vqsc_form_id %}
+          <input type="hidden" name="contact[tags]" value="newsletter,scratch-card,vanquish-scratch">
+          <input type="hidden" name="contact[accepts_marketing]" value="1">
+          {%- if offer_code != blank -%}<input type="hidden" name="contact[note]" value="Scratch prize code: {{ offer_code | escape }}">{%- endif -%}
+          <div class="vqsc-hp" aria-hidden="true"><label>Leave blank<input type="text" name="contact[website]" tabindex="-1" autocomplete="off"></label></div>
+          <input class="vqsc-input" type="email" name="contact[email]" placeholder="{{ email_placeholder | escape }}" autocomplete="email" inputmode="email" required data-email>
+          <button type="submit" class="vqsc-btn" data-submit>{{ submit_label | escape }}</button>
+        {% endform %}
+        {%- if trust_text != blank -%}<p class="vqsc-trust">{{ trust_text | escape }}</p>{%- endif -%}
+      </div>
+
+      <div class="vqsc-view" data-view="success">
+        <h2 class="vqsc-h">{{ success_headline | escape }}</h2>
+        <p class="vqsc-sub">{{ success_message | escape }}</p>
+        {%- if offer_code != blank -%}
+          <div class="vqsc-code"><b data-code>{{ offer_code | escape }}</b><button type="button" class="vqsc-copy" data-copy>Copy</button></div>
+        {%- endif -%}
+        {%- if success_url != blank -%}
+          <a class="vqsc-btn" href="{{ success_url }}">{{ success_cta | escape }}</a>
+        {%- else -%}
+          <button type="button" class="vqsc-btn" data-vqsc-close>{{ success_cta | escape }}</button>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="{{ 'vanquish-scratch.js' | asset_url }}" defer></script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Scratch Funnel",
+  "tag": "section",
+  "class": "vqsc-section",
+  "settings": [
+    { "type": "header", "content": "Mode" },
+    { "type": "checkbox", "id": "enabled", "label": "Enable", "default": true },
+    {
+      "type": "select",
+      "id": "display_mode",
+      "label": "Display mode",
+      "info": "Overlay = fullscreen popup. Page = in-flow full section. Tag = edge tab. Drag the tag inward to pull it open; a tap still works.",
+      "options": [
+        { "value": "overlay", "label": "Fullscreen overlay (default)" },
+        { "value": "page", "label": "Full page / in-flow section" },
+        { "value": "tag", "label": "Edge tag (pull or tap)" }
+      ],
+      "default": "overlay"
+    },
+    { "type": "text", "id": "tag_text", "label": "Tag text", "default": "PULL HERE" },
+    {
+      "type": "select",
+      "id": "tag_side",
+      "label": "Tag side",
+      "options": [
+        { "value": "right", "label": "Right" },
+        { "value": "left", "label": "Left" }
+      ],
+      "default": "right"
+    },
+    { "type": "range", "id": "tag_offset", "label": "Tag vertical position", "min": 12, "max": 80, "step": 1, "unit": "%", "default": 42 },
+    { "type": "range", "id": "pull_distance", "label": "Pull distance to open", "min": 28, "max": 120, "step": 2, "unit": "px", "default": 56 },
+    { "type": "header", "content": "Visibility" },
+    {
+      "type": "select",
+      "id": "show_on_routes",
+      "label": "Show on",
+      "options": [
+        { "value": "home", "label": "Home only" },
+        { "value": "home_shop", "label": "Home + shop" },
+        { "value": "all", "label": "All pages" }
+      ],
+      "default": "all"
+    },
+    {
+      "type": "select",
+      "id": "trigger_type",
+      "label": "Overlay trigger",
+      "options": [
+        { "value": "immediate", "label": "Immediate" },
+        { "value": "delay", "label": "After delay" },
+        { "value": "scroll", "label": "On scroll" },
+        { "value": "exit", "label": "Exit intent" }
+      ],
+      "default": "delay"
+    },
+    { "type": "range", "id": "trigger_delay", "label": "Delay", "min": 0, "max": 20, "step": 1, "unit": "s", "default": 1 },
+    { "type": "range", "id": "scroll_percent", "label": "Scroll percent", "min": 5, "max": 90, "step": 5, "unit": "%", "default": 20 },
+    { "type": "range", "id": "dismiss_days", "label": "Hide after close (days)", "min": 0, "max": 90, "step": 1, "default": 14 },
+    { "type": "checkbox", "id": "hide_logged_in", "label": "Hide for logged-in customers", "default": true },
+    { "type": "header", "content": "Copy" },
+    { "type": "text", "id": "kicker", "label": "Kicker" },
+    { "type": "text", "id": "headline", "label": "Headline", "default": "TRY YOUR LUCK" },
+    { "type": "text", "id": "subheadline", "label": "Subheadline", "default": "Scratch below to see what you win" },
+    { "type": "text", "id": "foil_label", "label": "Foil label", "default": "SCRATCH HERE" },
+    { "type": "text", "id": "progress_keep", "label": "Progress suffix", "default": "KEEP SCRATCHING" },
+    { "type": "text", "id": "prize_headline", "label": "Reveal headline", "default": "YOU'VE GOT A MYSTERY DISCOUNT" },
+    { "type": "text", "id": "reveal_under", "label": "Reveal text underneath", "info": "Shown under the prize headline as the foil is scratched away.", "default": "Claim your surprise offer" },
+    { "type": "textarea", "id": "prize_sub", "label": "Prize subtext after reveal" },
+    { "type": "text", "id": "claim_label", "label": "Claim button", "default": "CLAIM" },
+    { "type": "text", "id": "claimed_label", "label": "Claimed flash", "default": "CLAIMED!" },
+    { "type": "text", "id": "email_prompt", "label": "Email prompt", "default": "Enter your email to claim it." },
+    { "type": "text", "id": "email_placeholder", "label": "Email placeholder", "default": "Your email address" },
+    { "type": "text", "id": "submit_label", "label": "Submit button", "default": "CLAIM MYSTERY DISCOUNT" },
+    { "type": "text", "id": "trust_text", "label": "Trust line", "default": "No spam. Unsubscribe any time." },
+    { "type": "text", "id": "success_headline", "label": "Success headline", "default": "You're in." },
+    { "type": "textarea", "id": "success_message", "label": "Success message", "default": "Your code is ready — use it at checkout." },
+    { "type": "text", "id": "success_cta", "label": "Success CTA", "default": "Start shopping" },
+    { "type": "url", "id": "success_url", "label": "Success CTA URL" },
+    { "type": "text", "id": "offer_code", "label": "Discount code" },
+    { "type": "header", "content": "Scratch feel" },
+    { "type": "range", "id": "scratch_threshold", "label": "Reveal at % cleared", "min": 25, "max": 85, "step": 1, "unit": "%", "default": 52 },
+    { "type": "range", "id": "brush_size", "label": "Brush size", "min": 18, "max": 72, "step": 2, "unit": "px", "default": 42 },
+    { "type": "header", "content": "Style" },
+    { "type": "color", "id": "bg_color", "label": "Background", "default": "#2f7a72" },
+    { "type": "color", "id": "text_color", "label": "Text", "default": "#ffffff" },
+    { "type": "color", "id": "muted_color", "label": "Muted text", "default": "#d7efe9" },
+    { "type": "color", "id": "accent_color", "label": "Button", "default": "#22c55e" },
+    { "type": "color", "id": "accent_text", "label": "Button text", "default": "#06210f" },
+    { "type": "color", "id": "foil_color_a", "label": "Foil light", "default": "#f3d36a" },
+    { "type": "color", "id": "foil_color_b", "label": "Foil dark", "default": "#c9a227" },
+    { "type": "range", "id": "card_radius", "label": "Card radius", "min": 0, "max": 36, "step": 1, "unit": "px", "default": 18 },
+    { "type": "range", "id": "btn_radius", "label": "Button radius", "min": 0, "max": 40, "step": 1, "unit": "px", "default": 40 },
+    { "type": "header", "content": "Images" },
+    { "type": "image_picker", "id": "bg_image", "label": "Background image" },
+    { "type": "image_picker", "id": "image_tl", "label": "Top-left product" },
+    { "type": "image_picker", "id": "image_tr", "label": "Top-right product" },
+    { "type": "image_picker", "id": "image_bl", "label": "Bottom-left product" },
+    { "type": "image_picker", "id": "image_br", "label": "Bottom-right product" }
+  ],
+  "presets": [
+    { "name": "Scratch Funnel", "settings": { "display_mode": "overlay" } },
+    { "name": "Scratch Funnel — Tag", "settings": { "display_mode": "tag", "tag_text": "PULL HERE" } },
+    { "name": "Scratch Funnel — Page", "settings": { "display_mode": "page" } }
+  ]
+}
+{% endschema %}
