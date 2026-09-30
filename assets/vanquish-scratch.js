@@ -183,7 +183,7 @@
       if (!canvas) return;
       var start = function (e) {
         if (revealed) return;
-        e.preventDefault();
+        if (e.cancelable) e.preventDefault();
         drawing = true;
         canvas.classList.add('is-down');
         var p = pos(e);
@@ -195,7 +195,7 @@
       };
       var move = function (e) {
         if (!drawing || revealed) return;
-        e.preventDefault();
+        if (e.cancelable) e.preventDefault();
         var p = pos(e);
         scratchTo(p.x, p.y, false);
         updateProgress(false);
@@ -222,19 +222,11 @@
       var baseW = 0;
       var navOpts = { passive: false, capture: true };
 
-      function eat(e) {
-        if (e && e.cancelable) e.preventDefault();
-        if (e) e.stopPropagation();
-      }
-
-      function lockNav(on) {
-        document.documentElement.classList.toggle('vqsc-pull-lock', on);
-        document.body.classList.toggle('vqsc-pull-lock', on);
-      }
-
-      function onDocTouch(e) {
-        if (!active) return;
-        eat(e);
+      function clientX(e) {
+        if (e.clientX != null) return e.clientX;
+        if (e.touches && e.touches[0]) return e.touches[0].clientX;
+        if (e.changedTouches && e.changedTouches[0]) return e.changedTouches[0].clientX;
+        return null;
       }
 
       function inward(dx) {
@@ -251,13 +243,43 @@
         el.style.transform = 'translateY(-50%) scale(' + sx + ',' + sy + ')';
       }
 
+      function lockNav(on) {
+        document.documentElement.classList.toggle('vqsc-pull-lock', on);
+        document.body.classList.toggle('vqsc-pull-lock', on);
+      }
+
+      function finishOpen() {
+        active = false;
+        el.classList.remove('is-pulling');
+        el.style.transform = '';
+        lockNav(false);
+        armDoc(false);
+        openStage();
+      }
+
+      function onMove(e) {
+        if (!active) return;
+        if (e.cancelable) e.preventDefault();
+        var x = clientX(e);
+        if (x == null) return;
+        pulled = inward(x - startX);
+        if (pulled > 6) moved = true;
+        apply(pulled);
+        if (pulled >= pullNeed) finishOpen();
+      }
+
+      function onDocGuard(e) {
+        if (!active) return;
+        if (e.cancelable) e.preventDefault();
+        if (e.type === 'pointermove' || e.type === 'touchmove') onMove(e);
+      }
+
       function armDoc(on) {
         var fn = on ? 'addEventListener' : 'removeEventListener';
-        document[fn]('touchstart', onDocTouch, navOpts);
-        document[fn]('touchmove', onDocTouch, navOpts);
-        document[fn]('touchend', onDocTouch, navOpts);
-        document[fn]('pointermove', onDocTouch, navOpts);
-        document[fn]('gesturestart', onDocTouch, navOpts);
+        document[fn]('touchstart', onDocGuard, navOpts);
+        document[fn]('touchmove', onDocGuard, navOpts);
+        document[fn]('pointermove', onDocGuard, navOpts);
+        document[fn]('gesturestart', onDocGuard, navOpts);
       }
 
       function reset() {
@@ -272,7 +294,7 @@
 
       el.addEventListener('pointerdown', function (e) {
         if (opened || root.getAttribute('data-done') === 'true') return;
-        eat(e);
+        if (e.cancelable) e.preventDefault();
         active = true;
         moved = false;
         pulled = 0;
@@ -285,35 +307,15 @@
         try { el.setPointerCapture(e.pointerId); } catch (err) {}
       }, { passive: false });
 
-      el.addEventListener('pointermove', function (e) {
-        if (!active || (pid != null && e.pointerId !== pid)) return;
-        eat(e);
-        var dx = e.clientX - startX;
-        pulled = inward(dx);
-        if (pulled > 6) moved = true;
-        apply(pulled);
-        if (pulled >= pullNeed) {
-          active = false;
-          try { el.releasePointerCapture(e.pointerId); } catch (err) {}
-          el.classList.remove('is-pulling');
-          el.style.transform = '';
-          lockNav(false);
-          armDoc(false);
-          openStage();
-        }
-      }, { passive: false });
+      el.addEventListener('pointermove', onMove, { passive: false });
+      el.addEventListener('touchmove', onMove, { passive: false });
 
       function endPull(e) {
         if (!active) return;
-        eat(e);
-        active = false;
+        if (e && e.cancelable) e.preventDefault();
         try { if (e && e.pointerId != null) el.releasePointerCapture(e.pointerId); } catch (err) {}
-        lockNav(false);
-        armDoc(false);
         if (pulled >= pullNeed) {
-          el.style.transform = '';
-          el.classList.remove('is-pulling');
-          openStage();
+          finishOpen();
           return;
         }
         var wasMoved = moved;
@@ -323,8 +325,9 @@
 
       el.addEventListener('pointerup', endPull, { passive: false });
       el.addEventListener('pointercancel', endPull, { passive: false });
-      el.addEventListener('touchstart', eat, { passive: false });
-      el.addEventListener('touchmove', eat, { passive: false });
+      el.addEventListener('touchstart', function (e) {
+        if (e.cancelable) e.preventDefault();
+      }, { passive: false });
       el.addEventListener('click', function (e) { e.preventDefault(); });
     }
 
