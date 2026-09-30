@@ -405,9 +405,40 @@
     },
     "vanquish_atelier_r4XQki": {
       "type": "vanquish-atelier",
+      "blocks": {
+        "magazine_zNVDU6": {
+          "type": "magazine",
+          "settings": {
+            "image": "shopify://shop_images/90617682-61BC-41D5-9771-B9DF6BF9204B.jpg",
+            "caption": "",
+            "link": ""
+          }
+        },
+        "magazine_hn7DPh": {
+          "type": "magazine",
+          "settings": {
+            "image": "shopify://shop_images/DB2AC5DD-6EE0-41D9-8CBD-6149205ECF2C.jpg",
+            "caption": "",
+            "link": ""
+          }
+        },
+        "magazine_4eft4U": {
+          "type": "magazine",
+          "settings": {
+            "image": "shopify://shop_images/0124DAC3-0C0A-4301-B69C-DFDE7C360D48.jpg",
+            "caption": "",
+            "link": ""
+          }
+        }
+      },
+      "block_order": [
+        "magazine_zNVDU6",
+        "magazine_hn7DPh",
+        "magazine_4eft4U"
+      ],
       "name": "Product Atelier",
       "settings": {
-        "display_mode": "products",
+        "display_mode": "magazine",
         "products": [
           "hooded-ultra-short-motorcycle-leather-long-sleeved-pure-black-jacket",
           "womens-fashion-long-sleeved-zippered-short-cut-navel-exposed-slim-fitting-hooded-faux-leather-jacket-for-women",
@@ -429,14 +460,14 @@
         "collection": "",
         "card_count": 8,
         "show_header": false,
-        "title": "Ateliers",
+        "title": "",
         "show_arrows": false,
         "card_shape": "landscape",
-        "landscape_ratio": "4 / 3",
-        "card_width": 210,
+        "landscape_ratio": "16 / 9",
+        "card_width": 280,
         "squircle_radius": 56,
         "landscape_radius": 8,
-        "card_gap": 16,
+        "card_gap": 18,
         "show_names": true,
         "name_font": "bayon_n4",
         "heading_font": "bebas_neue_n4",
