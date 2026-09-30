@@ -45,10 +45,11 @@
 .vqsc .vqsc-code{display:flex;align-items:center;justify-content:space-between;gap:10px;width:min(100%,280px);margin:16px 0 18px;padding:12px 14px;border-radius:12px;border:1px dashed color-mix(in srgb,var(--vqsc-fg) 28%,transparent);background:color-mix(in srgb,var(--vqsc-fg) 8%,transparent)}
 .vqsc .vqsc-code b{letter-spacing:.16em;font-size:15px}
 .vqsc .vqsc-copy{border:0;background:var(--vqsc-accent);color:var(--vqsc-accent-fg);border-radius:999px;padding:6px 10px;font:inherit;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
-.vqsc .vqsc-tag{position:fixed;z-index:2147482490;top:var(--vqsc-tag-offset);border:0;cursor:grab;padding:14px 11px;writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:.18em;font:inherit;font-size:11px;font-weight:800;text-transform:uppercase;color:var(--vqsc-accent-fg);background:var(--vqsc-accent);box-shadow:0 8px 20px rgba(0,0,0,.18);-webkit-tap-highlight-color:transparent;touch-action:none;user-select:none;will-change:transform;transition:transform 280ms cubic-bezier(.22,1,.36,1),filter 180ms ease,box-shadow 180ms ease}
+.vqsc .vqsc-tag{position:fixed;z-index:2147482490;top:var(--vqsc-tag-offset);border:0;cursor:grab;padding:14px 11px;writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:.18em;font:inherit;font-size:11px;font-weight:800;text-transform:uppercase;color:var(--vqsc-accent-fg);background:var(--vqsc-accent);box-shadow:0 8px 20px rgba(0,0,0,.18);-webkit-tap-highlight-color:transparent;touch-action:none;overscroll-behavior:contain;user-select:none;will-change:transform;transition:transform 280ms cubic-bezier(.22,1,.36,1),filter 180ms ease,box-shadow 180ms ease}
 .vqsc .vqsc-tag[data-side=right]{right:0;transform-origin:100% 50%;transform:translateY(-50%);border-radius:10px 0 0 10px}
 .vqsc .vqsc-tag[data-side=left]{left:0;transform-origin:0 50%;transform:translateY(-50%);border-radius:0 10px 10px 0}
 .vqsc .vqsc-tag:hover{filter:brightness(1.06)}
 .vqsc .vqsc-tag.is-pulling{cursor:grabbing;box-shadow:0 12px 28px rgba(0,0,0,.28);transition:none}
+html.vqsc-pull-lock,body.vqsc-pull-lock{overscroll-behavior-x:none;touch-action:none}
 @media (max-width:480px){.vqsc .vqsc-card{height:168px}.vqsc .vqsc-deco{max-width:min(46vw,170px)}}
 @media (prefers-reduced-motion:reduce){.vqsc,.vqsc *{transition:none!important;animation:none!important}}
