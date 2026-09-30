@@ -1,1 +1,129 @@
-PLACEHOLDER
+{% comment %}theme-check-disable TemplateLength,RemoteAsset{% endcomment %}
+{%- liquid
+  assign sid = section.id
+  assign s   = section.settings
+
+  assign featured_col = s.source_collection
+  if featured_col == blank and settings.apex_specs_collection != blank
+    assign featured_col = settings.apex_specs_collection
+  endif
+
+  assign source_kind = 'none'
+  if featured_col != blank and featured_col.products_count > 0 and s.source_mode != 'blocks'
+    assign source_kind = 'collection'
+  elsif s.source_mode == 'collection' and featured_col != blank and featured_col.products_count > 0
+    assign source_kind = 'collection'
+  endif
+
+  assign mode = s.display_mode | default: 'grid'
+  if mode == 'auto'
+    if source_kind == 'collection'
+      assign mode = 'grid'
+    else
+      assign mode = 'single'
+    endif
+  endif
+
+  assign grid_max = s.grid_max_products | default: 8
+  if settings.apex_specs_max_products != blank and s.source_collection == blank
+    assign grid_max = settings.apex_specs_max_products
+  endif
+
+  assign cols_d = s.grid_cols_desktop | default: '4'
+  assign cols_t = s.grid_cols_tablet | default: '2'
+  assign cols_m = s.grid_cols_mobile | default: '2'
+-%}
+
+<section id="apex-featured-{{ sid }}" class="apex-featured-{{ sid }}" style="background:{{ s.section_bg_color | default: '#ffffff' }};color:{{ s.text_color | default: '#2e2e2e' }};padding:{{ s.padding_top | default: 20 }}px 16px {{ s.padding_bottom | default: 32 }}px;">
+  <style>
+    .apex-featured-{{ sid }} .apex-inner { max-width: {{ s.max_content_width | default: 1280 }}px; margin: 0 auto; }
+    .apex-featured-{{ sid }} .apex-head { display:flex; justify-content:space-between; align-items:flex-end; gap:16px; margin-bottom:20px; }
+    .apex-featured-{{ sid }} .apex-eye { font-size:12px; letter-spacing:.14em; text-transform:uppercase; opacity:.7; margin:0 0 6px; }
+    .apex-featured-{{ sid }} .apex-title { font-size:{{ s.title_size | default: 36 }}px; margin:0; line-height:1.1; }
+    .apex-featured-{{ sid }} .apex-grid {
+      display:grid;
+      gap:{{ s.grid_gap | default: 12 }}px;
+      grid-template-columns: repeat({{ cols_m }}, minmax(0,1fr));
+    }
+    @media (min-width: 750px) {
+      .apex-featured-{{ sid }} .apex-grid { grid-template-columns: repeat({{ cols_t }}, minmax(0,1fr)); }
+    }
+    @media (min-width: 990px) {
+      .apex-featured-{{ sid }} .apex-grid { grid-template-columns: repeat({{ cols_d }}, minmax(0,1fr)); }
+    }
+    .apex-featured-{{ sid }} .apex-card { text-decoration:none; color:inherit; display:block; }
+    .apex-featured-{{ sid }} .apex-media {
+      aspect-ratio: {{ s.grid_aspect | default: '3 / 4' }};
+      background: {{ s.img_placeholder_bg | default: '#f5f5f7' }};
+      border-radius: {{ s.card_radius | default: 14 }}px;
+      overflow:hidden;
+      position:relative;
+    }
+    .apex-featured-{{ sid }} .apex-media img { width:100%; height:100%; object-fit:cover; display:block; }
+    .apex-featured-{{ sid }} .apex-info { padding: {{ s.grid_info_padding | default: 12 }}px 2px 0; }
+    .apex-featured-{{ sid }} .apex-name { font-size:14px; margin:0 0 4px; }
+    .apex-featured-{{ sid }} .apex-price { font-size:13px; opacity:.8; margin:0; }
+    .apex-featured-{{ sid }} .apex-free { color: {{ s.free_color | default: '#9966cc' }}; font-weight:600; }
+    .apex-featured-{{ sid }} .apex-viewall { font-size:14px; color: {{ s.accent_color | default: '#3c2366' }}; text-decoration:none; white-space:nowrap; }
+    .apex-featured-{{ sid }} .apex-empty { text-align:center; opacity:.7; padding:32px 0; }
+  </style>
+
+  <div class="apex-inner">
+    {%- if s.eyebrow != blank or s.title != blank or s.show_view_all -%}
+      <div class="apex-head">
+        <div>
+          {%- if s.eyebrow != blank -%}<p class="apex-eye">{{ s.eyebrow | escape }}</p>{%- endif -%}
+          {%- if s.title != blank -%}<h2 class="apex-title">{{ s.title | escape }}</h2>{%- endif -%}
+        </div>
+        {%- if s.show_view_all and source_kind == 'collection' and featured_col != blank -%}
+          <a class="apex-viewall" href="{{ featured_col.url }}">{{ s.view_all_text | default: 'View all' | escape }}</a>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    {%- if source_kind == 'collection' -%}
+      <div class="apex-grid">
+        {%- for p in featured_col.products limit: grid_max -%}
+          {%- liquid
+            assign is_gift = false
+            if s.free_offer_enabled
+              if s.free_gift_products contains p
+                assign is_gift = true
+              endif
+              assign gift_handles = s.free_gift_handles | split: ','
+              for h in gift_handles
+                assign hh = h | strip
+                if hh == p.handle
+                  assign is_gift = true
+                endif
+              endfor
+            endif
+            assign img = p.featured_image
+          -%}
+          <a class="apex-card" href="{{ p.url }}">
+            <div class="apex-media">
+              {%- if img != blank -%}
+                <img src="{{ img | image_url: width: 800 }}" alt="{{ img.alt | default: p.title | escape }}" width="800" height="1000" loading="{% if forloop.index <= 4 %}eager{% else %}lazy{% endif %}">
+              {%- endif -%}
+            </div>
+            <div class="apex-info">
+              <p class="apex-name">{{ p.title | escape }}</p>
+              <p class="apex-price{% if is_gift %} apex-free{% endif %}">
+                {%- if is_gift -%}
+                  {{ s.free_label | default: 'FREE' }}
+                  {%- if s.free_condition_text != blank -%}
+                    <span style="font-weight:400;opacity:.75;"> {{ s.free_condition_text | escape }}</span>
+                  {%- endif -%}
+                {%- else -%}
+                  {{ p.price | money }}
+                {%- endif -%}
+              </p>
+            </div>
+          </a>
+        {%- endfor -%}
+      </div>
+    {%- else -%}
+      <p class="apex-empty">Choose a collection in this section or in Theme settings → Apex Specs featured.</p>
+    {%- endif -%}
+  </div>
+</section>
