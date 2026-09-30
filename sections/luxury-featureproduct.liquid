@@ -7,25 +7,20 @@
   if featured_col == blank and settings.apex_specs_collection != blank
     assign featured_col = settings.apex_specs_collection
   endif
+  if featured_col == blank
+    assign featured_col = collections['lexespecs']
+  endif
+  if featured_col == blank
+    assign featured_col = collections['specs']
+  endif
 
   assign source_kind = 'none'
-  if featured_col != blank and featured_col.products_count > 0 and s.source_mode != 'blocks'
-    assign source_kind = 'collection'
-  elsif s.source_mode == 'collection' and featured_col != blank and featured_col.products_count > 0
+  if featured_col != blank and featured_col.products_count > 0
     assign source_kind = 'collection'
   endif
 
-  assign mode = s.display_mode | default: 'grid'
-  if mode == 'auto'
-    if source_kind == 'collection'
-      assign mode = 'grid'
-    else
-      assign mode = 'single'
-    endif
-  endif
-
-  assign grid_max = s.grid_max_products | default: 8
-  if settings.apex_specs_max_products != blank and s.source_collection == blank
+  assign grid_max = s.grid_max_products | default: 12
+  if settings.apex_specs_max_products != blank
     assign grid_max = settings.apex_specs_max_products
   endif
 
@@ -40,25 +35,11 @@
     .apex-featured-{{ sid }} .apex-head { display:flex; justify-content:space-between; align-items:flex-end; gap:16px; margin-bottom:20px; }
     .apex-featured-{{ sid }} .apex-eye { font-size:12px; letter-spacing:.14em; text-transform:uppercase; opacity:.7; margin:0 0 6px; }
     .apex-featured-{{ sid }} .apex-title { font-size:{{ s.title_size | default: 36 }}px; margin:0; line-height:1.1; }
-    .apex-featured-{{ sid }} .apex-grid {
-      display:grid;
-      gap:{{ s.grid_gap | default: 12 }}px;
-      grid-template-columns: repeat({{ cols_m }}, minmax(0,1fr));
-    }
-    @media (min-width: 750px) {
-      .apex-featured-{{ sid }} .apex-grid { grid-template-columns: repeat({{ cols_t }}, minmax(0,1fr)); }
-    }
-    @media (min-width: 990px) {
-      .apex-featured-{{ sid }} .apex-grid { grid-template-columns: repeat({{ cols_d }}, minmax(0,1fr)); }
-    }
+    .apex-featured-{{ sid }} .apex-grid { display:grid; gap:{{ s.grid_gap | default: 12 }}px; grid-template-columns: repeat({{ cols_m }}, minmax(0,1fr)); }
+    @media (min-width: 750px) { .apex-featured-{{ sid }} .apex-grid { grid-template-columns: repeat({{ cols_t }}, minmax(0,1fr)); } }
+    @media (min-width: 990px) { .apex-featured-{{ sid }} .apex-grid { grid-template-columns: repeat({{ cols_d }}, minmax(0,1fr)); } }
     .apex-featured-{{ sid }} .apex-card { text-decoration:none; color:inherit; display:block; }
-    .apex-featured-{{ sid }} .apex-media {
-      aspect-ratio: {{ s.grid_aspect | default: '3 / 4' }};
-      background: {{ s.img_placeholder_bg | default: '#f5f5f7' }};
-      border-radius: {{ s.card_radius | default: 14 }}px;
-      overflow:hidden;
-      position:relative;
-    }
+    .apex-featured-{{ sid }} .apex-media { aspect-ratio: {{ s.grid_aspect | default: '3 / 4' }}; background: {{ s.img_placeholder_bg | default: '#f5f5f7' }}; border-radius: {{ s.card_radius | default: 14 }}px; overflow:hidden; }
     .apex-featured-{{ sid }} .apex-media img { width:100%; height:100%; object-fit:cover; display:block; }
     .apex-featured-{{ sid }} .apex-info { padding: {{ s.grid_info_padding | default: 12 }}px 2px 0; }
     .apex-featured-{{ sid }} .apex-name { font-size:14px; margin:0 0 4px; }
@@ -67,7 +48,6 @@
     .apex-featured-{{ sid }} .apex-viewall { font-size:14px; color: {{ s.accent_color | default: '#3c2366' }}; text-decoration:none; white-space:nowrap; }
     .apex-featured-{{ sid }} .apex-empty { text-align:center; opacity:.7; padding:32px 0; }
   </style>
-
   <div class="apex-inner">
     {%- if s.eyebrow != blank or s.title != blank or s.show_view_all -%}
       <div class="apex-head">
@@ -75,21 +55,17 @@
           {%- if s.eyebrow != blank -%}<p class="apex-eye">{{ s.eyebrow | escape }}</p>{%- endif -%}
           {%- if s.title != blank -%}<h2 class="apex-title">{{ s.title | escape }}</h2>{%- endif -%}
         </div>
-        {%- if s.show_view_all and source_kind == 'collection' and featured_col != blank -%}
+        {%- if s.show_view_all and featured_col != blank -%}
           <a class="apex-viewall" href="{{ featured_col.url }}">{{ s.view_all_text | default: 'View all' | escape }}</a>
         {%- endif -%}
       </div>
     {%- endif -%}
-
     {%- if source_kind == 'collection' -%}
       <div class="apex-grid">
         {%- for p in featured_col.products limit: grid_max -%}
           {%- liquid
             assign is_gift = false
             if s.free_offer_enabled
-              if s.free_gift_products contains p
-                assign is_gift = true
-              endif
               assign gift_handles = s.free_gift_handles | split: ','
               for h in gift_handles
                 assign hh = h | strip
@@ -109,21 +85,50 @@
             <div class="apex-info">
               <p class="apex-name">{{ p.title | escape }}</p>
               <p class="apex-price{% if is_gift %} apex-free{% endif %}">
-                {%- if is_gift -%}
-                  {{ s.free_label | default: 'FREE' }}
-                  {%- if s.free_condition_text != blank -%}
-                    <span style="font-weight:400;opacity:.75;"> {{ s.free_condition_text | escape }}</span>
-                  {%- endif -%}
-                {%- else -%}
-                  {{ p.price | money }}
-                {%- endif -%}
+                {%- if is_gift -%}{{ s.free_label | default: 'FREE' }}{%- else -%}{{ p.price | money }}{%- endif -%}
               </p>
             </div>
           </a>
         {%- endfor -%}
       </div>
     {%- else -%}
-      <p class="apex-empty">Choose a collection in this section or in Theme settings → Apex Specs featured.</p>
+      <p class="apex-empty">Pick a collection on this section (Collection) or Theme settings → Apex Specs featured.</p>
     {%- endif -%}
   </div>
 </section>
+
+{% schema %}
+{
+  "name": "Apex Featured",
+  "settings": [
+    { "type": "select", "id": "display_mode", "label": "Mode", "options": [{"value":"auto","label":"Auto"},{"value":"grid","label":"Product Grid"},{"value":"single","label":"Single product"},{"value":"showcase","label":"Showcase"}], "default": "grid" },
+    { "type": "select", "id": "source_mode", "label": "Pull products from", "options": [{"value":"collection","label":"A collection"},{"value":"blocks","label":"Blocks"}], "default": "collection" },
+    { "type": "collection", "id": "source_collection", "label": "Collection", "info": "Leave empty to use Theme settings Apex Specs featured, then lexespecs / specs." },
+    { "type": "range", "id": "grid_max_products", "label": "Products to show", "min": 2, "max": 20, "step": 1, "default": 12 },
+    { "type": "select", "id": "grid_cols_desktop", "label": "Columns desktop", "options": [{"value":"2","label":"2"},{"value":"3","label":"3"},{"value":"4","label":"4"}], "default": "4" },
+    { "type": "select", "id": "grid_cols_tablet", "label": "Columns tablet", "options": [{"value":"2","label":"2"},{"value":"3","label":"3"}], "default": "2" },
+    { "type": "select", "id": "grid_cols_mobile", "label": "Columns mobile", "options": [{"value":"1","label":"1"},{"value":"2","label":"2"},{"value":"3","label":"3"}], "default": "2" },
+    { "type": "range", "id": "grid_gap", "min": 0, "max": 40, "step": 2, "default": 12, "label": "Grid gap" },
+    { "type": "range", "id": "grid_info_padding", "min": 0, "max": 32, "step": 2, "default": 12, "label": "Info padding" },
+    { "type": "text", "id": "grid_aspect", "label": "Card aspect", "default": "3 / 4" },
+    { "type": "checkbox", "id": "show_view_all", "label": "Show view all", "default": true },
+    { "type": "text", "id": "view_all_text", "label": "View all text", "default": "View all" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow" },
+    { "type": "text", "id": "title", "label": "Title", "default": "Featured" },
+    { "type": "range", "id": "title_size", "min": 18, "max": 64, "step": 2, "default": 36, "label": "Title size" },
+    { "type": "color", "id": "section_bg_color", "label": "Section background", "default": "#ffffff" },
+    { "type": "color", "id": "text_color", "label": "Text", "default": "#2e2e2e" },
+    { "type": "color", "id": "accent_color", "label": "Accent", "default": "#3c2366" },
+    { "type": "color", "id": "img_placeholder_bg", "label": "Image placeholder", "default": "#f5f5f7" },
+    { "type": "range", "id": "card_radius", "min": 0, "max": 32, "step": 1, "default": 14, "label": "Card radius" },
+    { "type": "range", "id": "max_content_width", "min": 720, "max": 1600, "step": 20, "default": 1280, "label": "Max content width" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 80, "step": 4, "default": 20, "label": "Padding top" },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 80, "step": 4, "default": 20, "label": "Padding bottom" },
+    { "type": "checkbox", "id": "free_offer_enabled", "label": "Show FREE price for gift products", "default": false },
+    { "type": "text", "id": "free_gift_handles", "label": "Gift product handles (comma-separated)" },
+    { "type": "text", "id": "free_label", "label": "Free label", "default": "FREE" },
+    { "type": "color", "id": "free_color", "label": "Free label colour", "default": "#9966CC" }
+  ],
+  "presets": [{ "name": "Apex Featured" }]
+}
+{% endschema %}
