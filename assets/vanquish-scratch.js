@@ -30,6 +30,7 @@
     var progressEl = root.querySelector('[data-progress]');
     var form = root.querySelector('form');
     var tag = root.querySelector('.vqsc-tag');
+    var foilWrap = root.querySelector('[data-foil]');
     var opened = false;
     var revealed = false;
     var scratchedOnce = false;
@@ -114,6 +115,7 @@
       if (!canvas || canvas.getAttribute('data-ready')) return;
       if (!setupCanvasSize()) return;
       canvas.setAttribute('data-ready', '1');
+      if (foilWrap) foilWrap.classList.add('is-live');
       bindScratch();
     }
 
@@ -170,8 +172,7 @@
     function finishScratch() {
       if (revealed) return;
       revealed = true;
-      var foil = root.querySelector('[data-foil]');
-      if (foil) foil.style.opacity = '0';
+      if (foilWrap) foilWrap.style.opacity = '0';
       if (progressEl) progressEl.textContent = '100% CLEARED';
       setTimeout(function () { view('claim'); }, 280);
     }
@@ -216,6 +217,7 @@
       var active = false;
       var moved = false;
       var pid = null;
+      var baseW = 0;
 
       function inward(dx) {
         if (tagSide === 'left') return Math.max(0, dx);
@@ -223,10 +225,12 @@
       }
 
       function apply(px) {
-        var cap = pullNeed * 1.35;
-        var use = Math.min(px, cap);
-        var shift = tagSide === 'left' ? use : -use;
-        el.style.transform = 'translateY(-50%) translateX(' + shift + 'px)';
+        var cap = pullNeed * 1.45;
+        var extra = Math.min(px, cap);
+        var w = baseW || el.offsetWidth || 36;
+        var sx = 1 + extra / w;
+        var sy = Math.max(0.88, 1 - extra / 520);
+        el.style.transform = 'translateY(-50%) scale(' + sx + ',' + sy + ')';
       }
 
       function reset() {
@@ -244,6 +248,7 @@
         pulled = 0;
         pid = e.pointerId;
         startX = e.clientX;
+        baseW = el.offsetWidth || 36;
         el.classList.add('is-pulling');
         try { el.setPointerCapture(e.pointerId); } catch (err) {}
       });
