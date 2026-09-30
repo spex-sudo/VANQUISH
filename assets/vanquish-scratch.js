@@ -83,6 +83,8 @@
         tag.classList.remove('is-pulling');
         tag.style.transform = '';
       }
+      document.documentElement.classList.remove('vqsc-pull-lock');
+      document.body.classList.remove('vqsc-pull-lock');
     }
 
     function setupCanvasSize() {
@@ -218,6 +220,22 @@
       var moved = false;
       var pid = null;
       var baseW = 0;
+      var navOpts = { passive: false, capture: true };
+
+      function eat(e) {
+        if (e && e.cancelable) e.preventDefault();
+        if (e) e.stopPropagation();
+      }
+
+      function lockNav(on) {
+        document.documentElement.classList.toggle('vqsc-pull-lock', on);
+        document.body.classList.toggle('vqsc-pull-lock', on);
+      }
+
+      function onDocTouch(e) {
+        if (!active) return;
+        eat(e);
+      }
 
       function inward(dx) {
         if (tagSide === 'left') return Math.max(0, dx);
@@ -233,16 +251,28 @@
         el.style.transform = 'translateY(-50%) scale(' + sx + ',' + sy + ')';
       }
 
+      function armDoc(on) {
+        var fn = on ? 'addEventListener' : 'removeEventListener';
+        document[fn]('touchstart', onDocTouch, navOpts);
+        document[fn]('touchmove', onDocTouch, navOpts);
+        document[fn]('touchend', onDocTouch, navOpts);
+        document[fn]('pointermove', onDocTouch, navOpts);
+        document[fn]('gesturestart', onDocTouch, navOpts);
+      }
+
       function reset() {
         el.classList.remove('is-pulling');
         el.style.transform = '';
         active = false;
         pulled = 0;
         pid = null;
+        lockNav(false);
+        armDoc(false);
       }
 
       el.addEventListener('pointerdown', function (e) {
         if (opened || root.getAttribute('data-done') === 'true') return;
+        eat(e);
         active = true;
         moved = false;
         pulled = 0;
@@ -250,11 +280,14 @@
         startX = e.clientX;
         baseW = el.offsetWidth || 36;
         el.classList.add('is-pulling');
+        lockNav(true);
+        armDoc(true);
         try { el.setPointerCapture(e.pointerId); } catch (err) {}
-      });
+      }, { passive: false });
 
       el.addEventListener('pointermove', function (e) {
         if (!active || (pid != null && e.pointerId !== pid)) return;
+        eat(e);
         var dx = e.clientX - startX;
         pulled = inward(dx);
         if (pulled > 6) moved = true;
@@ -264,29 +297,35 @@
           try { el.releasePointerCapture(e.pointerId); } catch (err) {}
           el.classList.remove('is-pulling');
           el.style.transform = '';
+          lockNav(false);
+          armDoc(false);
           openStage();
         }
-      });
+      }, { passive: false });
 
       function endPull(e) {
         if (!active) return;
+        eat(e);
         active = false;
         try { if (e && e.pointerId != null) el.releasePointerCapture(e.pointerId); } catch (err) {}
+        lockNav(false);
+        armDoc(false);
         if (pulled >= pullNeed) {
           el.style.transform = '';
           el.classList.remove('is-pulling');
           openStage();
           return;
         }
+        var wasMoved = moved;
         reset();
-        if (!moved) openStage();
+        if (!wasMoved) openStage();
       }
 
-      el.addEventListener('pointerup', endPull);
-      el.addEventListener('pointercancel', endPull);
-      el.addEventListener('click', function (e) {
-        e.preventDefault();
-      });
+      el.addEventListener('pointerup', endPull, { passive: false });
+      el.addEventListener('pointercancel', endPull, { passive: false });
+      el.addEventListener('touchstart', eat, { passive: false });
+      el.addEventListener('touchmove', eat, { passive: false });
+      el.addEventListener('click', function (e) { e.preventDefault(); });
     }
 
     if (mode === 'tag') bindPull(tag);
