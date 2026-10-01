@@ -1,0 +1,58 @@
+{%- comment -%}
+  LEXE gift guard (cart page + drawer). Defines window.lexeGiftNormalize(cart) -> Promise<boolean changed>.
+  Rules, applied to the live cart whenever it holds a gift line (property _lexe_gift = 1):
+   1. Cart's eligible subtotal below the gift's minimum (or the gift has no cost on file): remove every gift line and the code.
+   2. Otherwise keep exactly ONE gift line at qty 1 (prefer the line already at $0), remove all other gift lines, make sure the code is on.
+  Never leaves a gift line charged at full price. Idempotent; a sessionStorage counter stops any loop.
+{%- endcomment -%}
+<script>
+(function () {
+  if (window.lexeGiftNormalize) return;
+  var CODE = 'LEXESPECS';
+  function post(url, body) {
+    return fetch(url, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json(); });
+  }
+  function isGift(it) { return it.properties && it.properties._lexe_gift === '1'; }
+  function budgetOk() {
+    try {
+      var now = Date.now(), a = JSON.parse(sessionStorage.getItem('lexe_gn') || '[]').filter(function (t) { return now - t < 60000; });
+      if (a.length >= 4) return false;
+      a.push(now); sessionStorage.setItem('lexe_gn', JSON.stringify(a));
+    } catch (e) {}
+    return true;
+  }
+  window.lexeGiftNormalize = function (cart) {
+    var gifts = (cart.items || []).filter(isGift);
+    if (!gifts.length) return Promise.resolve(false);
+    return fetch('/?sections=lexe-gift-check&t=' + Date.now(), { credentials: 'same-origin', cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var html = (d && d['lexe-gift-check']) || '';
+        var c = /data-cents="(-?\d+)"/.exec(html), n = /data-need="(-?\d+)"/.exec(html);
+        if (!c || !n) return false;
+        var have = parseInt(c[1], 10), need = parseInt(n[1], 10);
+        var underMin = need < 0 || have < need;
+        var updates = {}, change = false, keep = null;
+        if (!underMin) {
+          keep = gifts.filter(function (g) { return g.final_line_price === 0 && g.quantity === 1; })[0]
+              || gifts.filter(function (g) { return g.final_line_price === 0; })[0] || gifts[0];
+        }
+        gifts.forEach(function (g) {
+          if (keep && g.key === keep.key) { if (g.quantity !== 1) { updates[g.key] = 1; change = true; } }
+          else { updates[g.key] = 0; change = true; }
+        });
+        var codes = (cart.discount_codes || []).map(function (x) { return x.code; });
+        var hasCode = codes.some(function (x) { return x && x.toUpperCase() === CODE; });
+        var body = null;
+        if (change) body = { updates: updates };
+        if (underMin && hasCode) { body = body || {}; body.discount = codes.filter(function (x) { return x && x.toUpperCase() !== CODE; }).join(','); }
+        if (!underMin && !hasCode && keep) { body = body || {}; body.discount = codes.concat([CODE]).join(','); }
+        if (!body) return false;
+        if (!budgetOk()) return false;
+        return post('/cart/update.js', body).then(function () { return true; });
+      })
+      .catch(function () { return false; });
+  };
+})();
+</script>

@@ -71,22 +71,14 @@
         .lexe-gift-line .quantity-plus, .lexe-gift-line .quantity-minus { visibility: hidden; pointer-events: none; }
         .lexe-gift-line .cart-items__quantity input { pointer-events: none; }
       </style>
+      {%- render 'lexe-gift-normalize' -%}
       <script>
-        /* LEXE: gift lines (_lexe_gift=1) are limited to 1 per order */
+        /* LEXE: exactly one gift line at qty 1, never charged; removed when the cart is under the gift's minimum */
         (function () {
-          try { if (sessionStorage.getItem('lexe_gift_qty_fix') === '1') { sessionStorage.removeItem('lexe_gift_qty_fix'); return; } } catch (e) {}
-          fetch('/cart.js', { credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(function (cart) {
-            var extra = (cart.items || []).filter(function (it) { return it.properties && it.properties._lexe_gift === '1' && it.quantity > 1; });
-            if (!extra.length) return;
-            return extra.reduce(function (p, it) {
-              return p.then(function () {
-                return fetch('/cart/change.js', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify({ id: it.key, quantity: 1 }) });
-              });
-            }, Promise.resolve()).then(function () {
-              try { sessionStorage.setItem('lexe_gift_qty_fix', '1'); } catch (e) {}
-              window.location.reload();
-            });
-          }).catch(function () {});
+          fetch('/cart.js', { credentials: 'same-origin' }).then(function (r) { return r.json(); })
+            .then(function (cart) { return window.lexeGiftNormalize(cart); })
+            .then(function (changed) { if (changed) window.location.reload(); })
+            .catch(function () {});
         })();
       </script>
       <div

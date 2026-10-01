@@ -1,11 +1,22 @@
 {%- comment -%}
-  Rendered on demand by the featured section's claim flow via the Section Rendering API (?sections=lexe-gift-check).
-  Prints the cart's eligible subtotal in cents (specs-offer-eligible products, gift lines excluded).
+  Rendered on demand via the Section Rendering API (?sections=lexe-gift-check).
+  data-cents = eligible subtotal in cents (specs-offer-eligible products, gift lines excluded).
+  data-need  = minimum in cents for the dearest gift line in the cart (snippets/lexe-gift-rules.liquid); -1 if a gift has no cost on file; 0 if no gift.
 {%- endcomment -%}
 {%- liquid
   assign lgc_cents = 0
+  assign lgc_need = 0
   for item in cart.items
     if item.properties['_lexe_gift'] == '1'
+      capture lgc_raw
+        render 'lexe-gift-rules', product: item.product
+      endcapture
+      assign lgc_n = lgc_raw | strip | plus: 0
+      if lgc_n < 0
+        assign lgc_need = -1
+      elsif lgc_need >= 0 and lgc_n > lgc_need
+        assign lgc_need = lgc_n
+      endif
       continue
     endif
     assign lgc_cols = item.product.collections | map: 'handle'
@@ -14,7 +25,7 @@
     endif
   endfor
 -%}
-<div data-cents="{{ lgc_cents }}"></div>
+<div data-cents="{{ lgc_cents }}" data-need="{{ lgc_need }}"></div>
 {% schema %}
 { "name": "LEXE gift check", "settings": [] }
 {% endschema %}

@@ -62,16 +62,5 @@
     {%- else -%}
       <p>You have {{ lgp_threshold | money_without_trailing_zeros }}+ in eligible items. Code {{ lgp_code }} makes your pair free at checkout.</p>
     {%- endif -%}
-    {%- if lgp_gift_free and lgp_eligible < lgp_threshold -%}
-      <script>
-        /* Safety check: the gift is only free at or above the minimum worked out from its cost. Below it, the code is taken off. */
-        (function () {
-          try { if (sessionStorage.getItem('lexe_gift_guard') === '1') { sessionStorage.removeItem('lexe_gift_guard'); return; } } catch (e) {}
-          fetch('/cart/update.js', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify({ discount: '' }) })
-            .then(function () { try { sessionStorage.setItem('lexe_gift_guard', '1'); } catch (e) {} window.location.reload(); })
-            .catch(function () {});
-        })();
-      </script>
-    {%- endif -%}
   </div>
 {%- endif -%}

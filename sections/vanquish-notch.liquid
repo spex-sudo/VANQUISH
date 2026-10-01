@@ -1117,6 +1117,7 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
         <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </button>
     </div>
+    {%- render 'lexe-gift-normalize' -%}
     <div class="drawer-body" data-cart-body></div>
     <div class="drawer-foot" data-cart-foot hidden>
       {%- if s.show_shipping_bar -%}
@@ -1436,11 +1437,13 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
       '</div>';
     });
     cartBody.innerHTML = html;
-    /* LEXE: gift lines are limited to 1 per order */
-    var lexeExtra = cart.items.filter(function (it) { return it.properties && it.properties._lexe_gift === '1' && it.quantity > 1; })[0];
-    if (lexeExtra && !renderCart._lexeFixing) {
+    /* LEXE: exactly one gift line at qty 1, never charged; removed when the cart is under the gift's minimum */
+    if (window.lexeGiftNormalize && cart.items.some(function (it) { return it.properties && it.properties._lexe_gift === '1'; }) && !renderCart._lexeFixing) {
       renderCart._lexeFixing = true;
-      setTimeout(function () { cartChange(lexeExtra.key, 1); setTimeout(function () { renderCart._lexeFixing = false; }, 3000); }, 0);
+      window.lexeGiftNormalize(cart).then(function (changed) {
+        renderCart._lexeFixing = false;
+        if (changed) refreshCart();
+      });
     }
     /* LEXE free-pair progress (Liquid-rendered, only when a gift line is in the cart) */
     if (cart.items.some(function (it) { return it.properties && it.properties._lexe_gift === '1'; })) {
