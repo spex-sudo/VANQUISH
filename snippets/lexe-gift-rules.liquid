@@ -1,0 +1,31 @@
+{%- comment -%}
+  LEXE gift rules. Usage: {% capture t %}{% render 'lexe-gift-rules', product: p %}{% endcapture %}
+  Prints the minimum eligible subtotal in cents at which giving this product away still meets the profit target:
+    T = (min_profit + cost + supplier_ship + fee * intl_ship) / (margin_floor - fee), rounded up to a whole dollar,
+    never lower than the discount's own minimum.
+  Inputs: product metafield custom.cost_usd (highest variant unit cost) and shop metafield custom.gift_guard (JSON).
+  Both are written by /workspace/lexe-offer/guard.sh. Prints -1 when the product has no cost, so it is never given away.
+{%- endcomment -%}
+{%- liquid
+  assign gg = shop.metafields.custom.gift_guard.value
+  assign g_profit = gg.min_profit | default: 10 | times: 1.0
+  assign g_ship = gg.supplier_ship | default: 5 | times: 1.0
+  assign g_fee = gg.fee | default: 0.035 | times: 1.0
+  assign g_intl = gg.intl_ship | default: 18.97 | times: 1.0
+  assign g_floor = gg.margin_floor | default: 0.5 | times: 1.0
+  assign g_min = gg.discount_min | default: 49 | times: 1.0
+  assign g_cost = product.metafields.custom.cost_usd.value
+  if g_cost == blank or g_cost == nil
+    echo -1
+  else
+    assign g_cost = g_cost | times: 1.0
+    assign g_fee_cost = g_fee | times: g_intl
+    assign g_top = g_profit | plus: g_cost | plus: g_ship | plus: g_fee_cost
+    assign g_bot = g_floor | minus: g_fee
+    assign g_t = g_top | divided_by: g_bot | ceil
+    if g_t < g_min
+      assign g_t = g_min | ceil
+    endif
+    echo g_t | times: 100
+  endif
+-%}

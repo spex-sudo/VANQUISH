@@ -1,0 +1,20 @@
+{%- comment -%}
+  Rendered on demand by the featured section's claim flow via the Section Rendering API (?sections=lexe-gift-check).
+  Prints the cart's eligible subtotal in cents (specs-offer-eligible products, gift lines excluded).
+{%- endcomment -%}
+{%- liquid
+  assign lgc_cents = 0
+  for item in cart.items
+    if item.properties['_lexe_gift'] == '1'
+      continue
+    endif
+    assign lgc_cols = item.product.collections | map: 'handle'
+    if lgc_cols contains 'specs-offer-eligible'
+      assign lgc_cents = lgc_cents | plus: item.final_line_price
+    endif
+  endfor
+-%}
+<div data-cents="{{ lgc_cents }}"></div>
+{% schema %}
+{ "name": "LEXE gift check", "settings": [] }
+{% endschema %}
