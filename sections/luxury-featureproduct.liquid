@@ -865,7 +865,7 @@
     {%- if lx_n > 0 -%}
       <div class="lx-sel-{{ sid }}" id="lx-sel-{{ sid }}" data-start="{{ lx_start }}" data-count="{{ lx_n }}" data-code="{{ s.free_discount_code | default: 'LEXESPECS' | escape }}" data-elig-url="{{ s.free_link_url | default: '/collections/specs-offer-eligible' }}">
         <div class="lx-col lx-col-media">
-          {%- if s.selector_eyebrow != blank -%}<p class="lx-eyebrow">{{ s.selector_eyebrow | escape }}</p>{%- endif -%}
+          {%- if s.selector_eyebrow != blank -%}<p class="lx-eyebrow" data-lx-eyebrow>{{ s.selector_eyebrow | escape }}</p>{%- endif -%}
           <div class="lx-viewport" data-lx-viewport tabindex="0" role="group" aria-roledescription="carousel" aria-label="{{ s.selector_eyebrow | default: 'Pick a product' | escape }}">
             <div class="lx-track" data-lx-track>
               {%- assign lx_i = 0 -%}
@@ -945,7 +945,7 @@
                     <span class="lx-price-was" data-lx-was{% unless gp_first.compare_at_price > gp_first.price %} hidden{% endunless %}>{% if gp_first.compare_at_price > gp_first.price %}{{ gp_first.compare_at_price | money }}{% endif %}</span>
                   </div>
                 {%- endif -%}
-                {%- if gp_blurb != blank -%}<p class="lx-blurb">{{ gp_blurb | escape }}</p>{%- endif -%}
+                {%- if gp_blurb != blank -%}<p class="lx-blurb">{{ gp_blurb | escape_once }}</p>{%- endif -%}
                 {%- unless gp.has_only_default_variant -%}
                   {%- if gp_many -%}
                     <div class="lx-vselect">
@@ -2027,6 +2027,7 @@
     panels.forEach(function (p, k) { p.hidden = k !== idx; });
     if (details && panels[idx]) details.href = panels[idx].getAttribute('data-url');
     if (counter) counter.textContent = (idx + 1) + ' / ' + n;
+    var eb = root.querySelector('[data-lx-eyebrow]'); if (eb) eb.hidden = !isGift(idx);
     say('');
     center();
     syncVariant();
