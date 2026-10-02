@@ -677,6 +677,7 @@
       inset: 50% var(--margin-lg) auto auto;
       right: 0;
       max-height: calc(100vh - 200px);
+      max-height: calc(100dvh - 200px);
       overflow-y: auto;
       animation: thumbnailsSlideInTop var(--spring-d220-b0-duration) var(--spring-d220-b0-easing) forwards;
       animation-delay: calc(var(--spring-d220-b0-duration) * 0.5);
@@ -895,6 +896,7 @@
   .dialog-zoomed-gallery .product-media-container--model .product-media__image {
     /* Make the height match the height of the model-viewer */
     height: 100vh;
+    height: 100dvh;
   }
 
   :root:active-view-transition .dialog-zoomed-gallery__dialog {
