@@ -979,6 +979,7 @@
                     assign lx_gift = true
                   endif
                 endif
+                assign lx_lbl = lx_min | money_without_trailing_zeros
                 assign gp_blurb = ''
                 for line in lx_blurb_lines
                   assign parts = line | split: '|'
@@ -1002,7 +1003,7 @@
                   <div class="lx-free">
                     <span class="lx-free-label">{{ s.free_label | default: 'FREE' | escape }}</span>
                     {%- if s.free_condition_text != blank -%}
-                      <span class="lx-free-condition">{{ s.free_condition_text | escape }}{% if s.free_link_text != blank and s.free_link_url != blank %} <a href="{{ s.free_link_url }}">{{ s.free_link_text | escape }}</a>{% endif %}</span>
+                      <span class="lx-free-condition">{{ s.free_condition_text | replace: '[min]', lx_lbl | replace: '$49', lx_lbl | escape }}{% if s.free_link_text != blank and s.free_link_url != blank %} <a href="{{ s.free_link_url }}">{{ s.free_link_text | escape }}</a>{% endif %}</span>
                     {%- endif -%}
                   </div>
                 {%- else -%}
@@ -1114,6 +1115,7 @@
           if lx_min_p > 0
             assign lexe_free = true
           endif
+          assign lx_lbl = lx_min_p | money_without_trailing_zeros
         endif
       -%}
       <div class="apex-single-{{ sid }}{% if s.layout == 'text_first' %} is-text-first{% endif %}">
@@ -1137,7 +1139,7 @@
             <div class="apex-single-price-{{ sid }} apex-free-{{ sid }}" data-lexe-free="true">
               <span class="free-label">{{ s.free_label | default: 'FREE' | escape }}</span>
               {%- if s.free_condition_text != blank -%}
-                <span class="free-condition">{{ s.free_condition_text | escape }}{% if s.free_link_text != blank and s.free_link_url != blank %} <a href="{{ s.free_link_url }}">{{ s.free_link_text | escape }}</a>{% endif %}</span>
+                <span class="free-condition">{{ s.free_condition_text | replace: '[min]', lx_lbl | replace: '$49', lx_lbl | escape }}{% if s.free_link_text != blank and s.free_link_url != blank %} <a href="{{ s.free_link_url }}">{{ s.free_link_text | escape }}</a>{% endif %}</span>
               {%- endif -%}
             </div>
           {%- else -%}
@@ -2564,7 +2566,7 @@
     { "type": "checkbox", "id": "free_offer_enabled", "label": "Show FREE price for gift products", "default": false, "info": "Master switch. Off means no product shows FREE or the email claim." },
     { "type": "text", "id": "free_gift_handles", "label": "Gift product handles (comma-separated)", "info": "Optional. Same effect as adding the product to Gift products." },
     { "type": "text", "id": "free_label", "label": "Free label", "default": "FREE" },
-    { "type": "text", "id": "free_condition_text", "label": "Condition text", "default": "with orders of $49+ in" },
+    { "type": "text", "id": "free_condition_text", "label": "Condition text", "default": "with orders of [min]+ in", "info": "[min] (or any $49) is replaced by the gift's live minimum." },
     { "type": "text", "id": "free_link_text", "label": "Condition link text", "default": "eligible items" },
     { "type": "url", "id": "free_link_url", "label": "Condition link" },
     { "type": "color", "id": "free_color", "label": "Free label colour", "default": "#9966CC" },
