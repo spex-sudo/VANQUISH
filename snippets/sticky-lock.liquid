@@ -122,6 +122,8 @@ window.vaGridEnd=function(el){
     var walker=document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null);
     var n, hits=[];
     while((n=walker.nextNode())){
+      var rv=n.nodeValue;
+      if(!rv || rv.length>400 || !/loaded/i.test(rv)) continue; /* perf: skip the whitespace regex on unrelated text */
       var t=(n.nodeValue||'').replace(/\s+/g,' ').trim().toLowerCase();
       if(t==='all products loaded' || t==='all results loaded') hits.push(n.parentElement);
     }
