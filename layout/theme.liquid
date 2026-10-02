@@ -43,18 +43,6 @@
     {%- unless template.name == 'index' -%}
       <style id="inbox-home-only">/* Shopify Inbox: home page only */ shopify-chat { display: none !important; }</style>
     {%- endunless -%}
-    <style id="hit-area-coarse">
-      /* Invisible touch-target expansion for touch screens only. Visible size and layout are unchanged. */
-      @media (pointer: coarse) {
-        :where(.apex-menu-btn, .social-glass-btn, .vq-soc, .vq-help) { position: relative; }
-        .apex-icon-btn::after, .apex-menu-btn::after, .social-glass-btn::after, .vq-soc::after, .vq-help::after { content: ""; position: absolute; }
-        .apex-icon-btn::after { inset: -4px -2px; }
-        .apex-menu-btn::after { inset: -3px -3px; }
-        .social-glass-btn::after { inset: -4px; }
-        .vq-soc::after { inset: -6px -2px; }
-        .vq-help::after { inset: -9px -3px; }
-      }
-    </style>
   </head>
 
   <body class="page-width-{{ settings.page_width }} card-hover-effect-{{ settings.card_hover_effect }}">
