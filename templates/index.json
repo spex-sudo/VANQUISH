@@ -15,7 +15,7 @@
         "image_gbyaPz": {
           "type": "image",
           "settings": {
-            "image": "shopify:\/\/shop_images\/7B8904DA-F19A-4DE7-AB09-831720FD747A.png",
+            "image": "shopify://shop_images/7B8904DA-F19A-4DE7-AB09-831720FD747A.png",
             "fit": "custom",
             "custom_w": 85,
             "bg": ""
@@ -24,7 +24,7 @@
         "image_xQBJAh": {
           "type": "image",
           "settings": {
-            "image": "shopify:\/\/shop_images\/EE9DD45A-3074-4913-B67B-A7F686534A46.jpg",
+            "image": "shopify://shop_images/EE9DD45A-3074-4913-B67B-A7F686534A46.jpg",
             "fit": "custom",
             "custom_w": 60,
             "bg": ""
@@ -33,7 +33,7 @@
         "image_zTeUgt": {
           "type": "image",
           "settings": {
-            "image": "shopify:\/\/shop_images\/B53C7B5A-A5E7-4855-8A91-70C0A648538C.jpg",
+            "image": "shopify://shop_images/B53C7B5A-A5E7-4855-8A91-70C0A648538C.jpg",
             "fit": "custom",
             "custom_w": 60,
             "bg": ""
@@ -42,7 +42,7 @@
         "image_VyqALG": {
           "type": "image",
           "settings": {
-            "image": "shopify:\/\/shop_images\/9983339E-ADD3-4CA8-80A9-325CB0E276FC.jpg",
+            "image": "shopify://shop_images/9983339E-ADD3-4CA8-80A9-325CB0E276FC.jpg",
             "fit": "custom",
             "custom_w": 60,
             "bg": ""
@@ -143,9 +143,9 @@
       ],
       "name": "Ultimate Hero V11 + Signature Wall",
       "settings": {
-        "image": "shopify:\/\/shop_images\/IMG-0326.jpg",
-        "video_link": "https:\/\/cdn.shopify.com\/videos\/c\/o\/v\/dc5e4149c2564c629557d5294d972c4d.mp4",
-        "video_poster": "shopify:\/\/shop_images\/db64d223b6af41e0899f4c93483b92a2-Max-Origin.webp",
+        "image": "shopify://shop_images/IMG-0326.jpg",
+        "video_link": "https://cdn.shopify.com/videos/c/o/v/dc5e4149c2564c629557d5294d972c4d.mp4",
+        "video_poster": "shopify://shop_images/db64d223b6af41e0899f4c93483b92a2-Max-Origin.webp",
         "image_fit": "cover",
         "height": 64,
         "height_mobile": 69,
@@ -207,11 +207,11 @@
         "addname_email_placeholder": "your@email.com",
         "addname_consent_text": "I agree to appear on the supporter wall and accept the",
         "addname_privacy_label": "Privacy Policy",
-        "addname_privacy_url": "shopify:\/\/pages\/contact",
+        "addname_privacy_url": "shopify://pages/contact",
         "addname_submit_label": "Add Me to the Wall",
-        "addname_submit_loading": "Sending…",
+        "addname_submit_loading": "Sending\u2026",
         "addname_success_title": "You're on the list!",
-        "addname_success_body": "Thanks for joining. Your name will appear on the wall after a quick review — usually within 24 hours."
+        "addname_success_body": "Thanks for joining. Your name will appear on the wall after a quick review \u2014 usually within 24 hours."
       }
     },
     "luxury_collectiongrid_jpK7Cz": {
@@ -261,7 +261,7 @@
             "collection": "maze",
             "status_text": "UNRELEASED",
             "status_color": "#5e37d4",
-            "custom_image": "shopify:\/\/shop_images\/DEVICI_STUDIOS.jpg",
+            "custom_image": "shopify://shop_images/DEVICI_STUDIOS.jpg",
             "cta_label": "Enter",
             "price_from": "",
             "badge_text": "",
@@ -281,7 +281,7 @@
             "collection": "apparell",
             "status_text": "DISCONTINUED",
             "status_color": "#d43737",
-            "custom_image": "shopify:\/\/shop_images\/b9949b91d60740f6af1cf2e09f46cb4c-Max-Origin.webp",
+            "custom_image": "shopify://shop_images/b9949b91d60740f6af1cf2e09f46cb4c-Max-Origin.webp",
             "cta_label": "Enter",
             "price_from": "",
             "badge_text": "SOLD OUT FOREVER",
@@ -320,8 +320,8 @@
             "collection": "industrial-assets",
             "status_text": "LOCKED",
             "status_color": "#d43737",
-            "custom_image": "shopify:\/\/shop_images\/VANQUISH7-industrial-assests.jpg",
-            "video_url": "shopify:\/\/files\/videos\/Video_1_4952c6fe-c39e-4b9e-964e-6c7d437140bd.mov",
+            "custom_image": "shopify://shop_images/VANQUISH7-industrial-assests.jpg",
+            "video_url": "shopify://files/videos/Video_1_4952c6fe-c39e-4b9e-964e-6c7d437140bd.mov",
             "cta_label": "Enter",
             "price_from": "",
             "badge_text": "",
@@ -352,7 +352,7 @@
         "header_gap": 0,
         "bg_color": "#000000",
         "accent_color": "#ffffff",
-        "aspect_ratio": "3\/4",
+        "aspect_ratio": "3/4",
         "padding_v": 0,
         "bottom_fade": true,
         "fade_to_color": "#ffffff",
@@ -384,7 +384,7 @@
         "countdown_second_label": "sec",
         "sr_showing_label": "Showing",
         "sr_of_label": "of",
-        "committed_badge": "YOU’RE ON THE LIST",
+        "committed_badge": "YOU\u2019RE ON THE LIST",
         "modal_bg": "#ffffff",
         "modal_fg": "#000000",
         "modal_accent": "#ece6fd",
@@ -409,7 +409,7 @@
         "magazine_AAkwkK": {
           "type": "magazine",
           "settings": {
-            "image": "shopify:\/\/shop_images\/IMG-0527.jpg",
+            "image": "shopify://shop_images/IMG-0527.jpg",
             "caption": "",
             "link": ""
           }
@@ -417,7 +417,7 @@
         "magazine_V4FYyP": {
           "type": "magazine",
           "settings": {
-            "image": "shopify:\/\/shop_images\/e46c653ef2f24fdf8f2f680493a1d33e-Max-Origin.webp",
+            "image": "shopify://shop_images/e46c653ef2f24fdf8f2f680493a1d33e-Max-Origin.webp",
             "caption": "",
             "link": ""
           }
@@ -425,7 +425,7 @@
         "magazine_zNVDU6": {
           "type": "magazine",
           "settings": {
-            "image": "shopify:\/\/shop_images\/90617682-61BC-41D5-9771-B9DF6BF9204B.jpg",
+            "image": "shopify://shop_images/90617682-61BC-41D5-9771-B9DF6BF9204B.jpg",
             "caption": "",
             "link": ""
           }
@@ -433,7 +433,7 @@
         "magazine_hn7DPh": {
           "type": "magazine",
           "settings": {
-            "image": "shopify:\/\/shop_images\/DB2AC5DD-6EE0-41D9-8CBD-6149205ECF2C.jpg",
+            "image": "shopify://shop_images/DB2AC5DD-6EE0-41D9-8CBD-6149205ECF2C.jpg",
             "caption": "",
             "link": ""
           }
@@ -441,7 +441,7 @@
         "magazine_4eft4U": {
           "type": "magazine",
           "settings": {
-            "image": "shopify:\/\/shop_images\/0124DAC3-0C0A-4301-B69C-DFDE7C360D48.jpg",
+            "image": "shopify://shop_images/0124DAC3-0C0A-4301-B69C-DFDE7C360D48.jpg",
             "caption": "",
             "link": ""
           }
@@ -481,7 +481,7 @@
         "title": "",
         "show_arrows": false,
         "card_shape": "landscape",
-        "landscape_ratio": "16 \/ 9",
+        "landscape_ratio": "16 / 9",
         "card_width": 280,
         "squircle_radius": 56,
         "landscape_radius": 8,
@@ -519,8 +519,8 @@
         "grid_info_padding": 12,
         "grid_hero_first": true,
         "grid_hero_product": "short-leather-jacket-black-loose-jacket-top",
-        "grid_hero_aspect": "1 \/ 1",
-        "grid_aspect": "4 \/ 5",
+        "grid_hero_aspect": "1 / 1",
+        "grid_aspect": "4 / 5",
         "grid_second_image": true,
         "show_discount_pct": true,
         "sale_badge_bg": "#111111",
@@ -545,7 +545,7 @@
         "show_pause_button": false,
         "card_width": 250,
         "card_scale": 75,
-        "card_aspect": "4 \/ 5",
+        "card_aspect": "4 / 5",
         "card_gap": 16,
         "row_gap": 6,
         "max_products": 10,
@@ -667,8 +667,8 @@
         "grid_info_padding": 12,
         "grid_hero_first": true,
         "grid_hero_product": "",
-        "grid_hero_aspect": "1 \/ 1",
-        "grid_aspect": "3 \/ 4",
+        "grid_hero_aspect": "1 / 1",
+        "grid_aspect": "3 / 4",
         "grid_second_image": true,
         "show_discount_pct": true,
         "sale_badge_bg": "#111111",
@@ -693,7 +693,7 @@
         "show_pause_button": true,
         "card_width": 220,
         "card_scale": 60,
-        "card_aspect": "4 \/ 5",
+        "card_aspect": "4 / 5",
         "card_gap": 8,
         "row_gap": 4,
         "max_products": 2,
@@ -718,7 +718,7 @@
         "free_label": "FREE",
         "free_condition_text": "with orders of $54+ in",
         "free_link_text": "eligible items",
-        "free_link_url": "shopify:\/\/collections\/specs-offer-eligible",
+        "free_link_url": "shopify://collections/specs-offer-eligible",
         "free_color": "#9966cc",
         "free_button_label": "Add free pair to cart",
         "free_description": "Hand-shaped resin frames with mirrored lenses. Add them to your cart, bring your order to $54+ in eligible items, and use your code from the LEXE list below.",
@@ -732,7 +732,11 @@
         "gift_blurbs": "asymmetrical-edgy-handmade-resin-sunglasses-unique-mutant-personality-venom-halloween-fashion-statement-sun-glasses | Hand-shaped resin frames with mirrored lenses.\nnew-steampunk-oversized-sunglasses-women-trends-one-piece-punk-sun-glasses | An oversized one-piece shield lens in a steampunk-style frame.",
         "claim_button_label": "Claim now",
         "free_discount_code": "LEXESPECS",
-        "layout": "text_first"
+        "layout": "text_first",
+        "single_source": "collection",
+        "single_collection": "lexespecs",
+        "single_max": 50,
+        "gift_source": "collection"
       }
     },
     "lexe_specs_offer": {
@@ -741,7 +745,7 @@
       "settings": {
         "gift_product": "asymmetrical-edgy-handmade-resin-sunglasses-unique-mutant-personality-venom-halloween-fashion-statement-sun-glasses",
         "gift_product_2": "new-steampunk-oversized-sunglasses-women-trends-one-piece-punk-sun-glasses",
-        "eligible_url": "shopify:\/\/collections\/specs-offer-eligible",
+        "eligible_url": "shopify://collections/specs-offer-eligible",
         "code": "LEXESPECS",
         "threshold": "$54",
         "heading": "Free LEXE Specs",
@@ -759,7 +763,7 @@
     },
     "vanquish_scratch_MJQr7J": {
       "type": "vanquish-scratch",
-      "name": "Scratch Funnel — Tag",
+      "name": "Scratch Funnel \u2014 Tag",
       "settings": {
         "enabled": true,
         "display_mode": "tag",
@@ -788,7 +792,7 @@
         "submit_label": "CLAIM",
         "trust_text": "No spam. Unsubscribe any time.",
         "success_headline": "You're in.",
-        "success_message": "Your code is ready — use it at checkout.",
+        "success_message": "Your code is ready \u2014 use it at checkout.",
         "success_cta": "Start shopping",
         "success_url": "",
         "offer_code": "",
