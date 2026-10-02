@@ -851,14 +851,16 @@
       assign lx_src = s.single_source | default: 'products'
       assign lx_coll = s.single_collection
       assign lx_cap = s.single_max | default: 24
-      assign lx_all = s.single_products
-      if lx_src == 'collection' and lx_coll != blank
-        assign lx_all = lx_coll.products
-      elsif lx_src == 'both' and lx_coll != blank
-        assign lx_all = s.single_products | concat: lx_coll.products
+      assign lx_l1 = s.single_products
+      assign lx_l2 = nil
+      if lx_src == 'collection'
+        assign lx_l1 = nil
       endif
-      if lx_all == blank and s.pair_selector_enabled and s.free_gift_products != blank
-        assign lx_all = s.free_gift_products
+      if lx_src != 'products' and lx_coll != blank
+        assign lx_l2 = lx_coll.products
+      endif
+      if lx_l1 == blank and lx_l2 == blank and s.pair_selector_enabled and s.free_gift_products != blank
+        assign lx_l1 = s.free_gift_products
       endif
       if lx_src == 'products'
         assign lx_cap = 10
@@ -867,7 +869,13 @@
       assign lx_start = 0
       assign lx_keep = ','
       assign lx_first_url = ''
-      for gp in lx_all limit: 60
+      for lx_pass in (1..2)
+        if lx_pass == 1
+          assign lx_cur = lx_l1
+        else
+          assign lx_cur = lx_l2
+        endif
+      for gp in lx_cur limit: 60
         if lx_n >= lx_cap
           break
         endif
@@ -887,6 +895,7 @@
           assign lx_n = lx_n | plus: 1
         endif
       endfor
+      endfor
       assign lx_emit = ','
       assign lx_form_id = 'lx-claim-' | append: sid
       assign lx_blurb_lines = s.gift_blurbs | newline_to_br | split: '<br />'
@@ -899,7 +908,8 @@
             <div class="lx-track" data-lx-track>
               {%- assign lx_i = 0 -%}
               {%- assign lx_emit = ',' -%}
-              {%- for gp in lx_all limit: 60 -%}
+              {%- for lx_pass in (1..2) -%}{%- if lx_pass == 1 -%}{%- assign lx_cur = lx_l1 -%}{%- else -%}{%- assign lx_cur = lx_l2 -%}{%- endif -%}
+              {%- for gp in lx_cur limit: 60 -%}
                 {%- assign lx_probe = ',' | append: gp.handle | append: ',' -%}
                 {%- assign lx_kept = false -%}{%- if lx_keep contains lx_probe -%}{%- assign lx_kept = true -%}{%- endif -%}
                 {%- assign lx_done = false -%}{%- if lx_emit contains lx_probe -%}{%- assign lx_done = true -%}{%- endif -%}
@@ -916,6 +926,7 @@
                   </button>
                   {%- assign lx_i = lx_i | plus: 1 -%}
                 {%- endif -%}
+              {%- endfor -%}
               {%- endfor -%}
             </div>
           </div>
@@ -934,7 +945,8 @@
           <p class="visually-hidden" aria-live="polite" data-lx-announce></p>
           {%- assign lx_i = 0 -%}
           {%- assign lx_emit = ',' -%}
-          {%- for gp in lx_all limit: 60 -%}
+          {%- for lx_pass in (1..2) -%}{%- if lx_pass == 1 -%}{%- assign lx_cur = lx_l1 -%}{%- else -%}{%- assign lx_cur = lx_l2 -%}{%- endif -%}
+          {%- for gp in lx_cur limit: 60 -%}
             {%- assign lx_probe = ',' | append: gp.handle | append: ',' -%}
             {%- assign lx_kept = false -%}{%- if lx_keep contains lx_probe -%}{%- assign lx_kept = true -%}{%- endif -%}
             {%- assign lx_done = false -%}{%- if lx_emit contains lx_probe -%}{%- assign lx_done = true -%}{%- endif -%}
@@ -1058,6 +1070,7 @@
               </div>
               {%- assign lx_i = lx_i | plus: 1 -%}
             {%- endif -%}
+          {%- endfor -%}
           {%- endfor -%}
 
           <div data-lx-claim-wrap>
