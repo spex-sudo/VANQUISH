@@ -392,7 +392,7 @@
                   {%- else -%}
                     <text-component value="{{ price | strip_html }}">{{ price }}</text-component>
                     {%- if item.properties['_lexe_gift'] == '1' -%}
-                      <small style="display:block;font-size:12px;color:#9966CC;">FREE with $49+ in eligible items</small>
+                      <small style="display:block;font-size:12px;color:#9966CC;">FREE with {{ shop.metafields.custom.gift_guard.value.discount_min | default: 54 | prepend: '$' }}+ in eligible items</small>
                     {%- endif -%}
                   {%- endif -%}
                   {%- if item.unit_price_measurement -%}

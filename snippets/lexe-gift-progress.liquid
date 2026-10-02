@@ -2,11 +2,13 @@
   LEXE free-gift progress. Shown only when the cart holds a gift line (_lexe_gift = 1).
   Eligible subtotal = lines whose product is in the specs-offer-eligible collection, gift lines excluded.
   The minimum is worked out per gift from its cost (snippets/lexe-gift-rules.liquid, product metafield custom.cost_usd)
-  and is never lower than the discount's own $49. If the cart falls under it while the gift is free, the code is removed.
+  and is never lower than the discount's own minimum (shop metafield custom.gift_guard.discount_min, kept in step by guard.sh --sync). If the cart falls under it while the gift is free, the code is removed.
   Used by snippets/cart-products.liquid (cart page) and sections/lexe-cart-gift.liquid (cart drawer).
 {%- endcomment -%}
 {%- liquid
-  assign lgp_threshold = 4900
+  assign lgp_gg = shop.metafields.custom.gift_guard.value
+  assign lgp_threshold = lgp_gg.discount_min | default: 54 | times: 100 | round
+  assign lgp_min_base = lgp_threshold
   assign lgp_handle = 'specs-offer-eligible'
   assign lgp_code = 'LEXESPECS'
   assign lgp_has_gift = false

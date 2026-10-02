@@ -1412,7 +1412,7 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
         ? '<span class="cart-line-price" style="color:#9966CC;font-weight:600;">FREE</span>'
         : (sale ? '<span class="cart-line-price-was">' + formatMoney(item.original_line_price) + '</span>' : '') +
           '<span class="cart-line-price">' + formatMoney(item.final_line_price) + '</span>' +
-          (lexeGift ? '<small style="display:block;font-size:11px;color:#9966CC;">FREE with $49+ in eligible items</small>' : '');
+          (lexeGift ? '<small style="display:block;font-size:11px;color:#9966CC;">FREE with {{ shop.metafields.custom.gift_guard.value.discount_min | default: 54 | prepend: '$' }}+ in eligible items</small>' : '');
       html += '<div class="cart-item" data-cart-key="' + escapeHTML(item.key) + '">' +
         '<a href="' + escapeHTML(item.url) + '" class="cart-thumb"' +
           (img ? ' style="background-image:url(' + escapeHTML(img) + ')"' : '') +
