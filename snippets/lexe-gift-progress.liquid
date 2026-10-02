@@ -30,10 +30,10 @@
       endif
       continue
     endif
-    assign lgp_cols = item.product.collections | map: 'handle'
-    if lgp_cols contains lgp_handle
-      assign lgp_eligible = lgp_eligible | plus: item.final_line_price
-    endif
+    capture lgp_line
+      render 'lexe-gift-counts', item: item
+    endcapture
+    assign lgp_eligible = lgp_eligible | plus: lgp_line
   endfor
   assign lgp_remaining = lgp_threshold | minus: lgp_eligible
   assign lgp_pct = lgp_eligible | times: 100 | divided_by: lgp_threshold

@@ -1,6 +1,6 @@
 {%- comment -%}
   Rendered on demand via the Section Rendering API (?sections=lexe-gift-check).
-  data-cents = eligible subtotal in cents (specs-offer-eligible products, gift lines excluded).
+  data-cents = eligible subtotal in cents (lines in the discount's buy collections at or above the margin floor, gift lines excluded; see snippets/lexe-gift-counts.liquid).
   data-need  = minimum in cents for the dearest gift line in the cart (snippets/lexe-gift-rules.liquid); -1 if a gift has no cost on file; 0 if no gift.
 {%- endcomment -%}
 {%- liquid
@@ -19,10 +19,10 @@
       endif
       continue
     endif
-    assign lgc_cols = item.product.collections | map: 'handle'
-    if lgc_cols contains 'specs-offer-eligible'
-      assign lgc_cents = lgc_cents | plus: item.final_line_price
-    endif
+    capture lgc_line
+      render 'lexe-gift-counts', item: item
+    endcapture
+    assign lgc_cents = lgc_cents | plus: lgc_line
   endfor
 -%}
 <div data-cents="{{ lgc_cents }}" data-need="{{ lgc_need }}"></div>

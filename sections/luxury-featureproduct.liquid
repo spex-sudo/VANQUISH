@@ -813,6 +813,8 @@
 .lx-sel-{{ sid }} .lx-msg.is-error { color: #b3261e; }
 .lx-sel-{{ sid }} .lx-details { display: inline-block; margin-top: 12px; color: var(--apex-accent); text-decoration: none; font-size: 14px; font-weight: 500; }
 @media (prefers-reduced-motion: reduce) { .lx-sel-{{ sid }} .lx-track, .lx-sel-{{ sid }} .lx-slide { transition: none; } }
+.lx-sel-{{ sid }} .lx-noimg { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 14%; box-sizing: border-box; text-align: center; font-size: 15px; line-height: 1.25; color: var(--apex-fg-muted); background: #f4effa; }
+.lx-sel-{{ sid }} .lx-slide { content-visibility: auto; }
 .lx-sel-{{ sid }} .lx-count { align-self: center; min-width: 54px; font-size: 13px; letter-spacing: 0.06em; color: var(--apex-fg-muted); font-variant-numeric: tabular-nums; }
 .lx-sel-{{ sid }} .lx-arrows[hidden] { display: none; }
 .lx-sel-{{ sid }} [hidden] { display: none !important; }
@@ -834,7 +836,8 @@
 
   {%- if mode == 'single' -%}
     {%- liquid
-      # ── Gift list: only products Jay marks explicitly (Gift products list, or handles) can ever show FREE
+      # ── Gift source: manual Gift products list (default), the source collection, or every product in the selector
+      assign gift_src = s.gift_source | default: 'manual'
       assign lx_gift_csv = ','
       for gp in s.free_gift_products limit: 10
         assign lx_gift_csv = lx_gift_csv | append: gp.handle | append: ','
@@ -844,21 +847,47 @@
         assign lx_gift_csv = lx_gift_csv | append: lx_extra_handles
       endif
 
-      # ── Product list: "Products (up to 10)"; legacy Gift list is used while that list is empty
-      assign lx_list = s.single_products
-      if lx_list == blank and s.pair_selector_enabled and s.free_gift_products != blank
-        assign lx_list = s.free_gift_products
+      # ── Product source: Products list, Collection, or both (list first, no duplicates), capped
+      assign lx_src = s.single_source | default: 'products'
+      assign lx_coll = s.single_collection
+      assign lx_cap = s.single_max | default: 24
+      assign lx_all = s.single_products
+      if lx_src == 'collection' and lx_coll != blank
+        assign lx_all = lx_coll.products
+      elsif lx_src == 'both' and lx_coll != blank
+        assign lx_all = s.single_products | concat: lx_coll.products
+      endif
+      if lx_all == blank and s.pair_selector_enabled and s.free_gift_products != blank
+        assign lx_all = s.free_gift_products
+      endif
+      if lx_src == 'products'
+        assign lx_cap = 10
       endif
       assign lx_n = 0
       assign lx_start = 0
-      for gp in lx_list limit: 10
-        if gp.available
+      assign lx_keep = ','
+      assign lx_first_url = ''
+      for gp in lx_all limit: 60
+        if lx_n >= lx_cap
+          break
+        endif
+        assign lx_probe = ',' | append: gp.handle | append: ','
+        assign lx_dup = false
+        if lx_keep contains lx_probe
+          assign lx_dup = true
+        endif
+        if gp.available and lx_dup == false
+          assign lx_keep = lx_keep | append: gp.handle | append: ','
+          if lx_n == 0
+            assign lx_first_url = gp.url
+          endif
           if product != blank and gp.handle == product.handle
             assign lx_start = lx_n
           endif
           assign lx_n = lx_n | plus: 1
         endif
       endfor
+      assign lx_emit = ','
       assign lx_form_id = 'lx-claim-' | append: sid
       assign lx_blurb_lines = s.gift_blurbs | newline_to_br | split: '<br />'
     -%}
@@ -869,13 +898,20 @@
           <div class="lx-viewport" data-lx-viewport tabindex="0" role="group" aria-roledescription="carousel" aria-label="{{ s.selector_eyebrow | default: 'Pick a product' | escape }}">
             <div class="lx-track" data-lx-track>
               {%- assign lx_i = 0 -%}
-              {%- for gp in lx_list limit: 10 -%}
-                {%- if gp.available -%}
+              {%- assign lx_emit = ',' -%}
+              {%- for gp in lx_all limit: 60 -%}
+                {%- assign lx_probe = ',' | append: gp.handle | append: ',' -%}
+                {%- assign lx_kept = false -%}{%- if lx_keep contains lx_probe -%}{%- assign lx_kept = true -%}{%- endif -%}
+                {%- assign lx_done = false -%}{%- if lx_emit contains lx_probe -%}{%- assign lx_done = true -%}{%- endif -%}
+                {%- if lx_kept and lx_done == false -%}
+                  {%- assign lx_emit = lx_emit | append: gp.handle | append: ',' -%}
                   {%- assign gp_img = gp.featured_image -%}
                   <button type="button" class="lx-slide{% if lx_i == lx_start %} is-active{% endif %}" data-lx-slide="{{ lx_i }}"
                     aria-label="{{ gp.title | escape }}" aria-pressed="{% if lx_i == lx_start %}true{% else %}false{% endif %}">
                     {%- if gp_img -%}
-                      <img src="{{ gp_img | image_url: width: 560 }}" alt="" width="280" height="280" loading="{% if lx_i == lx_start %}eager{% else %}lazy{% endif %}" data-lx-img>
+                      <img src="{{ gp_img | image_url: width: 400 }}" alt="" width="200" height="200" loading="{% if lx_i == lx_start %}eager{% else %}lazy{% endif %}" decoding="async" data-lx-img>
+                    {%- else -%}
+                      <span class="lx-noimg" aria-hidden="true">{{ gp.title | escape | truncate: 22 }}</span>
                     {%- endif -%}
                   </button>
                   {%- assign lx_i = lx_i | plus: 1 -%}
@@ -897,14 +933,32 @@
         <div class="lx-col lx-col-info">
           <p class="visually-hidden" aria-live="polite" data-lx-announce></p>
           {%- assign lx_i = 0 -%}
-          {%- for gp in lx_list limit: 10 -%}
-            {%- if gp.available -%}
+          {%- assign lx_emit = ',' -%}
+          {%- for gp in lx_all limit: 60 -%}
+            {%- assign lx_probe = ',' | append: gp.handle | append: ',' -%}
+            {%- assign lx_kept = false -%}{%- if lx_keep contains lx_probe -%}{%- assign lx_kept = true -%}{%- endif -%}
+            {%- assign lx_done = false -%}{%- if lx_emit contains lx_probe -%}{%- assign lx_done = true -%}{%- endif -%}
+            {%- if lx_kept and lx_done == false -%}
+              {%- assign lx_emit = lx_emit | append: gp.handle | append: ',' -%}
               {%- liquid
-                # gift = explicitly listed, offer switched on, and a cost on file (custom.cost_usd) so the minimum can be worked out
+                # gift = allowed by the Gift products source AND offer switched on AND a cost on file AND in the discount's gift collection
+                # (the last two are checked in snippets/lexe-gift-rules.liquid); anything else keeps its normal price and Add to cart
                 assign lx_gift = false
                 assign lx_min = -1
-                assign lx_probe = ',' | append: gp.handle | append: ','
-                if s.free_offer_enabled and lx_gift_csv contains lx_probe
+                assign lx_by_source = false
+                if gift_src == 'all'
+                  assign lx_by_source = true
+                elsif gift_src == 'collection'
+                  if lx_coll != blank
+                    assign lx_pc = gp.collections | map: 'handle'
+                    if lx_pc contains lx_coll.handle
+                      assign lx_by_source = true
+                    endif
+                  endif
+                elsif lx_gift_csv contains lx_probe
+                  assign lx_by_source = true
+                endif
+                if s.free_offer_enabled and lx_by_source
                   capture lx_min_raw
                     render 'lexe-gift-rules', product: gp
                   endcapture
@@ -950,24 +1004,21 @@
                   {%- if gp_many -%}
                     <div class="lx-vselect">
                       <label class="visually-hidden" for="lx-vs-{{ sid }}-{{ lx_i }}">{{ gp.options.first | default: 'Option' | escape }} for {{ gp.title | escape }}</label>
-                      <select id="lx-vs-{{ sid }}-{{ lx_i }}" class="lx-vs" data-lx-vs>
-                        {%- for v in gp.variants -%}
-                          {%- if v.available -%}
-                            {%- liquid
-                              assign v_img = ''
-                              if v.featured_image
-                                assign v_img = v.featured_image | image_url: width: 560
-                              elsif gp.featured_image
-                                assign v_img = gp.featured_image | image_url: width: 560
-                              endif
-                              assign v_cmp = ''
-                              if v.compare_at_price > v.price
-                                assign v_cmp = v.compare_at_price | money
-                              endif
-                            -%}
-                            <option value="{{ v.id }}" data-img="{{ v_img }}" data-price="{{ v.price | money | escape }}" data-compare="{{ v_cmp | escape }}"{% if v.id == gp_first.id %} selected{% endif %}>{{ v.title | escape }}</option>
-                          {%- endif -%}
-                        {%- endfor -%}
+                      {%- comment -%} Many variants: only the first one is in the page; the rest load from /products/handle.js when this product is shown. {%- endcomment -%}
+                      <select id="lx-vs-{{ sid }}-{{ lx_i }}" class="lx-vs" data-lx-vs data-lx-lazy="{{ gp.handle }}">
+                        {%- liquid
+                          assign v_img = ''
+                          if gp_first.featured_image
+                            assign v_img = gp_first.featured_image | image_url: width: 400
+                          elsif gp.featured_image
+                            assign v_img = gp.featured_image | image_url: width: 400
+                          endif
+                          assign v_cmp = ''
+                          if gp_first.compare_at_price > gp_first.price
+                            assign v_cmp = gp_first.compare_at_price | money
+                          endif
+                        -%}
+                        <option value="{{ gp_first.id }}" data-img="{{ v_img }}" data-price="{{ gp_first.price | money | escape }}" data-compare="{{ v_cmp | escape }}" selected>{{ gp_first.title | escape }}</option>
                       </select>
                     </div>
                   {%- else -%}
@@ -977,9 +1028,9 @@
                           {%- liquid
                             assign v_img = ''
                             if v.featured_image
-                              assign v_img = v.featured_image | image_url: width: 560
+                              assign v_img = v.featured_image | image_url: width: 400
                             elsif gp.featured_image
-                              assign v_img = gp.featured_image | image_url: width: 560
+                              assign v_img = gp.featured_image | image_url: width: 400
                             endif
                             assign v_cmp = ''
                             if v.compare_at_price > v.price
@@ -1035,7 +1086,7 @@
               <button type="submit" class="lx-buy-btn" data-lx-buy>{{ 'products.product.add_to_cart' | t }}</button>
             </form>
           </div>
-          <a class="lx-details" href="{{ lx_list.first.url }}" data-lx-details>{{ 'products.product.view_full_details' | t | default: 'View full details' }} &rarr;</a>
+          <a class="lx-details" href="{{ lx_first_url }}" data-lx-details>{{ 'products.product.view_full_details' | t | default: 'View full details' }} &rarr;</a>
         </div>
       </div>
     {%- elsif product != blank -%}
@@ -2006,6 +2057,35 @@
       }
     }
   }
+  /* products with many variants: the full list is fetched only when that product is first shown */
+  var lazyDone = {};
+  function loadVariants(i) {
+    var p = panels[i];
+    if (!p || lazyDone[i]) return;
+    var sel = p.querySelector('select[data-lx-lazy]');
+    if (!sel) return;
+    lazyDone[i] = true;
+    fetch('/products/' + encodeURIComponent(sel.getAttribute('data-lx-lazy')) + '.js', { credentials: 'same-origin' })
+      .then(function (r) { return r.json(); })
+      .then(function (pr) {
+        var cur = sel.value;
+        function m(c) { return '$' + (c / 100).toFixed(2); } /* store currency is USD */
+        var frag = document.createDocumentFragment();
+        (pr.variants || []).forEach(function (v) {
+          if (!v.available) return;
+          var o = document.createElement('option');
+          o.value = v.id; o.textContent = v.title;
+          var im = (v.featured_image && v.featured_image.src) || (pr.featured_image || '');
+          if (im) o.setAttribute('data-img', im.replace(/(\.[a-z]+)(\?|$)/i, '_400x400$1$2'));
+          o.setAttribute('data-price', m(v.price));
+          o.setAttribute('data-compare', v.compare_at_price && v.compare_at_price > v.price ? m(v.compare_at_price) : '');
+          if (String(v.id) === String(cur)) o.selected = true;
+          frag.appendChild(o);
+        });
+        if (frag.childNodes.length) { sel.innerHTML = ''; sel.appendChild(frag); }
+        if (i === idx) syncVariant();
+      }).catch(function () { lazyDone[i] = false; });
+  }
   function syncMode() {
     var gift = isGift(idx);
     if (claimWrap) claimWrap.hidden = !gift;
@@ -2030,6 +2110,7 @@
     var eb = root.querySelector('[data-lx-eyebrow]'); if (eb) eb.hidden = !isGift(idx);
     say('');
     center();
+    loadVariants(idx);
     syncVariant();
     syncMode();
     if (!quiet && announce && panels[idx]) {
@@ -2453,9 +2534,21 @@
     },
 
     { "type": "header", "content": "Single Product Mode" },
-    { "type": "product_list", "id": "single_products", "label": "Products (up to 10)", "limit": 10, "info": "Single mode: pick up to 10 products. Shoppers swipe or use the arrows; with one product the arrows are hidden. Only products also in 'Gift products' show FREE and the email claim." },
+    {
+      "type": "select", "id": "single_source", "label": "Product source",
+      "options": [
+        { "value": "products",   "label": "Products list (up to 10)" },
+        { "value": "collection", "label": "Collection (all its products)" },
+        { "value": "both",       "label": "Both (list first, then collection)" }
+      ],
+      "default": "products",
+      "info": "Which products the single-mode selector shows. Sold-out products are skipped."
+    },
+    { "type": "product_list", "id": "single_products", "label": "Products list (up to 10)", "limit": 10, "info": "Used by 'Products list' and 'Both'. With 'Products list' only the first 10 show." },
+    { "type": "collection", "id": "single_collection", "label": "Collection", "info": "Used by 'Collection' and 'Both'. Also used by Gift products source = 'Same collection'." },
+    { "type": "range", "id": "single_max", "label": "Max products shown", "min": 2, "max": 50, "step": 1, "default": 24, "info": "Cap for 'Collection' and 'Both' (list plus collection). Higher means a longer page; 24 or fewer keeps it fast." },
     { "type": "product", "id": "product", "label": "Fallback product", "info": "Used only when 'Products (up to 10)' is empty." },
-    { "type": "checkbox", "id": "free_offer_enabled", "label": "Show FREE price for gift products", "default": false },
+    { "type": "checkbox", "id": "free_offer_enabled", "label": "Show FREE price for gift products", "default": false, "info": "Master switch. Off means no product shows FREE or the email claim." },
     { "type": "text", "id": "free_gift_handles", "label": "Gift product handles (comma-separated)", "info": "Optional. Same effect as adding the product to Gift products." },
     { "type": "text", "id": "free_label", "label": "Free label", "default": "FREE" },
     { "type": "text", "id": "free_condition_text", "label": "Condition text", "default": "with orders of $49+ in" },
@@ -2465,7 +2558,17 @@
     { "type": "text", "id": "free_button_label", "label": "Free offer: button label", "default": "Add free pair to cart" },
     { "type": "textarea", "id": "free_description", "label": "Free offer: short description", "info": "Replaces the product excerpt in single mode while the free offer shows. Leave blank to keep the excerpt." },
     { "type": "color", "id": "single_btn_text_color", "label": "Single mode: button text colour", "info": "Optional. Leave unset to use the card background colour." },
-    { "type": "product_list", "id": "free_gift_products", "label": "Gift products (up to 10)", "limit": 10, "info": "The only products that can show FREE and the email claim. Needs a cost on file (metafield custom.cost_usd, filled by guard.sh) and must also be in the discount's gift list." },
+    {
+      "type": "select", "id": "gift_source", "label": "Gift products source",
+      "options": [
+        { "value": "manual",     "label": "Gift products list (below)" },
+        { "value": "collection", "label": "Same collection as above" },
+        { "value": "all",        "label": "Every product in the selector" }
+      ],
+      "default": "manual",
+      "info": "Which products can be FREE (with the email claim). A product is only FREE if it is allowed here AND has a cost on file (custom.cost_usd, filled by guard.sh) AND the discount's gift collection includes it. Anything else shows its normal price and Add to cart, never FREE."
+    },
+    { "type": "product_list", "id": "free_gift_products", "label": "Gift products list (up to 10)", "limit": 10, "info": "Used only when Gift products source = 'Gift products list'. Still needs a cost on file and a place in the discount's gift collection to show FREE." },
     { "type": "checkbox", "id": "pair_selector_enabled", "label": "Use Gift products as the list when Products is empty", "default": false },
     { "type": "text", "id": "selector_eyebrow", "label": "Pair selector: small heading", "default": "Pick your free pair" },
     { "type": "textarea", "id": "gift_blurbs", "label": "Pair selector: short text per product", "info": "One line per product: product-handle | short text" },

@@ -3,8 +3,11 @@
   Prints the minimum eligible subtotal in cents at which giving this product away still meets the profit target:
     T = (min_profit + cost + supplier_ship + fee * intl_ship) / (margin_floor - fee), rounded up to a whole dollar,
     never lower than the discount's own minimum.
-  Inputs: product metafield custom.cost_usd (highest variant unit cost) and shop metafield custom.gift_guard (JSON).
-  Both are written by /workspace/lexe-offer/guard.sh. Prints -1 when the product has no cost, so it is never given away.
+  A product can only be a gift when ALL of these hold, otherwise this prints -1 (never free):
+    1. it has a cost on file (product metafield custom.cost_usd = highest variant unit cost)
+    2. it sits in a collection on the GET side of the discount (shop metafield custom.gift_guard.get_handles), because
+       otherwise Shopify would charge for it at checkout
+  Both metafields are written by /workspace/lexe-offer/guard.sh --sync.
 {%- endcomment -%}
 {%- liquid
   assign gg = shop.metafields.custom.gift_guard.value
@@ -15,7 +18,21 @@
   assign g_floor = gg.margin_floor | default: 0.5 | times: 1.0
   assign g_min = gg.discount_min | default: 49 | times: 1.0
   assign g_cost = product.metafields.custom.cost_usd.value
-  if g_cost == blank or g_cost == nil
+  assign g_ok = false
+  if g_cost != blank and g_cost != nil
+    if gg.get_product_handles contains product.handle
+      assign g_ok = true
+    endif
+    if gg.get_handles != blank
+      assign g_cols = product.collections | map: 'handle'
+      for g_h in gg.get_handles
+        if g_cols contains g_h
+          assign g_ok = true
+        endif
+      endfor
+    endif
+  endif
+  if g_ok == false
     echo -1
   else
     assign g_cost = g_cost | times: 1.0

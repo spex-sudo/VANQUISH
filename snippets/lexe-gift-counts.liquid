@@ -1,0 +1,39 @@
+{%- comment -%}
+  Prints how many cents of a cart line count toward the free-gift minimum (0 if none). Usage: render 'lexe-gift-counts', item: item
+  A line counts when its product is in a BUY collection of the discount (shop metafield custom.gift_guard.buy_handles) AND its
+  lowest variant margin (product metafield custom.min_margin_pct, written by guard.sh --sync) is at or above the margin floor.
+  Gift lines never count. Without gift_guard.buy_handles it falls back to the collection specs-offer-eligible.
+{%- endcomment -%}
+{%- liquid
+  assign c_gg = shop.metafields.custom.gift_guard.value
+  assign c_buy = c_gg.buy_handles
+  assign c_fallback = false
+  if c_buy == blank
+    assign c_buy = 'specs-offer-eligible' | split: ','
+    assign c_fallback = true
+  endif
+  assign c_cols = item.product.collections | map: 'handle'
+  assign c_in = false
+  for c_h in c_buy
+    if c_cols contains c_h
+      assign c_in = true
+    endif
+  endfor
+  if c_in and c_fallback == false
+    assign c_mm = item.product.metafields.custom.min_margin_pct.value
+    assign c_floor = c_gg.margin_floor | default: 0.5 | times: 100
+    if c_mm == blank or c_mm == nil
+      assign c_in = false
+    else
+      assign c_mm = c_mm | times: 1.0
+      if c_mm < c_floor
+        assign c_in = false
+      endif
+    endif
+  endif
+  if c_in
+    echo item.final_line_price
+  else
+    echo 0
+  endif
+-%}
