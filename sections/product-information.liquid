@@ -740,7 +740,7 @@
         {%- endfor -%}
 
         {%- if desc_mode == 'inline' and product.description != blank -%}
-          <div class="ap-desc{{ sid }}">{{ product.description | replace: '<img ', '<img decoding="async" fetchpriority="low" ' }}</div>
+          <div class="ap-desc{{ sid }}">{{ product.description }}</div>
         {%- endif -%}
 
       </div>
@@ -872,7 +872,7 @@
                   <svg viewBox="0 0 24 12" aria-hidden="true"><line x1="1" y1="6" x2="22" y2="6"/><polyline points="17 1 22 6 17 11"/></svg>
                 </button>
                 <div class="ap-link-body{{ sid }}" id="desc{{ sid }}">
-                  <div class="ap-link-inner{{ sid }}"><div class="ap-link-content{{ sid }}">{{ product.description | replace: '<img ', '<img decoding="async" fetchpriority="low" ' }}</div></div>
+                  <div class="ap-link-inner{{ sid }}"><div class="ap-link-content{{ sid }}">{{ product.description }}</div></div>
                 </div>
               </div>
             {%- endif -%}
