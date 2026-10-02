@@ -144,7 +144,7 @@
       "name": "Ultimate Hero V11 + Signature Wall",
       "settings": {
         "image": "shopify://shop_images/IMG-0326.jpg",
-        "video_link": "https://cdn.shopify.com/videos/c/o/v/dc5e4149c2564c629557d5294d972c4d.mp4",
+        "video_link": "https://cdn.shopify.com/videos/c/vp/97ba03408599419ab9fb083d9dfe039d/97ba03408599419ab9fb083d9dfe039d.SD-480p-1.5Mbps-96243800.mp4",
         "video_poster": "shopify://shop_images/db64d223b6af41e0899f4c93483b92a2-Max-Origin.webp",
         "image_fit": "cover",
         "height": 64,
@@ -209,9 +209,9 @@
         "addname_privacy_label": "Privacy Policy",
         "addname_privacy_url": "shopify://pages/contact",
         "addname_submit_label": "Add Me to the Wall",
-        "addname_submit_loading": "Sending\u2026",
+        "addname_submit_loading": "Sending…",
         "addname_success_title": "You're on the list!",
-        "addname_success_body": "Thanks for joining. Your name will appear on the wall after a quick review \u2014 usually within 24 hours."
+        "addname_success_body": "Thanks for joining. Your name will appear on the wall after a quick review — usually within 24 hours."
       }
     },
     "luxury_collectiongrid_jpK7Cz": {
@@ -384,7 +384,7 @@
         "countdown_second_label": "sec",
         "sr_showing_label": "Showing",
         "sr_of_label": "of",
-        "committed_badge": "YOU\u2019RE ON THE LIST",
+        "committed_badge": "YOU’RE ON THE LIST",
         "modal_bg": "#ffffff",
         "modal_fg": "#000000",
         "modal_accent": "#ece6fd",
@@ -564,6 +564,10 @@
         "max_content_width": 1600,
         "padding_top": 0,
         "padding_bottom": 32,
+        "single_source": "products",
+        "single_products": [],
+        "single_collection": "",
+        "single_max": 24,
         "product": "",
         "free_offer_enabled": false,
         "free_gift_handles": "",
@@ -575,6 +579,7 @@
         "free_button_label": "Add free pair to cart",
         "free_description": "",
         "single_btn_text_color": "",
+        "gift_source": "manual",
         "free_gift_products": [],
         "pair_selector_enabled": false,
         "selector_eyebrow": "Pick your free pair",
@@ -712,6 +717,10 @@
         "max_content_width": 1280,
         "padding_top": 20,
         "padding_bottom": 20,
+        "single_source": "collection",
+        "single_products": [],
+        "single_collection": "lexespecs",
+        "single_max": 50,
         "product": "asymmetrical-edgy-handmade-resin-sunglasses-unique-mutant-personality-venom-halloween-fashion-statement-sun-glasses",
         "free_offer_enabled": true,
         "free_gift_handles": "asymmetrical-edgy-handmade-resin-sunglasses-unique-mutant-personality-venom-halloween-fashion-statement-sun-glasses,new-steampunk-oversized-sunglasses-women-trends-one-piece-punk-sun-glasses",
@@ -723,6 +732,7 @@
         "free_button_label": "Add free pair to cart",
         "free_description": "Hand-shaped resin frames with mirrored lenses. Add them to your cart, bring your order to $54+ in eligible items, and use your code from the LEXE list below.",
         "single_btn_text_color": "#ffffff",
+        "gift_source": "collection",
         "free_gift_products": [
           "asymmetrical-edgy-handmade-resin-sunglasses-unique-mutant-personality-venom-halloween-fashion-statement-sun-glasses",
           "new-steampunk-oversized-sunglasses-women-trends-one-piece-punk-sun-glasses"
@@ -732,11 +742,7 @@
         "gift_blurbs": "asymmetrical-edgy-handmade-resin-sunglasses-unique-mutant-personality-venom-halloween-fashion-statement-sun-glasses | Hand-shaped resin frames with mirrored lenses.\nnew-steampunk-oversized-sunglasses-women-trends-one-piece-punk-sun-glasses | An oversized one-piece shield lens in a steampunk-style frame.",
         "claim_button_label": "Claim now",
         "free_discount_code": "LEXESPECS",
-        "layout": "text_first",
-        "single_source": "collection",
-        "single_collection": "lexespecs",
-        "single_max": 50,
-        "gift_source": "collection"
+        "layout": "text_first"
       }
     },
     "lexe_specs_offer": {
@@ -763,7 +769,7 @@
     },
     "vanquish_scratch_MJQr7J": {
       "type": "vanquish-scratch",
-      "name": "Scratch Funnel \u2014 Tag",
+      "name": "Scratch Funnel — Tag",
       "settings": {
         "enabled": true,
         "display_mode": "tag",
@@ -792,7 +798,7 @@
         "submit_label": "CLAIM",
         "trust_text": "No spam. Unsubscribe any time.",
         "success_headline": "You're in.",
-        "success_message": "Your code is ready \u2014 use it at checkout.",
+        "success_message": "Your code is ready — use it at checkout.",
         "success_cta": "Start shopping",
         "success_url": "",
         "offer_code": "",
