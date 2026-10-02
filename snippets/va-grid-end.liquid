@@ -46,18 +46,7 @@ window.vaGridEnd=function(el){
     var t=(node.textContent||'').replace(/\s+/g,' ').trim().toLowerCase();
     return t==='all products loaded' || t==='all results loaded';
   }
-  // perf: cheap pre-check. The full element scan below can only match when some text node contains "loaded",
-  // so skip it (it used to read textContent of every span/div/p on each DOM change and every 600ms).
-  function mayHavePhrase(){
-    var w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null),n,v;
-    while((n=w.nextNode())){
-      v=n.nodeValue;
-      if(v && v.length<400 && /loaded/i.test(v)) return true;
-    }
-    return false;
-  }
   function scan(){
-    if(!mayHavePhrase()) return;
     var nodes=document.querySelectorAll('span,div,p');
     for(var i=0;i<nodes.length;i++){
       if(looksLoaded(nodes[i])) window.vaGridEnd(nodes[i]);
