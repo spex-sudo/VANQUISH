@@ -67,6 +67,10 @@
 -%}
 {"@context":"https://schema.org","@type":"BlogPosting","headline":{{ article.title | truncate: 110 | json }},"description":{{ ld_desc | json }},{% if article.image %}"image":["https:{{ article.image | image_url: width: 1200 }}"],{% endif %}"datePublished":{{ article.published_at | date: '%Y-%m-%dT%H:%M:%S%:z' | json }},"dateModified":{{ article.updated_at | default: article.published_at | date: '%Y-%m-%dT%H:%M:%S%:z' | json }},"author":{"@type":"Person","name":{{ ld_author | json }}{% if ld_author == 'Leslie Kroft' %},"jobTitle":"Generalist","worksFor":{"@type":"Organization","name":"Devici Studios","url":{{ request.origin | append: '/' | json }}}{% endif %}},"publisher":{"@type":"Organization","@id":{{ request.origin | append: '/#organization' | json }},"name":"Devici Studios","alternateName":"LEXE by Devici Studios","url":{{ request.origin | append: '/' | json }},"logo":{"@type":"ImageObject","url":{{ 'devici-studios-logo.png' | file_url | prepend: 'https:' | json }},"width":1024,"height":1024}},"mainEntityOfPage":{"@type":"WebPage","@id":{{ canonical_url | json }}}{% if article.tags.size > 0 %},"keywords":{{ article.tags | join: ', ' | json }}{% endif %}}
 </script>
+{%- assign lexe_faq = article.metafields.custom.faq_schema.value -%}
+{%- if lexe_faq != blank -%}
+<script type="application/ld+json">{{ lexe_faq | json }}</script>
+{%- endif -%}
 
 {% stylesheet %}
   .orbit-counter,
