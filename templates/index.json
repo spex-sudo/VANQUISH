@@ -830,7 +830,8 @@
         "foil_color_a": "#f3d36a",
         "foil_color_b": "#c9a227",
         "card_radius": 18,
-        "btn_radius": 40
+        "btn_radius": 40,
+        "image_tr": "shopify://shop_images/IMG-0591.jpg"
       }
     }
   },
