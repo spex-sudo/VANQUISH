@@ -83,7 +83,15 @@
   {%- endfor -%}
 {%- endif -%}
 
-{%- if og_image -%}
+{%- comment -%} LEXE SEO pass 3: branded 1200x630 fallback so the home page and image-less pages share a clear 'LEXE by Devici Studios' preview {%- endcomment -%}
+{%- assign og_brand_image = 'lexe-by-devici-studios-og.jpg' | file_url | prepend: 'https:' -%}
+{%- if request.page_type == 'index' or og_image == blank -%}
+  <meta property="og:image" content="{{ og_brand_image }}">
+  <meta property="og:image:secure_url" content="{{ og_brand_image }}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="LEXE by Devici Studios logo">
+{%- elsif og_image -%}
   <meta property="og:image" content="https:{{ og_image | image_url: width: 1200 }}">
   <meta property="og:image:secure_url" content="https:{{ og_image | image_url: width: 1200 }}">
   <meta property="og:image:width" content="1200">
@@ -101,16 +109,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{ og_title | escape }}">
 <meta name="twitter:description" content="{{ og_description | escape }}">
-{%- if og_image -%}
+{%- if request.page_type == 'index' or og_image == blank -%}
+  <meta name="twitter:image" content="{{ og_brand_image }}">
+{%- elsif og_image -%}
   <meta name="twitter:image" content="https:{{ og_image | image_url: width: 1200 }}">
 {%- endif -%}
 
-<title>
-  {{ lexe_title }}
-  {%- if current_tags %} &ndash; tagged "{{ current_tags | join: ', ' }}"{% endif -%}
-  {%- if current_page != 1 %} &ndash; Page {{ current_page }}{% endif -%}
-  {%- unless lexe_title contains 'LEXE' %} | LEXE{% endunless -%}
-</title>
+<title>{{ lexe_title | strip | strip_newlines }}{%- if current_tags %} &ndash; tagged "{{ current_tags | join: ', ' }}"{% endif -%}{%- if current_page != 1 %} &ndash; Page {{ current_page }}{% endif -%}{%- unless lexe_title contains 'LEXE' %} | LEXE{% endunless -%}</title>
 
 <link rel="canonical" href="{{ canonical_url }}">
 
