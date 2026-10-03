@@ -75,7 +75,7 @@
       {%- if request.page_type == 'index' -%}
         <h1 class="visually-hidden">LEXE by Devici Studios</h1>
       {%- elsif request.page_type == 'collection' -%}
-        <h1 class="visually-hidden">{{ page_title | split: ' | ' | first | default: collection.title | escape }}</h1>
+        <h1 class="visually-hidden">{{ page_title | split: ' | ' | first | default: collection.title }}</h1>
       {%- endif -%}
       {{ content_for_layout }}
     </main>
