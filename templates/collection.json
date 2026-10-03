@@ -126,10 +126,61 @@
         "max_card_images": 4,
         "max_swatches": 4
       }
+    },
+    "vanquish_scratch_iVnnRn": {
+      "type": "vanquish-scratch",
+      "name": "Scratch Funnel — Tag",
+      "settings": {
+        "enabled": true,
+        "display_mode": "tag",
+        "tag_text": "PULL HERE",
+        "tag_side": "left",
+        "tag_offset": 50,
+        "pull_distance": 56,
+        "show_on_routes": "all",
+        "trigger_type": "delay",
+        "trigger_delay": 7,
+        "scroll_percent": 20,
+        "dismiss_days": 0,
+        "hide_logged_in": false,
+        "kicker": "THANKS FOR SHOPPING",
+        "headline": "SCRATCH HERE",
+        "subheadline": "To Show Our Appreciation:",
+        "foil_label": "SCRATCH HERE",
+        "progress_keep": "KEEP SCRATCHING",
+        "prize_headline": "YOU'VE GOT A MYSTERY PRIZE",
+        "reveal_under": "Claim (One Use)",
+        "prize_sub": "",
+        "claim_label": "CLAIM GIFT",
+        "claimed_label": "CLAIMED!",
+        "email_prompt": "We’ll send your prize code to your email.",
+        "email_placeholder": "Your email address",
+        "submit_label": "CLAIM",
+        "trust_text": "No spam. Unsubscribe any time.",
+        "success_headline": "You're in.",
+        "success_message": "Your code is ready — use it at checkout.",
+        "success_cta": "Start shopping",
+        "success_url": "",
+        "offer_code": "",
+        "scratch_threshold": 52,
+        "brush_size": 42,
+        "bg_color": "#020202",
+        "text_color": "#ffffff",
+        "muted_color": "#FFFFFF",
+        "accent_color": "#110F12",
+        "accent_text": "#FFFFFF",
+        "foil_color_a": "#f3d36a",
+        "foil_color_b": "#c9a227",
+        "card_radius": 18,
+        "btn_radius": 40,
+        "image_tr": "shopify://shop_images/IMG-0591.jpg",
+        "image_bl": "shopify://shop_images/lexe-by-devici-studios-logo.png"
+      }
     }
   },
   "order": [
     "header",
-    "grid"
+    "grid",
+    "vanquish_scratch_iVnnRn"
   ]
 }
