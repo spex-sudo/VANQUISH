@@ -137,7 +137,7 @@ export class ComparisonSliderComponent extends Component {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     this.stopHint();
     const isTouch = e.pointerType === 'touch';
-    const near = this.distanceToDivider(e) <= 36 || e.target.closest?.('.cs-slider__handle');
+    const near = this.distanceToDivider(e) <= 36 || e.target.closest?.('.cx-slider__handle');
 
     if (!isTouch) {
       // Mouse and pen: grab anywhere, divider follows the pointer

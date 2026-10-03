@@ -57,13 +57,27 @@
         "b4": {
           "type": "comparison-slider-cmptest",
           "settings": {}
+        },
+        "b5": {
+          "type": "comparison-slider-cmptest",
+          "settings": {
+            "before_image": "shopify://shop_images/8E724F458375A4563F88FCA9317DD846.jpg",
+            "after_image": "shopify://shop_images/D895E1D183504C460B899486AB35D132.jpg",
+            "slider_style": "horizontal",
+            "image_ratio": "landscape",
+            "width": "custom",
+            "custom_width": 65,
+            "width_mobile": "fill",
+            "border_radius": 10
+          }
         }
       },
       "block_order": [
         "b1",
         "b2",
         "b3",
-        "b4"
+        "b4",
+        "b5"
       ],
       "settings": {}
     }
