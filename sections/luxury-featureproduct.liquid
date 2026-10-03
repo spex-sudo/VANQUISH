@@ -459,6 +459,12 @@
 
 /* Sold-out state */
 .apex-gc-{{ sid }}.is-sold-out .apex-gi-{{ sid }} { opacity: 0.55; }
+{%- if mode == 'grid' -%}
+/* The site-wide apex-featured-soldout.css hides the sold-out overlay. In this grid, sold-out cards (including the
+   real sold-out products added by "Minimum sold-out products to show") keep the label and dimmed look so shoppers can see the status. */
+#shopify-section-{{ sid }} .apex-gc-{{ sid }}.is-sold-out .apex-gi-{{ sid }} { opacity: 0.55 !important; }
+#shopify-section-{{ sid }} .apex-gc-{{ sid }}.is-sold-out .apex-gsold-{{ sid }} { display: flex !important; background: rgba(255,255,255,0.35) !important; }
+{%- endif -%}
 
 /* ══════════════════════════════════════════════════════════════
    GRID MODE — Image container
