@@ -27,9 +27,25 @@
   endif
 %}
 
+{%- liquid
+  assign cs_accent = block.settings.accent_color | default: '#9966CC'
+  assign cs_handle = block.settings.handle_style | default: 'ring'
+  assign cs_start = block.settings.start_position | default: 50
+  assign cs_label_bg = block.settings.text_background_color | default: '#111111'
+  assign cs_label_fg = '#ffffff'
+  if cs_label_bg != blank
+    assign cs_bright = cs_label_bg | color_brightness
+    if cs_bright > 160
+      assign cs_label_fg = '#111111'
+    endif
+  endif
+  assign cs_before_label = block.settings.before_text | default: 'Before'
+  assign cs_after_label = block.settings.after_text | default: 'After'
+-%}
+
 <comparison-slider-component
   class="comparison-slider comparison-slider--{{ block.settings.slider_style }} spacing-style size-style border-style{% if block.settings.inherit_color_scheme == false %} color-{{ block.settings.color_scheme }}{% endif %}"
-  style="--ratio: {{ ratio }}; --text-background-color: {{ block.settings.text_background_color }}; --text-corner-radius: {{ block.settings.text_corner_radius }}px; {% render 'spacing-style', settings: block.settings %} {% render 'size-style', settings: block.settings %} {% render 'border-override', settings: block.settings %}"
+  style="--ratio: {{ ratio }}; --cs-accent: {{ cs_accent }}; --text-background-color: {{ cs_label_bg }}; --cs-label-fg: {{ cs_label_fg }}; --text-corner-radius: {{ block.settings.text_corner_radius }}px; {% render 'spacing-style', settings: block.settings %} {% render 'size-style', settings: block.settings %} {% render 'border-override', settings: block.settings %}"
   {{ block.shopify_attributes }}
 >
   <div class="comparison-slider__container">
@@ -38,6 +54,12 @@
       ref="mediaWrapper"
       data-comparison-slider
       data-orientation="{{ block.settings.slider_style }}"
+      data-handle="{{ cs_handle }}"
+      data-start="{{ cs_start }}"
+      data-hint="{% if block.settings.show_hint == false %}false{% else %}true{% endif %}"
+      data-before-label="{{ cs_before_label | escape }}"
+      data-after-label="{{ cs_after_label | escape }}"
+      style="--pos: {{ cs_start }};"
       {% if block.settings.show_text %}
         {% if block.settings.slider_style == 'horizontal' %}
           data-text-position="{{ block.settings.text_position_horizontal }}"
@@ -50,11 +72,14 @@
         {%- if block.settings.before_image != blank -%}
           {{
             block.settings.before_image
-            | image_url: width: 3840
+            | image_url: width: 2400
             | image_tag:
               loading: 'lazy',
+              decoding: 'async',
+              draggable: 'false',
               class: 'before-image',
               alt: block.settings.before_image.alt,
+              widths: '480, 720, 960, 1280, 1600, 2000, 2400',
               sizes: 'auto, 100vw',
               width: block.settings.before_image.width,
               height: block.settings.before_image.height,
@@ -71,7 +96,7 @@
 
         {% if block.settings.show_text and block.settings.before_text != blank %}
           <div class="comparison-slider__text comparison-slider__text--before{% if block.settings.text_background %} comparison-slider__text--with-bg{% endif %}">
-            <div class="{{ block.settings.text_preset | default: 'h6' }}">{{ block.settings.before_text }}</div>
+            <div class="comparison-slider__text-inner{% if block.settings.text_preset != blank %} {{ block.settings.text_preset }}{% endif %}">{{ block.settings.before_text }}</div>
           </div>
         {% endif %}
       </div>
@@ -80,11 +105,14 @@
         {%- if block.settings.after_image != blank -%}
           {{
             block.settings.after_image
-            | image_url: width: 3840
+            | image_url: width: 2400
             | image_tag:
               loading: 'lazy',
+              decoding: 'async',
+              draggable: 'false',
               class: 'after-image',
               alt: block.settings.after_image.alt,
+              widths: '480, 720, 960, 1280, 1600, 2000, 2400',
               sizes: 'auto, 100vw',
               width: block.settings.after_image.width,
               height: block.settings.after_image.height,
@@ -101,34 +129,28 @@
 
         {% if block.settings.show_text and block.settings.after_text != blank %}
           <div class="comparison-slider__text comparison-slider__text--after{% if block.settings.text_background %} comparison-slider__text--with-bg{% endif %}">
-            <div class="{{ block.settings.text_preset | default: 'h6' }}">{{ block.settings.after_text }}</div>
+            <div class="comparison-slider__text-inner{% if block.settings.text_preset != blank %} {{ block.settings.text_preset }}{% endif %}">{{ block.settings.after_text }}</div>
           </div>
         {% endif %}
       </div>
 
-      <div class="cs-slider__handle">
-        <span class="cs-slider__chevron">
-          {{- 'icon-chevron-left.svg' | inline_asset_content -}}
-        </span>
-        <span class="cs-slider__chevron">
-          {{- 'icon-chevron-right.svg' | inline_asset_content -}}
-        </span>
-      </div>
+      <span class="cs-slider__line" aria-hidden="true"></span>
 
-      <input
-        type="range"
-        class="cs-slider"
+      <div
+        class="cs-slider__handle"
         ref="slider"
-        min="0"
-        max="100"
-        value="50"
+        role="slider"
+        tabindex="0"
         aria-label="{{ 'blocks.slider_label' | t }}"
-        {% if block.settings.slider_style == 'vertical' %}
-          aria-orientation="vertical"
-        {% endif %}
-        on:input="/sync"
-        on:pointerdown="/sync"
+        aria-orientation="{{ block.settings.slider_style }}"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow="{{ cs_start }}"
+        aria-valuetext="{{ cs_start }}% {{ cs_before_label | escape }}, {{ 100 | minus: cs_start }}% {{ cs_after_label | escape }}"
       >
+        <svg class="cs-slider__chevron" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><path d="M7.5 2.25 3.75 6l3.75 3.75" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg class="cs-slider__chevron cs-slider__chevron--next" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><path d="M4.5 2.25 8.25 6 4.5 9.75" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
     </div>
   </div>
 </comparison-slider-component>
@@ -139,9 +161,16 @@
   }
 
   .comparison-slider {
+    --cs-accent: #9966cc;
+    --cs-line: 2px;
+    --cs-handle: 44px;
+
     position: relative;
     overflow: hidden;
+    isolation: isolate;
     aspect-ratio: var(--ratio);
+    font-family: var(--font-body--family, inherit);
+    -webkit-tap-highlight-color: transparent;
   }
 
   .comparison-slider:not(:has(img)) {
@@ -154,9 +183,9 @@
     height: 100%;
   }
 
-  /* Container and Layout */
+  /* Container and layout. --pos is the divider position (0-100) from the left/top edge. */
   .comparison-slider__media-wrapper {
-    --compare: 50;
+    --pos: 50;
 
     position: relative;
     width: 100%;
@@ -164,51 +193,62 @@
     display: grid;
     grid-template: 1fr / 1fr;
     overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: pan-y;
+    cursor: ew-resize;
   }
 
-  /* Layer Containers */
+  .comparison-slider__media-wrapper[data-orientation='vertical'] {
+    touch-action: pan-x;
+    cursor: ns-resize;
+  }
+
+  .comparison-slider__media-wrapper.is-dragging {
+    cursor: grabbing;
+  }
+
   .comparison-slider__layer {
     grid-area: 1 / 1;
     position: relative;
     width: 100%;
     height: 100%;
-    transition: clip-path var(--transition-duration, 0s) ease-in-out;
   }
 
   .comparison-slider__layer--after {
-    z-index: var(--layer-base);
+    z-index: 0;
   }
 
-  /* Before Layer Clipping (inverse of after layer) */
+  .comparison-slider__layer--before {
+    z-index: 1;
+  }
+
   [data-orientation='horizontal'] .comparison-slider__layer--before {
-    /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
-    clip-path: inset(0 calc((100 - var(--compare)) * 1%) 0 0);
+    clip-path: inset(0 calc((100 - var(--pos)) * 1%) 0 0);
   }
 
   [data-orientation='vertical'] .comparison-slider__layer--before {
-    /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
-    clip-path: inset(0 0 calc(var(--compare) * 1%) 0);
+    clip-path: inset(0 0 calc((100 - var(--pos)) * 1%) 0);
   }
 
-  /* After Layer Clipping */
   [data-orientation='horizontal'] .comparison-slider__layer--after {
-    /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
-    clip-path: inset(0 0 0 calc(var(--compare) * 1%));
+    clip-path: inset(0 0 0 calc(var(--pos) * 1%));
   }
 
   [data-orientation='vertical'] .comparison-slider__layer--after {
-    /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
-    clip-path: inset(calc((100 - var(--compare)) * 1%) 0 0 0);
+    clip-path: inset(calc(var(--pos) * 1%) 0 0 0);
   }
 
-  /* Images and Placeholders */
   .before-image,
   .after-image,
   .comparison-slider__placeholder {
+    display: block;
     width: 100%;
     height: 100%;
     object-fit: cover;
     aspect-ratio: var(--ratio);
+    pointer-events: none;
+    -webkit-user-drag: none;
   }
 
   .comparison-slider__placeholder {
@@ -223,169 +263,177 @@
     fill: var(--color-foreground);
   }
 
-  /* Range Input (Hidden but Functional) */
-  .cs-slider {
+  /* Divider line: thin, soft shadow so it reads on light and dark images */
+  .cs-slider__line {
     position: absolute;
-    inset: 0;
-    z-index: var(--layer-heightened);
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    opacity: 0;
-    cursor: inherit;
-    appearance: none;
-  }
-
-  [data-orientation='horizontal'] .cs-slider {
-    cursor: ew-resize;
-  }
-
-  [data-orientation='vertical'] .cs-slider {
-    cursor: ns-resize;
-    writing-mode: vertical-lr;
-    direction: rtl;
-  }
-
-  /* Range Input Thumb */
-  .cs-slider::-webkit-slider-thumb,
-  .cs-slider::-moz-range-thumb {
-    width: var(--button-size);
-    height: var(--button-size);
-    border: 0;
-    background: transparent;
-    cursor: inherit;
-    appearance: none;
-  }
-
-  /* Range Input Track */
-  .cs-slider::-webkit-slider-track,
-  .cs-slider::-moz-range-track {
-    background: transparent;
-    border: 0;
-    appearance: none;
-  }
-
-  /* Visual Slider Elements */
-  .comparison-slider__media-wrapper::before,
-  .comparison-slider__media-wrapper::after {
-    content: '';
-    position: absolute;
+    z-index: 2;
     pointer-events: none;
-    transition: left var(--transition-duration, 0s) ease-in-out, top var(--transition-duration, 0s) ease-in-out;
-    z-index: var(--layer-raised);
+    background: rgb(255 255 255 / 0.92);
+    box-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.2), 0 0 14px rgb(0 0 0 / 0.3);
   }
 
-  /* Slider Track Line */
-  .comparison-slider__media-wrapper::after {
-    background: var(--color-background);
-    box-shadow: 0 0 12px 0 rgb(0 0 0 / 0.1);
-  }
-
-  .comparison-slider__media-wrapper::before {
-    background: var(--color-background);
-  }
-
-  .comparison-slider__media-wrapper[data-orientation='horizontal']::after {
-    inset: 0 auto;
-    left: calc(var(--compare) * 1%);
-    width: 4px;
+  [data-orientation='horizontal'] .cs-slider__line {
+    inset-block: 0;
+    left: calc(var(--pos) * 1%);
+    width: var(--cs-line);
     transform: translateX(-50%);
   }
 
-  .comparison-slider__media-wrapper[data-orientation='vertical']::after {
-    inset: auto 0;
-    top: calc((100 - var(--compare)) * 1%);
-    height: 4px;
+  [data-orientation='vertical'] .cs-slider__line {
+    inset-inline: 0;
+    top: calc(var(--pos) * 1%);
+    height: var(--cs-line);
     transform: translateY(-50%);
   }
 
-  /* Slider Handle */
+  /* Handle: round, dark by default, accent ring, subtle arrows */
   .cs-slider__handle {
+    --cs-handle-bg: rgb(17 17 17 / 0.92);
+    --cs-handle-fg: #fff;
+    --cs-handle-ring: var(--cs-accent);
+
     position: absolute;
-    z-index: var(--layer-heightened);
-    pointer-events: none;
-    width: var(--button-size);
-    height: var(--button-size);
-    background: var(--color-background);
+    z-index: 3;
+    width: var(--cs-handle);
+    height: var(--cs-handle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
     border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 0 12px 0 rgb(0 0 0 / 0.1);
-    transition: left var(--transition-duration, 0s) ease-in-out, top var(--transition-duration, 0s) ease-in-out,
-      gap 0.2s ease-in-out;
-    gap: var(--gap-sm);
-    padding: var(--padding-xs);
+    background: var(--cs-handle-bg);
+    color: var(--cs-handle-fg);
+    box-shadow:
+      0 0 0 2px var(--cs-handle-ring),
+      0 6px 18px rgb(0 0 0 / 0.32);
+    cursor: grab;
+    touch-action: none;
+    outline: none;
+    transition: box-shadow 0.2s ease, gap 0.2s ease, scale 0.2s ease;
   }
 
-  .comparison-slider__media-wrapper:hover .cs-slider__handle {
-    gap: var(--gap-2xs);
+  [data-handle='accent'] .cs-slider__handle {
+    --cs-handle-bg: var(--cs-accent);
+    --cs-handle-ring: rgb(255 255 255 / 0.92);
   }
 
-  .cs-slider__chevron {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  [data-handle='light'] .cs-slider__handle {
+    --cs-handle-bg: rgb(255 255 255 / 0.96);
+    --cs-handle-fg: #111;
   }
 
   [data-orientation='horizontal'] .cs-slider__handle {
     top: 50%;
-    left: calc(var(--compare) * 1%);
+    left: clamp(calc(var(--cs-handle) / 2), calc(var(--pos) * 1%), calc(100% - var(--cs-handle) / 2));
     transform: translate(-50%, -50%);
-    flex-direction: row;
   }
 
   [data-orientation='vertical'] .cs-slider__handle {
     left: 50%;
-    top: calc((100 - var(--compare)) * 1%);
+    top: clamp(calc(var(--cs-handle) / 2), calc(var(--pos) * 1%), calc(100% - var(--cs-handle) / 2));
     transform: translate(-50%, -50%) rotate(90deg);
   }
 
-  /* Text Labels */
+  .cs-slider__chevron {
+    flex: none;
+    opacity: 0.85;
+  }
+
+  .comparison-slider__media-wrapper:hover .cs-slider__handle,
+  .cs-slider__handle:focus-visible {
+    gap: 2px;
+    box-shadow:
+      0 0 0 2px var(--cs-handle-ring),
+      0 0 0 7px color-mix(in srgb, var(--cs-accent) 28%, transparent),
+      0 6px 18px rgb(0 0 0 / 0.32);
+  }
+
+  .cs-slider__handle:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 3px;
+  }
+
+  .comparison-slider__media-wrapper.is-dragging .cs-slider__handle {
+    cursor: grabbing;
+    scale: 1.06;
+  }
+
+  /* Smooth only for taps, clicks and key presses; dragging stays 1:1 with the pointer */
+  .comparison-slider__media-wrapper[data-smooth] .comparison-slider__layer,
+  .comparison-slider__media-wrapper[data-smooth] .cs-slider__line,
+  .comparison-slider__media-wrapper[data-smooth] .cs-slider__handle {
+    transition: clip-path 0.22s ease-out, left 0.22s ease-out, top 0.22s ease-out, box-shadow 0.2s ease, gap 0.2s ease,
+      scale 0.2s ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .comparison-slider__media-wrapper[data-smooth] .comparison-slider__layer,
+    .comparison-slider__media-wrapper[data-smooth] .cs-slider__line,
+    .comparison-slider__media-wrapper[data-smooth] .cs-slider__handle,
+    .cs-slider__handle {
+      transition: none;
+    }
+  }
+
+  /* Labels: styled like the site's small pill tags */
   .comparison-slider__text {
     position: absolute;
-    padding: var(--padding-xs);
+    z-index: 2;
+    margin: var(--padding-sm, 12px);
+    padding: 0;
     pointer-events: none;
+    color: #fff;
+    text-shadow: 0 1px 8px rgb(0 0 0 / 0.55);
+  }
+
+  .comparison-slider__text-inner:not(.h1, .h2, .h3, .h4, .h5, .h6, .paragraph) {
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
 
   .comparison-slider__text--with-bg {
-    background: var(--text-background-color);
-    border-radius: var(--text-corner-radius);
+    padding: 5px 11px;
+    color: var(--cs-label-fg, #fff);
+    text-shadow: none;
+    background: color-mix(in srgb, var(--text-background-color, #111) 78%, transparent);
+    border-radius: var(--text-corner-radius, 50px);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
   }
 
-  /* Horizontal: before/after control inline (left/right), position controls block (top/bottom) */
   [data-orientation='horizontal'] .comparison-slider__text--before {
-    inset-inline-start: var(--padding-sm);
+    inset-inline-start: 0;
   }
 
   [data-orientation='horizontal'] .comparison-slider__text--after {
-    inset-inline-end: var(--padding-sm);
+    inset-inline-end: 0;
   }
 
   [data-orientation='horizontal'][data-text-position='start'] .comparison-slider__text {
-    inset-block-start: var(--padding-sm);
+    inset-block-start: 0;
   }
 
   [data-orientation='horizontal'][data-text-position='end'] .comparison-slider__text {
-    inset-block-end: var(--padding-sm);
+    inset-block-end: 0;
   }
 
-  /* Vertical: before/after control block (top/bottom), position controls inline (left/right) */
   [data-orientation='vertical'] .comparison-slider__text--before {
-    inset-block-start: var(--padding-sm);
+    inset-block-start: 0;
   }
 
   [data-orientation='vertical'] .comparison-slider__text--after {
-    inset-block-end: var(--padding-sm);
+    inset-block-end: 0;
   }
 
   [data-orientation='vertical'][data-text-position='start'] .comparison-slider__text {
-    inset-inline-start: var(--padding-sm);
+    inset-inline-start: 0;
   }
 
   [data-orientation='vertical'][data-text-position='end'] .comparison-slider__text {
-    inset-inline-end: var(--padding-sm);
+    inset-inline-end: 0;
   }
 {% endstylesheet %}
 
@@ -421,6 +469,24 @@
       "default": "horizontal"
     },
     {
+      "type": "range",
+      "id": "start_position",
+      "label": "Start position",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50,
+      "info": "How much of the first image shows before anyone drags (0 shows only the second image)."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_hint",
+      "label": "Nudge the handle when first visible",
+      "default": true,
+      "info": "A short side-to-side movement. Skipped for visitors who prefer reduced motion."
+    },
+    {
       "type": "checkbox",
       "id": "show_text",
       "label": "t:settings.text_on_images",
@@ -435,12 +501,14 @@
       "type": "text",
       "id": "before_text",
       "label": "t:settings.image_1",
+      "default": "Before",
       "visible_if": "{{ block.settings.show_text }}"
     },
     {
       "type": "text",
       "id": "after_text",
       "label": "t:settings.image_2",
+      "default": "After",
       "visible_if": "{{ block.settings.show_text }}"
     },
     {
@@ -521,21 +589,21 @@
       "type": "checkbox",
       "id": "text_background",
       "label": "t:settings.background",
-      "default": false,
+      "default": true,
       "visible_if": "{{ block.settings.show_text }}"
     },
     {
       "type": "color",
       "id": "text_background_color",
       "label": "t:settings.background_color",
-      "default": "#FFFFFF",
+      "default": "#111111",
       "visible_if": "{{ block.settings.text_background and block.settings.show_text }}"
     },
     {
       "type": "range",
       "id": "text_corner_radius",
       "label": "t:settings.corner_radius",
-      "default": 0,
+      "default": 50,
       "min": 0,
       "max": 50,
       "step": 1,
@@ -653,6 +721,24 @@
       "content": "t:content.appearance"
     },
     {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent color",
+      "default": "#9966CC",
+      "info": "Handle ring, focus glow and accent handle."
+    },
+    {
+      "type": "select",
+      "id": "handle_style",
+      "label": "Handle style",
+      "options": [
+        { "value": "ring", "label": "Dark with accent ring" },
+        { "value": "accent", "label": "Solid accent" },
+        { "value": "light", "label": "Light with accent ring" }
+      ],
+      "default": "ring"
+    },
+    {
       "type": "checkbox",
       "id": "inherit_color_scheme",
       "label": "t:settings.inherit_color_scheme",
@@ -711,7 +797,7 @@
       "max": 100,
       "step": 1,
       "unit": "px",
-      "default": 0
+      "default": 10
     },
     {
       "type": "header",
