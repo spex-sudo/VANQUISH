@@ -238,6 +238,8 @@
           "type": "comparison-slider",
           "name": "t:names.comparison_slider",
           "settings": {
+            "before_image": "shopify://shop_images/8E724F458375A4563F88FCA9317DD846.jpg",
+            "after_image": "shopify://shop_images/D895E1D183504C460B899486AB35D132.jpg",
             "slider_style": "horizontal",
             "show_text": false,
             "before_text": "",
@@ -275,7 +277,7 @@
       "name": "t:names.image_compare",
       "settings": {
         "content_direction": "row",
-        "vertical_on_mobile": true,
+        "vertical_on_mobile": false,
         "horizontal_alignment": "space-between",
         "vertical_alignment": "center",
         "align_baseline": false,
