@@ -137,5 +137,24 @@
 }
 </script>
   {%- endif -%}
+  {%- if request.page_type == 'page' and page.handle == 'about' -%}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  "@id": {{ canonical_url | append: '#aboutpage' | json }},
+  "url": {{ canonical_url | json }},
+  "name": "About Devici Studios",
+  "isPartOf": { "@id": {{ lexe_origin | append: '/#website' | json }} },
+  "about": {
+    "@type": "Organization",
+    "@id": {{ lexe_origin | append: '/#organization' | json }},
+    "name": "Devici Studios",
+    "alternateName": ["LEXE by Devici Studios", "LEXE"],
+    "url": {{ lexe_origin | append: '/' | json }}
+  }
+}
+</script>
+  {%- endif -%}
 {%- endif -%}
 
