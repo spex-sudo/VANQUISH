@@ -4,6 +4,9 @@
 {%- endcomment -%}
 {%- assign lexe_origin = request.origin | default: shop.url -%}
 {%- if request.page_type == 'index' -%}
+{%- assign lexe_logo = 'devici-studios-logo.png' | file_url | prepend: 'https:' -%}
+{%- assign lexe_mark = 'lexe-by-devici-studios-logo.png' | file_url | prepend: 'https:' -%}
+{%- assign lexe_og = 'lexe-by-devici-studios-og.jpg' | file_url | prepend: 'https:' -%}
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -11,31 +14,60 @@
     {
       "@type": "Organization",
       "@id": {{ lexe_origin | append: '/#organization' | json }},
-      "name": "LEXE by Devici Studios",
-      "alternateName": ["LEXE", "Devici Studios"],
+      "name": "Devici Studios",
+      "alternateName": ["LEXE by Devici Studios", "LEXE"],
       "url": {{ lexe_origin | append: '/' | json }},
-      {%- if settings.logo != blank %}
+      "description": "Devici Studios is a fashion and web design studio. Its main line, LEXE, covers faux leather outerwear, streetwear, sunglasses and iPhone cases.",
+      "disambiguatingDescription": "Devici Studios (spelled D-E-V-I-C-I) is the studio behind the LEXE fashion line and Devici web design services.",
       "logo": {
         "@type": "ImageObject",
-        "url": {{ settings.logo | image_url: width: 600 | prepend: 'https:' | json }},
-        "width": 600
+        "@id": {{ lexe_origin | append: '/#logo' | json }},
+        "url": {{ lexe_logo | json }},
+        "contentUrl": {{ lexe_logo | json }},
+        "width": 1024,
+        "height": 1024,
+        "caption": "Devici Studios logo"
       },
-      {%- endif %}
+      "image": [{{ lexe_mark | json }}, {{ lexe_og | json }}],
+      "brand": {
+        "@type": "Brand",
+        "@id": {{ lexe_origin | append: '/#brand' | json }},
+        "name": "LEXE",
+        "alternateName": "LEXE by Devici Studios",
+        "logo": {{ lexe_mark | json }},
+        "url": {{ lexe_origin | append: '/collections/lexe' | json }}
+      },
+      "employee": { "@id": {{ lexe_origin | append: '/#creative-director' | json }} },
       "contactPoint": {
         "@type": "ContactPoint",
         "contactType": "customer service",
         "email": "Devici.studios@outlook.com",
-        "url": {{ lexe_origin | append: '/pages/contact' | json }}
+        "url": {{ lexe_origin | append: '/pages/contact-us' | json }}
       }
+    },
+    {
+      "@type": "Person",
+      "@id": {{ lexe_origin | append: '/#creative-director' | json }},
+      "name": "Jayden Devici Williams",
+      "alternateName": "Ray-j Jayden Williams",
+      "jobTitle": "Creative Director",
+      "description": "A creative director at LEXE by Devici Studios.",
+      "url": {{ lexe_origin | append: '/blogs/news/ray-j-jayden-williams' | json }},
+      "worksFor": { "@id": {{ lexe_origin | append: '/#organization' | json }} }
     },
     {
       "@type": "WebSite",
       "@id": {{ lexe_origin | append: '/#website' | json }},
       "name": "LEXE by Devici Studios",
-      "alternateName": "LEXE",
+      "alternateName": ["Devici Studios", "LEXE"],
       "url": {{ lexe_origin | append: '/' | json }},
       "publisher": { "@id": {{ lexe_origin | append: '/#organization' | json }} },
-      "inLanguage": {{ request.locale.iso_code | default: 'en' | json }}
+      "inLanguage": {{ request.locale.iso_code | default: 'en' | json }},
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": { "@type": "EntryPoint", "urlTemplate": "{{ lexe_origin }}/search?q={% raw %}{search_term_string}{% endraw %}" },
+        "query-input": "required name=search_term_string"
+      }
     }
   ]
 }
@@ -78,6 +110,30 @@
     { "@type": "ListItem", "position": 2, "name": {{ crumb_last_name | strip_html | json }}, "item": {{ canonical_url | json }} }
     {%- endif %}
   ]
+}
+</script>
+  {%- endif -%}
+  {%- if request.page_type == 'collection' and collection.handle != blank -%}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "@id": {{ canonical_url | append: '#collectionpage' | json }},
+  "name": {{ collection.title | strip_html | json }},
+  "url": {{ canonical_url | json }},
+  {%- assign lexe_cdesc = page_description | default: collection.description | strip_html | strip_newlines | truncate: 300 -%}
+  {%- if lexe_cdesc != blank %}"description": {{ lexe_cdesc | json }},{% endif %}
+  "isPartOf": { "@id": {{ lexe_origin | append: '/#website' | json }} },
+  "publisher": { "@id": {{ lexe_origin | append: '/#organization' | json }} },
+  "mainEntity": {
+    "@type": "ItemList",
+    "numberOfItems": {{ collection.products_count }},
+    "itemListElement": [
+      {%- for p in collection.products limit: 12 %}
+      { "@type": "ListItem", "position": {{ forloop.index }}, "url": {{ lexe_origin | append: p.url | json }}, "name": {{ p.title | strip_html | json }} }{% unless forloop.last %},{% endunless %}
+      {%- endfor %}
+    ]
+  }
 }
 </script>
   {%- endif -%}
