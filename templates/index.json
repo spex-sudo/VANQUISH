@@ -811,7 +811,7 @@
         "prize_sub": "",
         "claim_label": "CLAIM GIFT",
         "claimed_label": "CLAIMED!",
-        "email_prompt": "We’ll send you the prize code in your email.",
+        "email_prompt": "We’ll send your prize code to your email.",
         "email_placeholder": "Your email address",
         "submit_label": "CLAIM",
         "trust_text": "No spam. Unsubscribe any time.",
