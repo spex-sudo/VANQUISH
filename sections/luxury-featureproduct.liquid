@@ -1215,6 +1215,267 @@
     -%}
 
     {%- if grid_has_items -%}
+    {%- comment -%} ── Sold-out fill (grid_min_soldout): guarantee at least N genuinely sold-out cards are shown ── {%- endcomment -%}
+    {%- liquid
+      assign so_min = s.grid_min_soldout | default: 3 | plus: 0
+      assign so_k = 0
+      assign so_rank = 0
+      assign so_pos = 0
+      assign so_done = false
+      assign so_keep = 0
+      assign so_insert = 0
+      assign so_handles = ''
+      if source_kind == 'collection' and so_min > 0 and s.source_collection != blank
+        assign so_seen = '|'
+        assign so_hero_n = 0
+        assign so_shown = 0
+        assign so_instock = 0
+        assign so_l0 = 0
+        if grid_hero_product != blank
+          assign so_hero_n = 1
+          assign so_seen = so_seen | append: grid_hero_product.id | append: '|'
+          if grid_hero_product.available == false
+            assign so_shown = 1
+          endif
+        endif
+        for p in s.source_collection.products limit: grid_max
+          if grid_hero_product != blank and p.id == grid_hero_product.id
+            continue
+          endif
+          assign so_l0 = so_l0 | plus: 1
+          assign so_seen = so_seen | append: p.id | append: '|'
+          if p.available == false
+            assign so_shown = so_shown | plus: 1
+          else
+            assign so_instock = so_instock | plus: 1
+          endif
+        endfor
+        assign so_need = so_min | minus: so_shown
+        assign so_cap = so_instock | minus: 1
+        if so_need > so_cap
+          assign so_need = so_cap
+        endif
+        assign so_n = 0
+        if so_need > 0
+          # 1) same collection (beyond the displayed items)
+          for p in s.source_collection.products
+            if so_n >= so_need
+              break
+            endif
+            if p.available == false and p.type != 'Digital Product'
+              assign so_mk = '|' | append: p.id | append: '|'
+              unless so_seen contains so_mk
+                assign so_handles = so_handles | append: p.handle | append: ','
+                assign so_seen = so_seen | append: so_mk
+                assign so_n = so_n | plus: 1
+              endunless
+            endif
+          endfor
+          # 2) the fallback collection, or every product when none is chosen
+          if so_n < so_need
+            if s.grid_soldout_collection != blank
+              for p in s.grid_soldout_collection.products
+                if so_n >= so_need
+                  break
+                endif
+                if p.available == false and p.type != 'Digital Product'
+                  assign so_mk = '|' | append: p.id | append: '|'
+                  unless so_seen contains so_mk
+                    assign so_handles = so_handles | append: p.handle | append: ','
+                    assign so_seen = so_seen | append: so_mk
+                    assign so_n = so_n | plus: 1
+                  endunless
+                endif
+              endfor
+            else
+              for p in collections.all.products
+                if so_n >= so_need
+                  break
+                endif
+                if p.available == false and p.type != 'Digital Product'
+                  assign so_mk = '|' | append: p.id | append: '|'
+                  unless so_seen contains so_mk
+                    assign so_handles = so_handles | append: p.handle | append: ','
+                    assign so_seen = so_seen | append: so_mk
+                    assign so_n = so_n | plus: 1
+                  endunless
+                endif
+              endfor
+              for so_c in collections
+                if so_n >= so_need
+                  break
+                endif
+                for p in so_c.products
+                  if so_n >= so_need
+                    break
+                  endif
+                  if p.available == false and p.type != 'Digital Product'
+                    assign so_mk = '|' | append: p.id | append: '|'
+                    unless so_seen contains so_mk
+                      assign so_handles = so_handles | append: p.handle | append: ','
+                      assign so_seen = so_seen | append: so_mk
+                      assign so_n = so_n | plus: 1
+                    endunless
+                  endif
+                endfor
+              endfor
+            endif
+          endif
+        endif
+        assign so_k = so_n
+        if so_k > 0
+          assign so_keep = so_instock | minus: so_k
+          assign so_l = so_l0 | minus: so_k
+          assign so_insert = mobile_cap_start | minus: 1 | minus: so_hero_n | minus: so_k
+          if so_insert > so_l
+            assign so_insert = so_l
+          endif
+          assign so_min_ins = 0
+          if s.grid_hero_first and grid_hero_auto
+            assign so_min_ins = 1
+          endif
+          if so_insert < so_min_ins
+            assign so_insert = so_min_ins
+          endif
+        endif
+      endif
+    -%}
+    {%- capture so_cards_html -%}
+      {%- if so_k > 0 -%}
+        {%- assign so_list = so_handles | split: ',' -%}
+        {%- for so_h in so_list -%}
+          {%- assign p = all_products[so_h] -%}
+          {%- if so_h != blank and p.handle != blank and p.available == false -%}
+            {%- assign so_pos2 = so_insert | plus: forloop.index0 -%}
+            {%- if so_pos2 > 8 -%}{%- assign so_pos2 = 8 -%}{%- endif -%}
+            {%- liquid
+          assign pcv = p.first_available_variant
+          if pcv == nil
+            assign pcv = p.selected_or_first_available_variant
+          endif
+          if pcv == nil
+            assign pcv = p.variants.first
+          endif
+
+          assign pimg  = nil
+          assign pimg2 = nil
+          if pcv != nil
+            assign pimg = pcv.featured_image
+          endif
+          if pimg == nil
+            assign pimg = p.featured_image
+          endif
+          if pimg == nil and p.images.size > 0
+            assign pimg = p.images.first
+          endif
+          if p.images.size > 1
+            assign pimg2 = p.images[1]
+          endif
+
+          assign on_sale = false
+          assign disc_pct = 0
+          if pcv != nil and pcv.compare_at_price > pcv.price
+            assign on_sale = true
+            assign disc_pct = pcv.compare_at_price | minus: pcv.price | times: 100 | divided_by: pcv.compare_at_price
+          endif
+
+          assign is_new = false
+          if s.new_tag != blank and p.tags contains s.new_tag
+            assign is_new = true
+          endif
+
+          assign low_stock = false
+          if s.show_low_stock and pcv != nil and pcv.inventory_management != blank and pcv.inventory_quantity > 0 and pcv.inventory_quantity <= s.low_stock_threshold
+            assign low_stock = true
+          endif
+
+          assign stagger_delay = so_pos2 | times: 55
+          if stagger_delay > 440
+            assign stagger_delay = 440
+          endif
+
+          assign is_hero = false
+          if false
+            assign is_hero = true
+          endif
+        -%}
+        <div class="apex-gc-{{ sid }}{% if is_hero %} is-hero{% endif %} is-sold-out"
+          style="--apex-stagger:{{ stagger_delay }}" data-apex-gcard data-apex-fill="soldout">
+          <div class="apex-gi-{{ sid }}{% if is_hero %} is-hero{% endif %}">
+            <a href="{{ p.url }}" class="apex-glink-{{ sid }}" aria-label="{{ p.title | escape }}" tabindex="0">
+              {%- if pimg -%}
+                <img class="img-p"
+                  src="{{ pimg | image_url: width: 800 }}"
+                  srcset="{{ pimg | image_url: width: 400 }} 400w, {{ pimg | image_url: width: 800 }} 800w, {{ pimg | image_url: width: 1200 }} 1200w"
+                  sizes="(min-width: 1024px) calc({{ 100 | divided_by: s.grid_cols_desktop | default: 25 }}vw - 24px), (min-width: 600px) calc({{ 100 | divided_by: s.grid_cols_tablet | default: 50 }}vw - 20px), 48vw"
+                  alt="{{ pimg.alt | default: p.title | escape }}"
+                  loading="lazy" decoding="async"
+                  width="{{ pimg.width }}" height="{{ pimg.height }}">
+                {%- if s.grid_second_image and pimg2 != nil -%}
+                  <img class="img-s"
+                    src="{{ pimg2 | image_url: width: 800 }}"
+                    srcset="{{ pimg2 | image_url: width: 400 }} 400w, {{ pimg2 | image_url: width: 800 }} 800w"
+                    sizes="(min-width: 1024px) calc({{ 100 | divided_by: s.grid_cols_desktop | default: 25 }}vw - 24px), 48vw"
+                    alt="{{ pimg2.alt | default: p.title | escape }}"
+                    loading="lazy" decoding="async"
+                    width="{{ pimg2.width }}" height="{{ pimg2.height }}">
+                {%- endif -%}
+              {%- else -%}
+                {{ 'product-1' | placeholder_svg_tag: 'placeholder' }}
+              {%- endif -%}
+            </a>
+
+            <div class="apex-gsold-{{ sid }}">{{ 'products.product.sold_out' | t }}</div>
+
+            {%- if on_sale -%}
+              <span class="apex-gbadge-{{ sid }} is-sale">
+                {%- if s.show_discount_pct and disc_pct > 0 -%}-{{ disc_pct }}%{%- else -%}{{ 'products.product.on_sale' | t | default: 'Sale' }}{%- endif -%}
+              </span>
+            {%- endif -%}
+            {%- if is_new -%}
+              <span class="apex-gbadge-{{ sid }} is-new">{{ s.new_tag_label | default: 'New' | escape }}</span>
+            {%- endif -%}
+
+            {%- if s.show_quick_add -%}
+              <div class="apex-gqa-{{ sid }}">
+                <button class="apex-gqabtn-{{ sid }}" disabled>{{ 'products.product.sold_out' | t }}</button>
+              </div>
+            {%- endif -%}
+          </div>
+
+          <div class="apex-ginfo-{{ sid }}">
+            {%- if s.show_vendor and p.vendor != blank -%}
+              <span class="apex-gvendor-{{ sid }}">{{ p.vendor | escape }}</span>
+            {%- endif -%}
+            <p class="apex-gtitle-{{ sid }}"><a href="{{ p.url }}">{{ p.title | escape }}</a></p>
+            {%- unless p.has_only_default_variant -%}
+              {%- for opt in p.options_with_values -%}
+                {%- assign dn = opt.name | downcase -%}
+                {%- if dn == 'color' or dn == 'colour' -%}
+                  <div class="apex-gswatches-{{ sid }}">
+                    {%- for val in opt.values limit: 6 -%}
+                      <span class="apex-gswatch-{{ sid }}" title="{{ val | escape }}" style="background:{{ val | handle }};"></span>
+                    {%- endfor -%}
+                    {%- if opt.values.size > 6 -%}
+                      <span class="apex-gswatch-more-{{ sid }}">+{{ opt.values.size | minus: 6 }}</span>
+                    {%- endif -%}
+                  </div>
+                  {%- break -%}
+                {%- endif -%}
+              {%- endfor -%}
+            {%- endunless -%}
+            <div class="apex-gprice-{{ sid }}">
+              <span class="gp-current">{% if pcv != nil %}{{ pcv.price | money }}{% else %}{{ p.price | money }}{% endif %}</span>
+              {%- if on_sale -%}<span class="gp-compare">{{ pcv.compare_at_price | money }}</span>{%- endif -%}
+              {%- if low_stock -%}<span class="gp-low-stock">{{ s.low_stock_text | default: 'Low stock' | escape }}</span>{%- endif -%}
+            </div>
+          </div>
+        </div>
+          {%- endif -%}
+        {%- endfor -%}
+      {%- endif -%}
+    {%- endcapture -%}
+
       <div class="apex-grid-{{ sid }}" data-apex-grid{% if s.grid_hero_first and grid_hero_auto %} data-apex-hero-auto="true"{% endif %}>
 
         {%- if source_kind == 'collection' -%}
@@ -1336,8 +1597,17 @@
               if grid_hero_product != blank and p.id == grid_hero_product.id
                 assign skip = true
               endif
+              # Sold-out fill: drop the last in-stock cards so the total card count stays the same
+              if skip == false and so_k > 0 and p.available
+                assign so_rank = so_rank | plus: 1
+                if so_rank > so_keep
+                  assign skip = true
+                endif
+              endif
             -%}
             {%- unless skip -%}
+            {%- if so_k > 0 and so_done == false and so_pos == so_insert -%}{{ so_cards_html }}{%- assign so_done = true -%}{%- endif -%}
+            {%- assign so_pos = so_pos | plus: 1 -%}
             {%- liquid
               assign pcv = p.first_available_variant
               if pcv == nil
@@ -1482,6 +1752,7 @@
             </div>
             {%- endunless -%}
           {%- endfor -%}
+          {%- if so_k > 0 and so_done == false -%}{{ so_cards_html }}{%- assign so_done = true -%}{%- endif -%}
 
         {%- elsif source_kind == 'blocks' -%}
           {%- for block in p_blocks limit: grid_max -%}
@@ -2371,6 +2642,15 @@
       "type": "range", "id": "grid_max_products", "label": "Products to show",
       "min": 2, "max": 20, "step": 1, "default": 8,
       "info": "Up to 20. Hick's Law: 8–12 is the sweet spot for homepage grids."
+    },
+    {
+      "type": "range", "id": "grid_min_soldout", "label": "Minimum sold-out products to show",
+      "min": 0, "max": 12, "step": 1, "default": 3,
+      "info": "Grid mode, collection source. If fewer than this many displayed products are sold out, real sold-out products are added (same collection first, then the fallback below). Only genuinely sold-out products are used and the total number of cards stays the same. 0 turns this off."
+    },
+    {
+      "type": "collection", "id": "grid_soldout_collection", "label": "Sold-out fallback collection",
+      "info": "Optional. Where to look for extra sold-out products when the grid collection has too few. Leave empty to search all products (Shopify lets themes read the first 50 products of each collection)."
     },
     {
       "type": "select", "id": "grid_cols_desktop", "label": "Columns — desktop",
