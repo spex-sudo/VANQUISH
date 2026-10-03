@@ -2054,13 +2054,53 @@
     var sel = p.querySelector('select[data-lx-vs]');
     return sel && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex] : null;
   }
+  /* decode ahead: load and decode a picture off-screen so swapping it in later is instant */
+  var ready = {}, waiting = {}, keep = {};
+  function warm(url, cb) {
+    if (!url) return;
+    if (ready[url]) { if (cb) cb(); return; }
+    if (waiting[url]) { if (cb) waiting[url].push(cb); return; }
+    waiting[url] = cb ? [cb] : [];
+    var im = keep[url] = new Image();
+    var fin = function () { ready[url] = true; var q = waiting[url]; waiting[url] = null; q.forEach(function (f) { f(); }); };
+    im.onload = function () { if (im.decode) { im.decode().then(fin, fin); } else { fin(); } };
+    im.onerror = fin;
+    im.src = url;
+  }
+  function choiceImg(i) {
+    var p = panels[i];
+    if (!p) return '';
+    var r = p.querySelector('input[type="radio"]:checked');
+    if (r) return r.getAttribute('data-img') || '';
+    var sel = p.querySelector('select[data-lx-vs]');
+    var o = sel && sel.options[sel.selectedIndex];
+    return o ? (o.getAttribute('data-img') || '') : '';
+  }
+  function warmAround(c) {
+    if (n < 2) return;
+    for (var d = 1; d <= 3; d++) {
+      [c + d, c - d].forEach(function (j) {
+        j = ((j % n) + n) % n;
+        var im = slides[j] && slides[j].querySelector('[data-lx-img]');
+        if (im && im.loading === 'lazy') im.loading = 'eager';
+        warm(choiceImg(j));
+      });
+    }
+    var p = panels[c];
+    if (p) Array.prototype.forEach.call(p.querySelectorAll('input[type="radio"][data-img]'), function (x) { warm(x.getAttribute('data-img')); });
+  }
   function syncVariant() {
     var r = currentChoice();
     var vid = r ? (r.value || r.getAttribute('value')) : '';
     if (hiddenVariant) hiddenVariant.value = vid || '';
     if (buyId) buyId.value = vid || '';
     var img = slides[idx] && slides[idx].querySelector('[data-lx-img]');
-    if (r && img && r.getAttribute('data-img')) img.src = r.getAttribute('data-img');
+    var want = r && r.getAttribute('data-img');
+    if (img && want && img.getAttribute('src') !== want) {
+      /* swap the picture only once the new file is loaded and decoded, so the circle never blanks or flickers */
+      img.__lxWant = want;
+      warm(want, function () { if (img.__lxWant === want) img.src = want; });
+    }
     var p = panels[idx];
     if (p && !isGift(idx)) {
       var now = p.querySelector('[data-lx-now]'), was = p.querySelector('[data-lx-was]');
@@ -2128,6 +2168,7 @@
     loadVariants(idx);
     syncVariant();
     syncMode();
+    warmAround(idx);
     if (!quiet && announce && panels[idx]) {
       var name = panels[idx].querySelector('.lx-name');
       announce.textContent = (name ? name.textContent : '') + ' selected, ' + (idx + 1) + ' of ' + n;
