@@ -87,7 +87,7 @@
       "type": "elite-ribbon",
       "name": "Prestige Bar V10",
       "settings": {
-        "link_url": "",
+        "link_url": "/",
         "open_new_tab": true,
         "main_text": "VIEW MORE",
         "highlight_text": "",
