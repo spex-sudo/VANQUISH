@@ -75,9 +75,9 @@
         "quick_link_zAzjAV": {
           "type": "quick_link",
           "settings": {
-            "label": "NEW",
+            "label": "#",
             "url": "shopify://collections/women",
-            "badge_text": "QUEENS",
+            "badge_text": "QUEEN",
             "badge_bg": "#000000",
             "badge_text_color": "#ffffff",
             "pulse_badge": false
@@ -86,9 +86,9 @@
         "quick_link_cpRJLp": {
           "type": "quick_link",
           "settings": {
-            "label": "NEW",
+            "label": "#",
             "url": "shopify://collections/men",
-            "badge_text": "KINGS",
+            "badge_text": "KING",
             "badge_bg": "#000000",
             "badge_text_color": "#ffffff",
             "pulse_badge": false
@@ -118,7 +118,7 @@
             "text": "TRY USING THE SEARCH ICON",
             "url": "",
             "bg_color": "#050505",
-            "text_color": "#EFEFEF"
+            "text_color": "#efefef"
           }
         },
         "flash_notif_DT4QLe": {
