@@ -35,7 +35,7 @@
     },
     "luxury_footer_gbxGDK": {
       "type": "luxury-footer",
-      "name": "Footer \u2014 VANQUISH v3",
+      "name": "Footer — VANQUISH v3",
       "settings": {
         "footer_bg_color": "#ffffff",
         "footer_text_color": "#0a0a0a",
@@ -51,8 +51,8 @@
         "center_logo_height": 96,
         "monogram_text": "",
         "whatsapp_url": "https://wa.me/18765759791",
-        "instagram_url": "https://www.instagram.com/y2k_spex/",
-        "tiktok_url": "https://www.tiktok.com/@lexe.studio",
+        "instagram_url": "",
+        "tiktok_url": "",
         "pinterest_url": "",
         "twitter_url": "",
         "youtube_url": "",
