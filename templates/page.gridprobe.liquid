@@ -1,0 +1,6 @@
+{%- assign n = 0 -%}{%- assign so = 0 -%}
+PROBE all: {% for p in collections.all.products %}{% assign n = n | plus: 1 %}{% unless p.available %}{% assign so = so | plus: 1 %}[{{ p.handle | truncate: 20 }}]{% endunless %}{% endfor %} total={{ n }} soldout={{ so }}
+{%- assign n = 0 -%}{%- assign so = 0 -%}
+PROBE lexe: {% for p in collections.lexe.products %}{% assign n = n | plus: 1 %}{% unless p.available %}{% assign so = so | plus: 1 %}{% endunless %}{% endfor %} total={{ n }} soldout={{ so }} count={{ collections.lexe.products_count }}
+PROBE allcount={{ collections.all.products_count }}
+PROBE sorted sold-out: {% assign sorted = collections.all.products | sort: 'available' %}{{ sorted.size }}
