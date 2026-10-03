@@ -826,7 +826,7 @@
         "text_color": "#ffffff",
         "muted_color": "#FFFFFF",
         "accent_color": "#020202",
-        "accent_text": "#06210f",
+        "accent_text": "#FFFFFF",
         "foil_color_a": "#f3d36a",
         "foil_color_b": "#c9a227",
         "card_radius": 18,
