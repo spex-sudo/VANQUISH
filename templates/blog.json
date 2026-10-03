@@ -92,7 +92,7 @@
       ],
       "name": "Brand Showcase",
       "settings": {
-        "hero_image": "shopify://shop_images/DEVICI_STUDIOS_c852a702-cf47-4890-8fbd-fe5d99bc5572.jpg",
+        "hero_image": "shopify://shop_images/IMG-0590.jpg",
         "hero_height": 500,
         "hero_overlay_color": "#000000",
         "hero_overlay_opacity": 15,
@@ -105,7 +105,9 @@
         "show_price": false,
         "enable_arrows": false,
         "brand_statement": "<p>DEVICI STUDIOS — direction of development toward modernity, dynamics, innovation and precision.</p>",
+        "gallery_columns": 3,
         "heading_lookbook": "Lookbook",
+        "lookbook_columns": 2,
         "wordmark_text": "VANQUISH",
         "spacing": 48
       }
