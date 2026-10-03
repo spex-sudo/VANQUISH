@@ -11,6 +11,28 @@
   "type": "footer",
   "name": "Footer",
   "sections": {
+    "lexe_specs_offer_yxf6P8": {
+      "type": "lexe-specs-offer",
+      "name": "LEXE Specs offer signup",
+      "settings": {
+        "gift_product": "",
+        "gift_product_2": "",
+        "eligible_url": "",
+        "code": "LEXESPECS",
+        "threshold": "$75",
+        "heading": "Free LEXE Specs",
+        "text": "Join the LEXE waitlist and claim your spot as a loyal member of our studio.",
+        "button_label": "Show my code",
+        "consent": "You're joining LEXE emails about GIVEAWAYS, OFFERS, AND NEW PIECES,\nNo spam unsubscribe any time.",
+        "success_heading": "You're on the list",
+        "terms": "One use per customer.",
+        "bg_color": "#ffffff",
+        "text_color": "#2e2e2e",
+        "accent_color": "#3c2366",
+        "padding_top": 24,
+        "padding_bottom": 32
+      }
+    },
     "section_AmYe4a": {
       "type": "section",
       "blocks": {
@@ -226,7 +248,8 @@
                   "type": "custom-liquid",
                   "settings": {
                     "custom_liquid": "<style id=\"lexe-cta-pills\">\ndiv:has(> #lexe-cta-pills){display:none}\na[class*=\"__button_XmgFqx\"],a[class*=\"__button_TMCaXt\"]{border-radius:999px;min-height:44px;padding-block:12px;padding-inline:28px;display:inline-grid;align-content:center;justify-items:center;letter-spacing:.02em;transition:background-color .2s ease,box-shadow .2s ease,color .2s ease}\na[class*=\"__button_XmgFqx\"]:hover{background-color:#7A4FA8;color:#fff}\na[class*=\"__button_TMCaXt\"]:hover{background-color:rgb(153 102 204 / .10);box-shadow:inset 0 0 0 1px #9966CC;color:inherit}\na[class*=\"__button_XmgFqx\"]:focus-visible,a[class*=\"__button_TMCaXt\"]:focus-visible{outline:2px solid #9966CC;outline-offset:3px}\n@media (prefers-reduced-motion:reduce){a[class*=\"__button_XmgFqx\"],a[class*=\"__button_TMCaXt\"]{transition:none}}\n</style>"
-                  }
+                  },
+                  "blocks": {}
                 }
               },
               "block_order": [
@@ -248,6 +271,8 @@
             "before_image": "shopify://shop_images/8E724F458375A4563F88FCA9317DD846.jpg",
             "after_image": "shopify://shop_images/D895E1D183504C460B899486AB35D132.jpg",
             "slider_style": "horizontal",
+            "start_position": 50,
+            "show_hint": true,
             "show_text": true,
             "before_text": "Black",
             "after_text": "Red",
@@ -263,6 +288,8 @@
             "width_mobile": "fill",
             "custom_width_mobile": 100,
             "height": "fit",
+            "accent_color": "#9966cc",
+            "handle_style": "ring",
             "inherit_color_scheme": true,
             "color_scheme": "",
             "border": "none",
@@ -312,7 +339,7 @@
     },
     "luxury_footer_gbxGDK": {
       "type": "luxury-footer",
-      "name": "Footer \u2014 VANQUISH v3",
+      "name": "Footer — VANQUISH v3",
       "settings": {
         "footer_bg_color": "#ffffff",
         "footer_text_color": "#0a0a0a",
@@ -362,6 +389,7 @@
     }
   },
   "order": [
+    "lexe_specs_offer_yxf6P8",
     "section_AmYe4a",
     "luxury_footer_gbxGDK"
   ]
