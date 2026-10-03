@@ -54,6 +54,11 @@
   assign audio_loop  = s.audio_loop
   assign audio_vol   = s.audio_volume | default: 80
 
+  assign show_share = true
+  if s.show_share == false
+    assign show_share = false
+  endif
+
   assign has_cart  = false
   assign has_favs  = false
   assign has_audio = false
@@ -107,6 +112,14 @@
     assign secondary_count = enabled_count | minus: 1
   endif
 
+  # Share is always a secondary lobe, and only appears next to a primary one.
+  assign has_share = false
+  if show_share and primary != blank
+    assign has_share = true
+    assign enabled_count = enabled_count | plus: 1
+    assign secondary_count = secondary_count | plus: 1
+  endif
+
   # Build the render order: primary first, then whichever of the other
   # two are enabled, in a stable cart -> favorites -> audio order.
   assign slot_str = primary
@@ -118,6 +131,9 @@
   endif
   if has_audio and primary != 'audio'
     assign slot_str = slot_str | append: ',audio'
+  endif
+  if has_share
+    assign slot_str = slot_str | append: ',share'
   endif
   assign render_slots = slot_str | split: ','
 -%}
@@ -1061,6 +1077,25 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
         </button>
         {%- unless is_primary -%}{%- assign sec_i = sec_i | plus: 1 -%}{%- endunless -%}
 
+      {%- when 'share' -%}
+        <button type="button"
+                class="notch-lobe {{ role_class }} notch-share"
+                data-notch-lobe
+                data-notch-share
+                aria-haspopup="dialog"
+                style="--i:{{ sec_i }}" tabindex="-1" aria-hidden="true"
+                aria-label="{{ s.share_label | default: 'Share' | escape }}">
+          <span class="notch-lobe-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="18" cy="5.5" r="2.6"/>
+              <circle cx="6" cy="12" r="2.6"/>
+              <circle cx="18" cy="18.5" r="2.6"/>
+              <path d="m8.3 10.8 7.4-4.1M8.3 13.2l7.4 4.1"/>
+            </svg>
+          </span>
+        </button>
+        {%- assign sec_i = sec_i | plus: 1 -%}
+
     {%- endcase -%}
   {%- endfor -%}
 
@@ -1076,6 +1111,11 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
   {%- endif -%}
 
 </aside>
+{%- endif -%}
+
+<!-- ════════════ SHARE OVERLAY (markup only; assets load on first open) ════════════ -->
+{%- if has_share -%}
+  {%- render 'lexe-share', s: s -%}
 {%- endif -%}
 
 <!-- ════════════ FAVORITES DRAWER ════════════ -->
@@ -2496,6 +2536,17 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
       "default": 80,
       "info": "Applied when the user first plays audio. If they change volume via M+←/→ keys, their preference persists across pages."
     },
+
+    { "type": "header", "content": "Share" },
+    { "type": "checkbox", "id": "show_share", "label": "Show share button", "default": true,
+      "info": "Adds a share icon to the notch. Opens a window to share the site or the visitor's cart, with a QR code." },
+    { "type": "text", "id": "share_label", "label": "Button label", "default": "Share" },
+    { "type": "text", "id": "share_title", "label": "Window title", "default": "Share LEXE" },
+    { "type": "text", "id": "share_text", "label": "Share text (website)", "default": "Take a look at LEXE by Devici Studios." },
+    { "type": "text", "id": "cart_share_text", "label": "Share text (cart)", "default": "Here is my LEXE bag." },
+    { "type": "text", "id": "share_mail_subject", "label": "Email subject", "default": "LEXE by Devici Studios" },
+    { "type": "text", "id": "qr_url", "label": "QR code link", "default": "https://vanquish7.studio",
+      "info": "The default is a fixed, pre-made QR image (assets/lexe-site-qr.svg). If you change this URL, the QR is generated in the browser instead." },
 
     { "type": "header", "content": "Primary action" },
     { "type": "select", "id": "primary_button", "label": "Icon shown on the notch", "default": "cart",

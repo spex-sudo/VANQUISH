@@ -1,0 +1,103 @@
+{%- comment -%}
+  LEXE share overlay (opened from the notch share button). Markup only; CSS/JS load on first open.
+  Params: s (the notch section settings). Static home-page QR: assets/lexe-site-qr.svg (encodes https://vanquish7.studio).
+{%- endcomment -%}
+{%- liquid
+  assign qr_default = 'https://vanquish7.studio'
+  assign qr_url = s.qr_url | strip
+  if qr_url == blank
+    assign qr_url = qr_default
+  endif
+  assign qr_static = false
+  if qr_url == qr_default
+    assign qr_static = true
+  endif
+  assign share_title = s.share_title | default: 'Share LEXE'
+-%}
+<div id="lexe-share" class="lexe-share" hidden
+     data-text="{{ s.share_text | default: 'Take a look at LEXE by Devici Studios.' | escape }}"
+     data-cart-text="{{ s.cart_share_text | default: 'Here is my LEXE bag.' | escape }}"
+     data-mail-subject="{{ s.share_mail_subject | default: 'LEXE by Devici Studios' | escape }}"
+     data-lead-site="Send the page you are on to friends, or save it for later."
+     data-lead-cart="Anyone who opens this link gets these items in their bag."
+     data-hint="Instagram and TikTok have no web share link. Copy the link, or use Device share if your phone offers it."
+     data-cart-note="Your bag is read when you open this window. Only product options and quantities are in the link, no personal details."
+     data-cart-error="We could not read your bag just now. Please try again."
+     data-copy-label="Copy link" data-copied-label="Copied" data-copy-fail="Press and hold the link to copy it."
+     data-qr-url="{{ qr_url | escape }}" data-qr-static="{{ qr_static }}"
+     data-qr-js="{{ 'lexe-qr.js' | asset_url }}"
+     data-css="{{ 'lexe-share.css' | asset_url }}" data-js="{{ 'lexe-share.js' | asset_url }}">
+  <div class="ls-backdrop"></div>
+  <div class="ls-panel" role="dialog" aria-modal="true" aria-labelledby="ls-title" tabindex="-1">
+    <div class="ls-grab" aria-hidden="true"></div>
+    <div class="ls-head">
+      <h2 class="ls-title" id="ls-title">{{ share_title | escape }}</h2>
+      <button type="button" class="ls-x" data-ls-close aria-label="Close">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="ls-tabs" role="tablist" aria-label="What to share">
+      <button type="button" class="ls-tab" role="tab" id="ls-tab-site" data-ls-tab="site" aria-selected="true" aria-controls="ls-body">Share website</button>
+      <button type="button" class="ls-tab" role="tab" id="ls-tab-cart" data-ls-tab="cart" aria-selected="false" tabindex="-1" aria-controls="ls-body">Share cart</button>
+    </div>
+    <div id="ls-body" role="tabpanel" aria-live="off">
+      <p class="ls-lead" data-ls-lead></p>
+      <p class="ls-empty" data-ls-empty hidden>Your bag is empty. Add something first, then come back to share it.</p>
+      <div class="ls-link" data-ls-linkrow>
+        <input type="text" readonly data-ls-url aria-label="Link to share" value="">
+        <button type="button" class="ls-copy" data-ls-copy>Copy link</button>
+      </div>
+      <ul class="ls-grid" data-ls-grid></ul>
+      <p class="ls-note" data-ls-note></p>
+    </div>
+    <div class="ls-qrs" data-ls-qrs>
+      <figure class="ls-qr" data-ls-siteqr style="margin:0">
+        <div class="ls-qr-box" data-ls-sitebox {% unless qr_static %}data-frame hidden{% endunless %}>
+          {%- if qr_static -%}
+            <img src="{{ 'lexe-site-qr.svg' | asset_url }}" width="200" height="200" alt="QR code that opens {{ qr_url | escape }}" loading="lazy" decoding="async">
+          {%- endif -%}
+        </div>
+        <figcaption class="ls-qr-cap">Scan to open LEXE</figcaption>
+        <a class="ls-dl" data-ls-sitedl {% if qr_static %}href="{{ 'lexe-site-qr.svg' | asset_url }}" download="lexe-qr.svg"{% endif %}>Download QR</a>
+      </figure>
+      <figure class="ls-qr" data-ls-cartqr style="margin:0" hidden>
+        <div class="ls-qr-box" data-ls-cartbox data-frame></div>
+        <figcaption class="ls-qr-cap">Scan to open this bag</figcaption>
+        <a class="ls-dl" data-ls-cartdl>Download QR</a>
+      </figure>
+    </div>
+    <div class="ls-sr" role="status" aria-live="polite" data-ls-status></div>
+  </div>
+</div>
+<script>
+(function () {
+  var root = document.getElementById('lexe-share');
+  if (!root || window.__lexeShareLoader) return;
+  window.__lexeShareLoader = true;
+  var loading = null;
+  function load() {
+    if (window.lexeShare) return Promise.resolve();
+    if (loading) return loading;
+    loading = new Promise(function (res, rej) {
+      var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = root.dataset.css;
+      var s = document.createElement('script'); s.src = root.dataset.js; s.async = true;
+      var cssDone = false, jsDone = false;
+      function chk() { if (cssDone && jsDone) res(); }
+      l.onload = function () { cssDone = true; chk(); };
+      l.onerror = rej; s.onerror = rej;
+      s.onload = function () { jsDone = true; chk(); };
+      document.head.appendChild(l); document.head.appendChild(s);
+    }).catch(function () { loading = null; });
+    return loading;
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-notch-share]');
+    if (!b) return;
+    e.preventDefault();
+    load().then(function () { if (window.lexeShare) window.lexeShare.open(b, 'site'); });
+  });
+  /* warm the files when the notch is first touched, so the first open is instant */
+  var warm = function () { document.removeEventListener('pointerover', warm); load(); };
+  document.addEventListener('pointerover', function (e) { if (e.target.closest && e.target.closest('[data-notch-share],[data-notch-expand]')) warm(); });
+})();
+</script>
