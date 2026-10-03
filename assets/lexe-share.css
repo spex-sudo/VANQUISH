@@ -1,6 +1,6 @@
 /* LEXE share overlay — dark / minimal, amethyst #9966CC accent. Loaded on first open. */
 .lexe-share{--ls-bg:#0f0e12;--ls-surface:#17151c;--ls-line:rgba(255,255,255,.09);--ls-fg:#f3f0f7;--ls-muted:#a8a2b4;--ls-accent:#9966CC;--ls-r:20px;
-  position:fixed;inset:0;z-index:100000;display:flex;align-items:flex-end;justify-content:center;
+  position:fixed;inset:0;z-index:2147483600;display:flex;align-items:flex-end;justify-content:center;
   font-family:var(--font-body--family,var(--font-paragraph--family,system-ui,sans-serif));color:var(--ls-fg);-webkit-text-size-adjust:100%}
 .lexe-share[hidden]{display:none}
 .lexe-share *,.lexe-share *::before,.lexe-share *::after{box-sizing:border-box}
