@@ -19,13 +19,13 @@
 {%- liquid
   # LEXE SEO pass 2: brand-aware title + home override (Preferences field not exposed via API)
   assign lexe_title = page_title | default: shop.name
-  assign lexe_brand_desc = 'Faux leather jackets, streetwear, sunglasses and iPhone cases from LEXE by Devici Studios, plus custom web design. 30-day returns on eligible apparel.'
+  assign lexe_brand_desc = 'Faux leather jackets, platform boots, Y2K sunglasses and iPhone cases from LEXE by Devici Studios, plus custom web design. 30-day returns on eligible apparel.'
   assign lexe_desc = page_description
   if lexe_desc == shop.description
     assign lexe_desc = lexe_brand_desc
   endif
   if request.page_type == 'index'
-    assign lexe_title = 'LEXE by Devici Studios | Fashion, Phone Cases & Web Design'
+    assign lexe_title = 'LEXE by Devici Studios | Faux Leather Jackets & Streetwear'
     assign lexe_desc = lexe_brand_desc
   endif
   assign og_title = lexe_title
