@@ -129,7 +129,7 @@
     },
     "vanquish_scratch_iVnnRn": {
       "type": "vanquish-scratch",
-      "name": "Scratch Funnel — Tag",
+      "name": "Scratch Funnel \u2014 Tag",
       "settings": {
         "enabled": true,
         "display_mode": "tag",
@@ -153,12 +153,12 @@
         "prize_sub": "",
         "claim_label": "CLAIM GIFT",
         "claimed_label": "CLAIMED!",
-        "email_prompt": "We’ll send your prize code to your email.",
+        "email_prompt": "We\u2019ll send your prize code to your email.",
         "email_placeholder": "Your email address",
         "submit_label": "CLAIM",
         "trust_text": "No spam. Unsubscribe any time.",
         "success_headline": "You're in.",
-        "success_message": "Your code is ready — use it at checkout.",
+        "success_message": "Your code is ready \u2014 use it at checkout.",
         "success_cta": "Start shopping",
         "success_url": "",
         "offer_code": "",
@@ -176,11 +176,20 @@
         "image_tr": "shopify://shop_images/IMG-0591.jpg",
         "image_bl": "shopify://shop_images/lexe-by-devici-studios-logo.png"
       }
+    },
+    "lexe_intro": {
+      "type": "custom-liquid",
+      "settings": {
+        "custom_liquid": "{% if collection.description != blank %}<div class=\"lexe-coll-intro\" style=\"max-width:760px;margin:0 auto;padding:28px 20px 40px;font-size:15px;line-height:1.65;\">{{ collection.description }}</div><style>.lexe-coll-intro a{text-decoration:underline;text-underline-offset:2px;color:inherit}.lexe-coll-intro p{margin:0 0 12px}</style>{% endif %}",
+        "color_scheme": "",
+        "section_width": "page-width"
+      }
     }
   },
   "order": [
     "header",
     "grid",
+    "lexe_intro",
     "vanquish_scratch_iVnnRn"
   ]
 }
