@@ -21,9 +21,9 @@
     {%- unless first_p -%},{%- endunless -%}
     {%- assign first_p = false -%}
     {%- assign cost = p.metafields.custom.cost_usd.value -%}
-    {"id":{{ p.id }},"h":{{ p.handle | json }},"t":{{ p.title | json }},"i":{{ p.featured_image | image_url: width: 160 | json }},"co":{% if cost != blank and cost != nil %}1{% else %}0{% endif %},"vs":[
+    {"id":{{ p.id }},"t":{{ p.title | json }},"i":{% if p.featured_image %}{{ p.featured_image | image_url: width: 160 | json }}{% else %}""{% endif %},"co":{% if cost != blank and cost != nil %}1{% else %}0{% endif %},"vs":[
     {%- assign first_v = true -%}
-    {%- for v in p.variants -%}
+    {%- for v in p.variants limit: 80 -%}
       {%- unless v.available -%}{%- continue -%}{%- endunless -%}
       {%- unless first_v -%},{%- endunless -%}
       {%- assign first_v = false -%}
