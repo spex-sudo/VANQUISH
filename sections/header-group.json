@@ -70,6 +70,24 @@
     "signature_header_8dQTVX": {
       "type": "signature-header",
       "blocks": {
+        "flash_notif_rP99gw": {
+          "type": "flash_notif",
+          "settings": {
+            "text": "Conquer The Room",
+            "url": "",
+            "bg_color": "#111111",
+            "text_color": "#ffffff"
+          }
+        },
+        "flash_notif_GP4nBT": {
+          "type": "flash_notif",
+          "settings": {
+            "text": "Runway Fashion",
+            "url": "",
+            "bg_color": "#111111",
+            "text_color": "#ffffff"
+          }
+        },
         "flash_notif_7gJABh": {
           "type": "flash_notif",
           "settings": {
@@ -154,6 +172,8 @@
         }
       },
       "block_order": [
+        "flash_notif_rP99gw",
+        "flash_notif_GP4nBT",
         "flash_notif_7gJABh",
         "quick_link_zAzjAV",
         "quick_link_cpRJLp",
