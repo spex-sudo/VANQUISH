@@ -52,7 +52,7 @@
         "single_label": "Single",
         "single_sublabel": "Just this piece",
         "duo_label": "Duo",
-        "duo_ribbon": "Picked for you",
+        "duo_ribbon": "Suggested add-on",
         "duo_force_show": true,
         "duo_show_tag": "",
         "triple_label": "Trio",
@@ -99,8 +99,7 @@
         "bundle_collections": [
           "lexe",
           "faux-leather-jackets",
-          "iphone-cases",
-          "lexespecs"
+          "iphone-cases"
         ],
         "bundle_swap": true,
         "bundle_require_cost": false
@@ -132,7 +131,8 @@
           "type": "message",
           "settings": {
             "text": "All major payment methods regulated"
-          }
+          },
+          "disabled": true
         }
       },
       "block_order": [

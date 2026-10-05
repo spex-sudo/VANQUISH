@@ -116,7 +116,7 @@
     assign bp_sources = bp_sources | append: bp_c.handle | append: ','
   endfor
   if bp_sources == blank
-    assign bp_sources = 'lexe,faux-leather-jackets,iphone-cases,lexespecs,'
+    assign bp_sources = 'lexe,faux-leather-jackets,iphone-cases,'
   endif
   assign bp_sources = bp_sources | remove_last: ','
   assign bp_cur_cols = product.collections | map: 'handle' | join: ','
@@ -604,6 +604,10 @@
 .ap-bundle-total{{ sid }}{font-size:13px;font-weight:600;color:var(--ink)}
 .ap-bundle-msg{{ sid }}{font-size:12px;color:#9a3b3b;min-height:0}
 .ap-bundle-msg{{ sid }}:empty{display:none}
+.ap-bundle-hint{{ sid }}{font-size:12px;font-weight:600;color:#6a3fa0}
+.ap-bundle-hint{{ sid }}:empty{display:none}
+.ap-brow{{ sid }} select.need{border-color:#9966CC;box-shadow:0 0 0 2px rgba(153,102,204,.25)}
+.ap-atc{{ sid }}.ap-need .ap-atc-sep{{ sid }},.ap-atc{{ sid }}.ap-need .ap-atc-price{{ sid }}{display:none}
 @media (max-width:640px){
   .ap-bundle{{ sid }}{padding:10px 14px;max-height:50vh}
   .ap-brow{{ sid }}{flex-basis:100%;max-width:none}
@@ -994,6 +998,7 @@
       <div class="ap-bundle-rows{{ sid }}" id="ap-bundle-rows{{ sid }}"></div>
       <div class="ap-bundle-foot{{ sid }}">
         <span class="ap-bundle-total{{ sid }}" id="ap-bundle-total{{ sid }}"></span>
+        <span class="ap-bundle-hint{{ sid }}" id="ap-bundle-hint{{ sid }}" aria-live="polite"></span>
         <span class="ap-bundle-msg{{ sid }}" id="ap-bundle-msg{{ sid }}" role="status" aria-live="polite"></span>
       </div>
     </div>
@@ -1201,7 +1206,7 @@
      Single / Duo / Trio choose WHAT is bought. Quantity is separate and multiplies the whole selection.
      Duo = this product + 1 add-on, Trio = this product + 2 add-ons. Add-ons come from other collections
      (see section setting "Bundle add-on source collections"). No bundle discount is applied or shown. */
-  var BPCFG={sources:{{ bp_sources | split: ',' | json }},cur:{{ bp_cur_cols | split: ',' | json }},pid:{{ product.id }},needCost:{{ section.settings.bundle_require_cost | json }},swap:{{ section.settings.bundle_swap | json }},thumb:{{ pill_thumb | json }},labels:{2:{{ section.settings.duo_label | default: 'Duo' | json }},3:{{ section.settings.triple_label | default: 'Trio' | json }} }};
+  var BPCFG={sources:{{ bp_sources | split: ',' | json }},cur:{{ bp_cur_cols | split: ',' | json }},pid:{{ product.id }},price:{{ current_variant.price | default: 0 }},needCost:{{ section.settings.bundle_require_cost | json }},swap:{{ section.settings.bundle_swap | json }},thumb:{{ pill_thumb | json }},labels:{2:{{ section.settings.duo_label | default: 'Duo' | json }},3:{{ section.settings.triple_label | default: 'Trio' | json }} }};
   var BP={mode:1,ready:false,failed:false,loading:false,byId:{},colItems:{},picks:[],swaps:[0,0],vsel:{},open:false};
   var memSeed=null;
   function sget(k){try{return sessionStorage.getItem(k);}catch(e){return null;}}
@@ -1257,7 +1262,15 @@
   function orderFor(k){
     var r=bpRng(bpHash(bpSeed()+':'+BPCFG.pid+':'+k));
     var cols=bpShuffle(Object.keys(BP.colItems).filter(function(c){return BPCFG.cur.indexOf(c)<0;}),r);
-    var lists=cols.map(function(c){return bpShuffle(BP.colItems[c].filter(eligible),r);}).filter(function(l){return l.length;});
+    /* Prefer add-ons priced about 0.5x to 2x of this product; fall back to the whole collection if fewer than 3 fit. */
+    var lists=cols.map(function(c){
+      var all=BP.colItems[c].filter(eligible);
+      if(BPCFG.price>0){
+        var band=all.filter(function(p){var m=minPrice(p);return m>=BPCFG.price*0.5&&m<=BPCFG.price*2;});
+        if(band.length>=3)all=band;
+      }
+      return bpShuffle(all,r);
+    }).filter(function(l){return l.length;});
     var out=[],seen={},i=0,more=true;
     while(more){
       more=false;
@@ -1279,12 +1292,43 @@
     BP.len0=o0.length;BP.len1=l1.length;
     BP.picks=p1?[p0,p1]:[p0];
   }
-  function pickVar(p){var i=BP.vsel[p.id]||0;return p.vs[i]||p.vs[0];}
+  /* Add-ons with several in-stock variants (phone model, size, colour) are never preselected. */
+  function isMulti(p){return p.vs.length>1;}
+  function pickVar(p){
+    if(isMulti(p)){var i=BP.vsel[p.id];return(i==null)?null:p.vs[i];}
+    return p.vs[0];
+  }
+  function minPrice(p){var m=Infinity;p.vs.forEach(function(x){if(x[2]<m)m=x[2];});return m;}
+  function maxPrice(p){var m=0;p.vs.forEach(function(x){if(x[2]>m)m=x[2];});return m;}
+  function unitPrice(p){var v=pickVar(p);return v?v[2]:minPrice(p);}
+  function isApprox(p){return !pickVar(p)&&minPrice(p)!==maxPrice(p);}
+  function pendingCount(){
+    if(BP.mode<2||!BP.ready)return 0;
+    var n=0;
+    for(var i=0;i<BP.mode-1&&i<BP.picks.length;i++){if(!pickVar(BP.picks[i]))n++;}
+    return n;
+  }
+  function chooseLabel(p){
+    var names=(p.o||[]).join(' ').toLowerCase();
+    var parts=[];
+    if(p.ty==='Phone Case'&&(/model|型号/.test(names)))parts.push('phone model');
+    else{
+      if(/size/.test(names))parts.push('size');
+      if(/colou?r/.test(names))parts.push('color');
+      if(/material|style/.test(names))parts.push('style');
+      if(!parts.length)parts.push('option');
+    }
+    return 'Choose your '+parts.join(' / ');
+  }
   function extraCents(){
     var n=BP.mode-1,t=0;
     if(BP.mode<2||BP.picks.length<n)return 0;
-    for(var i=0;i<n;i++)t+=pickVar(BP.picks[i])[2];
+    for(var i=0;i<n;i++)t+=unitPrice(BP.picks[i]);
     return t;
+  }
+  function anyApprox(){
+    for(var i=0;i<BP.mode-1&&i<BP.picks.length;i++){if(isApprox(BP.picks[i]))return true;}
+    return false;
   }
   function shortName(t){return String(t||'');}
 
@@ -1303,9 +1347,9 @@
       if(BP.failed||(BP.ready&&BP.picks.length<need)){p.hidden=true;return;}
       p.hidden=false;
       if(!BP.ready||!v)return;
-      var sum=v.price;
-      for(var i=0;i<need;i++)sum+=pickVar(BP.picks[i])[2];
-      if(priceEl2)priceEl2.textContent=money(sum);
+      var sum=v.price,apx=false;
+      for(var i=0;i<need;i++){sum+=unitPrice(BP.picks[i]);if(isApprox(BP.picks[i]))apx=true;}
+      if(priceEl2)priceEl2.textContent=(apx?'from ':'')+money(sum);
       var names=[];
       for(var k=0;k<need;k++)names.push(shortName(BP.picks[k].t));
       var sub=p.querySelector('[data-bp-sub]');
@@ -1330,7 +1374,7 @@
     if(BP.mode<2||!BP.ready){return;}
     var v=findVariant();
     BE.title.textContent='Your '+(BPCFG.labels[BP.mode]||'bundle');
-    BE.sub.textContent=BP.mode===2?'This piece plus one pick from another part of LEXE.':'This piece plus two picks from other parts of LEXE.';
+    BE.sub.textContent=BP.mode===2?'This piece plus one suggested add-on from another part of LEXE.':'This piece plus two suggested add-ons from other parts of LEXE.';
     /* this piece (fixed) */
     var r0=mk('div','ap-brow'+S+' fixed');
     var i0=mk('div','ap-brow-img'+S);
@@ -1354,20 +1398,25 @@
         var ie=document.createElement('img');ie.src=p.i;ie.alt='';ie.width=54;ie.height=54;ie.loading='lazy';im.appendChild(ie);
         row.appendChild(im);
         var body=mk('div','ap-brow-body'+S);
-        body.appendChild(mk('span','ap-brow-tag'+S,'Picked for you'));
+        body.appendChild(mk('span','ap-brow-tag'+S,'Suggested add-on'));
         body.appendChild(mk('span','ap-brow-name'+S,p.t));
-        if(p.vs.length>1){
+        if(isMulti(p)){
           var sel2=document.createElement('select');
-          sel2.setAttribute('aria-label','Option for '+p.t);
+          sel2.setAttribute('aria-label',chooseLabel(p)+' for '+p.t);
+          sel2.setAttribute('data-needs','1');
+          var ph=document.createElement('option');ph.value='';ph.disabled=true;ph.textContent=chooseLabel(p);sel2.appendChild(ph);
+          var mn=minPrice(p);
           p.vs.forEach(function(x,xi){
             var o=document.createElement('option');o.value=xi;
-            o.textContent=(varLabel(x[1])||'Default')+(x[2]!==p.vs[0][2]?' · '+money(x[2]):'');
+            o.textContent=(varLabel(x[1])||'Default')+(x[2]!==mn?' · '+money(x[2]):'');
             sel2.appendChild(o);
           });
-          sel2.value=String(BP.vsel[p.id]||0);
+          sel2.value=(BP.vsel[p.id]==null)?'':String(BP.vsel[p.id]);
+          if(BP.vsel[p.id]==null)sel2.classList.add('need');
           sel2.addEventListener('change',function(){
             BP.vsel[p.id]=+this.value;
-            priceTxt.textContent=money(pickVar(p)[2]);
+            this.classList.remove('need');
+            priceTxt.textContent=priceStr(p);
             resetAdded();BE.msg.textContent='';
             refreshPrices();
           });
@@ -1377,7 +1426,7 @@
         }
         row.appendChild(body);
         var side=mk('div','ap-brow-side'+S);
-        var priceTxt=mk('span','ap-brow-price'+S,money(pickVar(p)[2]));
+        var priceTxt=mk('span','ap-brow-price'+S,priceStr(p));
         side.appendChild(priceTxt);
         var canSwap=BPCFG.swap&&((slot===0?BP.len0:BP.len1)>1);
         if(canSwap){
@@ -1392,12 +1441,39 @@
     }
     updateTotals();
   }
+  function priceStr(p){return(isApprox(p)?'from ':'')+money(unitPrice(p));}
+  function hintText(){
+    var n=pendingCount();
+    if(!n)return '';
+    if(n===1){for(var i=0;i<BP.mode-1;i++){var p=BP.picks[i];if(p&&!pickVar(p))return chooseLabel(p)+' to add this bundle.';}}
+    return 'Choose an option for each add-on to add this bundle.';
+  }
+  /* Single place that decides the Add to cart button state: product variant availability AND add-on choices. */
+  function syncAtc(){
+    if(!atc||atc.classList.contains('ld')||atc.classList.contains('added'))return;
+    var v=findVariant(),n=pendingCount();
+    var hint=document.getElementById('ap-bundle-hint'+S);
+    if(hint)hint.textContent=hintText();
+    if(!atc.hasAttribute('data-aria0'))atc.setAttribute('data-aria0',atc.getAttribute('aria-label')||'');
+    if(n>0){
+      atc.disabled=true;atc.classList.add('ap-need');
+      if(atcLbl)atcLbl.textContent='Choose add-on option';
+      atc.setAttribute('aria-label',hintText());
+      return;
+    }
+    atc.classList.remove('ap-need');
+    atc.setAttribute('aria-label',atc.getAttribute('data-aria0'));
+    if(v){
+      atc.disabled=!v.available;
+      if(atcLbl)atcLbl.textContent=v.available?{{ section.settings.atc_text | json }}:{{ section.settings.soldout_text | json }};
+    }
+  }
   function updateTotals(){
     if(!BE.total)return;
     var v=findVariant();
     if(BP.mode<2||!BP.ready||!v){BE.total.textContent='';return;}
-    var one=v.price+extraCents(),q=curQty();
-    BE.total.textContent=q>1?('Together '+money(one)+'  ×  '+q+'  =  '+money(one*q)):('Together '+money(one));
+    var one=v.price+extraCents(),q=curQty(),pre=anyApprox()?'Together from ':'Together ';
+    BE.total.textContent=q>1?(pre+money(one)+'  ×  '+q+'  =  '+money(one*q)):(pre+money(one));
   }
   function openPanel(){
     if(!BE.panel||BP.mode<2||!BP.ready)return;
@@ -1422,6 +1498,7 @@
     renderPills(v);
     updateTotals();
     if(v)renderPrice(v,curQty());
+    syncAtc();
   }
 
   function setMode(m,fromUser){
@@ -1481,6 +1558,7 @@
       setTimeout(function(){atcPrice.textContent=money(total);atcPrice.classList.remove('flash');},120);
     }
     if(!renderPrice.busy){renderPrice.busy=true;renderPills(v);updateTotals();if(BP.open)syncThisPieceRow(v);renderPrice.busy=false;}
+    syncAtc();
   }
   function syncThisPieceRow(v){
     var r=BE.rows&&BE.rows.querySelector('.ap-brow'+S+'.fixed');
@@ -1496,6 +1574,7 @@
     atc.classList.remove('added');atc.onclick=null;
     var v=findVariant();
     if(atcLbl&&v)atcLbl.textContent=v.available?{{ section.settings.atc_text | json }}:{{ section.settings.soldout_text | json }};
+    syncAtc();
   }
 
   function renderStock(v){
@@ -1682,6 +1761,7 @@
       return;
     }
     var bundle=bundleActive();
+    if(bundle&&pendingCount()>0){fail(hintText());return;}
     var loadingText=atc.getAttribute('data-loading-text')||'Adding…';
     var origText=atcLbl?atcLbl.textContent:'';
     if(!bundle&&!{{ section.settings.ajax_cart | json }}){if(fsub)fsub.click();return;}
@@ -1693,8 +1773,10 @@
     var req;
     if(bundle){
       /* One call adds the whole bundle, q copies of every piece. All-or-nothing. */
-      var items=[{id:cv.id,quantity:q}];
-      for(var i=0;i<BP.mode-1;i++)items.push({id:pickVar(BP.picks[i])[0],quantity:q});
+      /* Hidden properties (underscore keys are not shown at checkout) tie the pieces of one bundle together. */
+      var props={_bundle:BP.mode===2?'duo':'trio',_bundle_id:Math.random().toString(36).slice(2,8)};
+      var items=[{id:cv.id,quantity:q,properties:props}];
+      for(var i=0;i<BP.mode-1;i++)items.push({id:pickVar(BP.picks[i])[0],quantity:q,properties:props});
       req=fetch('/cart/add.js',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({items:items})});
     }else{
       req=fetch('/cart/add.js',{method:'POST',body:new FormData(fe)});
@@ -1927,7 +2009,7 @@
     { "type": "text",  "id": "triple_show_tag",    "label": "Or restrict Trio to products with this tag (leave blank to ignore)" },
 
     { "type": "header", "content": "Bundle add-ons (Duo and Trio)" },
-    { "type": "collection_list", "id": "bundle_collections", "label": "Add-on source collections", "limit": 8, "info": "Duo and Trio add-ons are picked at random from these collections, always from a different collection than the product itself. Leave empty to use LEXE, Faux Leather Jackets, iPhone Cases and Specs. Do not add internal collections." },
+    { "type": "collection_list", "id": "bundle_collections", "label": "Add-on source collections", "limit": 8, "info": "Duo and Trio add-ons are picked at random from these collections, always from a different collection than the product itself. Leave empty to use LEXE, Faux Leather Jackets and iPhone Cases. Collections that hold the free-glasses gift are always skipped. Do not add internal collections." },
     { "type": "checkbox", "id": "bundle_swap", "label": "Show Swap control", "default": true },
     { "type": "checkbox", "id": "bundle_require_cost", "label": "Only offer add-ons with a cost on file", "default": false, "info": "Bundles are sold at regular prices with no discount, so cost is not needed. Turn this on before adding any bundle discount so margins can be checked." },
 
