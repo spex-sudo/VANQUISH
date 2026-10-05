@@ -16,7 +16,7 @@
           "type": "shipping",
           "settings": {
             "title": "Shipping & Returns",
-            "content": "<p>Free Standard Shipping On Eligible Orders.</p><p>30-day returns — items must be unworn with original tags.</p>",
+            "content": "<p>Free Standard Shipping On Eligible Orders.</p><p>30-day returns \u2014 items must be unworn with original tags.</p>",
             "image": "shopify://shop_images/66DF17D4-1451-49D4-81A7-8EA0B47D6FB5.jpg",
             "redirect_url": ""
           }
@@ -50,30 +50,24 @@
         "trust_3": "Authentic",
         "show_pill": true,
         "single_label": "Single",
-        "single_sublabel": "Best for trying it out",
+        "single_sublabel": "Just this piece",
         "duo_label": "Duo",
-        "duo_sublabel": "Best value",
-        "duo_ribbon": "Most Popular",
-        "duo_qty": 2,
-        "duo_discount_pct": 5,
+        "duo_ribbon": "Picked for you",
         "duo_force_show": true,
         "duo_show_tag": "",
         "triple_label": "Trio",
-        "triple_sublabel": "Best savings",
         "triple_ribbon": "",
-        "triple_qty": 3,
-        "triple_discount_pct": 10,
         "triple_force_show": true,
         "triple_show_tag": "",
         "pill_thumb_source": "featured",
         "pill_bg": "#f4f4f2",
         "pill_bg_on": "#eaeae6",
         "pill_text": "#1a1a1a",
-        "pill_accent": "#1a1a1a",
+        "pill_accent": "#9966CC",
         "atc_text": "Add to cart",
         "soldout_text": "Sold Out",
         "view_bag_text": "View Bag",
-        "loading_text": "Adding…",
+        "loading_text": "Adding\u2026",
         "atc_link": "",
         "view_bag_url": "",
         "redirect_on_add": false,
@@ -101,7 +95,15 @@
         "brand_bottom_mobile": 16,
         "brand_left": 16,
         "brand_left_mobile": 14,
-        "brand_letter_spacing": "0em"
+        "brand_letter_spacing": "0em",
+        "bundle_collections": [
+          "lexe",
+          "faux-leather-jackets",
+          "iphone-cases",
+          "lexespecs"
+        ],
+        "bundle_swap": true,
+        "bundle_require_cost": false
       }
     },
     "vanquish_transittimer_4G4aRN": {
@@ -116,13 +118,13 @@
         "message_cikf9r": {
           "type": "message",
           "settings": {
-            "text": "Delivery in 5–10 business days"
+            "text": "Delivery in 5\u201310 business days"
           }
         },
         "message_yLgV6H": {
           "type": "message",
           "settings": {
-            "text": "Delivery in 5–10 business days"
+            "text": "Delivery in 5\u201310 business days"
           },
           "disabled": true
         },
@@ -257,7 +259,8 @@
         "card_ratio": "2,3",
         "card_radius": 5,
         "btn_radius": 10
-      }
+      },
+      "disabled": true
     },
     "luxury_relatedproductbar_Lek7wd": {
       "type": "luxury-relatedproductbar",

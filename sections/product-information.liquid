@@ -76,22 +76,12 @@
   assign show_pill = section.settings.show_pill
   assign tags_str  = product.tags | join: ',' | downcase
 
-  assign duo_qty   = section.settings.duo_qty | default: 2
-  assign duo_discount_pct = section.settings.duo_discount_pct | default: 25
   assign single_price = current_variant.price
   assign single_compare = current_variant.compare_at_price
   assign single_save = 0
   if single_compare > single_price
     assign single_save = single_compare | minus: single_price
   endif
-  assign duo_full_raw = single_price | times: duo_qty
-  assign duo_compare_raw = single_compare | times: duo_qty
-  if duo_compare_raw <= 0
-    assign duo_compare_raw = duo_full_raw
-  endif
-  assign duo_disc_amt = duo_full_raw | times: duo_discount_pct | divided_by: 100
-  assign duo_price_raw = duo_full_raw | minus: duo_disc_amt
-  assign duo_save = duo_compare_raw | minus: duo_price_raw
 
   assign duo_visible = false
   if section.settings.duo_force_show
@@ -105,17 +95,6 @@
     endif
   endif
 
-  assign triple_qty = section.settings.triple_qty | default: 3
-  assign triple_discount_pct = section.settings.triple_discount_pct | default: 35
-  assign triple_full_raw = single_price | times: triple_qty
-  assign triple_compare_raw = single_compare | times: triple_qty
-  if triple_compare_raw <= 0
-    assign triple_compare_raw = triple_full_raw
-  endif
-  assign triple_disc_amt = triple_full_raw | times: triple_discount_pct | divided_by: 100
-  assign triple_price_raw = triple_full_raw | minus: triple_disc_amt
-  assign triple_save = triple_compare_raw | minus: triple_price_raw
-
   assign triple_visible = false
   if section.settings.triple_force_show
     assign triple_tag = section.settings.triple_show_tag | downcase
@@ -127,6 +106,20 @@
       assign triple_visible = true
     endif
   endif
+
+  comment
+    LEXE bundle pills: Duo and Trio add 1 or 2 add-on pieces from OTHER collections (picked in the browser).
+    No bundle discount is applied or advertised. Source collections come from section.settings.bundle_collections.
+  endcomment
+  assign bp_sources = ''
+  for bp_c in section.settings.bundle_collections
+    assign bp_sources = bp_sources | append: bp_c.handle | append: ','
+  endfor
+  if bp_sources == blank
+    assign bp_sources = 'lexe,faux-leather-jackets,iphone-cases,lexespecs,'
+  endif
+  assign bp_sources = bp_sources | remove_last: ','
+  assign bp_cur_cols = product.collections | map: 'handle' | join: ','
 
   case section.settings.pill_thumb_source
     when 'variant'
@@ -527,7 +520,7 @@
 .ap-pills{{ sid }}::-webkit-scrollbar{display:none}
 .ap-pill{{ sid }}{
   position:relative;display:flex;align-items:center;gap:10px;
-  padding:8px 12px 8px 8px;flex-shrink:0;min-width:220px;
+  padding:8px 12px 8px 8px;flex-shrink:0;min-width:224px;width:224px;box-sizing:border-box;min-height:58px;
   background:var(--pill-bg);color:var(--pill-text);
   border:1.5px solid transparent;border-radius:10px;cursor:pointer;
   scroll-snap-align:start;font-family:var(--fb);
@@ -559,6 +552,63 @@
   font-family:var(--fb);font-size:8px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;
   padding:3px 8px;border-radius:100px;white-space:nowrap;line-height:1;z-index:1;
 }
+
+/* ── LEXE bundle pills (Duo / Trio) ── */
+.ap-pill{{ sid }}.on{border-color:#9966CC;box-shadow:0 0 0 1px #9966CC inset}
+.ap-pill{{ sid }}:hover{border-color:#9966CC}
+.ap-pill{{ sid }}:focus-visible{outline:2px solid #9966CC;outline-offset:2px}
+.ap-pill{{ sid }}[hidden]{display:none}
+.ap-pill{{ sid }}.ap-busy{opacity:.7;cursor:progress}
+.ap-pill-imgs{{ sid }}{width:auto;background:transparent;overflow:visible;border-radius:0;height:42px;display:flex;align-items:center}
+.ap-th{{ sid }}{position:relative;width:34px;height:34px;border-radius:8px;background:#fff;border:2px solid var(--pill-bg);box-sizing:content-box;overflow:hidden;flex-shrink:0;margin-left:-16px;display:block}
+.ap-th{{ sid }}:first-child{margin-left:0}
+.ap-th{{ sid }} img{width:100%;height:100%;object-fit:cover;display:block}
+.ap-sk{{ sid }}{background:linear-gradient(90deg,#ece6f3 25%,#f7f3fb 50%,#ece6f3 75%);background-size:200% 100%;animation:_bpsk{{ sid }} 1.3s linear infinite}
+@keyframes _bpsk{{ sid }}{to{background-position:-200% 0}}
+.ap-dots{{ sid }}{font-style:normal;letter-spacing:.1em;opacity:.5}
+.ap-pill-now{{ sid }}{min-width:34px;text-align:right}
+.ap-pill-ribbon{{ sid }}{background:#9966CC;color:#fff;font-weight:600}
+
+.ap-bundle{{ sid }}{
+  position:absolute;left:0;right:0;bottom:100%;
+  background:var(--card);border-top:1px solid var(--line);
+  box-shadow:0 -14px 34px rgba(30,10,50,.10);
+  max-height:min(56vh,440px);overflow:auto;overscroll-behavior:contain;
+  padding:12px 16px 12px;
+}
+.ap-bundle{{ sid }}[hidden]{display:none}
+.ap-bundle-inner{{ sid }}{max-width:1280px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+.ap-bundle-head{{ sid }}{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.ap-bundle-ttl{{ sid }}{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ap-bundle-ttl{{ sid }} strong{font-family:var(--fh);font-size:17px;letter-spacing:.03em;text-transform:uppercase;color:var(--ink);line-height:1.1}
+.ap-bundle-ttl{{ sid }} span{font-size:12px;color:var(--sub);line-height:1.35}
+.ap-bundle-x{{ sid }}{flex-shrink:0;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;touch-action:manipulation}
+.ap-bundle-x{{ sid }} svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none}
+.ap-bundle-x{{ sid }}:hover{border-color:#9966CC}
+.ap-bundle-x{{ sid }}:focus-visible,.ap-brow{{ sid }} button:focus-visible,.ap-brow{{ sid }} select:focus-visible{outline:2px solid #9966CC;outline-offset:2px}
+.ap-bundle-rows{{ sid }}{display:flex;flex-wrap:wrap;gap:10px}
+.ap-brow{{ sid }}{flex:1 1 300px;max-width:440px;min-width:0;display:flex;align-items:center;gap:10px;padding:8px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.ap-brow{{ sid }}.fixed{background:transparent;border-style:dashed}
+.ap-brow-img{{ sid }}{width:54px;height:54px;border-radius:8px;overflow:hidden;background:#fff;flex-shrink:0}
+.ap-brow-img{{ sid }} img{width:100%;height:100%;object-fit:cover;display:block}
+.ap-brow-body{{ sid }}{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.ap-brow-tag{{ sid }}{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--sub)}
+.ap-brow-name{{ sid }}{font-size:13px;font-weight:600;line-height:1.25;color:var(--ink);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ap-brow-var{{ sid }}{font-size:12px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ap-brow{{ sid }} select{width:100%;max-width:100%;height:32px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font:inherit;font-size:12px;padding:0 8px}
+.ap-brow-side{{ sid }}{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
+.ap-brow-price{{ sid }}{font-family:var(--fh);font-size:15px;font-weight:800;color:var(--ink);line-height:1}
+.ap-swap{{ sid }}{height:30px;padding:0 14px;border-radius:100px;border:1.5px solid #9966CC;background:transparent;color:#6a3fa0;font-family:var(--fb);font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;touch-action:manipulation;transition:background .15s,color .15s}
+.ap-swap{{ sid }}:hover{background:#9966CC;color:#fff}
+.ap-bundle-foot{{ sid }}{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 14px}
+.ap-bundle-total{{ sid }}{font-size:13px;font-weight:600;color:var(--ink)}
+.ap-bundle-msg{{ sid }}{font-size:12px;color:#9a3b3b;min-height:0}
+.ap-bundle-msg{{ sid }}:empty{display:none}
+@media (max-width:640px){
+  .ap-bundle{{ sid }}{padding:10px 14px;max-height:50vh}
+  .ap-brow{{ sid }}{flex-basis:100%;max-width:none}
+}
+@media (prefers-reduced-motion:reduce){.ap-sk{{ sid }}{animation:none}}
 
 /* Variant selector row */
 .ap-vrow{{ sid }}{
@@ -688,7 +738,7 @@
   .ap-price-row{{ sid }}{margin-bottom:18px}
   .ap-stack-btn{{ sid }}{padding:14px 16px;font-size:13.5px}
   .ap-stack-btn{{ sid }}.on{padding:13.5px 15.5px}
-  .ap-pill{{ sid }}{min-width:200px}
+  .ap-pill{{ sid }}{min-width:204px;width:204px}
   .ap-trust{{ sid }}{font-size:9px;gap:10px;padding:2px 0 2px}
 }
 @media (min-width:641px) and (max-width:960px){
@@ -929,6 +979,26 @@
 
 <!-- STICKY BAR — portal'd to <body> on init -->
 <div class="ap-bar{{ sid }}" id="ap-bar{{ sid }}" data-section="{{ sid }}" role="region" aria-label="Add to cart">
+  {%- if show_pill -%}
+  <div class="ap-bundle{{ sid }}" id="ap-bundle{{ sid }}" role="region" aria-label="Your bundle" hidden>
+    <div class="ap-bundle-inner{{ sid }}">
+      <div class="ap-bundle-head{{ sid }}">
+        <div class="ap-bundle-ttl{{ sid }}">
+          <strong id="ap-bundle-title{{ sid }}">Your bundle</strong>
+          <span id="ap-bundle-sub{{ sid }}"></span>
+        </div>
+        <button type="button" class="ap-bundle-x{{ sid }}" id="ap-bundle-x{{ sid }}" aria-label="Close bundle details">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="ap-bundle-rows{{ sid }}" id="ap-bundle-rows{{ sid }}"></div>
+      <div class="ap-bundle-foot{{ sid }}">
+        <span class="ap-bundle-total{{ sid }}" id="ap-bundle-total{{ sid }}"></span>
+        <span class="ap-bundle-msg{{ sid }}" id="ap-bundle-msg{{ sid }}" role="status" aria-live="polite"></span>
+      </div>
+    </div>
+  </div>
+  {%- endif -%}
   <div class="ap-bar-inner{{ sid }}">
 
     {%- if section.settings.show_trust_strip -%}
@@ -955,11 +1025,10 @@
     {%- endif -%}
 
     {%- if show_pill -%}
-      <div class="ap-pills{{ sid }}" id="ap-pills{{ sid }}" role="radiogroup" aria-label="Bundle">
-        <button type="button" class="ap-pill{{ sid }} on" data-pill-qty="1" role="radio" aria-checked="true">
+      <div class="ap-pills{{ sid }}" id="ap-pills{{ sid }}" role="radiogroup" aria-label="Bundle options">
+        <button type="button" class="ap-pill{{ sid }} on" data-bundle="1" role="radio" aria-checked="true" tabindex="0">
           <div class="ap-pill-img{{ sid }}">
             {%- if pill_thumb != blank -%}<img src="{{ pill_thumb }}" alt="" loading="lazy" decoding="async" width="42" height="42">{%- endif -%}
-            <span class="ap-pill-qty{{ sid }}">×1</span>
           </div>
           <div class="ap-pill-info{{ sid }}">
             <span class="ap-pill-label{{ sid }}">{{ section.settings.single_label | default: 'Single' }}</span>
@@ -968,47 +1037,42 @@
             </span>
           </div>
           <div class="ap-pill-price{{ sid }}">
-            <span class="ap-pill-now{{ sid }}">{{ single_price | money_without_trailing_zeros }}</span>
-            {%- if single_compare > single_price -%}<span class="ap-pill-was{{ sid }}">{{ single_compare | money_without_trailing_zeros }}</span>{%- endif -%}
+            <span class="ap-pill-now{{ sid }}" data-bp-price>{{ single_price | money_without_trailing_zeros }}</span>
+            <span class="ap-pill-was{{ sid }}" data-bp-was{% unless single_compare > single_price %} style="display:none"{% endunless %}>{{ single_compare | money_without_trailing_zeros }}</span>
           </div>
         </button>
 
         {%- if duo_visible -%}
-          <button type="button" class="ap-pill{{ sid }}" data-pill-qty="{{ duo_qty }}" role="radio" aria-checked="false">
+          <button type="button" class="ap-pill{{ sid }} ap-bpill{{ sid }}" data-bundle="2" role="radio" aria-checked="false" aria-controls="ap-bundle{{ sid }}" tabindex="-1">
             {%- if section.settings.duo_ribbon != blank -%}<span class="ap-pill-ribbon{{ sid }}">{{ section.settings.duo_ribbon }}</span>{%- endif -%}
-            <div class="ap-pill-img{{ sid }}">
-              {%- if pill_thumb != blank -%}<img src="{{ pill_thumb }}" alt="" loading="lazy" decoding="async" width="42" height="42">{%- endif -%}
-              <span class="ap-pill-qty{{ sid }}">×{{ duo_qty }}</span>
+            <div class="ap-pill-img{{ sid }} ap-pill-imgs{{ sid }}" data-thumbs="2">
+              <span class="ap-th{{ sid }}">{%- if pill_thumb != blank -%}<img src="{{ pill_thumb }}" alt="" loading="lazy" decoding="async" width="34" height="34">{%- endif -%}</span>
+              <span class="ap-th{{ sid }} ap-sk{{ sid }}"></span>
             </div>
             <div class="ap-pill-info{{ sid }}">
               <span class="ap-pill-label{{ sid }}">{{ section.settings.duo_label | default: 'Duo' }}</span>
-              <span class="ap-pill-sub{{ sid }}">
-                {%- if duo_save > 0 -%}You save {{ duo_save | money_without_trailing_zeros }}{%- else -%}{{ section.settings.duo_sublabel }}{%- endif -%}
-              </span>
+              <span class="ap-pill-sub{{ sid }}" data-bp-sub>Finding a match</span>
             </div>
             <div class="ap-pill-price{{ sid }}">
-              <span class="ap-pill-now{{ sid }}">{{ duo_price_raw | money_without_trailing_zeros }}</span>
-              {%- if duo_compare_raw > duo_price_raw -%}<span class="ap-pill-was{{ sid }}">{{ duo_compare_raw | money_without_trailing_zeros }}</span>{%- endif -%}
+              <span class="ap-pill-now{{ sid }}" data-bp-price><i class="ap-dots{{ sid }}">···</i></span>
             </div>
           </button>
         {%- endif -%}
 
         {%- if triple_visible -%}
-          <button type="button" class="ap-pill{{ sid }}" data-pill-qty="{{ triple_qty }}" role="radio" aria-checked="false">
+          <button type="button" class="ap-pill{{ sid }} ap-bpill{{ sid }}" data-bundle="3" role="radio" aria-checked="false" aria-controls="ap-bundle{{ sid }}" tabindex="-1">
             {%- if section.settings.triple_ribbon != blank -%}<span class="ap-pill-ribbon{{ sid }}">{{ section.settings.triple_ribbon }}</span>{%- endif -%}
-            <div class="ap-pill-img{{ sid }}">
-              {%- if pill_thumb != blank -%}<img src="{{ pill_thumb }}" alt="" loading="lazy" decoding="async" width="42" height="42">{%- endif -%}
-              <span class="ap-pill-qty{{ sid }}">×{{ triple_qty }}</span>
+            <div class="ap-pill-img{{ sid }} ap-pill-imgs{{ sid }}" data-thumbs="3">
+              <span class="ap-th{{ sid }}">{%- if pill_thumb != blank -%}<img src="{{ pill_thumb }}" alt="" loading="lazy" decoding="async" width="34" height="34">{%- endif -%}</span>
+              <span class="ap-th{{ sid }} ap-sk{{ sid }}"></span>
+              <span class="ap-th{{ sid }} ap-sk{{ sid }}"></span>
             </div>
             <div class="ap-pill-info{{ sid }}">
               <span class="ap-pill-label{{ sid }}">{{ section.settings.triple_label | default: 'Trio' }}</span>
-              <span class="ap-pill-sub{{ sid }}">
-                {%- if triple_save > 0 -%}You save {{ triple_save | money_without_trailing_zeros }}{%- else -%}{{ section.settings.triple_sublabel }}{%- endif -%}
-              </span>
+              <span class="ap-pill-sub{{ sid }}" data-bp-sub>Finding matches</span>
             </div>
             <div class="ap-pill-price{{ sid }}">
-              <span class="ap-pill-now{{ sid }}">{{ triple_price_raw | money_without_trailing_zeros }}</span>
-              {%- if triple_compare_raw > triple_price_raw -%}<span class="ap-pill-was{{ sid }}">{{ triple_compare_raw | money_without_trailing_zeros }}</span>{%- endif -%}
+              <span class="ap-pill-now{{ sid }}" data-bp-price><i class="ap-dots{{ sid }}">···</i></span>
             </div>
           </button>
         {%- endif -%}
@@ -1133,22 +1197,305 @@
   function money(c){return SYM+(c/100).toFixed(2).replace(/\.00$/,'').replace(/\B(?=(\d{3})+(?!\d))/g,',');}
   function curQty(){return qtyIn?Math.max(1,parseInt(qtyIn.value,10)||1):1;}
 
+  /* ══ LEXE bundle pills ══
+     Single / Duo / Trio choose WHAT is bought. Quantity is separate and multiplies the whole selection.
+     Duo = this product + 1 add-on, Trio = this product + 2 add-ons. Add-ons come from other collections
+     (see section setting "Bundle add-on source collections"). No bundle discount is applied or shown. */
+  var BPCFG={sources:{{ bp_sources | split: ',' | json }},cur:{{ bp_cur_cols | split: ',' | json }},pid:{{ product.id }},needCost:{{ section.settings.bundle_require_cost | json }},swap:{{ section.settings.bundle_swap | json }},thumb:{{ pill_thumb | json }},labels:{2:{{ section.settings.duo_label | default: 'Duo' | json }},3:{{ section.settings.triple_label | default: 'Trio' | json }} }};
+  var BP={mode:1,ready:false,failed:false,loading:false,byId:{},colItems:{},picks:[],swaps:[0,0],vsel:{},open:false};
+  var memSeed=null;
+  function sget(k){try{return sessionStorage.getItem(k);}catch(e){return null;}}
+  function sset(k,v){try{sessionStorage.setItem(k,v);}catch(e){}}
+  function bpSeed(){
+    var s=sget('lexe_bp_seed');
+    if(!s){s=memSeed||String(Math.random()).slice(2,10);memSeed=s;sset('lexe_bp_seed',s);}
+    return s;
+  }
+  function bpHash(str){var h=2166136261;for(var i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+  function bpRng(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+  function bpShuffle(arr,r){var a=arr.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(r()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+  try{var sw=JSON.parse(sget('lexe_bp_sw:'+BPCFG.pid)||'null');if(sw&&sw.length===2)BP.swaps=[sw[0]|0,sw[1]|0];}catch(e){}
+
+  function bpEls(){
+    return{
+      panel:document.getElementById('ap-bundle'+S),rows:document.getElementById('ap-bundle-rows'+S),
+      title:document.getElementById('ap-bundle-title'+S),sub:document.getElementById('ap-bundle-sub'+S),
+      total:document.getElementById('ap-bundle-total'+S),msg:document.getElementById('ap-bundle-msg'+S),
+      close:document.getElementById('ap-bundle-x'+S)
+    };
+  }
+  var BE=bpEls();
+
+  function loadPool(force){
+    var key='lexe_bp_pool:'+BPCFG.sources.join(',');
+    if(!force){
+      try{var c=JSON.parse(sget(key)||'null');if(c&&c.d&&Date.now()-c.t<1800000)return Promise.resolve(c.d);}catch(e){}
+    }
+    return fetch('/search?view=lexe-bundle&q='+encodeURIComponent(BPCFG.sources.join(',')),{credentials:'same-origin'})
+      .then(function(r){if(!r.ok)throw 0;return r.json();})
+      .then(function(d){
+        if(!d||!d.p||!d.p.length)throw 0;
+        sset(key,JSON.stringify({t:Date.now(),d:d}));
+        return d;
+      });
+  }
+  function indexPool(d){
+    BP.byId={};BP.colItems={};
+    d.p.forEach(function(p){p.cols=[];BP.byId[p.id]=p;});
+    Object.keys(d.m).forEach(function(c){
+      BP.colItems[c]=[];
+      d.m[c].forEach(function(id){var p=BP.byId[id];if(p){p.cols.push(c);BP.colItems[c].push(p);}});
+    });
+  }
+  function eligible(p){
+    if(p.id===BPCFG.pid||!p.vs||!p.vs.length)return false;
+    if(BPCFG.needCost&&!p.co)return false;
+    for(var i=0;i<p.cols.length;i++){if(BPCFG.cur.indexOf(p.cols[i])>-1)return false;}
+    return true;
+  }
+  /* Seeded order: collections are shuffled, then products are taken round-robin so every eligible collection gets a turn. */
+  function orderFor(k){
+    var r=bpRng(bpHash(bpSeed()+':'+BPCFG.pid+':'+k));
+    var cols=bpShuffle(Object.keys(BP.colItems).filter(function(c){return BPCFG.cur.indexOf(c)<0;}),r);
+    var lists=cols.map(function(c){return bpShuffle(BP.colItems[c].filter(eligible),r);}).filter(function(l){return l.length;});
+    var out=[],seen={},i=0,more=true;
+    while(more){
+      more=false;
+      for(var j=0;j<lists.length;j++){
+        if(i<lists[j].length){more=true;var p=lists[j][i];if(!seen[p.id]){seen[p.id]=1;out.push(p);}}
+      }
+      i++;
+    }
+    return out;
+  }
+  function computePicks(){
+    var o0=orderFor(0);
+    if(!o0.length){BP.picks=[];BP.len0=0;BP.len1=0;return;}
+    var p0=o0[BP.swaps[0]%o0.length];
+    var o1=orderFor(1).filter(function(p){return p.id!==p0.id;});
+    var strict=o1.filter(function(p){return !p.cols.some(function(c){return p0.cols.indexOf(c)>-1;});});
+    var l1=strict.length?strict:o1;
+    var p1=l1.length?l1[BP.swaps[1]%l1.length]:null;
+    BP.len0=o0.length;BP.len1=l1.length;
+    BP.picks=p1?[p0,p1]:[p0];
+  }
+  function pickVar(p){var i=BP.vsel[p.id]||0;return p.vs[i]||p.vs[0];}
+  function extraCents(){
+    var n=BP.mode-1,t=0;
+    if(BP.mode<2||BP.picks.length<n)return 0;
+    for(var i=0;i<n;i++)t+=pickVar(BP.picks[i])[2];
+    return t;
+  }
+  function shortName(t){return String(t||'');}
+
+  /* Render pills (prices, thumbs, sub-labels). Qty never enters the pill prices. */
+  function renderPills(v){
+    pillEls.forEach(function(p){
+      var b=+p.getAttribute('data-bundle')||1;
+      var priceEl2=p.querySelector('[data-bp-price]');
+      if(b===1){
+        if(v&&priceEl2)priceEl2.textContent=money(v.price);
+        var w=p.querySelector('[data-bp-was]');
+        if(w&&v){if(v.compare_at_price&&v.compare_at_price>v.price){w.textContent=money(v.compare_at_price);w.style.display='';}else w.style.display='none';}
+        return;
+      }
+      var need=b-1;
+      if(BP.failed||(BP.ready&&BP.picks.length<need)){p.hidden=true;return;}
+      p.hidden=false;
+      if(!BP.ready||!v)return;
+      var sum=v.price;
+      for(var i=0;i<need;i++)sum+=pickVar(BP.picks[i])[2];
+      if(priceEl2)priceEl2.textContent=money(sum);
+      var names=[];
+      for(var k=0;k<need;k++)names.push(shortName(BP.picks[k].t));
+      var sub=p.querySelector('[data-bp-sub]');
+      if(sub)sub.textContent='+ '+names.join(' & ');
+      var ths=p.querySelectorAll('.ap-th'+S);
+      for(var m=1;m<ths.length;m++){
+        var pk=BP.picks[m-1];if(!pk)continue;
+        var th=ths[m];th.classList.remove('ap-sk'+S);
+        var im=th.querySelector('img');
+        if(!im){im=document.createElement('img');im.alt='';im.width=34;im.height=34;im.loading='lazy';im.decoding='async';th.appendChild(im);}
+        if(im.getAttribute('src')!==pk.i)im.setAttribute('src',pk.i);
+      }
+    });
+  }
+
+  /* Panel */
+  function mk(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;}
+  function varLabel(t){return(t&&t!=='Default Title')?t:'';}
+  function renderPanel(){
+    if(!BE.panel)return;
+    BE.rows.textContent='';
+    if(BP.mode<2||!BP.ready){return;}
+    var v=findVariant();
+    BE.title.textContent='Your '+(BPCFG.labels[BP.mode]||'bundle');
+    BE.sub.textContent=BP.mode===2?'This piece plus one pick from another part of LEXE.':'This piece plus two picks from other parts of LEXE.';
+    /* this piece (fixed) */
+    var r0=mk('div','ap-brow'+S+' fixed');
+    var i0=mk('div','ap-brow-img'+S);
+    if(BPCFG.thumb){var im0=document.createElement('img');im0.src=BPCFG.thumb;im0.alt='';im0.width=54;im0.height=54;im0.loading='lazy';i0.appendChild(im0);}
+    r0.appendChild(i0);
+    var b0=mk('div','ap-brow-body'+S);
+    b0.appendChild(mk('span','ap-brow-tag'+S,'This piece'));
+    b0.appendChild(mk('span','ap-brow-name'+S,PD.title));
+    if(v&&varLabel(v.title))b0.appendChild(mk('span','ap-brow-var'+S,varLabel(v.title)));
+    r0.appendChild(b0);
+    var s0=mk('div','ap-brow-side'+S);
+    s0.appendChild(mk('span','ap-brow-price'+S,v?money(v.price):''));
+    r0.appendChild(s0);
+    BE.rows.appendChild(r0);
+    /* add-ons */
+    for(var i=0;i<BP.mode-1;i++){
+      (function(slot){
+        var p=BP.picks[slot];
+        var row=mk('div','ap-brow'+S);row.setAttribute('data-slot',slot);
+        var im=mk('div','ap-brow-img'+S);
+        var ie=document.createElement('img');ie.src=p.i;ie.alt='';ie.width=54;ie.height=54;ie.loading='lazy';im.appendChild(ie);
+        row.appendChild(im);
+        var body=mk('div','ap-brow-body'+S);
+        body.appendChild(mk('span','ap-brow-tag'+S,'Picked for you'));
+        body.appendChild(mk('span','ap-brow-name'+S,p.t));
+        if(p.vs.length>1){
+          var sel2=document.createElement('select');
+          sel2.setAttribute('aria-label','Option for '+p.t);
+          p.vs.forEach(function(x,xi){
+            var o=document.createElement('option');o.value=xi;
+            o.textContent=(varLabel(x[1])||'Default')+(x[2]!==p.vs[0][2]?' · '+money(x[2]):'');
+            sel2.appendChild(o);
+          });
+          sel2.value=String(BP.vsel[p.id]||0);
+          sel2.addEventListener('change',function(){
+            BP.vsel[p.id]=+this.value;
+            priceTxt.textContent=money(pickVar(p)[2]);
+            resetAdded();BE.msg.textContent='';
+            refreshPrices();
+          });
+          body.appendChild(sel2);
+        }else if(varLabel(p.vs[0][1])){
+          body.appendChild(mk('span','ap-brow-var'+S,varLabel(p.vs[0][1])));
+        }
+        row.appendChild(body);
+        var side=mk('div','ap-brow-side'+S);
+        var priceTxt=mk('span','ap-brow-price'+S,money(pickVar(p)[2]));
+        side.appendChild(priceTxt);
+        var canSwap=BPCFG.swap&&((slot===0?BP.len0:BP.len1)>1);
+        if(canSwap){
+          var sb=mk('button','ap-swap'+S,'Swap');sb.type='button';
+          sb.setAttribute('aria-label','Swap '+p.t+' for a different pick');
+          sb.addEventListener('click',function(){swapSlot(slot);});
+          side.appendChild(sb);
+        }
+        row.appendChild(side);
+        BE.rows.appendChild(row);
+      })(i);
+    }
+    updateTotals();
+  }
+  function updateTotals(){
+    if(!BE.total)return;
+    var v=findVariant();
+    if(BP.mode<2||!BP.ready||!v){BE.total.textContent='';return;}
+    var one=v.price+extraCents(),q=curQty();
+    BE.total.textContent=q>1?('Together '+money(one)+'  ×  '+q+'  =  '+money(one*q)):('Together '+money(one));
+  }
+  function openPanel(){
+    if(!BE.panel||BP.mode<2||!BP.ready)return;
+    BP.open=true;BE.panel.hidden=false;
+  }
+  function closePanel(focusPill){
+    if(!BE.panel)return;
+    BP.open=false;BE.panel.hidden=true;
+    if(focusPill){var a=pillsWrap&&pillsWrap.querySelector('.ap-pill'+S+'.on');if(a)a.focus();}
+  }
+  function swapSlot(slot){
+    BP.swaps[slot]=(BP.swaps[slot]||0)+1;
+    sset('lexe_bp_sw:'+BPCFG.pid,JSON.stringify(BP.swaps));
+    computePicks();
+    resetAdded();BE.msg.textContent='';
+    renderPanel();refreshPrices();
+    var nb=BE.rows.querySelector('.ap-brow'+S+'[data-slot="'+slot+'"] .ap-swap'+S);
+    if(nb)nb.focus();
+  }
+  function refreshPrices(){
+    var v=findVariant();
+    renderPills(v);
+    updateTotals();
+    if(v)renderPrice(v,curQty());
+  }
+
+  function setMode(m,fromUser){
+    if(m>1&&(BP.failed||!BP.ready))return;
+    if(m>1&&BP.picks.length<m-1)m=1;
+    BP.mode=m;
+    pillEls.forEach(function(p){
+      var on=(+p.getAttribute('data-bundle')||1)===m;
+      p.classList.toggle('on',on);
+      p.setAttribute('aria-checked',on?'true':'false');
+      p.tabIndex=on?0:-1;
+    });
+    resetAdded();
+    if(BE.msg)BE.msg.textContent='';
+    renderPanel();
+    if(m>1&&fromUser)openPanel();else closePanel(false);
+    refreshPrices();
+  }
+  function ensurePool(){
+    if(BP.ready||BP.failed||BP.loading)return;
+    BP.loading=true;
+    loadPool(false).then(function(d){
+      indexPool(d);computePicks();
+      BP.ready=true;BP.loading=false;
+      if(!BP.picks.length)BP.failed=true;
+      refreshPrices();
+      if(BP.want){var w=BP.want;BP.want=0;pillEls.forEach(function(p){p.classList.remove('ap-busy');});setMode(w,true);}
+    }).catch(function(){
+      BP.loading=false;BP.failed=true;BP.mode=1;
+      refreshPrices();
+      pillEls.forEach(function(p){p.classList.remove('ap-busy');});
+      if(BP.want){BP.want=0;}
+      var on=pillsWrap&&pillsWrap.querySelector('[data-bundle="1"]');if(on){on.classList.add('on');on.setAttribute('aria-checked','true');on.tabIndex=0;}
+    });
+  }
+  /* Load once the page is idle (session-cached), or right away if a bundle pill is touched. */
+  if(pillEls.some(function(p){return(+p.getAttribute('data-bundle')||1)>1;})){
+    if('requestIdleCallback' in window)requestIdleCallback(ensurePool,{timeout:2500});else setTimeout(ensurePool,1200);
+  }
+
   function renderPrice(v,q){
     if(!v)return;
     q=Math.max(1,q|0);
-    var total=v.price*q;
+    var ex=extraCents();
+    var inBundle=BP.mode>1&&ex>0;
+    var total=(v.price+ex)*q;
     var totalCompare=(v.compare_at_price||0)*q;
     if(priceEl){
       priceEl.classList.add('flash');
       setTimeout(function(){priceEl.textContent=money(total);priceEl.classList.remove('flash');},120);
     }
-    var hasDis=v.compare_at_price&&v.compare_at_price>v.price;
+    var hasDis=!inBundle&&v.compare_at_price&&v.compare_at_price>v.price;
     if(wasEl){if(hasDis){wasEl.textContent=money(totalCompare);wasEl.style.display='';}else{wasEl.style.display='none';}}
     if(badgeEl){if(hasDis){var pct=Math.round((v.compare_at_price-v.price)*100/v.compare_at_price);badgeEl.textContent='−'+pct+'%';badgeEl.style.display='';}else{badgeEl.style.display='none';}}
     if(atcPrice){
       atcPrice.classList.add('flash');
       setTimeout(function(){atcPrice.textContent=money(total);atcPrice.classList.remove('flash');},120);
     }
+    if(!renderPrice.busy){renderPrice.busy=true;renderPills(v);updateTotals();if(BP.open)syncThisPieceRow(v);renderPrice.busy=false;}
+  }
+  function syncThisPieceRow(v){
+    var r=BE.rows&&BE.rows.querySelector('.ap-brow'+S+'.fixed');
+    if(!r||!v)return;
+    var pr=r.querySelector('.ap-brow-price'+S);if(pr)pr.textContent=money(v.price);
+    var vl=r.querySelector('.ap-brow-var'+S);
+    var lab=varLabel(v.title);
+    if(vl){if(lab)vl.textContent=lab;else vl.remove();}
+    else if(lab){var b=r.querySelector('.ap-brow-body'+S);if(b)b.appendChild(mk('span','ap-brow-var'+S,lab));}
+  }
+  function resetAdded(){
+    if(!atc||!atc.classList.contains('added'))return;
+    atc.classList.remove('added');atc.onclick=null;
+    var v=findVariant();
+    if(atcLbl&&v)atcLbl.textContent=v.available?{{ section.settings.atc_text | json }}:{{ section.settings.soldout_text | json }};
   }
 
   function renderStock(v){
@@ -1184,6 +1531,7 @@
     if(atc)atc.disabled=!v.available;
     if(atcLbl)atcLbl.textContent=v.available?{{ section.settings.atc_text | json }}:{{ section.settings.soldout_text | json }};
     if(vid)vid.value=v.id;
+    resetAdded();
     renderPrice(v,curQty());
     renderStock(v);
     jumpToVariantImage(v);
@@ -1322,24 +1670,44 @@
     if({{ section.settings.redirect_on_add | json }})window.location.href=dest;
   }
 
+  function bundleActive(){return BP.mode>1&&BP.ready&&BP.picks.length>=BP.mode-1;}
+  function fail(msg){
+    if(BE.msg)BE.msg.textContent=msg;
+    if(BE.panel&&BP.mode>1){BE.panel.hidden=false;BP.open=true;}
+  }
   function doAdd(){
-    if(!findVariant()){
+    var cv=findVariant();
+    if(!cv){
       if(atc){atc.classList.add('error');setTimeout(function(){atc.classList.remove('error');},420);}
       return;
     }
+    var bundle=bundleActive();
     var loadingText=atc.getAttribute('data-loading-text')||'Adding…';
     var origText=atcLbl?atcLbl.textContent:'';
-    if(!{{ section.settings.ajax_cart | json }}){if(fsub)fsub.click();return;}
+    if(!bundle&&!{{ section.settings.ajax_cart | json }}){if(fsub)fsub.click();return;}
     if(atc)atc.classList.add('ld');
     if(atcLbl)atcLbl.textContent=loadingText;
     var fe=document.getElementById('{{ form_id }}');
-    if(!fe){if(atc)atc.classList.remove('ld');return;}
-    fetch('/cart/add.js',{method:'POST',body:new FormData(fe)})
-      .then(function(r){if(!r.ok)throw 0;return r.json();})
+    if(!bundle&&!fe){if(atc)atc.classList.remove('ld');return;}
+    var q=curQty();
+    var req;
+    if(bundle){
+      /* One call adds the whole bundle, q copies of every piece. All-or-nothing. */
+      var items=[{id:cv.id,quantity:q}];
+      for(var i=0;i<BP.mode-1;i++)items.push({id:pickVar(BP.picks[i])[0],quantity:q});
+      req=fetch('/cart/add.js',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({items:items})});
+    }else{
+      req=fetch('/cart/add.js',{method:'POST',body:new FormData(fe)});
+    }
+    req
+      .then(function(r){
+        if(r.ok)return r.json();
+        return r.json().catch(function(){return{};}).then(function(e){var er=new Error(e.description||e.message||'add failed');er.status=r.status;throw er;});
+      })
       .then(function(){return fetch('/cart.js').then(function(r){return r.json();});})
       .then(function(cart){
         document.querySelectorAll('[data-cart-count],[data-cart-bubble]').forEach(function(el){el.textContent=cart.item_count;if(el.dataset.cartCount!==undefined)el.dataset.cartCount=cart.item_count;});
-        var cvid=parseInt(vid?vid.value:0,10);
+        var cvid=cv.id;
         var mv=null;VARS.forEach(function(v){if(v.id===cvid)mv=v;});
         if(mv){
           var ml=null;if(cart.items)cart.items.forEach(function(i){if(i.variant_id===cvid)ml=i;});
@@ -1351,53 +1719,24 @@
         }
         document.dispatchEvent(new CustomEvent('cart:item-added',{bubbles:true,detail:{cart:cart}}));
         document.dispatchEvent(new CustomEvent('cart:updated',{bubbles:true,detail:{cart:cart}}));
+        /* Theme cart event: updates the header count and opens or refreshes the cart drawer */
+        document.dispatchEvent(new CustomEvent('cart:update',{bubbles:true,detail:{resource:cart,sourceId:atc?atc.id:'',data:{source:'lexe-bundle',itemCount:cart.item_count,variantId:String(cvid)}}}));
+        closePanel(false);
         toViewBag();
       })
-      .catch(function(){
+      .catch(function(err){
         if(atc)atc.classList.remove('ld');
         if(atcLbl)atcLbl.textContent=origText;
-        if(fsub)fsub.click();
+        if(bundle){
+          /* Nothing was added (add.js is all-or-nothing). Refresh stock data in the background. */
+          fail(err&&err.status===422?'One of these pieces is not available in that quantity right now. Try Swap, another option, or a smaller quantity.':'We could not add the bundle. Please try again.');
+          try{sessionStorage.removeItem('lexe_bp_pool:'+BPCFG.sources.join(','));}catch(e){}
+          loadPool(true).then(function(d){indexPool(d);computePicks();if(BP.picks.length<BP.mode-1)setMode(1,false);else{renderPanel();refreshPrices();}}).catch(function(){});
+        }else if(fsub)fsub.click();
       });
   }
 
-  /* Pill ↔ Qty sync — "morphing pill" behavior (generalized to N tiers).
-     On an exact tier match (qty === a pill's data-pill-qty) that pill lights
-     up as-is. Off an exact match, the base (qty=1) pill rewrites its own
-     label + ×N badge to whichever tier is the current best fit, so the
-     display keeps scaling smoothly instead of jumping between static pills. */
-  var TIERS=pillEls.map(function(p){
-    var labelEl=p.querySelector('.ap-pill-label'+S);
-    var qtyBadgeEl=p.querySelector('.ap-pill-qty'+S);
-    return{
-      el:p,
-      qty:parseInt(p.getAttribute('data-pill-qty'),10)||1,
-      labelEl:labelEl,
-      qtyBadgeEl:qtyBadgeEl,
-      origLabel:labelEl?labelEl.textContent:''
-    };
-  }).sort(function(a,b){return a.qty-b.qty;});
-  var baseTier=TIERS[0];
-
-  function syncPillToQty(n){
-    if(!TIERS.length)return;
-    var exact=null,best=TIERS[0];
-    TIERS.forEach(function(t){
-      if(t.qty===n)exact=t;
-      if(t.qty<=n)best=t;
-    });
-    TIERS.forEach(function(t){t.el.classList.remove('on');t.el.setAttribute('aria-checked','false');});
-    if(exact){
-      exact.el.classList.add('on');
-      exact.el.setAttribute('aria-checked','true');
-      if(baseTier.labelEl)baseTier.labelEl.textContent=baseTier.origLabel;
-      if(baseTier.qtyBadgeEl)baseTier.qtyBadgeEl.textContent='×'+baseTier.qty;
-    }else if(best){
-      if(baseTier.labelEl)baseTier.labelEl.textContent=best.origLabel;
-      if(baseTier.qtyBadgeEl)baseTier.qtyBadgeEl.textContent='×'+n;
-      baseTier.el.classList.add('on');
-      baseTier.el.setAttribute('aria-checked','true');
-    }
-  }
+  /* Pills choose the bundle. Quantity is independent: neither one ever changes the other. */
   function setQtyVal(n){
     n=Math.max(1,n|0);
     if(qtyIn)qtyIn.value=n;
@@ -1405,18 +1744,41 @@
     if(qDec)qDec.disabled=(n<=1);
     var v=findVariant();
     if(v)renderPrice(v,n);
-    syncPillToQty(n);
+    resetAdded();
   }
   function bumpQty(d){setQtyVal(curQty()+d);}
   if(qDec)qDec.addEventListener('click',function(){bumpQty(-1);});
   if(qInc)qInc.addEventListener('click',function(){bumpQty(1);});
   setQtyVal(1);
 
+  function pickPill(p,fromKeyboard){
+    var m=+p.getAttribute('data-bundle')||1;
+    if(m===BP.mode){
+      if(m>1&&!fromKeyboard){if(BP.open)closePanel(false);else openPanel();}
+      return;
+    }
+    if(m>1&&!BP.ready){
+      if(BP.failed)return;
+      BP.want=m;p.classList.add('ap-busy');ensurePool();return;
+    }
+    setMode(m,true);
+  }
   pillEls.forEach(function(p){
-    p.addEventListener('click',function(){
-      var q=parseInt(this.getAttribute('data-pill-qty'),10)||1;
-      setQtyVal(q);
+    p.addEventListener('click',function(){pickPill(this,false);});
+    p.addEventListener('keydown',function(e){
+      var k=e.key;
+      if(k!=='ArrowRight'&&k!=='ArrowLeft'&&k!=='ArrowDown'&&k!=='ArrowUp'&&k!=='Home'&&k!=='End')return;
+      var vis=pillEls.filter(function(x){return !x.hidden;});
+      var i=vis.indexOf(this);if(i<0)return;
+      var ni=(k==='Home')?0:(k==='End')?vis.length-1:(k==='ArrowRight'||k==='ArrowDown')?(i+1)%vis.length:(i-1+vis.length)%vis.length;
+      e.preventDefault();
+      vis[ni].focus();pickPill(vis[ni],true);
     });
+  });
+  if(BE.close)BE.close.addEventListener('click',function(){closePanel(true);});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&BP.open){closePanel(true);}});
+  document.addEventListener('pointerdown',function(e){
+    if(BP.open&&bar&&!bar.contains(e.target)){var cd=e.target.closest&&e.target.closest('dialog,cart-drawer-component');if(!cd)closePanel(false);}
   });
 
   if(atc)atc.addEventListener('click',function(){if(!this.classList.contains('added'))doAdd();});
@@ -1551,23 +1913,22 @@
     { "type": "checkbox", "id": "show_pill", "label": "Show mini product pill row", "default": true },
 
     { "type": "text",  "id": "single_label",    "label": "Single — label",    "default": "Single" },
-    { "type": "text",  "id": "single_sublabel", "label": "Single — subtitle", "default": "Best for trying it out" },
+    { "type": "text",  "id": "single_sublabel", "label": "Single — subtitle", "default": "Just this piece" },
 
     { "type": "text",  "id": "duo_label",       "label": "Duo — label",       "default": "Duo" },
-    { "type": "text",  "id": "duo_sublabel",    "label": "Duo — subtitle",    "default": "Best value" },
-    { "type": "text",  "id": "duo_ribbon",      "label": "Duo — ribbon",      "default": "Most Popular" },
-    { "type": "range", "id": "duo_qty",         "label": "Duo — quantity",    "min": 2, "max": 5,  "step": 1, "default": 2 },
-    { "type": "range", "id": "duo_discount_pct","label": "Duo — extra discount %", "min": 0, "max": 50, "step": 1, "unit": "%", "default": 25 },
-    { "type": "checkbox", "id": "duo_force_show", "label": "Show Duo pill", "default": true, "info": "Turn off to hide Duo for this product (e.g. no bundle discount available)." },
+    { "type": "text",  "id": "duo_ribbon",      "label": "Duo — ribbon" },
+    { "type": "checkbox", "id": "duo_force_show", "label": "Show Duo pill", "default": true, "info": "Turn off to hide Duo for this product." },
     { "type": "text",  "id": "duo_show_tag",    "label": "Or restrict Duo to products with this tag (leave blank to ignore)" },
 
     { "type": "text",  "id": "triple_label",       "label": "Triple — label",       "default": "Trio" },
-    { "type": "text",  "id": "triple_sublabel",    "label": "Triple — subtitle",    "default": "Best savings" },
     { "type": "text",  "id": "triple_ribbon",      "label": "Triple — ribbon" },
-    { "type": "range", "id": "triple_qty",         "label": "Triple — quantity",    "min": 3, "max": 6,  "step": 1, "default": 3 },
-    { "type": "range", "id": "triple_discount_pct","label": "Triple — extra discount %", "min": 0, "max": 60, "step": 1, "unit": "%", "default": 35 },
     { "type": "checkbox", "id": "triple_force_show", "label": "Show Trio pill", "default": true, "info": "Turn off to hide Trio for this product." },
     { "type": "text",  "id": "triple_show_tag",    "label": "Or restrict Trio to products with this tag (leave blank to ignore)" },
+
+    { "type": "header", "content": "Bundle add-ons (Duo and Trio)" },
+    { "type": "collection_list", "id": "bundle_collections", "label": "Add-on source collections", "limit": 8, "info": "Duo and Trio add-ons are picked at random from these collections, always from a different collection than the product itself. Leave empty to use LEXE, Faux Leather Jackets, iPhone Cases and Specs. Do not add internal collections." },
+    { "type": "checkbox", "id": "bundle_swap", "label": "Show Swap control", "default": true },
+    { "type": "checkbox", "id": "bundle_require_cost", "label": "Only offer add-ons with a cost on file", "default": false, "info": "Bundles are sold at regular prices with no discount, so cost is not needed. Turn this on before adding any bundle discount so margins can be checked." },
 
     { "type": "select", "id": "pill_thumb_source", "label": "Pill thumbnail source", "default": "featured",
       "options": [
@@ -1829,11 +2190,9 @@
       "show_stock": true, "low_stock_threshold": 5,
       "show_trust_strip": false, "trust_1": "Free shipping over $80", "trust_2": "30-day returns", "trust_3": "Authentic",
       "show_pill": true,
-      "single_label": "Single", "single_sublabel": "Best for trying it out",
-      "duo_label": "Duo", "duo_sublabel": "Best value", "duo_ribbon": "Most Popular",
-      "duo_qty": 2, "duo_discount_pct": 25, "duo_force_show": true,
-      "triple_label": "Trio", "triple_sublabel": "Best savings",
-      "triple_qty": 3, "triple_discount_pct": 35, "triple_force_show": true,
+      "single_label": "Single", "single_sublabel": "Just this piece",
+      "duo_label": "Duo", "duo_force_show": true,
+      "triple_label": "Trio", "triple_force_show": true,
       "pill_thumb_source": "featured",
       "pill_bg": "#f4f4f2", "pill_bg_on": "#eaeae6", "pill_text": "#1a1a1a", "pill_accent": "#1a1a1a",
       "ajax_cart": true, "atc_text": "Add to cart", "soldout_text": "Sold Out",
