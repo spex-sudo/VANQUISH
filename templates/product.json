@@ -97,9 +97,8 @@
         "brand_left_mobile": 14,
         "brand_letter_spacing": "0em",
         "bundle_collections": [
-          "lexe",
-          "faux-leather-jackets",
-          "iphone-cases"
+          "maze",
+          "lexe"
         ],
         "bundle_swap": true,
         "bundle_require_cost": false

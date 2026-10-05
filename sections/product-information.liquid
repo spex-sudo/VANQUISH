@@ -116,7 +116,7 @@
     assign bp_sources = bp_sources | append: bp_c.handle | append: ','
   endfor
   if bp_sources == blank
-    assign bp_sources = 'lexe,faux-leather-jackets,iphone-cases,'
+    assign bp_sources = 'maze,lexe,'
   endif
   assign bp_sources = bp_sources | remove_last: ','
   assign bp_cur_cols = product.collections | map: 'handle' | join: ','
@@ -1253,18 +1253,20 @@
     });
   }
   function eligible(p){
-    if(p.id===BPCFG.pid||!p.vs||!p.vs.length)return false;
+    if(p.id===BPCFG.pid||!p.vs||!p.vs.length||!p.cols.length)return false;
     if(BPCFG.needCost&&!p.co)return false;
-    for(var i=0;i<p.cols.length;i++){if(BPCFG.cur.indexOf(p.cols[i])>-1)return false;}
     return true;
   }
-  /* Seeded order: collections are shuffled, then products are taken round-robin so every eligible collection gets a turn. */
-  function orderFor(k){
-    var r=bpRng(bpHash(bpSeed()+':'+BPCFG.pid+':'+k));
-    var cols=bpShuffle(Object.keys(BP.colItems).filter(function(c){return BPCFG.cur.indexOf(c)<0;}),r);
-    /* Prefer add-ons priced about 0.5x to 2x of this product; fall back to the whole collection if fewer than 3 fit. */
+  function overlapsCur(p){
+    for(var i=0;i<p.cols.length;i++){if(BPCFG.cur.indexOf(p.cols[i])>-1)return true;}
+    return false;
+  }
+  /* Seeded round-robin across the source collections (so each gets a turn). Inside a collection, items priced
+     about 0.5x to 2x of this product come first when at least 3 fit; otherwise the whole collection is used. */
+  function roundRobin(items,r){
+    var cols=bpShuffle(Object.keys(BP.colItems),r);
     var lists=cols.map(function(c){
-      var all=BP.colItems[c].filter(eligible);
+      var all=items.filter(function(p){return p.cols.indexOf(c)>-1;});
       if(BPCFG.price>0){
         var band=all.filter(function(p){var m=minPrice(p);return m>=BPCFG.price*0.5&&m<=BPCFG.price*2;});
         if(band.length>=3)all=band;
@@ -1281,15 +1283,25 @@
     }
     return out;
   }
+  /* Tier A = items outside the current product's own collection(s); tier B = same collection, never the product itself. */
+  function orderFor(k){
+    var r=bpRng(bpHash(bpSeed()+':'+BPCFG.pid+':'+k));
+    var pool=Object.keys(BP.byId).map(function(id){return BP.byId[id];}).filter(eligible);
+    var A=pool.filter(function(p){return !overlapsCur(p);}),B=pool.filter(overlapsCur);
+    return{a:roundRobin(A,r),b:roundRobin(B,r)};
+  }
   function computePicks(){
-    var o0=orderFor(0);
-    if(!o0.length){BP.picks=[];BP.len0=0;BP.len1=0;return;}
-    var p0=o0[BP.swaps[0]%o0.length];
-    var o1=orderFor(1).filter(function(p){return p.id!==p0.id;});
-    var strict=o1.filter(function(p){return !p.cols.some(function(c){return p0.cols.indexOf(c)>-1;});});
-    var l1=strict.length?strict:o1;
+    var o0=orderFor(0),l0=o0.a.concat(o0.b);
+    if(!l0.length){BP.picks=[];BP.len0=0;BP.len1=0;return;}
+    var p0=l0[BP.swaps[0]%l0.length];
+    var o1=orderFor(1);
+    var disj=function(p){return !p.cols.some(function(c){return p0.cols.indexOf(c)>-1;});};
+    var notDisj=function(p){return !disj(p);};
+    var a1=o1.a.filter(function(p){return p.id!==p0.id;}),b1=o1.b.filter(function(p){return p.id!==p0.id;});
+    /* Second add-on: other collection than the current product first, and a different collection than the first add-on when possible. */
+    var l1=a1.filter(disj).concat(a1.filter(notDisj),b1.filter(disj),b1.filter(notDisj));
     var p1=l1.length?l1[BP.swaps[1]%l1.length]:null;
-    BP.len0=o0.length;BP.len1=l1.length;
+    BP.len0=l0.length;BP.len1=l1.length;
     BP.picks=p1?[p0,p1]:[p0];
   }
   /* Add-ons with several in-stock variants (phone model, size, colour) are never preselected. */
@@ -2009,7 +2021,7 @@
     { "type": "text",  "id": "triple_show_tag",    "label": "Or restrict Trio to products with this tag (leave blank to ignore)" },
 
     { "type": "header", "content": "Bundle add-ons (Duo and Trio)" },
-    { "type": "collection_list", "id": "bundle_collections", "label": "Add-on source collections", "limit": 8, "info": "Duo and Trio add-ons are picked at random from these collections, always from a different collection than the product itself. Leave empty to use LEXE, Faux Leather Jackets and iPhone Cases. Collections that hold the free-glasses gift are always skipped. Do not add internal collections." },
+    { "type": "collection_list", "id": "bundle_collections", "label": "Add-on source collections", "limit": 8, "info": "Duo and Trio add-ons are picked at random from these collections, always from a different collection than the product itself. Leave empty to use Maze and LEXE. Collections that hold the free-glasses gift are always skipped. Do not add internal collections." },
     { "type": "checkbox", "id": "bundle_swap", "label": "Show Swap control", "default": true },
     { "type": "checkbox", "id": "bundle_require_cost", "label": "Only offer add-ons with a cost on file", "default": false, "info": "Bundles are sold at regular prices with no discount, so cost is not needed. Turn this on before adding any bundle discount so margins can be checked." },
 
