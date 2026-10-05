@@ -534,7 +534,7 @@
         "grid_soldout_collection": "",
         "grid_cols_desktop": "4",
         "grid_cols_tablet": "3",
-        "grid_cols_mobile": "3",
+        "grid_cols_mobile": "4",
         "grid_mobile_rows": 4,
         "grid_gap": 12,
         "grid_info_padding": 12,
