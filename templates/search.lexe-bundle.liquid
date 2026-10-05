@@ -5,6 +5,19 @@
   Variants are limited to those in stock. "co" is 1 when the product has a cost on file (custom.cost_usd).
   Not linked anywhere, disallowed in robots.txt (/search), carries no personal data.
 {%- endcomment -%}
+{%- comment -%}
+  Gift exclusion: every product the free-glasses offer can give away (collections in shop metafield custom.gift_guard.get_handles,
+  plus get_product_handles) is never offered as a paid add-on. Follows the live offer, nothing hard-coded.
+{%- endcomment -%}
+{%- assign gg = shop.metafields.custom.gift_guard.value -%}
+{%- assign gift_ids = '|' -%}
+{%- assign gift_cols = '|' -%}
+{%- for gh in gg.get_handles -%}
+  {%- assign gift_cols = gift_cols | append: gh | append: '|' -%}
+  {%- for gp in collections[gh].products limit: 50 -%}
+    {%- assign gift_ids = gift_ids | append: gp.id | append: '|' -%}
+  {%- endfor -%}
+{%- endfor -%}
 {%- assign src = search.terms | replace: ',', ' ' | replace: '+', ' ' | split: ' ' -%}
 {%- assign seen = '|' -%}
 {%- capture pool_json -%}
@@ -12,16 +25,19 @@
 {%- assign first_p = true -%}
 {%- for h in src limit: 8 -%}
   {%- assign col = collections[h] -%}
-  {%- if col == blank or col.handle == blank or col.handle == 'specs-offer-eligible' or col.handle == 'frontpage' -%}{%- continue -%}{%- endif -%}
+  {%- assign col_tok = '|' | append: col.handle | append: '|' -%}
+  {%- if col == blank or col.handle == blank or col.handle == 'specs-offer-eligible' or col.handle == 'frontpage' or gift_cols contains col_tok -%}{%- continue -%}{%- endif -%}
   {%- for p in col.products limit: 50 -%}
     {%- unless p.available -%}{%- continue -%}{%- endunless -%}
     {%- assign tok = '|' | append: p.id | append: '|' -%}
+    {%- if gift_ids contains tok -%}{%- continue -%}{%- endif -%}
+    {%- if gg.get_product_handles contains p.handle -%}{%- continue -%}{%- endif -%}
     {%- if seen contains tok -%}{%- continue -%}{%- endif -%}
     {%- assign seen = seen | append: p.id | append: '|' -%}
     {%- unless first_p -%},{%- endunless -%}
     {%- assign first_p = false -%}
     {%- assign cost = p.metafields.custom.cost_usd.value -%}
-    {"id":{{ p.id }},"t":{{ p.title | json }},"i":{% if p.featured_image %}{{ p.featured_image | image_url: width: 160 | json }}{% else %}""{% endif %},"co":{% if cost != blank and cost != nil %}1{% else %}0{% endif %},"vs":[
+    {"id":{{ p.id }},"t":{{ p.title | json }},"i":{% if p.featured_image %}{{ p.featured_image | image_url: width: 160 | json }}{% else %}""{% endif %},"ty":{{ p.type | json }},"o":{{ p.options | json }},"co":{% if cost != blank and cost != nil %}1{% else %}0{% endif %},"vs":[
     {%- assign first_v = true -%}
     {%- for v in p.variants limit: 80 -%}
       {%- unless v.available -%}{%- continue -%}{%- endunless -%}
@@ -36,13 +52,17 @@
 {%- assign first_c = true -%}
 {%- for h in src limit: 8 -%}
   {%- assign col = collections[h] -%}
-  {%- if col == blank or col.handle == blank or col.handle == 'specs-offer-eligible' or col.handle == 'frontpage' -%}{%- continue -%}{%- endif -%}
+  {%- assign col_tok = '|' | append: col.handle | append: '|' -%}
+  {%- if col == blank or col.handle == blank or col.handle == 'specs-offer-eligible' or col.handle == 'frontpage' or gift_cols contains col_tok -%}{%- continue -%}{%- endif -%}
   {%- unless first_c -%},{%- endunless -%}
   {%- assign first_c = false -%}
   {{ col.handle | json }}:[
   {%- assign first_i = true -%}
   {%- for p in col.products limit: 50 -%}
     {%- unless p.available -%}{%- continue -%}{%- endunless -%}
+    {%- assign tok2 = '|' | append: p.id | append: '|' -%}
+    {%- if gift_ids contains tok2 -%}{%- continue -%}{%- endif -%}
+    {%- if gg.get_product_handles contains p.handle -%}{%- continue -%}{%- endif -%}
     {%- unless first_i -%},{%- endunless -%}
     {%- assign first_i = false -%}
     {{- p.id -}}
