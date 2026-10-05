@@ -56,6 +56,13 @@
         "audio_label": "Music",
         "audio_loop": false,
         "audio_volume": 80,
+        "show_share": true,
+        "share_label": "Share",
+        "share_title": "Share LEXE",
+        "share_text": "Take a look at LEXE by Devici Studios.",
+        "cart_share_text": "Here is my LEXE bag.",
+        "share_mail_subject": "LEXE by Devici Studios",
+        "qr_url": "https://vanquish7.studio",
         "primary_button": "cart",
         "expand_behavior": "hover"
       }
@@ -160,7 +167,7 @@
       ],
       "name": "Apex Header V19",
       "settings": {
-        "notif_text": "LEXE — RUNWAY FASHION OUTLET",
+        "notif_text": "LEXE.STUDIO",
         "notif_url": "",
         "notif_pill_text": "#ffffff",
         "flash_interval": 15,
