@@ -607,12 +607,7 @@
         "claim_button_label": "Claim now",
         "free_discount_code": "LEXESPECS",
         "layout": "media_first",
-        "grid_collections": [
-          "lexe",
-          "lexespecs",
-          "shoes",
-          "maze"
-        ]
+        "grid_collections": []
       }
     },
     "vanquish_transittimer_hmmnrA": {
