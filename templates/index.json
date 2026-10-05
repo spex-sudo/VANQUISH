@@ -528,7 +528,8 @@
         "display_mode": "grid",
         "source_mode": "collection",
         "source_collection": "lexe",
-        "grid_max_products": 16,
+        "grid_collections": [],
+        "grid_max_products": 20,
         "grid_min_soldout": 0,
         "grid_soldout_collection": "",
         "grid_cols_desktop": "4",
@@ -588,6 +589,9 @@
         "single_products": [],
         "single_collection": "",
         "single_max": 24,
+        "see_more_enabled": true,
+        "see_more_step": 12,
+        "see_more_label": "See more free pairs",
         "product": "",
         "free_offer_enabled": false,
         "free_gift_handles": "",
@@ -606,8 +610,7 @@
         "gift_blurbs": "",
         "claim_button_label": "Claim now",
         "free_discount_code": "LEXESPECS",
-        "layout": "media_first",
-        "grid_collections": []
+        "layout": "media_first"
       }
     },
     "vanquish_transittimer_hmmnrA": {
@@ -684,6 +687,7 @@
         "display_mode": "single",
         "source_mode": "blocks",
         "source_collection": "",
+        "grid_collections": [],
         "grid_max_products": 8,
         "grid_min_soldout": 3,
         "grid_soldout_collection": "",
