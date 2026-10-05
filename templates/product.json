@@ -263,12 +263,13 @@
     },
     "luxury_relatedproductbar_Lek7wd": {
       "type": "luxury-relatedproductbar",
+      "disabled": true,
       "name": "Atelier Related",
       "settings": {
         "title": "You May Also Like",
         "btn_text": "View",
         "fallback_collection": "",
-        "card_count": 8,
+        "card_count": 9,
         "show_vendor": false,
         "show_swatches": true,
         "bg_color": "#ffffff",
@@ -312,8 +313,8 @@
       ],
       "name": "Atelier Related Grid",
       "settings": {
-        "show_heading": true,
-        "heading": "Continue Shopping",
+        "show_heading": false,
+        "heading": "",
         "related_collection": "",
         "page_limit": 12,
         "pc_cols": 4,
@@ -328,7 +329,7 @@
         "show_quick_add": true,
         "show_wishlist": true,
         "show_savings": true,
-        "low_stock_threshold": 10,
+        "low_stock_threshold": 20,
         "new_hours": 108,
         "max_card_images": 4,
         "max_swatches": 4
