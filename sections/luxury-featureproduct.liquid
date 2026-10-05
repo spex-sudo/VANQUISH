@@ -786,6 +786,19 @@
 .lx-sel-{{ sid }} .lx-slide.is-active { transform: scale(1); opacity: 1; box-shadow: 0 0 0 4px #fff, 0 0 0 7px var(--lx-amethyst); }
 .lx-sel-{{ sid }} .lx-slide:focus-visible { outline: 2px solid var(--lx-deep); outline-offset: 10px; }
 .lx-sel-{{ sid }} .lx-arrows { display: flex; justify-content: center; gap: 12px; margin-top: 6px; }
+.lx-sel-{{ sid }} .lx-more-wrap { display: flex; justify-content: center; margin-top: 10px; }
+.lx-sel-{{ sid }} .lx-more {
+  min-height: 40px; padding: 0 18px; border-radius: 999px;
+  border: 1.5px solid var(--lx-amethyst); background: transparent; color: var(--lx-deep);
+  font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.lx-sel-{{ sid }} .lx-more:hover { background: var(--lx-amethyst); color: #fff; }
+.lx-sel-{{ sid }} .lx-more:focus-visible { outline: 2px solid var(--lx-deep); outline-offset: 3px; }
+.lx-sel-{{ sid }} .lx-more[hidden] { display: none !important; }
+.lx-sel-{{ sid }} .lx-slide[data-lx-deferred],
+.lx-sel-{{ sid }} .lx-panel[data-lx-deferred] { display: none !important; }
+
 .lx-sel-{{ sid }} .lx-arrow { width: 48px; height: 48px; border-radius: 50%; border: 1.5px solid var(--lx-amethyst); background: transparent; color: var(--lx-deep); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s, color 0.2s; }
 .lx-sel-{{ sid }} .lx-arrow svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .lx-sel-{{ sid }} .lx-arrow:hover { background: var(--lx-amethyst); color: #fff; }
@@ -857,6 +870,17 @@
       assign lx_src = s.single_source | default: 'products'
       assign lx_coll = s.single_collection
       assign lx_cap = s.single_max | default: 24
+      assign lx_see_more = false
+      assign lx_see_step = s.see_more_step | default: 12
+      if s.see_more_enabled and lx_src != 'products'
+        assign lx_see_more = true
+        if lx_cap > 48
+          assign lx_cap = 48
+        endif
+        if lx_see_step < 6
+          assign lx_see_step = 6
+        endif
+      endif
       assign lx_l1 = s.single_products
       assign lx_l2 = nil
       if lx_src == 'collection'
@@ -870,6 +894,7 @@
       endif
       if lx_src == 'products'
         assign lx_cap = 10
+        assign lx_see_more = false
       endif
       assign lx_n = 0
       assign lx_start = 0
@@ -907,7 +932,7 @@
       assign lx_blurb_lines = s.gift_blurbs | newline_to_br | split: '<br />'
     -%}
     {%- if lx_n > 0 -%}
-      <div class="lx-sel-{{ sid }}" id="lx-sel-{{ sid }}" data-start="{{ lx_start }}" data-count="{{ lx_n }}" data-code="{{ s.free_discount_code | default: 'LEXESPECS' | escape }}" data-elig-url="{{ s.free_link_url | default: '/collections/specs-offer-eligible' }}">
+      <div class="lx-sel-{{ sid }}" id="lx-sel-{{ sid }}" data-start="{{ lx_start }}" data-count="{{ lx_n }}" data-code="{{ s.free_discount_code | default: 'LEXESPECS' | escape }}" data-elig-url="{{ s.free_link_url | default: '/collections/specs-offer-eligible' }}" data-lx-step="{{ lx_see_step }}" data-lx-see-more="{% if lx_see_more %}1{% else %}0{% endif %}">
         <div class="lx-col lx-col-media">
           {%- if s.selector_eyebrow != blank -%}<p class="lx-eyebrow" data-lx-eyebrow>{{ s.selector_eyebrow | escape }}</p>{%- endif -%}
           <div class="lx-viewport" data-lx-viewport tabindex="0" role="group" aria-roledescription="carousel" aria-label="{{ s.selector_eyebrow | default: 'Pick a product' | escape }}">
@@ -923,6 +948,7 @@
                   {%- assign lx_emit = lx_emit | append: gp.handle | append: ',' -%}
                   {%- assign gp_img = gp.featured_image -%}
                   <button type="button" class="lx-slide{% if lx_i == lx_start %} is-active{% endif %}" data-lx-slide="{{ lx_i }}"
+                    {% if lx_see_more and lx_i >= lx_see_step %}data-lx-deferred="1"{% endif %}
                     aria-label="{{ gp.title | escape }}" aria-pressed="{% if lx_i == lx_start %}true{% else %}false{% endif %}">
                     {%- if gp_img -%}
                       <img src="{{ gp_img | image_url: width: 400 }}" alt="" width="200" height="200" loading="{% if lx_i == lx_start %}eager{% else %}lazy{% endif %}" decoding="async" data-lx-img>
@@ -945,6 +971,15 @@
               <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 5l7 7-7 7"/></svg>
             </button>
           </div>
+          {%- if lx_see_more -%}
+          <div class="lx-more-wrap">
+            <button type="button" class="lx-more" data-lx-more{% if lx_n <= lx_see_step %} hidden{% endif %}
+              aria-controls="lx-sel-{{ sid }}"
+              aria-label="{{ s.see_more_label | default: 'See more free pairs' | escape }}">
+              {{ s.see_more_label | default: 'See more free pairs' | escape }}
+            </button>
+          </div>
+          {%- endif -%}
         </div>
 
         <div class="lx-col lx-col-info">
@@ -1003,7 +1038,7 @@
                   assign gp_many = true
                 endif
               -%}
-              <div class="lx-panel" data-lx-panel="{{ lx_i }}" data-url="{{ gp.url }}" data-lx-gift="{% if lx_gift %}1{% else %}0{% endif %}" data-lx-min="{{ lx_min }}"{% unless lx_i == lx_start %} hidden{% endunless %}>
+              <div class="lx-panel" data-lx-panel="{{ lx_i }}" data-url="{{ gp.url }}" data-lx-gift="{% if lx_gift %}1{% else %}0{% endif %}" data-lx-min="{{ lx_min }}"{% if lx_see_more and lx_i >= lx_see_step %} data-lx-deferred="1"{% endif %}{% unless lx_i == lx_start %} hidden{% endunless %}>
                 <h2 class="lx-name">{{ gp.title | escape }}</h2>
                 {%- if lx_gift -%}
                   <div class="lx-free">
@@ -2284,8 +2319,8 @@
   var CODE = root.getAttribute('data-code') || 'LEXESPECS';
   var vp = root.querySelector('[data-lx-viewport]');
   var track = root.querySelector('[data-lx-track]');
-  var slides = Array.prototype.slice.call(root.querySelectorAll('[data-lx-slide]'));
-  var panels = Array.prototype.slice.call(root.querySelectorAll('[data-lx-panel]'));
+  var slides = [];
+  var panels = [];
   var announce = root.querySelector('[data-lx-announce]');
   var counter = root.querySelector('[data-lx-counter]');
   var form = root.querySelector('form.lx-claim');
@@ -2299,9 +2334,68 @@
   var details = root.querySelector('[data-lx-details]');
   var prev = root.querySelector('[data-lx-prev]');
   var next = root.querySelector('[data-lx-next]');
+  var moreBtn = root.querySelector('[data-lx-more]');
+  var seeMoreOn = root.getAttribute('data-lx-see-more') === '1';
+  var step = parseInt(root.getAttribute('data-lx-step'), 10) || 12;
+  if (step < 6) step = 6;
+
+  function allSlides() { return Array.prototype.slice.call(root.querySelectorAll('[data-lx-slide]')); }
+  function allPanels() { return Array.prototype.slice.call(root.querySelectorAll('[data-lx-panel]')); }
+  function giftIndexes(slideList, panelList) {
+    var out = [];
+    for (var i = 0; i < slideList.length; i++) {
+      if (panelList[i] && panelList[i].getAttribute('data-lx-gift') === '1') out.push(i);
+    }
+    return out;
+  }
+
+  var giftIdx = [];
+  var revealed = 0;
+
+  function applyReveal(keepIdx) {
+    var rawSlides = allSlides();
+    var rawPanels = allPanels();
+    giftIdx = giftIndexes(rawSlides, rawPanels);
+    if (!seeMoreOn) revealed = giftIdx.length;
+    if (revealed > giftIdx.length) revealed = giftIdx.length;
+    var showSet = {};
+    for (var i = 0; i < revealed; i++) showSet[giftIdx[i]] = true;
+    rawSlides.forEach(function (s, i) {
+      if (showSet[i]) s.removeAttribute('data-lx-deferred');
+      else s.setAttribute('data-lx-deferred', '1');
+    });
+    rawPanels.forEach(function (p, i) {
+      if (showSet[i]) p.removeAttribute('data-lx-deferred');
+      else p.setAttribute('data-lx-deferred', '1');
+    });
+    slides = giftIdx.slice(0, revealed).map(function (i) { return rawSlides[i]; });
+    panels = giftIdx.slice(0, revealed).map(function (i) { return rawPanels[i]; });
+    n = slides.length;
+    if (moreBtn) {
+      var left = giftIdx.length - revealed;
+      moreBtn.hidden = !seeMoreOn || left <= 0 || n < 1;
+      if (!moreBtn.hidden) {
+        var nextN = Math.min(step, left);
+        moreBtn.setAttribute('data-lx-next-count', String(nextN));
+      }
+    }
+    root.setAttribute('data-count', String(n));
+    if (typeof keepIdx === 'number' && n) {
+      idx = Math.max(0, Math.min(keepIdx, n - 1));
+    }
+  }
+
+  revealed = seeMoreOn ? Math.min(step, allPanels().filter(function (p) { return p.getAttribute('data-lx-gift') === '1'; }).length) : 9999;
+  applyReveal();
   var n = slides.length;
   var idx = parseInt(root.getAttribute('data-start'), 10) || 0;
   if (idx >= n) idx = 0;
+  /* Map Liquid start index (raw) onto revealed gift list */
+  (function () {
+    var rawStart = parseInt(root.getAttribute('data-start'), 10) || 0;
+    var gi = giftIndexes(allSlides(), allPanels()).indexOf(rawStart);
+    if (gi >= 0 && gi < n) idx = gi;
+  })();
   var btnText = btn ? btn.textContent : '';
 
   function ss() { try { return window.sessionStorage; } catch (e) { return null; } }
@@ -2458,6 +2552,17 @@
   } else {
     if (prev) prev.addEventListener('click', function () { select(idx - 1); });
     if (next) next.addEventListener('click', function () { select(idx + 1); });
+    if (moreBtn) moreBtn.addEventListener('click', function () {
+      var left = giftIdx.length - revealed;
+      if (left <= 0) return;
+      revealed += Math.min(step, left);
+      applyReveal(idx);
+      select(idx, true);
+      if (announce) {
+        var left2 = giftIdx.length - revealed;
+        announce.textContent = revealed + ' pairs available' + (left2 > 0 ? ', ' + left2 + ' more to load' : '');
+      }
+    });
     slides.forEach(function (s, k) { s.addEventListener('click', function () { select(k); }); });
     if (vp) {
       vp.addEventListener('keydown', function (e) {
@@ -2888,7 +2993,10 @@
     },
     { "type": "product_list", "id": "single_products", "label": "Products list (up to 10)", "limit": 10, "info": "Used by 'Products list' and 'Both'. With 'Products list' only the first 10 show." },
     { "type": "collection", "id": "single_collection", "label": "Collection", "info": "Used by 'Collection' and 'Both'. Also used by Gift products source = 'Same collection'." },
-    { "type": "range", "id": "single_max", "label": "Max products shown", "min": 2, "max": 50, "step": 1, "default": 24, "info": "Cap for 'Collection' and 'Both' (list plus collection). Higher means a longer page; 24 or fewer keeps it fast." },
+    { "type": "range", "id": "single_max", "label": "Max products in pool", "min": 2, "max": 48, "step": 1, "default": 24, "info": "How many products Liquid renders for the selector (collection/both). With See more on, this is the pool size; the first batch stays small." },
+    { "type": "checkbox", "id": "see_more_enabled", "label": "See more free pairs", "default": true, "info": "Show a soft control that reveals more claimable gifts in steps. Only products that pass the gift rules (cost + GET) stay on the Claim path." },
+    { "type": "range", "id": "see_more_step", "label": "See more batch size", "min": 6, "max": 24, "step": 2, "default": 12, "info": "Initial visible count and how many more each click reveals." },
+    { "type": "text", "id": "see_more_label", "label": "See more label", "default": "See more free pairs" },
     { "type": "product", "id": "product", "label": "Fallback product", "info": "Used only when 'Products (up to 10)' is empty." },
     { "type": "checkbox", "id": "free_offer_enabled", "label": "Show FREE price for gift products", "default": false, "info": "Master switch. Off means no product shows FREE or the email claim." },
     { "type": "text", "id": "free_gift_handles", "label": "Gift product handles (comma-separated)", "info": "Optional. Same effect as adding the product to Gift products." },
