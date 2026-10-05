@@ -16,7 +16,7 @@
           "type": "shipping",
           "settings": {
             "title": "Shipping & Returns",
-            "content": "<p>Free Standard Shipping On Eligible Orders.</p><p>30-day returns \u2014 items must be unworn with original tags.</p>",
+            "content": "<p>Free Standard Shipping On Eligible Orders.</p><p>30-day returns — items must be unworn with original tags.</p>",
             "image": "shopify://shop_images/66DF17D4-1451-49D4-81A7-8EA0B47D6FB5.jpg",
             "redirect_url": ""
           }
@@ -27,15 +27,15 @@
       ],
       "name": "VANQUISH PRODUCT3",
       "settings": {
-        "back_url": "https://www.vanquish7.studio/",
-        "back_label": "Back",
+        "back_url": "/",
+        "back_label": "HOME",
         "sticky_top": 102,
         "panel_padding": 20,
         "bar_height": 160,
         "bg_color": "#ffffff",
         "text_color": "#111111",
         "accent_color": "#a45ab8",
-        "heading_font": "bebas_neue_n4",
+        "heading_font": "barlow_condensed_n4",
         "body_font": "system_ui_n4",
         "name_size": 38,
         "price_size": 26,
@@ -59,15 +59,21 @@
         "triple_ribbon": "",
         "triple_force_show": true,
         "triple_show_tag": "",
+        "bundle_collections": [
+          "maze",
+          "lexe"
+        ],
+        "bundle_swap": true,
+        "bundle_require_cost": false,
         "pill_thumb_source": "featured",
         "pill_bg": "#f4f4f2",
         "pill_bg_on": "#eaeae6",
         "pill_text": "#1a1a1a",
-        "pill_accent": "#9966CC",
+        "pill_accent": "#9966cc",
         "atc_text": "Add to cart",
         "soldout_text": "Sold Out",
         "view_bag_text": "View Bag",
-        "loading_text": "Adding\u2026",
+        "loading_text": "Adding…",
         "atc_link": "",
         "view_bag_url": "",
         "redirect_on_add": false,
@@ -95,13 +101,7 @@
         "brand_bottom_mobile": 16,
         "brand_left": 16,
         "brand_left_mobile": 14,
-        "brand_letter_spacing": "0em",
-        "bundle_collections": [
-          "maze",
-          "lexe"
-        ],
-        "bundle_swap": true,
-        "bundle_require_cost": false
+        "brand_letter_spacing": "0em"
       }
     },
     "vanquish_transittimer_4G4aRN": {
@@ -116,22 +116,22 @@
         "message_cikf9r": {
           "type": "message",
           "settings": {
-            "text": "Delivery in 5\u201310 business days"
+            "text": "Delivery in 5–10 business days"
           }
         },
         "message_yLgV6H": {
           "type": "message",
+          "disabled": true,
           "settings": {
-            "text": "Delivery in 5\u201310 business days"
-          },
-          "disabled": true
+            "text": "Delivery in 5–10 business days"
+          }
         },
         "message_mkgWBG": {
           "type": "message",
+          "disabled": true,
           "settings": {
             "text": "All major payment methods regulated"
-          },
-          "disabled": true
+          }
         }
       },
       "block_order": [
@@ -233,6 +233,7 @@
     },
     "vanquish_bundle_pdp": {
       "type": "vanquish-bundle",
+      "disabled": true,
       "name": "Cross-sell bundle",
       "settings": {
         "kicker": "Complete the look",
@@ -258,8 +259,7 @@
         "card_ratio": "2,3",
         "card_radius": 5,
         "btn_radius": 10
-      },
-      "disabled": true
+      }
     },
     "luxury_relatedproductbar_Lek7wd": {
       "type": "luxury-relatedproductbar",
