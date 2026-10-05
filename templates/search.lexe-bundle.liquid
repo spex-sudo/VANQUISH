@@ -14,9 +14,14 @@
 {%- assign gift_cols = '|' -%}
 {%- for gh in gg.get_handles -%}
   {%- assign gift_cols = gift_cols | append: gh | append: '|' -%}
-  {%- for gp in collections[gh].products limit: 50 -%}
+  {%- for gp in collections[gh].products limit: 250 -%}
     {%- assign gift_ids = gift_ids | append: gp.id | append: '|' -%}
   {%- endfor -%}
+{%- endfor -%}
+{%- comment -%} Always keep SPECS out of Duo/Trio, even products not currently in GET (e.g. excluded loss-leaders). {%- endcomment -%}
+{%- assign gift_cols = gift_cols | append: 'lexespecs|' | append: 'lexespecs-gift|' -%}
+{%- for gp in collections['lexespecs'].products limit: 250 -%}
+  {%- assign gift_ids = gift_ids | append: gp.id | append: '|' -%}
 {%- endfor -%}
 {%- assign src = search.terms | replace: ',', ' ' | replace: '+', ' ' | split: ' ' -%}
 {%- assign seen = '|' -%}
@@ -31,6 +36,9 @@
     {%- unless p.available -%}{%- continue -%}{%- endunless -%}
     {%- assign tok = '|' | append: p.id | append: '|' -%}
     {%- if gift_ids contains tok -%}{%- continue -%}{%- endif -%}
+    {%- assign p_tags = p.tags | join: ',' | downcase -%}
+    {%- if p_tags contains 'specs' -%}{%- continue -%}{%- endif -%}
+    {%- if p.type == 'Sunglasses' or p.type == 'Glasses' or p.type == 'Eyewear' -%}{%- continue -%}{%- endif -%}
     {%- if gg.get_product_handles contains p.handle -%}{%- continue -%}{%- endif -%}
     {%- if seen contains tok -%}{%- continue -%}{%- endif -%}
     {%- assign seen = seen | append: p.id | append: '|' -%}

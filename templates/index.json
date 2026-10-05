@@ -209,9 +209,9 @@
         "addname_privacy_label": "Privacy Policy",
         "addname_privacy_url": "shopify://pages/contact",
         "addname_submit_label": "Add Me to the Wall",
-        "addname_submit_loading": "Sending\u2026",
+        "addname_submit_loading": "Sending…",
         "addname_success_title": "You're on the list!",
-        "addname_success_body": "Thanks for joining. Your name will appear on the wall after a quick review \u2014 usually within 24 hours."
+        "addname_success_body": "Thanks for joining. Your name will appear on the wall after a quick review — usually within 24 hours."
       }
     },
     "luxury_collectiongrid_jpK7Cz": {
@@ -384,7 +384,7 @@
         "countdown_second_label": "sec",
         "sr_showing_label": "Showing",
         "sr_of_label": "of",
-        "committed_badge": "YOU\u2019RE ON THE LIST",
+        "committed_badge": "YOU’RE ON THE LIST",
         "modal_bg": "#ffffff",
         "modal_fg": "#000000",
         "modal_accent": "#ece6fd",
@@ -697,7 +697,7 @@
         "grid_hero_aspect": "1 / 1",
         "grid_aspect": "3 / 4",
         "grid_second_image": true,
-        "show_discount_pct": true,
+        "show_discount_pct": false,
         "sale_badge_bg": "#111111",
         "sale_badge_fg": "#ffffff",
         "new_tag": "",
@@ -739,13 +739,13 @@
         "max_content_width": 1280,
         "padding_top": 20,
         "padding_bottom": 20,
-        "single_source": "products",
+        "single_source": "collection",
         "single_products": [
           "asymmetrical-edgy-handmade-resin-sunglasses-unique-mutant-personality-venom-halloween-fashion-statement-sun-glasses",
           "new-steampunk-oversized-sunglasses-women-trends-one-piece-punk-sun-glasses"
         ],
-        "single_collection": "lexespecs",
-        "single_max": 50,
+        "single_collection": "lexespecs-gift",
+        "single_max": 12,
         "product": "asymmetrical-edgy-handmade-resin-sunglasses-unique-mutant-personality-venom-halloween-fashion-statement-sun-glasses",
         "free_offer_enabled": true,
         "free_gift_handles": "asymmetrical-edgy-handmade-resin-sunglasses-unique-mutant-personality-venom-halloween-fashion-statement-sun-glasses,new-steampunk-oversized-sunglasses-women-trends-one-piece-punk-sun-glasses",
@@ -757,7 +757,7 @@
         "free_button_label": "Add free pair to cart",
         "free_description": "Hand-shaped resin frames with mirrored lenses. Add them to your cart, bring your order to $54+ in eligible items, and use your code from the LEXE list below.",
         "single_btn_text_color": "#ffffff",
-        "gift_source": "manual",
+        "gift_source": "collection",
         "free_gift_products": [
           "asymmetrical-edgy-handmade-resin-sunglasses-unique-mutant-personality-venom-halloween-fashion-statement-sun-glasses",
           "new-steampunk-oversized-sunglasses-women-trends-one-piece-punk-sun-glasses"
@@ -794,7 +794,7 @@
     },
     "vanquish_scratch_MJQr7J": {
       "type": "vanquish-scratch",
-      "name": "Scratch Funnel \u2014 Tag",
+      "name": "Scratch Funnel — Tag",
       "settings": {
         "enabled": true,
         "display_mode": "tag",
@@ -818,12 +818,12 @@
         "prize_sub": "",
         "claim_label": "CLAIM GIFT",
         "claimed_label": "CLAIMED!",
-        "email_prompt": "We\u2019ll send your prize code to your email.",
+        "email_prompt": "We’ll send your prize code to your email.",
         "email_placeholder": "Your email address",
         "submit_label": "CLAIM",
         "trust_text": "No spam. Unsubscribe any time.",
         "success_headline": "You're in.",
-        "success_message": "Your code is ready \u2014 use it at checkout.",
+        "success_message": "Your code is ready — use it at checkout.",
         "success_cta": "Start shopping",
         "success_url": "",
         "offer_code": "",
