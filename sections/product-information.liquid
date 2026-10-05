@@ -76,6 +76,21 @@
   assign show_pill = section.settings.show_pill
   assign tags_str  = product.tags | join: ',' | downcase
 
+  comment
+    Gift PDP: if this product is an active free-glasses gift (cost on file + in gift_guard GET),
+    hide Duo/Trio and switch the bar to Claim (not normal ATC).
+  endcomment
+  assign lx_pdp_gift = false
+  assign lx_pdp_min = -1
+  capture lx_pdp_min_raw
+    render 'lexe-gift-rules', product: product
+  endcapture
+  assign lx_pdp_min = lx_pdp_min_raw | strip | plus: 0
+  if lx_pdp_min > 0
+    assign lx_pdp_gift = true
+    assign show_pill = false
+  endif
+
   assign single_price = current_variant.price
   assign single_compare = current_variant.compare_at_price
   assign single_save = 0
@@ -608,6 +623,11 @@
 .ap-bundle-hint{{ sid }}:empty{display:none}
 .ap-brow{{ sid }} select.need{border-color:#9966CC;box-shadow:0 0 0 2px rgba(153,102,204,.25)}
 .ap-atc{{ sid }}.ap-need .ap-atc-sep{{ sid }},.ap-atc{{ sid }}.ap-need .ap-atc-price{{ sid }}{display:none}
+.ap-claim{{ sid }}{display:flex;flex-direction:column;gap:8px;width:100%;margin:0 0 8px}
+.ap-claim{{ sid }} input[type=email]{width:100%;min-height:44px;padding:0 14px;border:1px solid #c9c9c9;border-radius:999px;font:inherit;box-sizing:border-box}
+.ap-claim{{ sid }} .ap-claim-hint{{ sid }}{font-size:12px;line-height:1.4;opacity:.8;margin:0}
+.ap-claim{{ sid }} .ap-claim-err{{ sid }}{color:#9b1c1c;font-size:12px;margin:0;display:none}
+
 @media (max-width:640px){
   .ap-bundle{{ sid }}{padding:10px 14px;max-height:50vh}
   .ap-brow{{ sid }}{flex-basis:100%;max-width:none}
@@ -1118,16 +1138,25 @@
         <span id="ap-qty-val{{ sid }}" aria-live="polite">1</span>
         <button type="button" id="ap-qty-inc{{ sid }}" aria-label="Increase quantity">+</button>
       </div>
+      {%- if lx_pdp_gift -%}
+      <div class="ap-claim{{ sid }}" id="ap-claim{{ sid }}">
+        <p class="ap-claim-hint{{ sid }}">FREE with orders of ${{ shop.metafields.custom.gift_guard.value.discount_min | default: 54 }}+ in eligible items. Enter your email to claim.</p>
+        <label class="visually-hidden" for="ap-claim-email{{ sid }}">Email</label>
+        <input type="email" id="ap-claim-email{{ sid }}" name="lx_claim_email" placeholder="Email to claim" autocomplete="email" required>
+        <p class="ap-claim-err{{ sid }}" id="ap-claim-err{{ sid }}" role="alert"></p>
+      </div>
+      {%- endif -%}
       <button class="ap-atc{{ sid }}" id="ap-atc{{ sid }}"
+        {% if lx_pdp_gift %}data-lx-gift="1" data-lx-min="{{ lx_pdp_min }}"{% endif %}
         data-bag-url="{{ section.settings.view_bag_url | default: '/cart' }}"
         data-bag-text="{{ section.settings.view_bag_text | default: 'View Bag' }}"
         data-atc-link="{{ section.settings.atc_link | default: '' }}"
         data-loading-text="{{ section.settings.loading_text | default: 'Adding…' }}"
         {% unless current_variant.available %}disabled{% endunless %}
-        aria-label="Add {{ product.title | escape }} to cart"
+        aria-label="{% if lx_pdp_gift %}Claim {{ product.title | escape }}{% else %}Add {{ product.title | escape }} to cart{% endif %}"
         type="button">
         <svg class="ap-atc-bag{{ sid }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12l-1 13H7L6 7z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg>
-        <span id="ap-atc-lbl{{ sid }}">{%- if current_variant.available -%}{{ section.settings.atc_text }}{%- else -%}{{ section.settings.soldout_text }}{%- endif -%}</span>
+                <span id="ap-atc-lbl{{ sid }}">{%- if lx_pdp_gift -%}Claim now{%- elsif current_variant.available -%}{{ section.settings.atc_text }}{%- else -%}{{ section.settings.sold_out_text | default: 'Sold out' }}{%- endif -%}</span>
         <span class="ap-atc-sep{{ sid }}" aria-hidden="true">·</span>
         <span class="ap-atc-price{{ sid }}" id="ap-atc-price{{ sid }}">{{ current_variant.price | money_without_trailing_zeros }}</span>
         <svg class="_sp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -1770,6 +1799,40 @@
     var cv=findVariant();
     if(!cv){
       if(atc){atc.classList.add('error');setTimeout(function(){atc.classList.remove('error');},420);}
+      return;
+    }
+    /* Gift PDP claim path: email + _lexe_gift=1, then apply LEXESPECS code */
+    if(atc && atc.getAttribute('data-lx-gift')==='1'){
+      var em=document.getElementById('ap-claim-email'+S);
+      var err=document.getElementById('ap-claim-err'+S);
+      var email=(em && em.value || '').trim();
+      if(!email || email.indexOf('@')<1){
+        if(err){err.style.display='block';err.textContent='Enter a valid email to claim.';}
+        if(em)em.focus();
+        return;
+      }
+      if(err){err.style.display='none';err.textContent='';}
+      var loadingText=atc.getAttribute('data-loading-text')||'Claiming…';
+      var origText=atcLbl?atcLbl.textContent:'Claim now';
+      atc.classList.add('ld'); if(atcLbl)atcLbl.textContent=loadingText;
+      var q=curQty();
+      fetch('/cart/add.js',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},
+        body:JSON.stringify({items:[{id:cv.id,quantity:q,properties:{_lexe_gift:'1',_lexe_claim_email:email}}]})})
+        .then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j};});})
+        .then(function(res){
+          if(!res.ok){throw new Error((res.j&&res.j.description)||'Could not claim');}
+          return fetch('/cart/update.js',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({discount:'LEXESPECS'})}).catch(function(){return null;});
+        })
+        .then(function(){
+          atc.classList.remove('ld'); if(atcLbl)atcLbl.textContent=origText;
+          var notch=document.querySelector('[data-notch-cart]');
+          if(notch) notch.click();
+          else window.location='/cart';
+        })
+        .catch(function(e){
+          atc.classList.remove('ld'); if(atcLbl)atcLbl.textContent=origText;
+          if(err){err.style.display='block';err.textContent=e.message||'Could not claim';}
+        });
       return;
     }
     var bundle=bundleActive();
