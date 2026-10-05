@@ -70,12 +70,12 @@
     "signature_header_8dQTVX": {
       "type": "signature-header",
       "blocks": {
-        "flash_notif_rP99gw": {
+        "flash_notif_CRL8Pq": {
           "type": "flash_notif",
           "settings": {
-            "text": "Conquer The Room",
+            "text": "Dominate The Room",
             "url": "",
-            "bg_color": "#111111",
+            "bg_color": "#530000",
             "text_color": "#ffffff"
           }
         },
@@ -172,7 +172,7 @@
         }
       },
       "block_order": [
-        "flash_notif_rP99gw",
+        "flash_notif_CRL8Pq",
         "flash_notif_GP4nBT",
         "flash_notif_7gJABh",
         "quick_link_zAzjAV",
