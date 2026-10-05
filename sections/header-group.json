@@ -73,7 +73,7 @@
         "flash_notif_7gJABh": {
           "type": "flash_notif",
           "settings": {
-            "text": "CHOOSE WISELY",
+            "text": "Love Yourself",
             "url": "",
             "bg_color": "#020202",
             "text_color": "#ffffff"
@@ -122,7 +122,7 @@
         "flash_notif_LCEm8c": {
           "type": "flash_notif",
           "settings": {
-            "text": "TRY USING THE SEARCH ICON",
+            "text": "Try Clicking The Search Button Over There.",
             "url": "",
             "bg_color": "#050505",
             "text_color": "#efefef"
@@ -131,7 +131,7 @@
         "flash_notif_DT4QLe": {
           "type": "flash_notif",
           "settings": {
-            "text": "FIRST TIME?",
+            "text": "First Time?",
             "url": "",
             "bg_color": "#111111",
             "text_color": "#ffffff"
