@@ -610,7 +610,8 @@
         "grid_collections": [
           "lexe",
           "lexespecs",
-          "shoes"
+          "shoes",
+          "maze"
         ]
       }
     },
