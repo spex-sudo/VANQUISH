@@ -1719,8 +1719,9 @@
         }
         document.dispatchEvent(new CustomEvent('cart:item-added',{bubbles:true,detail:{cart:cart}}));
         document.dispatchEvent(new CustomEvent('cart:updated',{bubbles:true,detail:{cart:cart}}));
-        /* Theme cart event: updates the header count and opens or refreshes the cart drawer */
-        document.dispatchEvent(new CustomEvent('cart:update',{bubbles:true,detail:{resource:cart,sourceId:atc?atc.id:'',data:{source:'lexe-bundle',itemCount:cart.item_count,variantId:String(cvid)}}}));
+        /* The header cart drawer already refreshes on the events above; open it so the bundle is visible */
+        var nb=document.querySelector('[data-notch-cart]');
+        if(nb){try{nb.click();}catch(e){}}
         closePanel(false);
         toViewBag();
       })
