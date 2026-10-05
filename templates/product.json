@@ -99,8 +99,8 @@
         "brand_gap_mobile": 7,
         "brand_bottom": 52,
         "brand_bottom_mobile": 16,
-        "brand_left": 16,
-        "brand_left_mobile": 14,
+        "brand_left": 14,
+        "brand_left_mobile": 21,
         "brand_letter_spacing": "0em"
       }
     },
