@@ -529,7 +529,7 @@
         "source_mode": "collection",
         "source_collection": "lexe",
         "grid_max_products": 16,
-        "grid_min_soldout": 3,
+        "grid_min_soldout": 0,
         "grid_soldout_collection": "",
         "grid_cols_desktop": "4",
         "grid_cols_tablet": "3",
@@ -610,7 +610,6 @@
         "grid_collections": [
           "lexe",
           "lexespecs",
-          "industrial-assets",
           "shoes"
         ]
       }

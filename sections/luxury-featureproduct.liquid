@@ -103,6 +103,7 @@
   assign grid_rr_handles = ''
   assign grid_rr_n = 0
   assign grid_use_rr = false
+  assign grid_rr_target = grid_max
   if mode == 'grid' and s.grid_collections != blank
     assign grid_rr_seen = '|'
     assign grid_rr_cols = 0
@@ -111,13 +112,19 @@
     endfor
     if grid_rr_cols > 0
       assign grid_use_rr = true
+      if grid_hero_product != blank and s.grid_hero_first
+        assign grid_rr_target = grid_max | minus: 1
+        if grid_rr_target < 1
+          assign grid_rr_target = 1
+        endif
+      endif
       for _guard in (1..48)
-        if grid_rr_n >= grid_max
+        if grid_rr_n >= grid_rr_target
           break
         endif
         assign grid_rr_added = 0
         for gcol in s.grid_collections
-          if grid_rr_n >= grid_max
+          if grid_rr_n >= grid_rr_target
             break
           endif
           for gp in gcol.products limit: 50
@@ -1317,6 +1324,9 @@
     {%- comment -%} ── Sold-out fill (grid_min_soldout): guarantee at least N genuinely sold-out cards are shown ── {%- endcomment -%}
     {%- liquid
       assign so_min = s.grid_min_soldout | default: 3 | plus: 0
+      if grid_use_rr
+        assign so_min = 0
+      endif
       assign so_k = 0
       assign so_rank = 0
       assign so_pos = 0
