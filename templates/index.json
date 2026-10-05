@@ -528,7 +528,7 @@
         "display_mode": "grid",
         "source_mode": "collection",
         "source_collection": "lexe",
-        "grid_max_products": 13,
+        "grid_max_products": 16,
         "grid_min_soldout": 3,
         "grid_soldout_collection": "",
         "grid_cols_desktop": "4",
@@ -606,7 +606,13 @@
         "gift_blurbs": "",
         "claim_button_label": "Claim now",
         "free_discount_code": "LEXESPECS",
-        "layout": "media_first"
+        "layout": "media_first",
+        "grid_collections": [
+          "lexe",
+          "lexespecs",
+          "industrial-assets",
+          "shoes"
+        ]
       }
     },
     "vanquish_transittimer_hmmnrA": {
@@ -746,6 +752,9 @@
         ],
         "single_collection": "lexespecs-gift",
         "single_max": 48,
+        "see_more_enabled": true,
+        "see_more_step": 12,
+        "see_more_label": "See more free pairs",
         "product": "asymmetrical-edgy-handmade-resin-sunglasses-unique-mutant-personality-venom-halloween-fashion-statement-sun-glasses",
         "free_offer_enabled": true,
         "free_gift_handles": "asymmetrical-edgy-handmade-resin-sunglasses-unique-mutant-personality-venom-halloween-fashion-statement-sun-glasses,new-steampunk-oversized-sunglasses-women-trends-one-piece-punk-sun-glasses",
@@ -767,10 +776,7 @@
         "gift_blurbs": "asymmetrical-edgy-handmade-resin-sunglasses-unique-mutant-personality-venom-halloween-fashion-statement-sun-glasses | Hand-shaped resin frames with mirrored lenses.\nnew-steampunk-oversized-sunglasses-women-trends-one-piece-punk-sun-glasses | An oversized one-piece shield lens in a steampunk-style frame.",
         "claim_button_label": "Claim now",
         "free_discount_code": "LEXESPECS",
-        "layout": "text_first",
-        "see_more_enabled": true,
-        "see_more_step": 12,
-        "see_more_label": "See more free pairs"
+        "layout": "text_first"
       }
     },
     "lexe_specs_offer": {

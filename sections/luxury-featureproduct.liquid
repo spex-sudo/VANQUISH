@@ -99,6 +99,55 @@
     assign grid_hero_auto = false
   endif
 
+  # ── Multi-collection round-robin for grid (equal share across primary collections)
+  assign grid_rr_handles = ''
+  assign grid_rr_n = 0
+  assign grid_use_rr = false
+  if mode == 'grid' and s.grid_collections != blank
+    assign grid_rr_seen = '|'
+    assign grid_rr_cols = 0
+    for _gc in s.grid_collections
+      assign grid_rr_cols = grid_rr_cols | plus: 1
+    endfor
+    if grid_rr_cols > 0
+      assign grid_use_rr = true
+      for _guard in (1..48)
+        if grid_rr_n >= grid_max
+          break
+        endif
+        assign grid_rr_added = 0
+        for gcol in s.grid_collections
+          if grid_rr_n >= grid_max
+            break
+          endif
+          for gp in gcol.products limit: 50
+            unless gp.available
+              continue
+            endunless
+            if gp.type == 'Digital Product'
+              continue
+            endif
+            if grid_hero_product != blank and gp.id == grid_hero_product.id
+              continue
+            endif
+            assign grid_rr_tok = '|' | append: gp.id | append: '|'
+            if grid_rr_seen contains grid_rr_tok
+              continue
+            endif
+            assign grid_rr_handles = grid_rr_handles | append: gp.handle | append: ','
+            assign grid_rr_seen = grid_rr_seen | append: grid_rr_tok
+            assign grid_rr_n = grid_rr_n | plus: 1
+            assign grid_rr_added = grid_rr_added | plus: 1
+            break
+          endfor
+        endfor
+        if grid_rr_added == 0
+          break
+        endif
+      endfor
+    endif
+  endif
+
   # ── Grid mobile row cap: hide cards beyond (cols × rows) on mobile
   assign mobile_cols      = s.grid_cols_mobile | default: '2' | plus: 0
   assign mobile_rows      = s.grid_mobile_rows | default: 4
@@ -1255,7 +1304,9 @@
 
     {%- liquid
       assign grid_has_items = false
-      if source_kind == 'collection' and s.source_collection.products_count > 0
+      if grid_use_rr and grid_rr_n > 0
+        assign grid_has_items = true
+      elsif source_kind == 'collection' and s.source_collection.products_count > 0
         assign grid_has_items = true
       elsif source_kind == 'blocks' and p_blocks.size > 0
         assign grid_has_items = true
@@ -1638,7 +1689,21 @@
             </div>
           {%- endif -%}
 
-          {%- for p in s.source_collection.products limit: grid_max -%}
+          {%- liquid
+            if grid_use_rr
+              assign grid_iter_handles = grid_rr_handles
+            else
+              assign grid_iter_handles = ''
+              for _gp in s.source_collection.products limit: grid_max
+                assign grid_iter_handles = grid_iter_handles | append: _gp.handle | append: ','
+              endfor
+            endif
+            assign grid_iter_list = grid_iter_handles | split: ','
+          -%}
+          {%- for ph in grid_iter_list -%}
+            {%- if ph == blank -%}{%- continue -%}{%- endif -%}
+            {%- assign p = all_products[ph] -%}
+            {%- if p == empty or p == blank -%}{%- continue -%}{%- endif -%}
             {%- liquid
               # Skip if this is the manually-set hero (already rendered above)
               assign skip = false
@@ -1646,7 +1711,8 @@
                 assign skip = true
               endif
               # Sold-out fill: drop the last in-stock cards so the total card count stays the same
-              if skip == false and so_k > 0 and p.available
+              # (skipped when round-robin multi-collection is active — mix is intentional)
+              if grid_use_rr == false and skip == false and so_k > 0 and p.available
                 assign so_rank = so_rank | plus: 1
                 if so_rank > so_keep
                   assign skip = true
@@ -2753,13 +2819,15 @@
       ],
       "default": "collection"
     },
-    { "type": "collection", "id": "source_collection", "label": "Collection", "info": "Grid and showcase source." },
+    { "type": "collection", "id": "source_collection", "label": "Collection", "info": "Grid and showcase source (fallback when Grid collections is empty)." },
+    { "type": "collection_list", "id": "grid_collections", "label": "Grid collections (balanced)", "limit": 4,
+      "info": "Product grid only. Round-robins available products equally across these collections (e.g. LEXE, SPECS, Exodus, Shoes). Leave empty to use Collection above." },
 
     { "type": "header", "content": "Grid Mode — Layout" },
     {
       "type": "range", "id": "grid_max_products", "label": "Products to show",
       "min": 2, "max": 20, "step": 1, "default": 8,
-      "info": "Up to 20. Hick's Law: 8–12 is the sweet spot for homepage grids."
+      "info": "Up to 20. Homepage featured grid uses 16 with balanced collections."
     },
     {
       "type": "range", "id": "grid_min_soldout", "label": "Minimum sold-out products to show",
