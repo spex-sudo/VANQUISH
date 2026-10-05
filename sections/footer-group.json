@@ -77,7 +77,7 @@
         "custom_subscription_url": "",
         "custom_contact_info_url": "",
         "show_payment_icons": true,
-        "payment_icons_label": "We Accept",
+        "payment_icons_label": "",
         "copyright_text": "Devici Studios",
         "max_width": 1280,
         "horizontal_padding": 20
