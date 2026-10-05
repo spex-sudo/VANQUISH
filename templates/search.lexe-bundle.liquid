@@ -1,0 +1,54 @@
+{%- layout none -%}
+{%- comment -%}
+  LEXE bundle pool. Fetched once per session by the product page: /search?view=lexe-bundle&q=handle1,handle2
+  Prints compact JSON for the in-stock products of the listed collections (max 50 per collection).
+  Variants are limited to those in stock. "co" is 1 when the product has a cost on file (custom.cost_usd).
+  Not linked anywhere, disallowed in robots.txt (/search), carries no personal data.
+{%- endcomment -%}
+{%- assign src = search.terms | replace: ',', ' ' | replace: '+', ' ' | split: ' ' -%}
+{%- assign seen = '|' -%}
+{%- capture pool_json -%}
+{"v":1,"p":[
+{%- assign first_p = true -%}
+{%- for h in src limit: 8 -%}
+  {%- assign col = collections[h] -%}
+  {%- if col == blank or col.handle == blank or col.handle == 'specs-offer-eligible' or col.handle == 'frontpage' -%}{%- continue -%}{%- endif -%}
+  {%- for p in col.products limit: 50 -%}
+    {%- unless p.available -%}{%- continue -%}{%- endunless -%}
+    {%- assign tok = '|' | append: p.id | append: '|' -%}
+    {%- if seen contains tok -%}{%- continue -%}{%- endif -%}
+    {%- assign seen = seen | append: p.id | append: '|' -%}
+    {%- unless first_p -%},{%- endunless -%}
+    {%- assign first_p = false -%}
+    {%- assign cost = p.metafields.custom.cost_usd.value -%}
+    {"id":{{ p.id }},"h":{{ p.handle | json }},"t":{{ p.title | json }},"i":{{ p.featured_image | image_url: width: 160 | json }},"co":{% if cost != blank and cost != nil %}1{% else %}0{% endif %},"vs":[
+    {%- assign first_v = true -%}
+    {%- for v in p.variants -%}
+      {%- unless v.available -%}{%- continue -%}{%- endunless -%}
+      {%- unless first_v -%},{%- endunless -%}
+      {%- assign first_v = false -%}
+      [{{ v.id }},{% if v.title == 'Default Title' %}""{% else %}{{ v.title | json }}{% endif %},{{ v.price }}]
+    {%- endfor -%}
+    ]}
+  {%- endfor -%}
+{%- endfor -%}
+],"m":{
+{%- assign first_c = true -%}
+{%- for h in src limit: 8 -%}
+  {%- assign col = collections[h] -%}
+  {%- if col == blank or col.handle == blank or col.handle == 'specs-offer-eligible' or col.handle == 'frontpage' -%}{%- continue -%}{%- endif -%}
+  {%- unless first_c -%},{%- endunless -%}
+  {%- assign first_c = false -%}
+  {{ col.handle | json }}:[
+  {%- assign first_i = true -%}
+  {%- for p in col.products limit: 50 -%}
+    {%- unless p.available -%}{%- continue -%}{%- endunless -%}
+    {%- unless first_i -%},{%- endunless -%}
+    {%- assign first_i = false -%}
+    {{- p.id -}}
+  {%- endfor -%}
+  ]
+{%- endfor -%}
+}}
+{%- endcapture -%}
+{{- pool_json | strip_newlines -}}
