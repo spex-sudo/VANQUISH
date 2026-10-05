@@ -767,7 +767,10 @@
         "gift_blurbs": "asymmetrical-edgy-handmade-resin-sunglasses-unique-mutant-personality-venom-halloween-fashion-statement-sun-glasses | Hand-shaped resin frames with mirrored lenses.\nnew-steampunk-oversized-sunglasses-women-trends-one-piece-punk-sun-glasses | An oversized one-piece shield lens in a steampunk-style frame.",
         "claim_button_label": "Claim now",
         "free_discount_code": "LEXESPECS",
-        "layout": "text_first"
+        "layout": "text_first",
+        "see_more_enabled": true,
+        "see_more_step": 12,
+        "see_more_label": "See more free pairs"
       }
     },
     "lexe_specs_offer": {

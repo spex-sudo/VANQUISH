@@ -872,13 +872,20 @@
       assign lx_cap = s.single_max | default: 24
       assign lx_see_more = false
       assign lx_see_step = s.see_more_step | default: 12
-      if s.see_more_enabled and lx_src != 'products'
-        assign lx_see_more = true
-        if lx_cap > 48
-          assign lx_cap = 48
+      comment
+        Default ON when the setting has never been saved (nil). Explicit false turns it off.
+      endcomment
+      if lx_src != 'products'
+        if s.see_more_enabled == blank or s.see_more_enabled
+          assign lx_see_more = true
         endif
-        if lx_see_step < 6
-          assign lx_see_step = 6
+        if lx_see_more
+          if lx_cap > 48
+            assign lx_cap = 48
+          endif
+          if lx_see_step < 6
+            assign lx_see_step = 6
+          endif
         endif
       endif
       assign lx_l1 = s.single_products
