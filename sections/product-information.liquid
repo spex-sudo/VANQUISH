@@ -1514,7 +1514,7 @@
     atc.setAttribute('aria-label',atc.getAttribute('data-aria0'));
     if(v){
       atc.disabled=!v.available;
-      if(atcLbl)atcLbl.textContent=v.available?{{ section.settings.atc_text | json }}:{{ section.settings.soldout_text | json }};
+      if(atcLbl)atcLbl.textContent=v.available?{% if lx_pdp_gift %}"Claim now"{% else %}{{ section.settings.atc_text | json }}{% endif %}:{{ section.settings.soldout_text | json }};
     }
   }
   function updateTotals(){
@@ -1622,7 +1622,7 @@
     if(!atc||!atc.classList.contains('added'))return;
     atc.classList.remove('added');atc.onclick=null;
     var v=findVariant();
-    if(atcLbl&&v)atcLbl.textContent=v.available?{{ section.settings.atc_text | json }}:{{ section.settings.soldout_text | json }};
+    if(atcLbl&&v)atcLbl.textContent=v.available?{% if lx_pdp_gift %}"Claim now"{% else %}{{ section.settings.atc_text | json }}{% endif %}:{{ section.settings.soldout_text | json }};
     syncAtc();
   }
 
@@ -1657,7 +1657,7 @@
       return;
     }
     if(atc)atc.disabled=!v.available;
-    if(atcLbl)atcLbl.textContent=v.available?{{ section.settings.atc_text | json }}:{{ section.settings.soldout_text | json }};
+    if(atcLbl)atcLbl.textContent=v.available?{% if lx_pdp_gift %}"Claim now"{% else %}{{ section.settings.atc_text | json }}{% endif %}:{{ section.settings.soldout_text | json }};
     if(vid)vid.value=v.id;
     resetAdded();
     renderPrice(v,curQty());
