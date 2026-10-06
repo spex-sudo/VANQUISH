@@ -12,22 +12,40 @@
     "vanquish_articles_tGiDW6": {
       "type": "vanquish-articles",
       "blocks": {
+        "gallery_image_e4QLiX": {
+          "type": "gallery_image",
+          "settings": {
+            "image": "shopify://shop_images/80C4E2D7EE5E7B0DB24C2BAC92D0A7BA.jpg"
+          }
+        },
+        "gallery_image_hKkr6E": {
+          "type": "gallery_image",
+          "settings": {
+            "image": "shopify://shop_images/88773944254F1A1F3FA3F503AC55D870.jpg"
+          }
+        },
         "gallery_image_H9YFwR": {
           "type": "gallery_image",
           "settings": {
-            "image": "shopify://shop_images/VANQUISH7-industrial-assests.jpg"
+            "image": "shopify://shop_images/4DE273270956D9A4903499AF40C3F234.jpg"
+          }
+        },
+        "gallery_image_JG7rwD": {
+          "type": "gallery_image",
+          "settings": {
+            "image": "shopify://shop_images/E250C71D8B1EDCC2ECD52EAC524001C1.jpg"
           }
         },
         "gallery_image_Hx3hVR": {
           "type": "gallery_image",
           "settings": {
-            "image": "shopify://shop_images/ef6018d4004b404692397e80b65ca0a6-Max-Origin.webp"
+            "image": "shopify://shop_images/574ADA8BCE6143434892E3A75C0A811C.jpg"
           }
         },
         "gallery_image_ExxmnF": {
           "type": "gallery_image",
           "settings": {
-            "image": "shopify://shop_images/949f9326671b4df282703f052139bced-Max-Origin.webp"
+            "image": "shopify://shop_images/053ACA74AA8BC331397AF0CF3D7A6EE7.png"
           }
         },
         "lookbook_image_MrBTBa": {
@@ -80,7 +98,10 @@
         }
       },
       "block_order": [
+        "gallery_image_e4QLiX",
+        "gallery_image_hKkr6E",
         "gallery_image_H9YFwR",
+        "gallery_image_JG7rwD",
         "gallery_image_Hx3hVR",
         "gallery_image_ExxmnF",
         "lookbook_image_MrBTBa",
