@@ -894,16 +894,24 @@
     <div class="ap-right{{ sid }}">
       <div class="ap-right-body{{ sid }}">
 
+        {%- comment -%}
+          PDP dedupe 2026-10-05: the sticky bar (fixed, visible on load) already shows price, compare price and the
+          size/colour pickers, so the main price row is off by default. JS null-checks ap-price/ap-was/ap-badge.
+          Turn "Show price in main section" on to bring it back.
+        {%- endcomment -%}
+        {%- if section.settings.main_show_price -%}
         <div class="ap-price-row{{ sid }}">
           <span class="ap-price{{ sid }}" id="ap-price{{ sid }}">{{ current_variant.price | money_without_trailing_zeros }}</span>
           <span class="ap-was{{ sid }}" id="ap-was{{ sid }}"{% unless has_discount %} style="display:none"{% endunless %}>{% if has_discount %}{{ current_variant.compare_at_price | money_without_trailing_zeros }}{% endif %}</span>
           <span class="ap-badge{{ sid }}" id="ap-badge{{ sid }}"{% unless has_discount %} style="display:none"{% endunless %}>{% if has_discount %}−{{ discount_pct }}%{% endif %}</span>
         </div>
+        {%- endif -%}
 
         <div class="ap-stock{{ sid }}{% if is_low_stock %} show{% endif %}" id="ap-stock{{ sid }}" data-low="{{ low_stock_at }}">
           {% if is_low_stock %}Only {{ inv }} left{% endif %}
         </div>
 
+        {%- if section.settings.main_hide_options -%}<style>#{{ form_id }} .ap-opt-lbl{{ sid }},#{{ form_id }} .ap-swatches{{ sid }},#{{ form_id }} .ap-stack{{ sid }}{display:none !important}</style>{%- endif -%}
         {%- form 'product', product, id: form_id, novalidate: 'novalidate' -%}
           <input type="hidden" name="id" id="ap-vid{{ sid }}" value="{{ current_variant.id }}">
           <input type="hidden" name="quantity" id="ap-qty{{ sid }}" value="1">
@@ -2069,6 +2077,8 @@
 
     { "type": "header", "content": "Mini Product Pill (bundles)" },
     { "type": "checkbox", "id": "show_pill", "label": "Show mini product pill row", "default": true },
+    { "type": "checkbox", "id": "main_show_price", "label": "Show price in main section", "default": false, "info": "Off: price and compare price show only in the sticky bar (visible on load), avoiding a duplicate." },
+    { "type": "checkbox", "id": "main_hide_options", "label": "Hide size/colour pickers in main section", "default": false, "info": "On: pickers stay in the sticky bar only. Markup is kept (CSS-hidden) so variant selection keeps working." },
 
     { "type": "text",  "id": "single_label",    "label": "Single — label",    "default": "Single" },
     { "type": "text",  "id": "single_sublabel", "label": "Single — subtitle", "default": "Just this piece" },
