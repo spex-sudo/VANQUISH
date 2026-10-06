@@ -3,6 +3,22 @@
   Product JSON-LD lives in sections/product-information.liquid; Article JSON-LD in sections/main-blog-post.liquid.
 {%- endcomment -%}
 {%- assign lexe_origin = request.origin | default: shop.url -%}
+{%- comment -%} 2026-10-06: one Person definition shared by home, About and name pages so name strings and sameAs stay identical. {%- endcomment -%}
+{%- capture lexe_person_sameas -%}["https://www.instagram.com/y2k_spex/", "https://www.tiktok.com/@lexe.studio", "https://www.linkedin.com/in/ray-j-williams-32053b441"]{%- endcapture -%}
+{%- capture lexe_person_body -%}
+      "@type": "Person",
+      "@id": {{ lexe_origin | append: '/#creative-director' | json }},
+      "name": "Jayden Devici Williams",
+      "givenName": "Jayden",
+      "additionalName": "Devici",
+      "familyName": "Williams",
+      "alternateName": ["Ray-j Jayden Williams", "Ray-j Williams", "Spex"],
+      "jobTitle": "Creative Director",
+      "description": "Jayden Devici Williams, also known as Ray-j Jayden Williams, is a creative director at LEXE by Devici Studios. His official Instagram is @y2k_spex.",
+      "url": {{ lexe_origin | append: '/blogs/news/ray-j-jayden-williams' | json }},
+      "sameAs": {{ lexe_person_sameas }},
+      "worksFor": { "@type": "Organization", "@id": {{ lexe_origin | append: '/#organization' | json }}, "name": "Devici Studios", "alternateName": ["LEXE by Devici Studios", "LEXE"], "url": {{ lexe_origin | append: '/' | json }} }
+{%- endcapture -%}
 {%- if request.page_type == 'index' -%}
 {%- assign lexe_logo = 'devici-studios-logo.png' | file_url | prepend: 'https:' -%}
 {%- assign lexe_mark = 'lexe-by-devici-studios-logo.png' | file_url | prepend: 'https:' -%}
@@ -47,15 +63,7 @@
       }
     },
     {
-      "@type": "Person",
-      "@id": {{ lexe_origin | append: '/#creative-director' | json }},
-      "name": "Jayden Devici Williams",
-      "alternateName": ["Ray-j Jayden Williams", "Ray-j Williams", "Spex"],
-      "jobTitle": "Creative Director",
-      "description": "A creative director at LEXE by Devici Studios. His official Instagram is @y2k_spex.",
-      "url": {{ lexe_origin | append: '/blogs/news/ray-j-jayden-williams' | json }},
-      "sameAs": ["https://www.instagram.com/y2k_spex/"],
-      "worksFor": { "@id": {{ lexe_origin | append: '/#organization' | json }} }
+{{ lexe_person_body }}
     },
     {
       "@type": "WebSite",
@@ -168,19 +176,29 @@
     {%- endif -%}
   {%- endif -%}
   {%- if lexe_name_page -%}
+{%- if request.page_type == 'article' and article.handle == 'ray-j-jayden-williams' -%}
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "Person",
-  "@id": {{ lexe_origin | append: '/#creative-director' | json }},
-  "name": "Jayden Devici Williams",
-  "alternateName": ["Ray-j Jayden Williams", "Ray-j Williams", "Spex"],
-  "jobTitle": "Creative Director",
-  "description": "A creative director at LEXE by Devici Studios. His official Instagram is @y2k_spex.",
-  "url": {{ lexe_origin | append: '/blogs/news/ray-j-jayden-williams' | json }},
-  "sameAs": ["https://www.instagram.com/y2k_spex/"],
-  "worksFor": { "@id": {{ lexe_origin | append: '/#organization' | json }} }
+  "@type": "ProfilePage",
+  "@id": {{ canonical_url | append: '#profilepage' | json }},
+  "url": {{ canonical_url | json }},
+  "name": {{ article.title | strip_html | json }},
+  {%- if article.published_at %}"dateCreated": {{ article.published_at | date: '%Y-%m-%dT%H:%M:%S%:z' | json }},{% endif %}
+  "dateModified": {{ article.updated_at | default: article.published_at | date: '%Y-%m-%dT%H:%M:%S%:z' | json }},
+  "isPartOf": { "@id": {{ lexe_origin | append: '/#website' | json }} },
+  "mainEntity": {
+{{ lexe_person_body }}
+  }
 }
 </script>
+{%- else -%}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+{{ lexe_person_body }}
+}
+</script>
+{%- endif -%}
   {%- endif -%}
 {%- endif -%}
