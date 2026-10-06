@@ -37,7 +37,7 @@
         "accent_color": "#a45ab8",
         "heading_font": "barlow_condensed_n6",
         "body_font": "comfortaa_n5",
-        "name_size": 38,
+        "name_size": 40,
         "price_size": 26,
         "bullet_size": 12,
         "description_mode": "drawer",
@@ -101,8 +101,7 @@
         "brand_bottom_mobile": 16,
         "brand_left": 14,
         "brand_left_mobile": 21,
-        "brand_letter_spacing": "0em",
-        "main_hide_options": true
+        "brand_letter_spacing": "0em"
       }
     },
     "vanquish_transittimer_4G4aRN": {
