@@ -60,23 +60,7 @@
           "type": "lookbook_image",
           "settings": {
             "image": "shopify://shop_images/D09F46AD-6526-4D9E-8543-C2EAEF49FEDF.png",
-            "label": "",
-            "link": ""
-          }
-        },
-        "contact_link_Lk67jJ": {
-          "type": "contact_link",
-          "settings": {
-            "label": "Instagram",
-            "value": "@yourbrand",
-            "link": ""
-          }
-        },
-        "contact_link_xgM7Pc": {
-          "type": "contact_link",
-          "settings": {
-            "label": "Telegram",
-            "value": "@yourbrand",
+            "label": "Our first logo",
             "link": ""
           }
         },
@@ -106,8 +90,6 @@
         "gallery_image_ExxmnF",
         "lookbook_image_MrBTBa",
         "lookbook_image_j8nrVh",
-        "contact_link_Lk67jJ",
-        "contact_link_xgM7Pc",
         "contact_link_ThMMbR",
         "contact_link_MNgqXc"
       ],
@@ -129,7 +111,7 @@
         "gallery_columns": 3,
         "heading_lookbook": "Lookbook",
         "lookbook_columns": 2,
-        "wordmark_text": "VANQUISH",
+        "wordmark_text": "L E X E",
         "spacing": 48
       }
     },
