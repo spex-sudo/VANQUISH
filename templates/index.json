@@ -216,6 +216,18 @@
     },
     "vanquish_atelier_eErEm8": {
       "type": "vanquish-atelier",
+      "blocks": {
+        "magazine_6Jajdy": {
+          "type": "magazine",
+          "settings": {
+            "caption": "",
+            "link": ""
+          }
+        }
+      },
+      "block_order": [
+        "magazine_6Jajdy"
+      ],
       "name": "Product Atelier",
       "settings": {
         "display_mode": "products",
@@ -823,28 +835,6 @@
         "layout": "text_first"
       }
     },
-    "lexe_specs_offer": {
-      "type": "lexe-specs-offer",
-      "disabled": true,
-      "settings": {
-        "gift_product": "asymmetrical-edgy-handmade-resin-sunglasses-unique-mutant-personality-venom-halloween-fashion-statement-sun-glasses",
-        "gift_product_2": "new-steampunk-oversized-sunglasses-women-trends-one-piece-punk-sun-glasses",
-        "eligible_url": "shopify://collections/specs-offer-eligible",
-        "code": "LEXESPECS",
-        "threshold": "$54",
-        "heading": "Free LEXE Specs",
-        "text": "Join the LEXE email list and we'll show your code for a free pair of LEXE Warp or Steampunk glasses on orders of $54 or more in eligible items.",
-        "button_label": "Show my code",
-        "consent": "You're joining LEXE emails about new pieces and offers. You can unsubscribe anytime.",
-        "success_heading": "You're on the list",
-        "terms": "One pair per customer. Sunglasses and items outside the eligible list don't count toward the $54.",
-        "bg_color": "#ffffff",
-        "text_color": "#2e2e2e",
-        "accent_color": "#3c2366",
-        "padding_top": 24,
-        "padding_bottom": 32
-      }
-    },
     "vanquish_scratch_MJQr7J": {
       "type": "vanquish-scratch",
       "name": "Scratch Funnel — Tag",
@@ -905,7 +895,6 @@
     "luxury_featureproduct_DDiGAR",
     "vanquish_transittimer_hmmnrA",
     "luxury_featureproduct_BNr6Rf",
-    "lexe_specs_offer",
     "vanquish_scratch_MJQr7J"
   ]
 }
