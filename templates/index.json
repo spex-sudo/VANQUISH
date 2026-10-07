@@ -214,6 +214,52 @@
         "addname_success_body": "Thanks for joining. Your name will appear on the wall after a quick review — usually within 24 hours."
       }
     },
+    "vanquish_atelier_nwPpp6": {
+      "type": "vanquish-atelier",
+      "name": "Product Atelier",
+      "settings": {
+        "display_mode": "products",
+        "products": [
+          "digital-product",
+          "lexe-96-buff-jacket",
+          "black-and-white-contrast-velvet-knit-cardigan-fitted-dress-for-women",
+          "rectangle-uv-protection-sunglasses",
+          "fashion-oval-small-frame-rice-nail-sunglasses-female-dance-hip-hop-sunglasses-street-shooting-ins-style-glasses",
+          "asymmetrical-edgy-handmade-resin-sunglasses-unique-mutant-personality-venom-halloween-fashion-statement-sun-glasses",
+          "black-studs-patchwork-workwear-denim-pants",
+          "black-high-waisted-wide-leg-jeans-women",
+          "question-mark-jacquard-black-knitted-sweater-cardigan-jacket",
+          "skeleton-digital-printed-patchwork-stand-up-collar-leather-jacket",
+          "leopard-faux-fur-hooded-outerwear"
+        ],
+        "collection": "",
+        "card_count": 8,
+        "show_header": true,
+        "title": "Top sellers",
+        "show_arrows": true,
+        "card_shape": "squircle",
+        "landscape_ratio": "4 / 3",
+        "card_width": 260,
+        "squircle_radius": 36,
+        "landscape_radius": 18,
+        "card_gap": 20,
+        "show_names": true,
+        "name_font": "bebas_neue_n4",
+        "heading_font": "bebas_neue_n4",
+        "name_size": 22,
+        "title_size": 28,
+        "name_tracking": 4,
+        "name_transform": "uppercase",
+        "autoplay": true,
+        "autoplay_speed": 22,
+        "edge_fade": true,
+        "bg_color": "#0a0a0a",
+        "text_color": "#f4f4f2",
+        "section_padding": 32,
+        "pad_top": 40,
+        "pad_bottom": 16
+      }
+    },
     "luxury_collectiongrid_jpK7Cz": {
       "type": "luxury-collectiongrid",
       "blocks": {
@@ -379,48 +425,6 @@
         "business_tag": "business_partner",
         "admin_notify_url": "",
         "enable_schema": true
-      }
-    },
-    "vanquish_atelier_XfxTnG": {
-      "type": "vanquish-atelier",
-      "name": "Product Atelier",
-      "settings": {
-        "display_mode": "products",
-        "products": [
-          "elegant-and-fashionable-black-slim-fitting-knitted-fishtail-long-dress",
-          "black-gold-bandage-dress-with-hollowed-out-suspender-and-backless-cocktail-dress",
-          "womens-casual-v-neck-backless-wide-leg-jumpsuit-in-black-and-white",
-          "autumn-and-winter-v-neck-womens-long-leather-dress",
-          "long-sleeve-hollow-out-slim-fit-black-maxi-dress",
-          "swimsuit-set-for-women-v-neck-one-piece-black-backless-swimwear",
-          "flash-diamond-blade-v-neck-off-shoulder-black-sequin-dress"
-        ],
-        "collection": "",
-        "card_count": 8,
-        "show_header": true,
-        "title": "Feline",
-        "show_arrows": true,
-        "card_shape": "squircle",
-        "landscape_ratio": "4 / 3",
-        "card_width": 260,
-        "squircle_radius": 16,
-        "landscape_radius": 18,
-        "card_gap": 20,
-        "show_names": false,
-        "name_font": "bebas_neue_n4",
-        "heading_font": "bebas_neue_n4",
-        "name_size": 22,
-        "title_size": 28,
-        "name_tracking": 4,
-        "name_transform": "uppercase",
-        "autoplay": false,
-        "autoplay_speed": 8,
-        "edge_fade": false,
-        "bg_color": "#ffffff",
-        "text_color": "#212121",
-        "section_padding": 32,
-        "pad_top": 40,
-        "pad_bottom": 16
       }
     },
     "vanquish_atelier_r4XQki": {
@@ -631,6 +635,48 @@
         "claim_button_label": "Claim now",
         "free_discount_code": "LEXESPECS",
         "layout": "media_first"
+      }
+    },
+    "vanquish_atelier_XfxTnG": {
+      "type": "vanquish-atelier",
+      "name": "Product Atelier",
+      "settings": {
+        "display_mode": "products",
+        "products": [
+          "elegant-and-fashionable-black-slim-fitting-knitted-fishtail-long-dress",
+          "black-gold-bandage-dress-with-hollowed-out-suspender-and-backless-cocktail-dress",
+          "womens-casual-v-neck-backless-wide-leg-jumpsuit-in-black-and-white",
+          "autumn-and-winter-v-neck-womens-long-leather-dress",
+          "long-sleeve-hollow-out-slim-fit-black-maxi-dress",
+          "swimsuit-set-for-women-v-neck-one-piece-black-backless-swimwear",
+          "flash-diamond-blade-v-neck-off-shoulder-black-sequin-dress"
+        ],
+        "collection": "",
+        "card_count": 8,
+        "show_header": true,
+        "title": "Feline",
+        "show_arrows": true,
+        "card_shape": "squircle",
+        "landscape_ratio": "4 / 3",
+        "card_width": 260,
+        "squircle_radius": 16,
+        "landscape_radius": 18,
+        "card_gap": 20,
+        "show_names": false,
+        "name_font": "bebas_neue_n4",
+        "heading_font": "bebas_neue_n4",
+        "name_size": 22,
+        "title_size": 28,
+        "name_tracking": 4,
+        "name_transform": "uppercase",
+        "autoplay": false,
+        "autoplay_speed": 8,
+        "edge_fade": false,
+        "bg_color": "#ffffff",
+        "text_color": "#212121",
+        "section_padding": 32,
+        "pad_top": 40,
+        "pad_bottom": 16
       }
     },
     "vanquish_transittimer_hmmnrA": {
@@ -852,10 +898,11 @@
   "order": [
     "luxury_transition_m6cr6x",
     "luxury_hero_EFGqQq",
+    "vanquish_atelier_nwPpp6",
     "luxury_collectiongrid_jpK7Cz",
-    "vanquish_atelier_XfxTnG",
     "vanquish_atelier_r4XQki",
     "luxury_featureproduct_DDiGAR",
+    "vanquish_atelier_XfxTnG",
     "vanquish_transittimer_hmmnrA",
     "luxury_featureproduct_BNr6Rf",
     "vanquish_scratch_MJQr7J"
