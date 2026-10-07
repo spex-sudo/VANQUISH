@@ -12,9 +12,6 @@ Disallow: /*?gclid=*
 User-agent: CCBot
 Disallow: /
 
-User-agent: Bytespider
-Disallow: /
-
 User-agent: Diffbot
 Disallow: /
 
@@ -146,5 +143,42 @@ Disallow: /
 
 User-agent: ChangeDetectionBot
 Disallow: /
+
+{% comment %} 2026-10-06: explicit allow for major AI / answer-engine crawlers on public pages (still subject to Shopify * Disallows for cart/checkout/admin). Bytespider was previously sitewide-disallowed; removed so it can read public catalog/content. CCBot and brand-protection bots stay disallowed below. {% endcomment %}
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Bytespider
+Allow: /
 
 Sitemap: https://vanquish7.studio/sitemap.xml
