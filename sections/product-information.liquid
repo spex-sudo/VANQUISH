@@ -2032,7 +2032,9 @@
           return ok;
         }).catch(function(){ok=false;if(btn)btn.disabled=true;return false;});
     }
-    check();
+    check().then(function(q){if(!q)setTimeout(check,1500);});
+    if(em)em.addEventListener('focus',function(){if(!ok)check();});
+    window.addEventListener('pageshow',function(e){if(e.persisted)check();});
     document.addEventListener('cart:updated',function(){setTimeout(check,300);});
     document.addEventListener('cart:item-added',function(){setTimeout(check,300);});
     if(btn)btn.addEventListener('click',function(){
