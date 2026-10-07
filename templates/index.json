@@ -419,7 +419,7 @@
         "name_transform": "uppercase",
         "autoplay": false,
         "autoplay_speed": 8,
-        "edge_fade": false,
+        "edge_fade": true,
         "bg_color": "#FFFFFF",
         "text_color": "#000000",
         "section_padding": 12,
