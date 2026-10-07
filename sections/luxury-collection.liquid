@@ -1341,10 +1341,10 @@
         <h2 id="ApexFilterTitle-{{ sid }}">Filter</h2>
         <button type="button" class="apex-filter-x-{{ sid }}" data-apex-filter-close>Close</button>
       </div>
-      <button type="button" class="apex-filter-search-{{ sid }}" data-apex-open-search>
-        <span>Search<small>Opens store search only if you choose it</small></span>
+      <a class="apex-filter-search-{{ sid }}" href="{{ routes.search_url }}?type=product&options%5Bprefix%5D=last" data-apex-open-search>
+        <span>Search<small>Vanquish search</small></span>
         <span aria-hidden="true">→</span>
-      </button>
+      </a>
       {%- if collection.filters.size > 0 -%}
         <form class="apex-filter-form-{{ sid }}" action="{{ collection.url }}" method="get">
           <div class="apex-filter-group-{{ sid }}">
@@ -2105,21 +2105,10 @@
     bd.hidden = true;
     fab.setAttribute('aria-expanded', 'false');
   }
-  function openSearch() {
+  function openSearch(e) {
+    if (e) e.preventDefault();
     closePanel();
-    var modal = document.getElementById('search-modal');
-    if (modal && typeof modal.showDialog === 'function') {
-      modal.showDialog();
-      var input = modal.querySelector('input[type="search"]');
-      if (input) setTimeout(function () { input.focus(); }, 40);
-      return;
-    }
-    var dialog = document.querySelector('#search-modal dialog');
-    if (dialog && typeof dialog.showModal === 'function') {
-      dialog.showModal();
-      return;
-    }
-    if (typeof window.apexOpenSearch === 'function') window.apexOpenSearch();
+    window.location.href = {{ routes.search_url | json }} + '?type=product&options[prefix]=last';
   }
   function applyClient() {
     if (!grid) return;
@@ -2155,7 +2144,7 @@
   bd.addEventListener('click', closePanel);
   panel.addEventListener('click', function (e) {
     if (e.target.closest('[data-apex-filter-close]')) closePanel();
-    if (e.target.closest('[data-apex-open-search]')) openSearch();
+    if (e.target.closest('[data-apex-open-search]')) openSearch(e);
     if (e.target.closest('[data-apex-filter-reset]')) {
       var form = panel.querySelector('[data-apex-client-filter]');
       if (form) form.reset();
