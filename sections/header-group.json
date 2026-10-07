@@ -119,16 +119,16 @@
             "pulse_badge": false
           }
         },
-        "collection_pwjyeg": {
-          "type": "collection",
-          "settings": {
-            "collection": "industrial-assets"
-          }
-        },
         "collection_ienDgX": {
           "type": "collection",
           "settings": {
             "collection": "lexe"
+          }
+        },
+        "collection_JXPMLw": {
+          "type": "collection",
+          "settings": {
+            "collection": "exodus"
           }
         },
         "collection_4XRPEG": {
@@ -177,8 +177,8 @@
         "flash_notif_7gJABh",
         "quick_link_zAzjAV",
         "quick_link_cpRJLp",
-        "collection_pwjyeg",
         "collection_ienDgX",
+        "collection_JXPMLw",
         "collection_4XRPEG",
         "flash_notif_LCEm8c",
         "flash_notif_DT4QLe",
