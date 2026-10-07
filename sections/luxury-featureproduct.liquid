@@ -21,7 +21,8 @@
   ║   • Low-stock nudge — scarcity without dark patterns.          ║
   ║   • Stagger entrance animation on IntersectionObserver.        ║
   ║   • View All CTA — choice architecture, preserves flow.        ║
-  ║   • Sold-out overlay is a Notify me capture. Quick-add stays.  ║
+  ║   • Sold-out tag is a top-right half pill. Notify me replaces  ║
+  ║     the sold-out quick-add button.                            ║
   ║                                                                ║
   ║  Psychology (Cialdini + behavioural economics):                ║
   ║   • Mere-exposure: marquee 2x fluent glances (Zajonc 1968).    ║
@@ -519,7 +520,7 @@
 /* The site-wide apex-featured-soldout.css hides the sold-out overlay. In this grid, sold-out cards (including the
    real sold-out products added by "Minimum sold-out products to show") keep the label and dimmed look so shoppers can see the status. */
 #shopify-section-{{ sid }} .apex-gc-{{ sid }}.is-sold-out .apex-gi-{{ sid }} { opacity: 0.55 !important; }
-#shopify-section-{{ sid }} .apex-gc-{{ sid }}.is-sold-out .apex-gsold-{{ sid }} { display: flex !important; background: rgba(255,255,255,0.35) !important; }
+#shopify-section-{{ sid }} .apex-gc-{{ sid }}.is-sold-out .apex-gsold-{{ sid }} { display: inline-flex !important; background: #111 !important; color: #fff !important; }
 {%- endif -%}
 
 /* ══════════════════════════════════════════════════════════════
@@ -600,37 +601,22 @@
 ══════════════════════════════════════════════════════════════ */
 .apex-gsold-{{ sid }} {
   position: absolute;
-  inset: 0;
+  top: 12px;
+  right: 0;
   z-index: 8;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  background: rgba(255,255,255,0.28);
-  pointer-events: none;
-}
-.apex-gnotify-{{ sid }} {
-  pointer-events: auto;
-  appearance: none;
-  border: 0;
-  margin: 0;
-  cursor: pointer;
-  font-family: inherit;
+  padding: 7px 12px 7px 14px;
+  background: #111;
+  color: #fff;
   font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #111;
-  background: rgba(255,255,255,0.94);
-  border-radius: 999px;
-  padding: 11px 16px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  transition: background 0.18s ease, color 0.18s ease, transform 0.14s ease;
+  line-height: 1;
+  border-radius: 999px 0 0 999px;
+  pointer-events: none;
 }
-.apex-gnotify-{{ sid }}:hover { background: #111; color: #fff; }
-.apex-gnotify-{{ sid }}:active { transform: scale(0.98); }
-.apex-gnotify-{{ sid }}:focus-visible { outline: 2px solid #111; outline-offset: 3px; }
 .apex-notify-{{ sid }} {
   position: fixed;
   inset: 0;
@@ -1635,7 +1621,7 @@
               {%- endif -%}
             </a>
 
-            <div class="apex-gsold-{{ sid }}"><button type="button" class="apex-gnotify-{{ sid }}" data-apex-notify data-title="{{ p.title | escape }}" data-handle="{{ p.handle | escape }}" data-url="{{ p.url | escape }}">Notify me</button></div>
+            <div class="apex-gsold-{{ sid }}">{{ 'products.product.sold_out' | t }}</div>
 
             {%- if on_sale -%}
               <span class="apex-gbadge-{{ sid }} is-sale">
@@ -1648,7 +1634,7 @@
 
             {%- if s.show_quick_add -%}
               <div class="apex-gqa-{{ sid }}">
-                <button class="apex-gqabtn-{{ sid }}" disabled>{{ 'products.product.sold_out' | t }}</button>
+                <button type="button" class="apex-gqabtn-{{ sid }}" data-apex-notify data-title="{{ p.title | escape }}" data-handle="{{ p.handle | escape }}" data-url="{{ p.url | escape }}">Notify me</button>
               </div>
             {%- endif -%}
           </div>
@@ -1753,7 +1739,7 @@
                     {{ 'product-1' | placeholder_svg_tag: 'placeholder' }}
                   {%- endif -%}
                 </a>
-                {%- unless pcv.available -%}<div class="apex-gsold-{{ sid }}"><button type="button" class="apex-gnotify-{{ sid }}" data-apex-notify data-title="{{ p.title | escape }}" data-handle="{{ p.handle | escape }}" data-url="{{ p.url | escape }}">Notify me</button></div>{%- endunless -%}
+                {%- unless pcv.available -%}<div class="apex-gsold-{{ sid }}">{{ 'products.product.sold_out' | t }}</div>{%- endunless -%}
                 {%- if on_sale -%}
                   <span class="apex-gbadge-{{ sid }} is-sale">{%- if s.show_discount_pct and disc_pct > 0 -%}-{{ disc_pct }}%{%- else -%}{{ 'products.product.on_sale' | t | default: 'Sale' }}{%- endif -%}</span>
                 {%- endif -%}
@@ -1771,7 +1757,7 @@
                         <a href="{{ p.url }}" class="apex-gqabtn-{{ sid }}">{{ s.options_text | default: 'Choose Options' | escape }}</a>
                       {%- endif -%}
                     {%- else -%}
-                      <button class="apex-gqabtn-{{ sid }}" disabled>{{ 'products.product.sold_out' | t }}</button>
+                      <button type="button" class="apex-gqabtn-{{ sid }}" data-apex-notify data-title="{{ p.title | escape }}" data-handle="{{ p.handle | escape }}" data-url="{{ p.url | escape }}">Notify me</button>
                     {%- endif -%}
                   </div>
                 {%- endif -%}
@@ -1911,7 +1897,7 @@
                 </a>
 
                 {%- unless pcv.available -%}
-                  <div class="apex-gsold-{{ sid }}"><button type="button" class="apex-gnotify-{{ sid }}" data-apex-notify data-title="{{ p.title | escape }}" data-handle="{{ p.handle | escape }}" data-url="{{ p.url | escape }}">Notify me</button></div>
+                  <div class="apex-gsold-{{ sid }}">{{ 'products.product.sold_out' | t }}</div>
                 {%- endunless -%}
 
                 {%- if on_sale -%}
@@ -1941,7 +1927,7 @@
                         </a>
                       {%- endif -%}
                     {%- else -%}
-                      <button class="apex-gqabtn-{{ sid }}" disabled>{{ 'products.product.sold_out' | t }}</button>
+                      <button type="button" class="apex-gqabtn-{{ sid }}" data-apex-notify data-title="{{ p.title | escape }}" data-handle="{{ p.handle | escape }}" data-url="{{ p.url | escape }}">Notify me</button>
                     {%- endif -%}
                   </div>
                 {%- endif -%}
@@ -2055,7 +2041,7 @@
                   </a>
 
                   {%- unless pcv.available -%}
-                    <div class="apex-gsold-{{ sid }}"><button type="button" class="apex-gnotify-{{ sid }}" data-apex-notify data-title="{{ p.title | escape }}" data-handle="{{ p.handle | escape }}" data-url="{{ p.url | escape }}">Notify me</button></div>
+                    <div class="apex-gsold-{{ sid }}">{{ 'products.product.sold_out' | t }}</div>
                   {%- endunless -%}
 
                   {%- if on_sale -%}
@@ -2084,7 +2070,7 @@
                           <a href="{{ p.url }}" class="apex-gqabtn-{{ sid }}">{{ s.options_text | default: 'Choose Options' | escape }}</a>
                         {%- endif -%}
                       {%- else -%}
-                        <button class="apex-gqabtn-{{ sid }}" disabled>{{ 'products.product.sold_out' | t }}</button>
+                        <button type="button" class="apex-gqabtn-{{ sid }}" data-apex-notify data-title="{{ p.title | escape }}" data-handle="{{ p.handle | escape }}" data-url="{{ p.url | escape }}">Notify me</button>
                       {%- endif -%}
                     </div>
                   {%- endif -%}
@@ -2947,7 +2933,7 @@
   }
   document.addEventListener('click', function (e) {
     var btn = e.target.closest('[data-apex-notify]');
-    if (btn && btn.classList.contains('apex-gnotify-{{ sid }}')) {
+    if (btn && btn.hasAttribute('data-apex-notify') && btn.closest('#shopify-section-{{ sid }}')) {
       e.preventDefault();
       e.stopPropagation();
       openSheet(btn);

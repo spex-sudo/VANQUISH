@@ -1356,6 +1356,11 @@
             </select>
           </div>
           {%- for filter in collection.filters -%}
+            {%- liquid
+              assign apex_filter_key = filter.label | downcase
+              assign apex_filter_param = filter.param_name | downcase
+            -%}
+            {%- if apex_filter_key contains 'availability' or apex_filter_param contains 'availability' -%}{%- continue -%}{%- endif -%}
             <div class="apex-filter-group-{{ sid }}">
               <p>{{ filter.label }}</p>
               {%- case filter.type -%}
@@ -1381,12 +1386,6 @@
         </form>
       {%- else -%}
         <form class="apex-filter-form-{{ sid }}" data-apex-client-filter>
-          <div class="apex-filter-group-{{ sid }}">
-            <p>Availability</p>
-            <label><input type="radio" name="apex-availability" value="all" checked> All</label>
-            <label><input type="radio" name="apex-availability" value="true"> In stock</label>
-            <label><input type="radio" name="apex-availability" value="false"> Sold out</label>
-          </div>
           {%- if collection.all_types.size > 0 -%}
             <div class="apex-filter-group-{{ sid }}">
               <p>Type</p>
@@ -2126,14 +2125,12 @@
     if (!grid) return;
     var form = panel.querySelector('[data-apex-client-filter]');
     if (!form) return;
-    var availability = (form.querySelector('input[name="apex-availability"]:checked') || {}).value || 'all';
     var types = Array.prototype.map.call(form.querySelectorAll('input[name="apex-type"]:checked'), function (el) { return el.value; });
     var vendors = Array.prototype.map.call(form.querySelectorAll('input[name="apex-vendor"]:checked'), function (el) { return el.value; });
     var saleOnly = !!form.querySelector('input[name="apex-sale"]:checked');
     var shown = 0;
     grid.querySelectorAll('.apex-card').forEach(function (card) {
       var ok = true;
-      if (availability !== 'all' && card.getAttribute('data-available') !== availability) ok = false;
       if (types.length && types.indexOf(card.getAttribute('data-type') || '') === -1) ok = false;
       if (vendors.length && vendors.indexOf(card.getAttribute('data-vendor') || '') === -1) ok = false;
       if (saleOnly && card.getAttribute('data-sale') !== 'true') ok = false;
@@ -2141,7 +2138,7 @@
       if (ok) shown += 1;
     });
     var count = fab.querySelector('.apex-ffab-count-{{ sid }}');
-    var n = (availability !== 'all' ? 1 : 0) + types.length + vendors.length + (saleOnly ? 1 : 0);
+    var n = types.length + vendors.length + (saleOnly ? 1 : 0);
     if (n > 0) {
       if (!count) {
         count = document.createElement('span');
