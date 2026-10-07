@@ -216,6 +216,18 @@
     },
     "vanquish_atelier_nwPpp6": {
       "type": "vanquish-atelier",
+      "blocks": {
+        "magazine_DYwy4m": {
+          "type": "magazine",
+          "settings": {
+            "caption": "",
+            "link": ""
+          }
+        }
+      },
+      "block_order": [
+        "magazine_DYwy4m"
+      ],
       "name": "Product Atelier",
       "settings": {
         "display_mode": "products",
@@ -897,8 +909,8 @@
   },
   "order": [
     "luxury_transition_m6cr6x",
-    "luxury_hero_EFGqQq",
     "vanquish_atelier_nwPpp6",
+    "luxury_hero_EFGqQq",
     "luxury_collectiongrid_jpK7Cz",
     "vanquish_atelier_r4XQki",
     "luxury_featureproduct_DDiGAR",
