@@ -640,13 +640,16 @@
     box-shadow: 0 4px 14px rgba(0,0,0,0.10);
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.32s, visibility 0.32s, transform 0.18s;
+    transform: translate3d(0, 0, 0);
+    transition: opacity 0.32s, visibility 0.32s;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
   }
   #ApexAscend-{{ sid }}.is-visible {
     opacity: 1;
     visibility: visible;
   }
-  #ApexAscend-{{ sid }}:hover { transform: translateY(-2px); }
+  #ApexAscend-{{ sid }}:hover { filter: brightness(0.97); }
   #ApexAscend-{{ sid }} svg { width: 16px; fill: var(--ac); }
 
   /* ── Mobile ── */
@@ -672,9 +675,12 @@
   /* ── Collection filter ── */
   .apex-ffab-{{ sid }} {
     position: fixed;
-    left: 50%;
+    left: 0;
+    right: 0;
     bottom: max(18px, env(safe-area-inset-bottom));
-    transform: translateX(-50%);
+    width: max-content;
+    margin: 0 auto;
+    transform: translate3d(0, 0, 0);
     z-index: 100;
     display: inline-flex;
     align-items: center;
@@ -2140,6 +2146,24 @@
     }
     return shown;
   }
+  function pinFixed() {
+    var vv = window.visualViewport;
+    var gap = 0;
+    if (vv) gap = Math.max(0, window.innerHeight - vv.offsetTop - vv.height);
+    if (fab) fab.style.bottom = 'calc(' + gap + 'px + max(18px, env(safe-area-inset-bottom)))';
+    var ascend = document.getElementById('ApexAscend-{{ sid }}');
+    if (ascend) {
+      var rest = window.matchMedia('(max-width: 768px)').matches ? 16 : 30;
+      ascend.style.bottom = (rest + gap) + 'px';
+    }
+  }
+  pinFixed();
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', pinFixed);
+    window.visualViewport.addEventListener('scroll', pinFixed);
+  }
+  window.addEventListener('orientationchange', pinFixed);
+
   fab.addEventListener('click', openPanel);
   bd.addEventListener('click', closePanel);
   panel.addEventListener('click', function (e) {

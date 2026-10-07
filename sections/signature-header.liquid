@@ -159,13 +159,12 @@
 .apex-shell.scrolled .apex-bar {
   box-shadow: 0 6px 24px rgba(0,0,0,0.08), 0 1px 0 rgba(0,0,0,0.04);
 }
-{% if section.settings.shrink_on_scroll %}
-.apex-shell.scrolled .apex-bar { height: calc(var(--apex-height) * 0.85); }
-{% endif %}
+/* Height stays constant while scrolling so the bar does not jump. */
+.apex-shell.scrolled .apex-bar { height: var(--apex-height); }
 @media (max-width: 900px) {
   .apex-shell { padding: 0 10px; }
-  .apex-bar { height: 56px !important; padding: 0 18px !important; border-radius: var(--apex-pill-radius) !important; }
-  .apex-shell.scrolled .apex-bar { height: 52px !important; }
+  .apex-bar,
+  .apex-shell.scrolled .apex-bar { height: 56px !important; padding: 0 18px !important; border-radius: var(--apex-pill-radius) !important; }
 }
 
 /* LEFT: LOGO + SUBTEXT */
