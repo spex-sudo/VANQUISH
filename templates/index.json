@@ -417,7 +417,7 @@
         "title_size": 28,
         "name_tracking": 4,
         "name_transform": "uppercase",
-        "autoplay": true,
+        "autoplay": false,
         "autoplay_speed": 8,
         "edge_fade": false,
         "bg_color": "#FFFFFF",
