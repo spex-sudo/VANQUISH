@@ -77,8 +77,9 @@
   assign tags_str  = product.tags | join: ',' | downcase
 
   comment
-    Gift PDP: if this product is an active free-glasses gift (cost on file + in gift_guard GET),
-    hide Duo/Trio and switch the bar to Claim (not normal ATC).
+    Gift PDP (specs-atc-restore 2026-10-07): if this product is an active free-glasses gift (cost on file + in
+    gift_guard GET), show a separate optional "Claim free" card in the right column. The sticky bar, Duo/Trio,
+    quantity and Add to cart stay exactly as on every other product (normal paid add, no _lexe_gift).
   endcomment
   assign lx_pdp_gift = false
   assign lx_pdp_min = -1
@@ -88,7 +89,6 @@
   assign lx_pdp_min = lx_pdp_min_raw | strip | plus: 0
   if lx_pdp_min > 0
     assign lx_pdp_gift = true
-    assign show_pill = false
   endif
 
   assign single_price = current_variant.price
@@ -623,7 +623,11 @@
 .ap-bundle-hint{{ sid }}:empty{display:none}
 .ap-brow{{ sid }} select.need{border-color:#9966CC;box-shadow:0 0 0 2px rgba(153,102,204,.25)}
 .ap-atc{{ sid }}.ap-need .ap-atc-sep{{ sid }},.ap-atc{{ sid }}.ap-need .ap-atc-price{{ sid }}{display:none}
-.ap-claim{{ sid }}{display:flex;flex-direction:column;gap:8px;width:100%;margin:0 0 8px}
+.ap-claim{{ sid }}{display:flex;flex-direction:column;gap:8px;width:100%;margin:14px 0 4px;padding:12px 14px;border:1px solid #9966CC40;border-radius:10px;background:#9966CC0d;box-sizing:border-box}
+.ap-claim{{ sid }} .ap-claim-ttl{{ sid }}{font-size:13px;font-weight:600;margin:0;color:#6b3fa0}
+.ap-claim{{ sid }} .ap-claim-btn{{ sid }}{min-height:44px;border:1px solid #9966CC;border-radius:999px;background:transparent;color:#6b3fa0;font:inherit;font-weight:600;cursor:pointer}
+.ap-claim{{ sid }} .ap-claim-btn{{ sid }}[disabled]{opacity:.55;cursor:not-allowed}
+.ap-claim{{ sid }} .ap-claim-btn{{ sid }}.ld{opacity:.7;pointer-events:none}
 .ap-claim{{ sid }} input[type=email]{width:100%;min-height:44px;padding:0 14px;border:1px solid #c9c9c9;border-radius:999px;font:inherit;box-sizing:border-box}
 .ap-claim{{ sid }} .ap-claim-hint{{ sid }}{font-size:12px;line-height:1.4;opacity:.8;margin:0}
 .ap-claim{{ sid }} .ap-claim-err{{ sid }}{color:#9b1c1c;font-size:12px;margin:0;display:none}
@@ -945,6 +949,18 @@
           <input type="submit" id="ap-fsub{{ sid }}" style="display:none" tabindex="-1" aria-hidden="true">
         {%- endform -%}
 
+        {%- if lx_pdp_gift -%}
+          {%- assign lx_pdp_min_dollars = lx_pdp_min | divided_by: 100 -%}
+          <div class="ap-claim{{ sid }}" id="ap-claim{{ sid }}" data-lx-min="{{ lx_pdp_min }}">
+            <p class="ap-claim-ttl{{ sid }}">Or get this pair FREE</p>
+            <p class="ap-claim-hint{{ sid }}" id="ap-claim-hint{{ sid }}">Free with ${{ lx_pdp_min_dollars }}+ of eligible items in your bag (one free pair per order). Buying it on its own? Use Add to cart.</p>
+            <label class="visually-hidden" for="ap-claim-email{{ sid }}">Email</label>
+            <input type="email" id="ap-claim-email{{ sid }}" name="lx_claim_email" placeholder="Email to claim" autocomplete="email">
+            <button type="button" class="ap-claim-btn{{ sid }}" id="ap-claim-btn{{ sid }}" disabled>Claim free</button>
+            <p class="ap-claim-err{{ sid }}" id="ap-claim-err{{ sid }}" role="alert"></p>
+          </div>
+        {%- endif -%}
+
         {%- if show_sg or show_sh or show_desc_drawer -%}
           <div class="ap-links{{ sid }}">
             {%- if show_desc_drawer -%}
@@ -1146,25 +1162,16 @@
         <span id="ap-qty-val{{ sid }}" aria-live="polite">1</span>
         <button type="button" id="ap-qty-inc{{ sid }}" aria-label="Increase quantity">+</button>
       </div>
-      {%- if lx_pdp_gift -%}
-      <div class="ap-claim{{ sid }}" id="ap-claim{{ sid }}">
-        <p class="ap-claim-hint{{ sid }}">FREE with orders of ${{ shop.metafields.custom.gift_guard.value.discount_min | default: 54 }}+ in eligible items. Enter your email to claim.</p>
-        <label class="visually-hidden" for="ap-claim-email{{ sid }}">Email</label>
-        <input type="email" id="ap-claim-email{{ sid }}" name="lx_claim_email" placeholder="Email to claim" autocomplete="email" required>
-        <p class="ap-claim-err{{ sid }}" id="ap-claim-err{{ sid }}" role="alert"></p>
-      </div>
-      {%- endif -%}
       <button class="ap-atc{{ sid }}" id="ap-atc{{ sid }}"
-        {% if lx_pdp_gift %}data-lx-gift="1" data-lx-min="{{ lx_pdp_min }}"{% endif %}
         data-bag-url="{{ section.settings.view_bag_url | default: '/cart' }}"
         data-bag-text="{{ section.settings.view_bag_text | default: 'View Bag' }}"
         data-atc-link="{{ section.settings.atc_link | default: '' }}"
         data-loading-text="{{ section.settings.loading_text | default: 'Adding…' }}"
         {% unless current_variant.available %}disabled{% endunless %}
-        aria-label="{% if lx_pdp_gift %}Claim {{ product.title | escape }}{% else %}Add {{ product.title | escape }} to cart{% endif %}"
+        aria-label="Add {{ product.title | escape }} to cart"
         type="button">
         <svg class="ap-atc-bag{{ sid }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12l-1 13H7L6 7z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg>
-                <span id="ap-atc-lbl{{ sid }}">{%- if lx_pdp_gift -%}Claim now{%- elsif current_variant.available -%}{{ section.settings.atc_text }}{%- else -%}{{ section.settings.sold_out_text | default: 'Sold out' }}{%- endif -%}</span>
+                <span id="ap-atc-lbl{{ sid }}">{%- if current_variant.available -%}{{ section.settings.atc_text }}{%- else -%}{{ section.settings.soldout_text }}{%- endif -%}</span>
         <span class="ap-atc-sep{{ sid }}" aria-hidden="true">·</span>
         <span class="ap-atc-price{{ sid }}" id="ap-atc-price{{ sid }}">{{ current_variant.price | money_without_trailing_zeros }}</span>
         <svg class="_sp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -1525,7 +1532,7 @@
     atc.setAttribute('aria-label',atc.getAttribute('data-aria0'));
     if(v){
       atc.disabled=!v.available;
-      if(atcLbl)atcLbl.textContent=v.available?{% if lx_pdp_gift %}"Claim now"{% else %}{{ section.settings.atc_text | json }}{% endif %}:{{ section.settings.soldout_text | json }};
+      if(atcLbl)atcLbl.textContent=v.available?{{ section.settings.atc_text | json }}:{{ section.settings.soldout_text | json }};
     }
   }
   function updateTotals(){
@@ -1633,7 +1640,7 @@
     if(!atc||!atc.classList.contains('added'))return;
     atc.classList.remove('added');atc.onclick=null;
     var v=findVariant();
-    if(atcLbl&&v)atcLbl.textContent=v.available?{% if lx_pdp_gift %}"Claim now"{% else %}{{ section.settings.atc_text | json }}{% endif %}:{{ section.settings.soldout_text | json }};
+    if(atcLbl&&v)atcLbl.textContent=v.available?{{ section.settings.atc_text | json }}:{{ section.settings.soldout_text | json }};
     syncAtc();
   }
 
@@ -1668,7 +1675,7 @@
       return;
     }
     if(atc)atc.disabled=!v.available;
-    if(atcLbl)atcLbl.textContent=v.available?{% if lx_pdp_gift %}"Claim now"{% else %}{{ section.settings.atc_text | json }}{% endif %}:{{ section.settings.soldout_text | json }};
+    if(atcLbl)atcLbl.textContent=v.available?{{ section.settings.atc_text | json }}:{{ section.settings.soldout_text | json }};
     if(vid)vid.value=v.id;
     resetAdded();
     renderPrice(v,curQty());
@@ -1818,40 +1825,6 @@
     var cv=findVariant();
     if(!cv){
       if(atc){atc.classList.add('error');setTimeout(function(){atc.classList.remove('error');},420);}
-      return;
-    }
-    /* Gift PDP claim path: email + _lexe_gift=1, then apply LEXESPECS code */
-    if(atc && atc.getAttribute('data-lx-gift')==='1'){
-      var em=document.getElementById('ap-claim-email'+S);
-      var err=document.getElementById('ap-claim-err'+S);
-      var email=(em && em.value || '').trim();
-      if(!email || email.indexOf('@')<1){
-        if(err){err.style.display='block';err.textContent='Enter a valid email to claim.';}
-        if(em)em.focus();
-        return;
-      }
-      if(err){err.style.display='none';err.textContent='';}
-      var loadingText=atc.getAttribute('data-loading-text')||'Claiming…';
-      var origText=atcLbl?atcLbl.textContent:'Claim now';
-      atc.classList.add('ld'); if(atcLbl)atcLbl.textContent=loadingText;
-      var q=curQty();
-      fetch('/cart/add.js',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},
-        body:JSON.stringify({items:[{id:cv.id,quantity:q,properties:{_lexe_gift:'1',_lexe_claim_email:email}}]})})
-        .then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j};});})
-        .then(function(res){
-          if(!res.ok){throw new Error((res.j&&res.j.description)||'Could not claim');}
-          return fetch('/cart/update.js',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({discount:'LEXESPECS'})}).catch(function(){return null;});
-        })
-        .then(function(){
-          atc.classList.remove('ld'); if(atcLbl)atcLbl.textContent=origText;
-          var notch=document.querySelector('[data-notch-cart]');
-          if(notch) notch.click();
-          else window.location='/cart';
-        })
-        .catch(function(e){
-          atc.classList.remove('ld'); if(atcLbl)atcLbl.textContent=origText;
-          if(err){err.style.display='block';err.textContent=e.message||'Could not claim';}
-        });
       return;
     }
     var bundle=bundleActive();
@@ -2037,6 +2010,56 @@
     if(idx<0){vd.push(vi);setV(vd);}
   },800);
 
+  /* ── Optional free-pair claim (separate from Add to cart; specs-atc-restore 2026-10-07) ──
+     Enabled only when the bag already holds enough eligible items (sections/lexe-gift-check data-cents >= this gift's min).
+     Adds qty 1 with _lexe_gift=1 + LEXESPECS. Cart guard (lexe-gift-normalize) still removes it if the bag drops under. */
+  (function(){
+    var box=document.getElementById('ap-claim'+S);
+    if(!box)return;
+    var btn=document.getElementById('ap-claim-btn'+S),hint=document.getElementById('ap-claim-hint'+S);
+    var em=document.getElementById('ap-claim-email'+S),err=document.getElementById('ap-claim-err'+S);
+    var need=parseInt(box.getAttribute('data-lx-min'),10)||0,base=hint?hint.textContent:'',ok=false,busy=false;
+    function showErr(t){if(err){err.style.display=t?'block':'none';err.textContent=t||'';}}
+    function check(){
+      return fetch('/?sections=lexe-gift-check&t='+Date.now(),{credentials:'same-origin',cache:'no-store'})
+        .then(function(r){return r.json();})
+        .then(function(d){
+          var m=/data-cents="(-?\d+)"/.exec((d&&d['lexe-gift-check'])||'');
+          var have=m?parseInt(m[1],10):0;
+          ok=need>0&&have>=need;
+          if(btn&&!busy)btn.disabled=!ok;
+          if(hint)hint.textContent=ok?'Your bag qualifies. Claim this pair free (one per order).':base+(have>0?' Add '+money(need-have)+' more of eligible items to unlock.':'');
+          return ok;
+        }).catch(function(){ok=false;if(btn)btn.disabled=true;return false;});
+    }
+    check();
+    document.addEventListener('cart:updated',function(){setTimeout(check,300);});
+    document.addEventListener('cart:item-added',function(){setTimeout(check,300);});
+    if(btn)btn.addEventListener('click',function(){
+      var cv=findVariant();
+      var email=(em&&em.value||'').trim();
+      if(!cv)return;
+      if(!email||email.indexOf('@')<1){showErr('Enter a valid email to claim.');if(em)em.focus();return;}
+      showErr('');busy=true;btn.classList.add('ld');var t0=btn.textContent;btn.textContent='Claiming…';
+      check().then(function(q){
+        if(!q)throw new Error('Add more eligible items to your bag first.');
+        return fetch('/cart/add.js',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},
+          body:JSON.stringify({items:[{id:cv.id,quantity:1,properties:{_lexe_gift:'1',_lexe_claim_email:email}}]})})
+          .then(function(r){return r.json().then(function(j){return{ok:r.ok,j:j};});});
+      }).then(function(res){
+        if(!res.ok)throw new Error((res.j&&res.j.description)||'Could not claim');
+        return fetch('/cart/update.js',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({discount:'LEXESPECS'})}).catch(function(){return null;});
+      }).then(function(){return fetch('/cart.js').then(function(r){return r.json();});})
+      .then(function(cart){
+        busy=false;btn.classList.remove('ld');btn.textContent=t0;
+        document.dispatchEvent(new CustomEvent('cart:updated',{bubbles:true,detail:{cart:cart}}));
+        var nb=document.querySelector('[data-notch-cart]');
+        if(nb){try{nb.click();}catch(e){}}else window.location='/cart';
+      }).catch(function(e){
+        busy=false;btn.classList.remove('ld');btn.textContent=t0;showErr(e.message||'Could not claim');check();
+      });
+    });
+  })();
 })();
 </script>
 
@@ -2404,3 +2427,4 @@
   "disabled_on": { "groups": ["header","footer"] }
 }
 {% endschema %}
+
