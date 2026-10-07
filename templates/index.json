@@ -255,6 +255,25 @@
             "lock_unlock_at": ""
           }
         },
+        "collection_zcXzR6": {
+          "type": "collection",
+          "settings": {
+            "collection": "exodus",
+            "status_text": "Exodus",
+            "status_color": "#D2BBFF",
+            "cta_label": "Enter",
+            "price_from": "",
+            "badge_text": "",
+            "badge_bg": "#000000",
+            "badge_text_color": "#ff4d4d",
+            "lock_collection": true,
+            "lock_label": "UNRELEASED",
+            "lock_cta_label": "Request Access",
+            "unlocked_cta_label": "Shop Now",
+            "lock_color": "#888888",
+            "lock_unlock_at": ""
+          }
+        },
         "collection_Ey3WHA": {
           "type": "collection",
           "settings": {
@@ -294,55 +313,14 @@
             "lock_color": "#888888",
             "lock_unlock_at": ""
           }
-        },
-        "collection_zcXzR6": {
-          "type": "collection",
-          "settings": {
-            "collection": "exodus",
-            "status_text": "Exodus",
-            "status_color": "#D2BBFF",
-            "cta_label": "Enter",
-            "price_from": "",
-            "badge_text": "",
-            "badge_bg": "#000000",
-            "badge_text_color": "#ff4d4d",
-            "lock_collection": true,
-            "lock_label": "UNRELEASED",
-            "lock_cta_label": "Request Access",
-            "unlocked_cta_label": "Shop Now",
-            "lock_color": "#888888",
-            "lock_unlock_at": ""
-          }
-        },
-        "collection_LHL9LP": {
-          "type": "collection",
-          "settings": {
-            "collection": "industrial-assets",
-            "status_text": "LOCKED",
-            "status_color": "#d43737",
-            "custom_image": "shopify://shop_images/VANQUISH7-industrial-assests.jpg",
-            "video_url": "shopify://files/videos/Video_1_4952c6fe-c39e-4b9e-964e-6c7d437140bd.mov",
-            "cta_label": "Enter",
-            "price_from": "",
-            "badge_text": "",
-            "badge_bg": "#000000",
-            "badge_text_color": "#ff4d4d",
-            "lock_collection": true,
-            "lock_label": "PRIVATE B2B ACCESS",
-            "lock_cta_label": "Early Access",
-            "unlocked_cta_label": "ENTER",
-            "lock_color": "#888888",
-            "lock_unlock_at": "2027-5-28"
-          }
         }
       },
       "block_order": [
         "collection_4jbHhB",
         "collection_fCeNdr",
-        "collection_Ey3WHA",
-        "collection_jQgwJn",
         "collection_zcXzR6",
-        "collection_LHL9LP"
+        "collection_Ey3WHA",
+        "collection_jQgwJn"
       ],
       "name": "Sovereign Orbit Apex",
       "settings": {
