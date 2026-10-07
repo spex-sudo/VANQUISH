@@ -668,6 +668,137 @@
     .apex-drawer-{{ sid }}, .apex-drawer-bd-{{ sid }} { transition: none !important; }
     .apex-bdg-low, .apex-pulse::after { animation: none !important; }
   }
+
+  /* ── Collection filter ── */
+  .apex-ffab-{{ sid }} {
+    position: fixed;
+    left: 50%;
+    bottom: max(18px, env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    z-index: 100;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 999px;
+    background: #111;
+    color: #fff;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.22);
+  }
+  .apex-ffab-{{ sid }} svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.6; }
+  .apex-ffab-count-{{ sid }} {
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: #fff;
+    color: #111;
+    font-size: 10px;
+    letter-spacing: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .apex-fbd-{{ sid }},
+  .apex-filter-{{ sid }} { display: none; }
+  .apex-fbd-{{ sid }}.is-open,
+  .apex-filter-{{ sid }}.is-open { display: block; }
+  .apex-fbd-{{ sid }} {
+    position: fixed;
+    inset: 0;
+    z-index: 130;
+    background: rgba(8,8,8,0.32);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+  .apex-filter-{{ sid }} {
+    position: fixed;
+    z-index: 131;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%);
+    width: min(460px, 100%);
+    max-height: min(78vh, 720px);
+    overflow: auto;
+    background: #fff;
+    color: #111;
+    border-radius: 18px 18px 0 0;
+    padding: 18px 18px calc(18px + env(safe-area-inset-bottom));
+    box-shadow: 0 -16px 40px rgba(0,0,0,0.16);
+  }
+  @media (min-width: 760px) {
+    .apex-filter-{{ sid }} { bottom: 24px; border-radius: 18px; padding: 22px; }
+  }
+  .apex-filter-head-{{ sid }} { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+  .apex-filter-head-{{ sid }} h2 { margin: 0; font-size: 18px; letter-spacing: -0.03em; font-weight: 560; }
+  .apex-filter-x-{{ sid }},
+  .apex-filter-search-{{ sid }},
+  .apex-filter-apply-{{ sid }},
+  .apex-filter-clear-{{ sid }} { font: inherit; cursor: pointer; }
+  .apex-filter-x-{{ sid }} { border: 0; background: transparent; letter-spacing: 0.12em; text-transform: uppercase; font-size: 11px; }
+  .apex-filter-search-{{ sid }} {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 8px 0 14px;
+    padding: 14px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(17,17,17,0.12);
+    background: #fafafa;
+    color: #111;
+    text-align: left;
+  }
+  .apex-filter-search-{{ sid }} small { display: block; margin-top: 3px; color: #6b6b6b; letter-spacing: 0; text-transform: none; font-size: 12px; }
+  .apex-filter-search-{{ sid }} span { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 600; }
+  .apex-filter-group-{{ sid }} { border-top: 1px solid rgba(17,17,17,0.08); padding: 12px 0; }
+  .apex-filter-group-{{ sid }} p { margin: 0 0 8px; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #6b6b6b; }
+  .apex-filter-group-{{ sid }} label { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 14px; }
+  .apex-filter-group-{{ sid }} select,
+  .apex-filter-group-{{ sid }} input[type="number"] {
+    font: inherit;
+    width: 100%;
+    border: 1px solid rgba(17,17,17,0.14);
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: #fff;
+  }
+  .apex-filter-price-{{ sid }} { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .apex-filter-foot-{{ sid }} { display: flex; gap: 8px; padding-top: 8px; }
+  .apex-filter-clear-{{ sid }} {
+    flex: 0 0 auto;
+    border: 1px solid rgba(17,17,17,0.14);
+    background: #fff;
+    color: #111;
+    border-radius: 999px;
+    padding: 12px 16px;
+    text-decoration: none;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .apex-filter-apply-{{ sid }} {
+    flex: 1;
+    border: 0;
+    background: #111;
+    color: #fff;
+    border-radius: 999px;
+    padding: 12px 16px;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .apex-card.is-filtered-out { display: none !important; }
+
 </style>
 
 <div id="ApexZenith-{{ sid }}" data-apex-section="{{ sid }}">
@@ -758,7 +889,7 @@
           endfor
         -%}
 
-        <div class="apex-card" data-pid="{{ product.id }}" data-handle="{{ product.handle }}">
+        <div class="apex-card" data-pid="{{ product.id }}" data-handle="{{ product.handle }}" data-available="{% if product.available %}true{% else %}false{% endif %}" data-type="{{ product.type | escape }}" data-vendor="{{ product.vendor | escape }}" data-price="{{ product.price }}" data-sale="{% if on_sale %}true{% else %}false{% endif %}">
           <div class="apex-media">
             <a href="{{ product.url }}" class="apex-link" aria-label="{{ product.title | escape }}"></a>
 
@@ -1005,7 +1136,7 @@
           endfor
         -%}
 
-        <div class="apex-card" data-pid="{{ product.id }}" data-handle="{{ product.handle }}">
+        <div class="apex-card" data-pid="{{ product.id }}" data-handle="{{ product.handle }}" data-available="{% if product.available %}true{% else %}false{% endif %}" data-type="{{ product.type | escape }}" data-vendor="{{ product.vendor | escape }}" data-price="{{ product.price }}" data-sale="{% if on_sale %}true{% else %}false{% endif %}">
           <div class="apex-media">
             <a href="{{ product.url }}" class="apex-link" aria-label="{{ product.title | escape }}"></a>
 
@@ -1180,6 +1311,109 @@
       {%- endif -%}
     {%- endpaginate -%}
 
+  {%- endif -%}
+
+
+  {%- if template.name == 'collection' -%}
+    {%- liquid
+      assign apex_active_filters = 0
+      for filter in collection.filters
+        for value in filter.values
+          if value.active
+            assign apex_active_filters = apex_active_filters | plus: 1
+          endif
+        endfor
+        if filter.type == 'price_range'
+          if filter.min_value.value != nil or filter.max_value.value != nil
+            assign apex_active_filters = apex_active_filters | plus: 1
+          endif
+        endif
+      endfor
+    -%}
+    <button type="button" class="apex-ffab-{{ sid }}" id="ApexFilterFab-{{ sid }}" aria-controls="ApexFilter-{{ sid }}" aria-expanded="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+      <span>Filter</span>
+      {%- if apex_active_filters > 0 -%}<span class="apex-ffab-count-{{ sid }}">{{ apex_active_filters }}</span>{%- endif -%}
+    </button>
+    <div class="apex-fbd-{{ sid }}" id="ApexFilterBd-{{ sid }}" hidden></div>
+    <div class="apex-filter-{{ sid }}" id="ApexFilter-{{ sid }}" role="dialog" aria-modal="true" aria-labelledby="ApexFilterTitle-{{ sid }}" hidden data-native="{% if collection.filters.size > 0 %}true{% else %}false{% endif %}">
+      <div class="apex-filter-head-{{ sid }}">
+        <h2 id="ApexFilterTitle-{{ sid }}">Filter</h2>
+        <button type="button" class="apex-filter-x-{{ sid }}" data-apex-filter-close>Close</button>
+      </div>
+      <button type="button" class="apex-filter-search-{{ sid }}" data-apex-open-search>
+        <span>Search<small>Opens store search only if you choose it</small></span>
+        <span aria-hidden="true">→</span>
+      </button>
+      {%- if collection.filters.size > 0 -%}
+        <form class="apex-filter-form-{{ sid }}" action="{{ collection.url }}" method="get">
+          <div class="apex-filter-group-{{ sid }}">
+            <p>Sort</p>
+            <select name="sort_by" aria-label="Sort">
+              {%- for option in collection.sort_options -%}
+                <option value="{{ option.value }}" {% if option.value == collection.sort_by %}selected{% endif %}>{{ option.name }}</option>
+              {%- endfor -%}
+            </select>
+          </div>
+          {%- for filter in collection.filters -%}
+            <div class="apex-filter-group-{{ sid }}">
+              <p>{{ filter.label }}</p>
+              {%- case filter.type -%}
+                {%- when 'price_range' -%}
+                  <div class="apex-filter-price-{{ sid }}">
+                    <input type="number" name="{{ filter.min_value.param_name }}" placeholder="Min" {% if filter.min_value.value %}value="{{ filter.min_value.value | money_without_currency | replace: ',', '' }}"{% endif %} inputmode="decimal" aria-label="Minimum price">
+                    <input type="number" name="{{ filter.max_value.param_name }}" placeholder="Max" {% if filter.max_value.value %}value="{{ filter.max_value.value | money_without_currency | replace: ',', '' }}"{% endif %} inputmode="decimal" aria-label="Maximum price">
+                  </div>
+                {%- else -%}
+                  {%- for value in filter.values -%}
+                    <label>
+                      <input type="checkbox" name="{{ value.param_name }}" value="{{ value.value }}" {% if value.active %}checked{% endif %} {% if value.count == 0 and value.active == false %}disabled{% endif %}>
+                      <span>{{ value.label }}{% if value.count %} · {{ value.count }}{% endif %}</span>
+                    </label>
+                  {%- endfor -%}
+              {%- endcase -%}
+            </div>
+          {%- endfor -%}
+          <div class="apex-filter-foot-{{ sid }}">
+            <a class="apex-filter-clear-{{ sid }}" href="{{ collection.url }}">Clear</a>
+            <button type="submit" class="apex-filter-apply-{{ sid }}">Show results</button>
+          </div>
+        </form>
+      {%- else -%}
+        <form class="apex-filter-form-{{ sid }}" data-apex-client-filter>
+          <div class="apex-filter-group-{{ sid }}">
+            <p>Availability</p>
+            <label><input type="radio" name="apex-availability" value="all" checked> All</label>
+            <label><input type="radio" name="apex-availability" value="true"> In stock</label>
+            <label><input type="radio" name="apex-availability" value="false"> Sold out</label>
+          </div>
+          {%- if collection.all_types.size > 0 -%}
+            <div class="apex-filter-group-{{ sid }}">
+              <p>Type</p>
+              {%- for t in collection.all_types -%}
+                <label><input type="checkbox" name="apex-type" value="{{ t | escape }}"> <span>{{ t }}</span></label>
+              {%- endfor -%}
+            </div>
+          {%- endif -%}
+          {%- if collection.all_vendors.size > 0 -%}
+            <div class="apex-filter-group-{{ sid }}">
+              <p>Brand</p>
+              {%- for v in collection.all_vendors -%}
+                <label><input type="checkbox" name="apex-vendor" value="{{ v | escape }}"> <span>{{ v }}</span></label>
+              {%- endfor -%}
+            </div>
+          {%- endif -%}
+          <div class="apex-filter-group-{{ sid }}">
+            <p>Price</p>
+            <label><input type="checkbox" name="apex-sale" value="true"> On sale</label>
+          </div>
+          <div class="apex-filter-foot-{{ sid }}">
+            <button type="button" class="apex-filter-clear-{{ sid }}" data-apex-filter-reset>Clear</button>
+            <button type="submit" class="apex-filter-apply-{{ sid }}">Show results</button>
+          </div>
+        </form>
+      {%- endif -%}
+    </div>
   {%- endif -%}
 
   <button id="ApexAscend-{{ sid }}" type="button" aria-label="Back to top">
@@ -1846,6 +2080,117 @@
   window.addEventListener('scroll', onScroll, { passive: true });
   if (ascend) ascend.addEventListener('click', function () {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+})();
+</script>
+
+
+<script>
+(function () {
+  var fab = document.getElementById('ApexFilterFab-{{ sid }}');
+  var panel = document.getElementById('ApexFilter-{{ sid }}');
+  var bd = document.getElementById('ApexFilterBd-{{ sid }}');
+  if (!fab || !panel || !bd) return;
+  var grid = document.getElementById('ApexGrid-{{ sid }}');
+  function openPanel() {
+    panel.hidden = false;
+    bd.hidden = false;
+    panel.classList.add('is-open');
+    bd.classList.add('is-open');
+    fab.setAttribute('aria-expanded', 'true');
+  }
+  function closePanel() {
+    panel.classList.remove('is-open');
+    bd.classList.remove('is-open');
+    panel.hidden = true;
+    bd.hidden = true;
+    fab.setAttribute('aria-expanded', 'false');
+  }
+  function openSearch() {
+    closePanel();
+    var modal = document.getElementById('search-modal');
+    if (modal && typeof modal.showDialog === 'function') {
+      modal.showDialog();
+      var input = modal.querySelector('input[type="search"]');
+      if (input) setTimeout(function () { input.focus(); }, 40);
+      return;
+    }
+    var dialog = document.querySelector('#search-modal dialog');
+    if (dialog && typeof dialog.showModal === 'function') {
+      dialog.showModal();
+      return;
+    }
+    if (typeof window.apexOpenSearch === 'function') window.apexOpenSearch();
+  }
+  function applyClient() {
+    if (!grid) return;
+    var form = panel.querySelector('[data-apex-client-filter]');
+    if (!form) return;
+    var availability = (form.querySelector('input[name="apex-availability"]:checked') || {}).value || 'all';
+    var types = Array.prototype.map.call(form.querySelectorAll('input[name="apex-type"]:checked'), function (el) { return el.value; });
+    var vendors = Array.prototype.map.call(form.querySelectorAll('input[name="apex-vendor"]:checked'), function (el) { return el.value; });
+    var saleOnly = !!form.querySelector('input[name="apex-sale"]:checked');
+    var shown = 0;
+    grid.querySelectorAll('.apex-card').forEach(function (card) {
+      var ok = true;
+      if (availability !== 'all' && card.getAttribute('data-available') !== availability) ok = false;
+      if (types.length && types.indexOf(card.getAttribute('data-type') || '') === -1) ok = false;
+      if (vendors.length && vendors.indexOf(card.getAttribute('data-vendor') || '') === -1) ok = false;
+      if (saleOnly && card.getAttribute('data-sale') !== 'true') ok = false;
+      card.classList.toggle('is-filtered-out', !ok);
+      if (ok) shown += 1;
+    });
+    var count = fab.querySelector('.apex-ffab-count-{{ sid }}');
+    var n = (availability !== 'all' ? 1 : 0) + types.length + vendors.length + (saleOnly ? 1 : 0);
+    if (n > 0) {
+      if (!count) {
+        count = document.createElement('span');
+        count.className = 'apex-ffab-count-{{ sid }}';
+        fab.appendChild(count);
+      }
+      count.textContent = String(n);
+    } else if (count) {
+      count.remove();
+    }
+    return shown;
+  }
+  fab.addEventListener('click', openPanel);
+  bd.addEventListener('click', closePanel);
+  panel.addEventListener('click', function (e) {
+    if (e.target.closest('[data-apex-filter-close]')) closePanel();
+    if (e.target.closest('[data-apex-open-search]')) openSearch();
+    if (e.target.closest('[data-apex-filter-reset]')) {
+      var form = panel.querySelector('[data-apex-client-filter]');
+      if (form) form.reset();
+      applyClient();
+    }
+  });
+  
+  var nativeForm = panel.querySelector('form.apex-filter-form-{{ sid }}:not([data-apex-client-filter])');
+  if (nativeForm) {
+    nativeForm.addEventListener('submit', function () {
+      nativeForm.querySelectorAll('input[type="number"]').forEach(function (input) {
+        if (!input.value) return;
+        var major = parseFloat(input.value);
+        if (!isNaN(major)) input.value = String(Math.round(major * 100));
+      });
+    });
+  }
+
+  var clientForm = panel.querySelector('[data-apex-client-filter]');
+  if (clientForm) {
+    clientForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      applyClient();
+      closePanel();
+    });
+    clientForm.addEventListener('change', applyClient);
+    if (grid && window.MutationObserver) {
+      new MutationObserver(function () { applyClient(); }).observe(grid, { childList: true });
+    }
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && panel.classList.contains('is-open')) closePanel();
   });
 })();
 </script>

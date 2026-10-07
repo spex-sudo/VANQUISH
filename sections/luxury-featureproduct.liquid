@@ -21,7 +21,7 @@
   ║   • Low-stock nudge — scarcity without dark patterns.          ║
   ║   • Stagger entrance animation on IntersectionObserver.        ║
   ║   • View All CTA — choice architecture, preserves flow.        ║
-  ║   • Sold-out overlay — desaturation signals without hiding.    ║
+  ║   • Sold-out overlay is a Notify me capture. Quick-add stays.  ║
   ║                                                                ║
   ║  Psychology (Cialdini + behavioural economics):                ║
   ║   • Mere-exposure: marquee 2x fluent glances (Zajonc 1968).    ║
@@ -605,14 +605,115 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255,255,255,0.35);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--apex-fg);
+  background: rgba(255,255,255,0.28);
   pointer-events: none;
 }
+.apex-gnotify-{{ sid }} {
+  pointer-events: auto;
+  appearance: none;
+  border: 0;
+  margin: 0;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #111;
+  background: rgba(255,255,255,0.94);
+  border-radius: 999px;
+  padding: 11px 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: background 0.18s ease, color 0.18s ease, transform 0.14s ease;
+}
+.apex-gnotify-{{ sid }}:hover { background: #111; color: #fff; }
+.apex-gnotify-{{ sid }}:active { transform: scale(0.98); }
+.apex-gnotify-{{ sid }}:focus-visible { outline: 2px solid #111; outline-offset: 3px; }
+.apex-notify-{{ sid }} {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(8,8,8,0.28);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.apex-notify-{{ sid }}.is-open { display: flex; }
+.apex-notify-sheet-{{ sid }} {
+  width: min(440px, 100%);
+  background: #fff;
+  color: #111;
+  border-radius: 18px 18px 0 0;
+  padding: 22px 22px calc(22px + env(safe-area-inset-bottom));
+  box-shadow: 0 -12px 40px rgba(0,0,0,0.16);
+}
+@media (min-width: 760px) {
+  .apex-notify-{{ sid }} { align-items: center; padding: 24px; }
+  .apex-notify-sheet-{{ sid }} { border-radius: 18px; padding: 28px; }
+}
+.apex-notify-kicker-{{ sid }} {
+  margin: 0 0 8px;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #6b6b6b;
+}
+.apex-notify-title-{{ sid }} {
+  margin: 0 0 6px;
+  font-size: 22px;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  font-weight: 560;
+}
+.apex-notify-copy-{{ sid }} {
+  margin: 0 0 18px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #3c3c3c;
+}
+.apex-notify-sheet-{{ sid }} form { display: flex; flex-direction: column; gap: 10px; }
+.apex-notify-sheet-{{ sid }} input[type="email"] {
+  font: inherit;
+  font-size: 16px;
+  padding: 14px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(17,17,17,0.16);
+  background: #fff;
+  color: #111;
+}
+.apex-notify-sheet-{{ sid }} input[type="email"]:focus { outline: none; border-color: #111; }
+.apex-notify-submit-{{ sid }},
+.apex-notify-close-{{ sid }} {
+  font: inherit;
+  border: 0;
+  cursor: pointer;
+  border-radius: 999px;
+}
+.apex-notify-submit-{{ sid }} {
+  background: #111;
+  color: #fff;
+  padding: 14px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.apex-notify-close-{{ sid }} {
+  background: transparent;
+  color: #111;
+  padding: 8px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.apex-notify-fine-{{ sid }} { margin: 4px 0 0; font-size: 11px; line-height: 1.4; color: #6b6b6b; }
+.apex-notify-fine-{{ sid }} a { color: inherit; }
+.apex-notify-msg-{{ sid }} { margin: 0; font-size: 13px; }
+.apex-notify-msg-{{ sid }}.is-error { color: #8a1f1f; }
 
 /* ══════════════════════════════════════════════════════════════
    GRID MODE — Quick-add overlay (slides up from image bottom)
@@ -1534,7 +1635,7 @@
               {%- endif -%}
             </a>
 
-            <div class="apex-gsold-{{ sid }}">{{ 'products.product.sold_out' | t }}</div>
+            <div class="apex-gsold-{{ sid }}"><button type="button" class="apex-gnotify-{{ sid }}" data-apex-notify data-title="{{ p.title | escape }}" data-handle="{{ p.handle | escape }}" data-url="{{ p.url | escape }}">Notify me</button></div>
 
             {%- if on_sale -%}
               <span class="apex-gbadge-{{ sid }} is-sale">
@@ -1652,7 +1753,7 @@
                     {{ 'product-1' | placeholder_svg_tag: 'placeholder' }}
                   {%- endif -%}
                 </a>
-                {%- unless pcv.available -%}<div class="apex-gsold-{{ sid }}">{{ 'products.product.sold_out' | t }}</div>{%- endunless -%}
+                {%- unless pcv.available -%}<div class="apex-gsold-{{ sid }}"><button type="button" class="apex-gnotify-{{ sid }}" data-apex-notify data-title="{{ p.title | escape }}" data-handle="{{ p.handle | escape }}" data-url="{{ p.url | escape }}">Notify me</button></div>{%- endunless -%}
                 {%- if on_sale -%}
                   <span class="apex-gbadge-{{ sid }} is-sale">{%- if s.show_discount_pct and disc_pct > 0 -%}-{{ disc_pct }}%{%- else -%}{{ 'products.product.on_sale' | t | default: 'Sale' }}{%- endif -%}</span>
                 {%- endif -%}
@@ -1810,7 +1911,7 @@
                 </a>
 
                 {%- unless pcv.available -%}
-                  <div class="apex-gsold-{{ sid }}">{{ 'products.product.sold_out' | t }}</div>
+                  <div class="apex-gsold-{{ sid }}"><button type="button" class="apex-gnotify-{{ sid }}" data-apex-notify data-title="{{ p.title | escape }}" data-handle="{{ p.handle | escape }}" data-url="{{ p.url | escape }}">Notify me</button></div>
                 {%- endunless -%}
 
                 {%- if on_sale -%}
@@ -1954,7 +2055,7 @@
                   </a>
 
                   {%- unless pcv.available -%}
-                    <div class="apex-gsold-{{ sid }}">{{ 'products.product.sold_out' | t }}</div>
+                    <div class="apex-gsold-{{ sid }}"><button type="button" class="apex-gnotify-{{ sid }}" data-apex-notify data-title="{{ p.title | escape }}" data-handle="{{ p.handle | escape }}" data-url="{{ p.url | escape }}">Notify me</button></div>
                   {%- endunless -%}
 
                   {%- if on_sale -%}
@@ -2787,6 +2888,77 @@
   })();
 
   select(idx, true);
+})();
+</script>
+{%- endif -%}
+
+
+{%- if mode == 'grid' -%}
+<div class="apex-notify-{{ sid }}{% if form.posted_successfully? %} is-open{% endif %}" id="ApexNotify-{{ sid }}" role="dialog" aria-modal="true" aria-labelledby="ApexNotifyTitle-{{ sid }}" {% unless form.posted_successfully? %}hidden{% endunless %}>
+  <div class="apex-notify-sheet-{{ sid }}">
+    <p class="apex-notify-kicker-{{ sid }}">Back in stock</p>
+    <h2 class="apex-notify-title-{{ sid }}" id="ApexNotifyTitle-{{ sid }}" data-apex-notify-title>{% if form.posted_successfully? %}You're on the list{% else %}Notify me{% endif %}</h2>
+    <p class="apex-notify-copy-{{ sid }}" data-apex-notify-copy>{% if form.posted_successfully? %}We'll email you when this piece is available again.{% else %}Leave your email. We'll write once this piece is back.{% endif %}</p>
+    {%- form 'contact' -%}
+      <input type="hidden" name="contact[tags]" value="notify-me,restock">
+      <input type="hidden" name="contact[name]" value="Restock request" data-apex-notify-name>
+      <textarea name="contact[body]" hidden data-apex-notify-body>Notify me when this piece is back in stock.</textarea>
+      {%- if form.posted_successfully? -%}
+        <p class="apex-notify-msg-{{ sid }}">Saved. You can close this.</p>
+      {%- else -%}
+        <label class="visually-hidden" for="ApexNotifyEmail-{{ sid }}">Email</label>
+        <input id="ApexNotifyEmail-{{ sid }}" type="email" name="contact[email]" required autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="Email address" value="{{ form.email }}">
+        {%- if form.errors -%}
+          <p class="apex-notify-msg-{{ sid }} is-error">{{ form.errors.translated_fields.email | append: ' ' | append: form.errors.messages.email | strip }}</p>
+        {%- endif -%}
+        <button type="submit" class="apex-notify-submit-{{ sid }}">Notify me</button>
+      {%- endif -%}
+      <p class="apex-notify-fine-{{ sid }}">Restock notes only. Unsubscribe any time. <a href="{{ shop.privacy_policy.url | default: '/policies/privacy-policy' }}">Privacy</a></p>
+      <button type="button" class="apex-notify-close-{{ sid }}" data-apex-notify-close>Close</button>
+    {%- endform -%}
+  </div>
+</div>
+<script>
+(function () {
+  var root = document.getElementById('ApexNotify-{{ sid }}');
+  if (!root) return;
+  var title = root.querySelector('[data-apex-notify-title]');
+  var copy = root.querySelector('[data-apex-notify-copy]');
+  var body = root.querySelector('[data-apex-notify-body]');
+  var nameInput = root.querySelector('[data-apex-notify-name]');
+  var email = root.querySelector('input[type="email"]');
+  function openSheet(btn) {
+    var productTitle = btn.getAttribute('data-title') || 'this piece';
+    var handle = btn.getAttribute('data-handle') || '';
+    var url = btn.getAttribute('data-url') || '';
+    if (title) title.textContent = productTitle;
+    if (copy) copy.textContent = "We'll email you when " + productTitle + " is back.";
+    if (nameInput) nameInput.value = 'Restock: ' + productTitle;
+    if (body) body.value = 'Notify me when ' + productTitle + ' (' + handle + ') is back in stock. ' + url;
+    root.hidden = false;
+    root.classList.add('is-open');
+    document.body.style.overflow = 'hidden';
+    if (email) email.focus();
+  }
+  function closeSheet() {
+    root.classList.remove('is-open');
+    root.hidden = true;
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-apex-notify]');
+    if (btn && btn.classList.contains('apex-gnotify-{{ sid }}')) {
+      e.preventDefault();
+      e.stopPropagation();
+      openSheet(btn);
+      return;
+    }
+    if (e.target.closest('[data-apex-notify-close]')) closeSheet();
+    else if (e.target === root) closeSheet();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && root.classList.contains('is-open')) closeSheet();
+  });
 })();
 </script>
 {%- endif -%}
