@@ -421,10 +421,10 @@
         "autoplay_speed": 8,
         "edge_fade": false,
         "bg_color": "#FFFFFF",
-        "text_color": "#D0D0D0",
+        "text_color": "#000000",
         "section_padding": 12,
         "pad_top": 0,
-        "pad_bottom": 0
+        "pad_bottom": 16
       }
     },
     "vanquish_atelier_r4XQki": {
