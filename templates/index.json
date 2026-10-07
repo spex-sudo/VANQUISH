@@ -221,8 +221,8 @@
           "type": "collection",
           "settings": {
             "collection": "lexespecs",
-            "status_text": "UNRELEASED",
-            "status_color": "#4c37d4",
+            "status_text": "ACTIVE",
+            "status_color": "#B6ABFF",
             "cta_label": "Enter",
             "price_from": "",
             "badge_text": "",
@@ -260,7 +260,7 @@
           "settings": {
             "collection": "exodus",
             "status_text": "Exodus",
-            "status_color": "#D2BBFF",
+            "status_color": "#d2bbff",
             "cta_label": "Enter",
             "price_from": "",
             "badge_text": "",
@@ -420,7 +420,7 @@
         "autoplay": false,
         "autoplay_speed": 8,
         "edge_fade": true,
-        "bg_color": "#FFFFFF",
+        "bg_color": "#ffffff",
         "text_color": "#000000",
         "section_padding": 12,
         "pad_top": 0,
