@@ -251,7 +251,7 @@
         "name_tracking": 4,
         "name_transform": "uppercase",
         "autoplay": true,
-        "autoplay_speed": 22,
+        "autoplay_speed": 8,
         "edge_fade": true,
         "bg_color": "#0a0a0a",
         "text_color": "#f4f4f2",
