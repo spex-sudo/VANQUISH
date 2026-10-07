@@ -430,14 +430,6 @@
     "vanquish_atelier_r4XQki": {
       "type": "vanquish-atelier",
       "blocks": {
-        "magazine_6BMkc6": {
-          "type": "magazine",
-          "settings": {
-            "image": "shopify://shop_images/IMG-0590.jpg",
-            "caption": "",
-            "link": ""
-          }
-        },
         "magazine_cHVtmp": {
           "type": "magazine",
           "settings": {
@@ -488,7 +480,6 @@
         }
       },
       "block_order": [
-        "magazine_6BMkc6",
         "magazine_cHVtmp",
         "magazine_AAkwkK",
         "magazine_V4FYyP",
