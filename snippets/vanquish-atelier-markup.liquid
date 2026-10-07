@@ -6,28 +6,28 @@
   data-speed="{{ section.settings.autoplay_speed }}"
   aria-label="{{ section.settings.title | default: 'Product atelier' | escape }}"
 >
-  {%- if section.settings.show_header and section.settings.title != blank -%}
-    <div class="va-header">
-      <h2 class="va-title">{{ section.settings.title | escape }}</h2>
-      <div class="va-nav">
-        <button class="va-btn" type="button" data-va-prev aria-label="Previous">
-          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2.5 4.5 7 9 11.5"/></svg>
-        </button>
-        <button class="va-btn" type="button" data-va-next aria-label="Next">
-          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 2.5 9.5 7 5 11.5"/></svg>
-        </button>
-      </div>
-    </div>
-  {%- elsif section.settings.show_arrows -%}
-    <div class="va-header" style="justify-content:flex-end;padding-bottom:12px;">
-      <div class="va-nav">
-        <button class="va-btn" type="button" data-va-prev aria-label="Previous">
-          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2.5 4.5 7 9 11.5"/></svg>
-        </button>
-        <button class="va-btn" type="button" data-va-next aria-label="Next">
-          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 2.5 9.5 7 5 11.5"/></svg>
-        </button>
-      </div>
+  {%- liquid
+    assign va_show_title = false
+    if section.settings.show_header and section.settings.title != blank
+      assign va_show_title = true
+    endif
+    assign va_show_arrows = section.settings.show_arrows
+  -%}
+  {%- if va_show_title or va_show_arrows -%}
+    <div class="va-header{% unless va_show_title %} va-header--arrows-only{% endunless %}">
+      {%- if va_show_title -%}
+        <h2 class="va-title">{{ section.settings.title | escape }}</h2>
+      {%- endif -%}
+      {%- if va_show_arrows -%}
+        <div class="va-nav">
+          <button class="va-btn" type="button" data-va-prev aria-label="Previous">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2.5 4.5 7 9 11.5"/></svg>
+          </button>
+          <button class="va-btn" type="button" data-va-next aria-label="Next">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 2.5 9.5 7 5 11.5"/></svg>
+          </button>
+        </div>
+      {%- endif -%}
     </div>
   {%- endif -%}
 
@@ -286,3 +286,4 @@
 })();
 </script>
 {%- endif -%}
+

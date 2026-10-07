@@ -68,7 +68,7 @@
     --va-head: {{ heading_font.family | default: 'Bebas Neue' }}, {{ heading_font.fallback_families | default: 'Impact, Arial Narrow Bold' }}, sans-serif;
     --va-gap: {{ section.settings.card_gap }}px;
     --va-pad: {{ section.settings.section_padding }}px;
-    --va-radius: {% if shape == 'squircle' %}{{ section.settings.squircle_radius }}px{% else %}{{ section.settings.landscape_radius }}px{% endif %};
+    --va-radius: {% if shape == 'squircle' %}{{ section.settings.squircle_radius | plus: 0 }}px{% else %}{{ section.settings.landscape_radius | plus: 0 }}px{% endif %};
     --va-card-w: {{ section.settings.card_width }}px;
     --va-ratio: {% if shape == 'landscape' %}{{ section.settings.landscape_ratio }}{% else %}1 / 1{% endif %};
     --va-name-size: {{ section.settings.name_size }}px;
@@ -109,10 +109,15 @@
     flex-shrink: 0;
   }
 
+  #va-{{ sid }} .va-header--arrows-only {
+    justify-content: flex-end;
+    padding-bottom: 12px;
+  }
+
   #va-{{ sid }} .va-btn {
     width: 36px;
     height: 36px;
-    border-radius: 999px;
+    border-radius: min(var(--va-radius), 18px);
     border: 1px solid var(--va-line);
     background: transparent;
     color: var(--va-ink);
@@ -175,6 +180,7 @@
     display: flex;
     flex-direction: column;
     gap: {% if section.settings.show_names %}4px{% else %}0{% endif %};
+    border-radius: var(--va-radius);
     contain: layout style paint;
   }
 
@@ -205,6 +211,7 @@
     height: 100%;
     object-fit: cover;
     display: block;
+    border-radius: inherit;
     pointer-events: none;
   }
 
@@ -261,13 +268,13 @@
     { "type": "header", "content": "Heading" },
     { "type": "checkbox", "id": "show_header", "label": "Show section title", "default": true },
     { "type": "text", "id": "title", "label": "Title", "default": "Atelier" },
-    { "type": "checkbox", "id": "show_arrows", "label": "Show arrows when title is hidden", "default": true },
+    { "type": "checkbox", "id": "show_arrows", "label": "Show arrows", "default": true },
     { "type": "header", "content": "Cards" },
     { "type": "select", "id": "card_shape", "label": "Card shape", "options": [ { "value": "squircle", "label": "Squircle" }, { "value": "landscape", "label": "Landscape square" } ], "default": "squircle" },
     { "type": "select", "id": "landscape_ratio", "label": "Landscape ratio", "options": [ { "value": "4 / 3", "label": "4:3" }, { "value": "16 / 10", "label": "16:10" }, { "value": "3 / 2", "label": "3:2" }, { "value": "16 / 9", "label": "16:9" } ], "default": "4 / 3" },
     { "type": "range", "id": "card_width", "min": 160, "max": 420, "step": 10, "unit": "px", "label": "Card width", "default": 260 },
-    { "type": "range", "id": "squircle_radius", "min": 16, "max": 64, "step": 2, "unit": "px", "label": "Squircle corner", "default": 36 },
-    { "type": "range", "id": "landscape_radius", "min": 8, "max": 40, "step": 2, "unit": "px", "label": "Landscape corner", "default": 18 },
+    { "type": "range", "id": "squircle_radius", "min": 0, "max": 64, "step": 2, "unit": "px", "label": "Squircle corner", "default": 36 },
+    { "type": "range", "id": "landscape_radius", "min": 0, "max": 40, "step": 2, "unit": "px", "label": "Landscape corner", "default": 18 },
     { "type": "range", "id": "card_gap", "min": 8, "max": 40, "step": 2, "unit": "px", "label": "Gap", "default": 20 },
     { "type": "checkbox", "id": "show_names", "label": "Show product / caption name", "default": true },
     { "type": "header", "content": "Typography" },
@@ -296,4 +303,5 @@
   ]
 }
 {% endschema %}
+
 
