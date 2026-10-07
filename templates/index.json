@@ -410,7 +410,7 @@
         "squircle_radius": 20,
         "landscape_radius": 18,
         "card_gap": 40,
-        "show_names": true,
+        "show_names": false,
         "name_font": "anton_n4",
         "heading_font": "bayon_n4",
         "name_size": 22,
