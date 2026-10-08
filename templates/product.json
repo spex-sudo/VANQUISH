@@ -54,7 +54,7 @@
         "single_label": "Single",
         "single_sublabel": "Just this piece",
         "duo_label": "Duo",
-        "duo_ribbon": "Suggested add-on",
+        "duo_ribbon": "MOST POPULAR BUNDLE",
         "duo_force_show": true,
         "duo_show_tag": "",
         "triple_label": "Trio",
@@ -63,15 +63,16 @@
         "triple_show_tag": "",
         "bundle_collections": [
           "maze",
-          "lexe"
+          "lexe",
+          "lexespecs"
         ],
         "bundle_swap": true,
-        "bundle_require_cost": false,
+        "bundle_require_cost": true,
         "pill_thumb_source": "featured",
         "pill_bg": "#f4f4f2",
         "pill_bg_on": "#eaeae6",
         "pill_text": "#1a1a1a",
-        "pill_accent": "#9966cc",
+        "pill_accent": "#DABFFF",
         "atc_text": "Add to cart",
         "soldout_text": "Sold Out",
         "view_bag_text": "View Bag",
