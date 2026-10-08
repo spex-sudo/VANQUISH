@@ -1,21 +1,33 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "sections": {
     "search": {
       "type": "search-header",
+      "name": "Vanquish search header",
       "settings": {
-        "placeholder": "Search"
+        "placeholder": "Search by name, color, drop…"
       }
     },
     "main": {
       "type": "search-results",
+      "name": "Vanquish search results",
       "settings": {
-        "hot_title": "Hot List",
-        "discovery_keywords": "new, sale, black, leather, rings, wallet",
         "per_page": 24,
         "pc_cols": 4,
-        "max_w": 1100
+        "max_w": 1280
       }
     }
   },
-  "order": ["search", "main"]
+  "order": [
+    "search",
+    "main"
+  ]
 }
