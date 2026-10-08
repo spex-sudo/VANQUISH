@@ -397,7 +397,9 @@
           "black-high-waisted-wide-leg-jeans-women",
           "question-mark-jacquard-black-knitted-sweater-cardigan-jacket",
           "skeleton-digital-printed-patchwork-stand-up-collar-leather-jacket",
-          "leopard-faux-fur-hooded-outerwear"
+          "leopard-faux-fur-hooded-outerwear",
+          "retro-large-frame-oval-sunglasses",
+          "large-frame-sports-sunglasses-personalized-and-novel-cat-eye-alien-cycling-glasses"
         ],
         "collection": "",
         "card_count": 10,
@@ -406,7 +408,7 @@
         "show_arrows": false,
         "card_shape": "squircle",
         "landscape_ratio": "4 / 3",
-        "card_width": 260,
+        "card_width": 240,
         "squircle_radius": 28,
         "landscape_radius": 18,
         "card_gap": 40,
