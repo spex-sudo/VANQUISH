@@ -480,6 +480,41 @@
 .ap-link-content{{ sid }} li{margin-bottom:3px}
 .ap-link-content{{ sid }} img{max-width:100%;width:200px;height:auto;border-radius:6px;margin:4px 0 10px;display:block}
 
+
+/* ─── Column composition (sticky bar untouched) ─── */
+.ap-col{{ sid }}{display:flex;flex-direction:column;gap:0}
+.ap-note{{ sid }}{margin:0 0 22px;font-size:14px;line-height:1.4;color:#111}
+.ap-note{{ sid }} a,.ap-note{{ sid }} u{color:inherit;text-underline-offset:2px}
+.ap-size-lbl{{ sid }}{display:block;margin:0 0 10px;font-size:18px;font-weight:700;letter-spacing:-0.02em;color:#111}
+.ap-sizes{{ sid }}{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px}
+.ap-sizes{{ sid }} .ap-stack-btn{{ sid }}{
+  width:58px;height:48px;padding:0;border-radius:2px;border:1px solid #d5d5d5;background:#fff;color:#111;
+  font-size:14px;font-weight:600;letter-spacing:.02em;
+  transition:background .18s ease,border-color .18s ease,transform .16s cubic-bezier(.16,1,.3,1);
+}
+.ap-sizes{{ sid }} .ap-stack-btn{{ sid }}:hover{border-color:#111}
+.ap-sizes{{ sid }} .ap-stack-btn{{ sid }}.on{background:#ffe500;border-color:#e3cc00;color:#111;border-width:1px;padding:0}
+.ap-sizes{{ sid }} .ap-stack-btn{{ sid }}:active{transform:scale(.97)}
+.ap-col-atc{{ sid }}{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;
+  margin:2px 0 8px;padding:16px 18px;border:0;background:#ffe500;color:#111;cursor:pointer;
+  font:inherit;font-size:15px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+  transition:filter .18s ease,transform .16s cubic-bezier(.16,1,.3,1);
+}
+.ap-col-atc{{ sid }}:hover{filter:brightness(.97)}
+.ap-col-atc{{ sid }}:active{transform:scale(.985)}
+.ap-col-atc{{ sid }}:disabled{background:#f3f3f3;color:#8a8a8a;cursor:not-allowed}
+.ap-col-atc{{ sid }} span:last-child{font-weight:700;letter-spacing:0;text-transform:none}
+.ap-acc{{ sid }}{border-top:1px solid #e6e6e6}
+.ap-acc{{ sid }}:last-child{border-bottom:1px solid #e6e6e6}
+.ap-acc{{ sid }} .ap-link-trig{{ sid }}{
+  width:100%;justify-content:space-between;padding:18px 0;font-size:14px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+}
+.ap-acc{{ sid }} .ap-link-trig{{ sid }} svg{width:14px;height:14px;transition:transform .28s cubic-bezier(.16,1,.3,1)}
+.ap-acc{{ sid }} .ap-link-trig{{ sid }}.open svg{transform:rotate(180deg)}
+.ap-acc{{ sid }} .ap-link-body{{ sid }}.open{margin-top:0}
+.ap-acc{{ sid }} .ap-link-content{{ sid }}{padding:0 0 16px;max-width:none}
+
 /* ══════════════════════════════════════
    STICKY BAR — never moves, conversion-tuned
 ══════════════════════════════════════ */
@@ -919,33 +954,91 @@
         {%- form 'product', product, id: form_id, novalidate: 'novalidate' -%}
           <input type="hidden" name="id" id="ap-vid{{ sid }}" value="{{ current_variant.id }}">
           <input type="hidden" name="quantity" id="ap-qty{{ sid }}" value="1">
-
-          {%- unless product.has_only_default_variant -%}
-            {%- for option in product.options_with_values -%}
-              {%- assign odn = option.name | downcase -%}
-              <label class="ap-opt-lbl{{ sid }}">{{ option.name }}</label>
-
-              {%- if odn == 'color' or odn == 'colour' -%}
-                <div class="ap-swatches{{ sid }}" data-opt="{{ forloop.index }}">
-                  {%- for val in option.values -%}
-                    <button type="button" data-vbtn class="ap-swatch{{ sid }}{% if option.selected_value == val %} on{% endif %}"
-                      data-val="{{ val }}" title="{{ val }}" aria-label="{{ val }}"
-                      style="background:{{ val | handle }};"></button>
-                  {%- endfor -%}
-                </div>
-              {%- else -%}
-                <div class="ap-stack{{ sid }}" data-opt="{{ forloop.index }}" role="radiogroup" aria-label="{{ option.name }}">
-                  {%- for val in option.values -%}
-                    <button type="button" data-vbtn
-                      class="ap-stack-btn{{ sid }}{% if option.selected_value == val %} on{% endif %}"
-                      data-val="{{ val }}" role="radio"
-                      aria-checked="{% if option.selected_value == val %}true{% else %}false{% endif %}">{{ val }}</button>
-                  {%- endfor -%}
-                </div>
-              {%- endif -%}
+          <div class="ap-col{{ sid }}">
+            {%- for block in section.blocks -%}
+              {%- case block.type -%}
+                {%- when 'checkout_note' -%}
+                  <p class="ap-note{{ sid }}" {{ block.shopify_attributes }}>
+                    {%- assign note = block.settings.text | default: 'Shipping calculated at checkout.' -%}
+                    {%- assign word = block.settings.link_word -%}
+                    {%- if word != blank and note contains word -%}
+                      {%- if block.settings.link != blank -%}
+                        {{ note | replace: word, '<a href="' | append: block.settings.link | append: '">' | append: word | append: '</a>' }}
+                      {%- else -%}
+                        {{ note | replace: word, '<u>' | append: word | append: '</u>' }}
+                      {%- endif -%}
+                    {%- else -%}
+                      {{ note }}
+                    {%- endif -%}
+                  </p>
+                {%- when 'variant_picker' -%}
+                  <div {{ block.shopify_attributes }}>
+                    {%- unless product.has_only_default_variant -%}
+                      {%- for option in product.options_with_values -%}
+                        {%- assign odn = option.name | downcase -%}
+                        <span class="ap-size-lbl{{ sid }}">{{ option.name }}</span>
+                        {%- if odn == 'color' or odn == 'colour' -%}
+                          <div class="ap-swatches{{ sid }}" data-opt="{{ forloop.index }}">
+                            {%- for val in option.values -%}
+                              <button type="button" data-vbtn class="ap-swatch{{ sid }}{% if option.selected_value == val %} on{% endif %}" data-val="{{ val }}" title="{{ val }}" aria-label="{{ val }}" style="background:{{ val | handle }};"></button>
+                            {%- endfor -%}
+                          </div>
+                        {%- else -%}
+                          <div class="ap-stack{{ sid }} ap-sizes{{ sid }}" data-opt="{{ forloop.index }}" role="radiogroup" aria-label="{{ option.name }}">
+                            {%- for val in option.values -%}
+                              <button type="button" data-vbtn class="ap-stack-btn{{ sid }}{% if option.selected_value == val %} on{% endif %}" data-val="{{ val }}" role="radio" aria-checked="{% if option.selected_value == val %}true{% else %}false{% endif %}">{{ val }}</button>
+                            {%- endfor -%}
+                          </div>
+                        {%- endif -%}
+                      {%- endfor -%}
+                    {%- endunless -%}
+                  </div>
+                {%- when 'column_atc' -%}
+                  <button type="button" class="ap-col-atc{{ sid }}" data-col-atc {{ block.shopify_attributes }} {% unless current_variant.available %}disabled{% endunless %}>
+                    <span data-col-atc-label>{{ block.settings.label | default: 'Add to cart' }}</span>
+                    <span id="ap-col-price{{ sid }}">{{ current_variant.price | money }}</span>
+                  </button>
+                {%- when 'accordion' -%}
+                  <div class="ap-acc{{ sid }} ap-link-row{{ sid }}" {{ block.shopify_attributes }}>
+                    <button type="button" class="ap-link-trig{{ sid }}" data-link-toggle="acc-{{ block.id }}" aria-expanded="false">
+                      <span>{{ block.settings.title | escape }}</span>
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div class="ap-link-body{{ sid }}" id="acc-{{ block.id }}">
+                      <div class="ap-link-inner{{ sid }}"><div class="ap-link-content{{ sid }}">
+                        {%- if block.settings.source == 'description' -%}
+                          {{ product.description }}
+                        {%- else -%}
+                          {{ block.settings.content }}
+                        {%- endif -%}
+                      </div></div>
+                    </div>
+                  </div>
+                {%- when 'size_guide_drawer' -%}
+                  {%- if show_sg -%}
+                    <div class="ap-acc{{ sid }} ap-link-row{{ sid }}" {{ block.shopify_attributes }}>
+                      {%- if sg_redirect != blank -%}
+                        <a class="ap-link-trig{{ sid }}" href="{{ sg_redirect }}"><span>{{ sg_label }}</span><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></a>
+                      {%- else -%}
+                        <button type="button" class="ap-link-trig{{ sid }}" data-link-toggle="sg{{ sid }}" aria-expanded="false"><span>{{ sg_label }}</span><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></button>
+                        <div class="ap-link-body{{ sid }}" id="sg{{ sid }}"><div class="ap-link-inner{{ sid }}"><div class="ap-link-content{{ sid }}">{{ sg_content }}</div></div></div>
+                      {%- endif -%}
+                    </div>
+                  {%- endif -%}
+                {%- when 'shipping' -%}
+                  {%- if show_sh -%}
+                    <div class="ap-acc{{ sid }} ap-link-row{{ sid }}" {{ block.shopify_attributes }}>
+                      {%- if sh_redirect != blank -%}
+                        <a class="ap-link-trig{{ sid }}" href="{{ sh_redirect }}"><span>{{ sh_label }}</span><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></a>
+                      {%- else -%}
+                        <button type="button" class="ap-link-trig{{ sid }}" data-link-toggle="sh{{ sid }}" aria-expanded="false"><span>{{ sh_label }}</span><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></button>
+                        <div class="ap-link-body{{ sid }}" id="sh{{ sid }}"><div class="ap-link-inner{{ sid }}"><div class="ap-link-content{{ sid }}">{%- if sh_image != blank -%}<img src="{{ sh_image | image_url: width: 600 }}" alt="{{ sh_label | escape }}" loading="lazy">{%- endif -%}{{ sh_content }}</div></div></div>
+                      {%- endif -%}
+                    </div>
+                  {%- endif -%}
+              {%- endcase -%}
             {%- endfor -%}
-          {%- endunless -%}
-
+          </div>
           <input type="submit" id="ap-fsub{{ sid }}" style="display:none" tabindex="-1" aria-hidden="true">
         {%- endform -%}
 
@@ -958,64 +1051,6 @@
             <input type="email" id="ap-claim-email{{ sid }}" name="lx_claim_email" placeholder="Email to claim" autocomplete="email">
             <button type="button" class="ap-claim-btn{{ sid }}" id="ap-claim-btn{{ sid }}" disabled>Claim free</button>
             <p class="ap-claim-err{{ sid }}" id="ap-claim-err{{ sid }}" role="alert"></p>
-          </div>
-        {%- endif -%}
-
-        {%- if show_sg or show_sh or show_desc_drawer -%}
-          <div class="ap-links{{ sid }}">
-            {%- if show_desc_drawer -%}
-              <div class="ap-link-row{{ sid }}">
-                <button type="button" class="ap-link-trig{{ sid }}" data-link-toggle="desc{{ sid }}" aria-expanded="false">
-                  <span>{{ desc_label }}</span>
-                  <svg viewBox="0 0 24 12" aria-hidden="true"><line x1="1" y1="6" x2="22" y2="6"/><polyline points="17 1 22 6 17 11"/></svg>
-                </button>
-                <div class="ap-link-body{{ sid }}" id="desc{{ sid }}">
-                  <div class="ap-link-inner{{ sid }}"><div class="ap-link-content{{ sid }}">{{ product.description | replace: '<img ', '<img decoding="async" fetchpriority="low" ' }}</div></div>
-                </div>
-              </div>
-            {%- endif -%}
-            {%- if show_sg -%}
-              <div class="ap-link-row{{ sid }}">
-                {%- if sg_redirect != blank -%}
-                  <a class="ap-link-trig{{ sid }}" href="{{ sg_redirect }}">
-                    <span>{{ sg_label }}</span>
-                    <svg viewBox="0 0 24 12" aria-hidden="true"><line x1="1" y1="6" x2="22" y2="6"/><polyline points="17 1 22 6 17 11"/></svg>
-                  </a>
-                {%- else -%}
-                  <button type="button" class="ap-link-trig{{ sid }}" data-link-toggle="sg{{ sid }}" aria-expanded="false">
-                    <span>{{ sg_label }}</span>
-                    <svg viewBox="0 0 24 12" aria-hidden="true"><line x1="1" y1="6" x2="22" y2="6"/><polyline points="17 1 22 6 17 11"/></svg>
-                  </button>
-                  <div class="ap-link-body{{ sid }}" id="sg{{ sid }}">
-                    <div class="ap-link-inner{{ sid }}"><div class="ap-link-content{{ sid }}">
-                      {%- if sg_image != blank -%}<img src="{{ sg_image | image_url: width: 600 }}" width="200" height="{{ 200 | divided_by: sg_image.aspect_ratio | ceil }}" alt="{{ sg_label | escape }}" loading="lazy" decoding="async">{%- endif -%}
-                      {{ sg_content }}
-                    </div></div>
-                  </div>
-                {%- endif -%}
-              </div>
-            {%- endif -%}
-            {%- if show_sh -%}
-              <div class="ap-link-row{{ sid }}">
-                {%- if sh_redirect != blank -%}
-                  <a class="ap-link-trig{{ sid }}" href="{{ sh_redirect }}">
-                    <span>{{ sh_label }}</span>
-                    <svg viewBox="0 0 24 12" aria-hidden="true"><line x1="1" y1="6" x2="22" y2="6"/><polyline points="17 1 22 6 17 11"/></svg>
-                  </a>
-                {%- else -%}
-                  <button type="button" class="ap-link-trig{{ sid }}" data-link-toggle="sh{{ sid }}" aria-expanded="false">
-                    <span>{{ sh_label }}</span>
-                    <svg viewBox="0 0 24 12" aria-hidden="true"><line x1="1" y1="6" x2="22" y2="6"/><polyline points="17 1 22 6 17 11"/></svg>
-                  </button>
-                  <div class="ap-link-body{{ sid }}" id="sh{{ sid }}">
-                    <div class="ap-link-inner{{ sid }}"><div class="ap-link-content{{ sid }}">
-                      {%- if sh_image != blank -%}<img src="{{ sh_image | image_url: width: 600 }}" width="200" height="{{ 200 | divided_by: sh_image.aspect_ratio | ceil }}" alt="{{ sh_label | escape }}" loading="lazy" decoding="async">{%- endif -%}
-                      {{ sh_content }}
-                    </div></div>
-                  </div>
-                {%- endif -%}
-              </div>
-            {%- endif -%}
           </div>
         {%- endif -%}
 
@@ -1624,6 +1659,8 @@
       atcPrice.classList.add('flash');
       setTimeout(function(){atcPrice.textContent=money(total);atcPrice.classList.remove('flash');},120);
     }
+    var colPrice=document.getElementById('ap-col-price'+S);
+    if(colPrice)colPrice.textContent=money(v.price);
     if(!renderPrice.busy){renderPrice.busy=true;renderPills(v);updateTotals();if(BP.open)syncThisPieceRow(v);renderPrice.busy=false;}
     syncAtc();
   }
@@ -1675,6 +1712,8 @@
       return;
     }
     if(atc)atc.disabled=!v.available;
+    var colAtc=document.querySelector('[data-col-atc]');
+    if(colAtc)colAtc.disabled=!v.available;
     if(atcLbl)atcLbl.textContent=v.available?{{ section.settings.atc_text | json }}:{{ section.settings.soldout_text | json }};
     if(vid)vid.value=v.id;
     resetAdded();
@@ -2383,6 +2422,26 @@
       { "type": "richtext", "id": "content", "label": "Content" }
     ]}
   ],
+
+    { "type": "checkout_note", "name": "Checkout note", "settings": [
+      { "type": "text", "id": "text", "label": "Text", "default": "Shipping calculated at checkout." },
+      { "type": "text", "id": "link_word", "label": "Word to underline", "default": "Shipping" },
+      { "type": "url", "id": "link", "label": "Optional link" }
+    ]},
+    { "type": "variant_picker", "name": "Size picker", "limit": 1, "settings": [
+      { "type": "paragraph", "content": "Square option buttons. Remove this block to hide them. The sticky bar is unchanged." }
+    ]},
+    { "type": "column_atc", "name": "Column add to cart", "limit": 1, "settings": [
+      { "type": "text", "id": "label", "label": "Button label", "default": "Add to cart" }
+    ]},
+    { "type": "accordion", "name": "Accordion", "settings": [
+      { "type": "text", "id": "title", "label": "Title", "default": "Details" },
+      { "type": "select", "id": "source", "label": "Content", "default": "custom", "options": [
+        { "value": "custom", "label": "Custom text" },
+        { "value": "description", "label": "Product description" }
+      ]},
+      { "type": "richtext", "id": "content", "label": "Custom text", "default": "<p>Details for this piece.</p>" }
+    ]},
   "presets": [{
     "name": "VANQUISH PRODUCT3",
     "settings": {

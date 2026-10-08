@@ -12,6 +12,14 @@
     "product_information_FLKeri": {
       "type": "product-information",
       "blocks": {
+        "note_col": {
+          "type": "checkout_note",
+          "settings": { "text": "Shipping calculated at checkout.", "link_word": "Shipping" }
+        },
+        "sizes_col": { "type": "variant_picker", "settings": {} },
+        "atc_col": { "type": "column_atc", "settings": { "label": "Add to cart" } },
+        "details_col": { "type": "accordion", "settings": { "title": "Details", "source": "description" } },
+        "guide_col": { "type": "accordion", "settings": { "title": "Size guide", "source": "custom", "content": "<p>Measurements and fit notes for this piece.</p>" } },
         "shipping_LatLLt": {
           "type": "shipping",
           "settings": {
@@ -23,6 +31,11 @@
         }
       },
       "block_order": [
+        "note_col",
+        "sizes_col",
+        "atc_col",
+        "details_col",
+        "guide_col",
         "shipping_LatLLt"
       ],
       "name": "VANQUISH PRODUCT3",
