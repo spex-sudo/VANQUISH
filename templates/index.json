@@ -222,7 +222,7 @@
           "settings": {
             "collection": "lexespecs",
             "status_text": "ACTIVE",
-            "status_color": "#B6ABFF",
+            "status_color": "#b6abff",
             "cta_label": "Enter",
             "price_from": "",
             "badge_text": "",
@@ -241,7 +241,7 @@
           "settings": {
             "collection": "exodus",
             "status_text": "ACTIVE",
-            "status_color": "#B6ABFF",
+            "status_color": "#b6abff",
             "cta_label": "Enter",
             "price_from": "",
             "badge_text": "",
@@ -412,7 +412,7 @@
         "card_gap": 40,
         "show_names": false,
         "name_font": "anton_n4",
-        "heading_font": "bayon_n4",
+        "heading_font": "syne_n8",
         "name_size": 22,
         "title_size": 28,
         "name_tracking": 4,
