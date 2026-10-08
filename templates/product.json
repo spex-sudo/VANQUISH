@@ -12,62 +12,6 @@
     "product_information_7L3YfD": {
       "type": "product-information",
       "blocks": {
-        "bullet_iYENft": {
-          "type": "bullet",
-          "settings": {
-            "label": "Quilted bomba"
-          }
-        },
-        "bullet_min7bg": {
-          "type": "bullet",
-          "settings": {
-            "label": "Boxy fit"
-          }
-        },
-        "bullet_9AY3YD": {
-          "type": "bullet",
-          "settings": {
-            "label": "YKK metal zipper"
-          }
-        },
-        "bullet_GEnK89": {
-          "type": "bullet",
-          "settings": {
-            "label": "100% poly"
-          }
-        },
-        "bullet_d6Ate9": {
-          "type": "bullet",
-          "settings": {
-            "label": "Spike embroidery on collar"
-          }
-        },
-        "bullet_7PgwYV": {
-          "type": "bullet",
-          "settings": {
-            "label": "Ribbed collar, cuffs and hem"
-          }
-        },
-        "bullet_8VmTBA": {
-          "type": "bullet",
-          "settings": {
-            "label": "Made in Turkey"
-          }
-        },
-        "narrative_zF4mUn": {
-          "type": "narrative",
-          "settings": {
-            "text": "<p>This one man.</p><p>It's just incredible.</p><p>I love wearing it.</p>"
-          }
-        },
-        "size_guide_drawer_6bR3Qn": {
-          "type": "size_guide_drawer",
-          "settings": {
-            "title": "Size Guide",
-            "content": "<p>S — Chest 88–92cm</p><p>M — Chest 93–99cm</p><p>L — Chest 100–106cm</p><p>XL — Chest 107–114cm</p>",
-            "redirect_url": ""
-          }
-        },
         "shipping_PEFGFR": {
           "type": "shipping",
           "settings": {
@@ -78,15 +22,6 @@
         }
       },
       "block_order": [
-        "bullet_iYENft",
-        "bullet_min7bg",
-        "bullet_9AY3YD",
-        "bullet_GEnK89",
-        "bullet_d6Ate9",
-        "bullet_7PgwYV",
-        "bullet_8VmTBA",
-        "narrative_zF4mUn",
-        "size_guide_drawer_6bR3Qn",
         "shipping_PEFGFR"
       ],
       "name": "VANQUISH PRODUCT3",
@@ -98,7 +33,7 @@
         "bar_height": 160,
         "bg_color": "#ffffff",
         "text_color": "#111111",
-        "accent_color": "#DABFFF",
+        "accent_color": "#dabfff",
         "heading_font": "syne_n8",
         "body_font": "sofia_sans_condensed_n4",
         "name_size": 17,
