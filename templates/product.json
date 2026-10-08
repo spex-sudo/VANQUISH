@@ -9,80 +9,130 @@
  */
 {
   "sections": {
-    "product_information_FLKeri": {
+    "product_information_7L3YfD": {
       "type": "product-information",
       "blocks": {
-        "note_col": {
-          "type": "checkout_note",
-          "settings": { "text": "Shipping calculated at checkout.", "link_word": "Shipping" }
+        "bullet_iYENft": {
+          "type": "bullet",
+          "settings": {
+            "label": "Quilted bomba"
+          }
         },
-        "sizes_col": { "type": "variant_picker", "settings": {} },
-        "atc_col": { "type": "column_atc", "settings": { "label": "Add to cart" } },
-        "details_col": { "type": "accordion", "settings": { "title": "Details", "source": "description" } },
-        "guide_col": { "type": "accordion", "settings": { "title": "Size guide", "source": "custom", "content": "<p>Measurements and fit notes for this piece.</p>" } },
-        "shipping_LatLLt": {
+        "bullet_min7bg": {
+          "type": "bullet",
+          "settings": {
+            "label": "Boxy fit"
+          }
+        },
+        "bullet_9AY3YD": {
+          "type": "bullet",
+          "settings": {
+            "label": "YKK metal zipper"
+          }
+        },
+        "bullet_GEnK89": {
+          "type": "bullet",
+          "settings": {
+            "label": "100% poly"
+          }
+        },
+        "bullet_d6Ate9": {
+          "type": "bullet",
+          "settings": {
+            "label": "Spike embroidery on collar"
+          }
+        },
+        "bullet_7PgwYV": {
+          "type": "bullet",
+          "settings": {
+            "label": "Ribbed collar, cuffs and hem"
+          }
+        },
+        "bullet_8VmTBA": {
+          "type": "bullet",
+          "settings": {
+            "label": "Made in Turkey"
+          }
+        },
+        "narrative_zF4mUn": {
+          "type": "narrative",
+          "settings": {
+            "text": "<p>This one man.</p><p>It's just incredible.</p><p>I love wearing it.</p>"
+          }
+        },
+        "size_guide_drawer_6bR3Qn": {
+          "type": "size_guide_drawer",
+          "settings": {
+            "title": "Size Guide",
+            "content": "<p>S — Chest 88–92cm</p><p>M — Chest 93–99cm</p><p>L — Chest 100–106cm</p><p>XL — Chest 107–114cm</p>",
+            "redirect_url": ""
+          }
+        },
+        "shipping_PEFGFR": {
           "type": "shipping",
           "settings": {
             "title": "Shipping & Returns",
-            "content": "<p>Free Standard Shipping On Eligible Orders.</p><p>30-day returns — items must be unworn with original tags.</p>",
-            "image": "shopify://shop_images/66DF17D4-1451-49D4-81A7-8EA0B47D6FB5.jpg",
+            "content": "<p>Free standard shipping on orders over $80.</p><p>30-day returns — items must be unworn with original tags.</p>",
             "redirect_url": ""
           }
         }
       },
       "block_order": [
-        "note_col",
-        "sizes_col",
-        "atc_col",
-        "details_col",
-        "guide_col",
-        "shipping_LatLLt"
+        "bullet_iYENft",
+        "bullet_min7bg",
+        "bullet_9AY3YD",
+        "bullet_GEnK89",
+        "bullet_d6Ate9",
+        "bullet_7PgwYV",
+        "bullet_8VmTBA",
+        "narrative_zF4mUn",
+        "size_guide_drawer_6bR3Qn",
+        "shipping_PEFGFR"
       ],
       "name": "VANQUISH PRODUCT3",
       "settings": {
         "back_url": "/",
-        "back_label": "HOME",
-        "sticky_top": 102,
+        "back_label": "Home",
+        "sticky_top": 44,
         "panel_padding": 20,
         "bar_height": 160,
         "bg_color": "#ffffff",
         "text_color": "#111111",
-        "accent_color": "#a45ab8",
-        "heading_font": "barlow_condensed_n6",
-        "body_font": "system_ui_n4",
-        "name_size": 40,
-        "price_size": 26,
+        "accent_color": "#DABFFF",
+        "heading_font": "syne_n8",
+        "body_font": "sofia_sans_condensed_n4",
+        "name_size": 17,
+        "price_size": 23,
         "bullet_size": 12,
-        "description_mode": "drawer",
-        "description_label": "Size & Description",
+        "description_mode": "inline",
+        "description_label": "Description",
         "show_stock": true,
         "low_stock_threshold": 25,
         "show_trust_strip": false,
-        "trust_1": "Free shipping over $77",
+        "trust_1": "Free shipping over $80",
         "trust_2": "30-day returns",
         "trust_3": "Authentic",
         "show_pill": true,
+        "main_show_price": false,
+        "main_hide_options": true,
         "single_label": "Single",
         "single_sublabel": "Just this piece",
         "duo_label": "Duo",
-        "duo_ribbon": "Suggested add-on",
-        "duo_force_show": true,
+        "duo_ribbon": "",
+        "duo_force_show": false,
         "duo_show_tag": "",
         "triple_label": "Trio",
         "triple_ribbon": "",
-        "triple_force_show": true,
+        "triple_force_show": false,
         "triple_show_tag": "",
-        "bundle_collections": [
-          "maze",
-          "lexe"
-        ],
+        "bundle_collections": [],
         "bundle_swap": true,
         "bundle_require_cost": false,
         "pill_thumb_source": "featured",
         "pill_bg": "#f4f4f2",
         "pill_bg_on": "#eaeae6",
         "pill_text": "#1a1a1a",
-        "pill_accent": "#9966cc",
+        "pill_accent": "#1a1a1a",
         "atc_text": "Add to cart",
         "soldout_text": "Sold Out",
         "view_bag_text": "View Bag",
@@ -93,29 +143,27 @@
         "atc_radius": 10,
         "ajax_cart": true,
         "show_brand_overlay": true,
-        "script_font": "vina_sans_n4",
-        "brand_name_override": "LEXE",
-        "brand_logo": "shopify://shop_images/9684808B-7809-4973-B826-1D9D2D037983.png",
-        "brand_text_color": "#f3f0f0",
+        "script_font": "sofia_sans_condensed_n4",
+        "brand_name_override": "",
+        "brand_text_color": "#111111",
         "brand_sep_color": "#111111",
-        "brand_name_style": "normal",
+        "brand_name_style": "italic",
         "brand_name_weight": "400",
         "brand_name_size": 30,
         "brand_name_size_mobile": 22,
-        "brand_logo_height": 60,
-        "brand_logo_height_mobile": 45,
+        "brand_logo_height": 22,
+        "brand_logo_height_mobile": 18,
         "brand_logo_opacity": 90,
         "brand_sep_height": 26,
         "brand_sep_height_mobile": 20,
-        "brand_sep_opacity": 10,
-        "brand_gap": 8,
-        "brand_gap_mobile": 7,
+        "brand_sep_opacity": 55,
+        "brand_gap": 12,
+        "brand_gap_mobile": 9,
         "brand_bottom": 52,
-        "brand_bottom_mobile": 16,
-        "brand_left": 14,
-        "brand_left_mobile": 21,
-        "brand_letter_spacing": "0em",
-        "main_hide_options": true
+        "brand_bottom_mobile": 46,
+        "brand_left": 16,
+        "brand_left_mobile": 14,
+        "brand_letter_spacing": "0em"
       }
     },
     "vanquish_transittimer_4G4aRN": {
@@ -351,7 +399,7 @@
     }
   },
   "order": [
-    "product_information_FLKeri",
+    "product_information_7L3YfD",
     "vanquish_transittimer_4G4aRN",
     "177726641206da3e13",
     "vanquish_bundle_pdp",
