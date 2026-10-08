@@ -26,7 +26,7 @@
         "bg_color": "#ffffff",
         "fg_color": "#000000",
         "muted_color": "#86868b",
-        "accent_color": "#BEB2FF",
+        "accent_color": "#beb2ff",
         "drawer_bg": "#ffffff",
         "drawer_fg": "#1d1d1f",
         "drawer_radius": 0,
@@ -70,10 +70,19 @@
     "signature_header_8dQTVX": {
       "type": "signature-header",
       "blocks": {
+        "flash_notif_3qEzrh": {
+          "type": "flash_notif",
+          "settings": {
+            "text": "Command The Room",
+            "url": "",
+            "bg_color": "#111111",
+            "text_color": "#ffffff"
+          }
+        },
         "flash_notif_CRL8Pq": {
           "type": "flash_notif",
           "settings": {
-            "text": "Dominate The Room",
+            "text": "Dominate",
             "url": "",
             "bg_color": "#530000",
             "text_color": "#ffffff"
@@ -172,6 +181,7 @@
         }
       },
       "block_order": [
+        "flash_notif_3qEzrh",
         "flash_notif_CRL8Pq",
         "flash_notif_GP4nBT",
         "flash_notif_7gJABh",
@@ -227,7 +237,7 @@
         "text_logo_spacing": 3,
         "search_placeholder": "Search products…",
         "icon_size": 20,
-        "badge_bg_color": "#BEB2FF",
+        "badge_bg_color": "#beb2ff",
         "badge_text_color": "#ffffff",
         "custom_cart_url": "",
         "footer_link_1_text": "Contact",
