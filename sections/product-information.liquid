@@ -950,7 +950,7 @@
           {% if is_low_stock %}Only {{ inv }} left{% endif %}
         </div>
 
-        {%- if section.settings.main_hide_options -%}<style>.ap-right-body{{ sid }} .ap-opt-lbl{{ sid }},.ap-right-body{{ sid }} .ap-swatches{{ sid }},.ap-right-body{{ sid }} .ap-stack{{ sid }}{display:none !important}</style>{%- endif -%}
+        {%- if section.settings.main_hide_options -%}<style>.ap-right-body{{ sid }} .ap-opt-lbl{{ sid }},.ap-right-body{{ sid }} .ap-swatches{{ sid }}{display:none !important}</style>{%- endif -%}
         {%- form 'product', product, id: form_id, novalidate: 'novalidate' -%}
           <input type="hidden" name="id" id="ap-vid{{ sid }}" value="{{ current_variant.id }}">
           <input type="hidden" name="quantity" id="ap-qty{{ sid }}" value="1">
