@@ -12,22 +12,92 @@
     "product_information_FLKeri": {
       "type": "product-information",
       "blocks": {
+        "back_main": {
+          "type": "back",
+          "settings": {
+            "column": "left"
+          }
+        },
+        "title_main": {
+          "type": "title",
+          "settings": {
+            "column": "left",
+            "eyebrow": ""
+          }
+        },
+        "note_ship": {
+          "type": "note",
+          "settings": {
+            "column": "right",
+            "text": "<p><a href=\"\/policies\/shipping-policy\">Shipping<\/a> calculated at checkout.<\/p>"
+          }
+        },
+        "stock_main": {
+          "type": "stock",
+          "settings": {
+            "column": "right"
+          }
+        },
+        "variant_main": {
+          "type": "variant_picker",
+          "settings": {
+            "column": "right",
+            "hide_single": true,
+            "show_selected": true,
+            "color_style": "image",
+            "size_link_label": "Size guide"
+          }
+        },
+        "buy_main": {
+          "type": "buy",
+          "settings": {
+            "column": "right",
+            "show_price": true,
+            "show_qty": false,
+            "style": "ink"
+          }
+        },
+        "claim_main": {
+          "type": "claim",
+          "settings": {
+            "column": "right"
+          }
+        },
+        "desc_row": {
+          "type": "collapsible",
+          "settings": {
+            "column": "right",
+            "heading": "Size & Description",
+            "source": "description",
+            "open": false,
+            "is_size_guide": true
+          }
+        },
         "shipping_LatLLt": {
           "type": "shipping",
           "settings": {
             "title": "Shipping & Returns",
-            "content": "<p>Free Standard Shipping On Eligible Orders.</p><p>30-day returns — items must be unworn with original tags.</p>",
-            "image": "shopify://shop_images/66DF17D4-1451-49D4-81A7-8EA0B47D6FB5.jpg",
-            "redirect_url": ""
+            "content": "<p>Free Standard Shipping On Eligible Orders.<\/p><p>30-day returns — items must be unworn with original tags.<\/p>",
+            "image": "shopify:\/\/shop_images\/66DF17D4-1451-49D4-81A7-8EA0B47D6FB5.jpg",
+            "redirect_url": "",
+            "column": "right"
           }
         }
       },
       "block_order": [
+        "back_main",
+        "title_main",
+        "note_ship",
+        "stock_main",
+        "variant_main",
+        "buy_main",
+        "claim_main",
+        "desc_row",
         "shipping_LatLLt"
       ],
       "name": "VANQUISH PRODUCT3",
       "settings": {
-        "back_url": "/",
+        "back_url": "\/",
         "back_label": "HOME",
         "sticky_top": 102,
         "panel_padding": 20,
@@ -54,7 +124,7 @@
         "single_label": "Single",
         "single_sublabel": "Just this piece",
         "duo_label": "Duo",
-        "duo_ribbon": "MOST POPULAR BUNDLE",
+        "duo_ribbon": "COMPLETE THE LOOK",
         "duo_force_show": true,
         "duo_show_tag": "",
         "triple_label": "Trio",
@@ -85,7 +155,7 @@
         "show_brand_overlay": true,
         "script_font": "vina_sans_n4",
         "brand_name_override": "LEXE",
-        "brand_logo": "shopify://shop_images/9684808B-7809-4973-B826-1D9D2D037983.png",
+        "brand_logo": "shopify:\/\/shop_images\/9684808B-7809-4973-B826-1D9D2D037983.png",
         "brand_text_color": "#f3f0f0",
         "brand_sep_color": "#111111",
         "brand_name_style": "normal",
@@ -104,7 +174,15 @@
         "brand_bottom_mobile": 8,
         "brand_left": 39,
         "brand_left_mobile": 21,
-        "brand_letter_spacing": "0em"
+        "brand_letter_spacing": "0em",
+        "selected_fill": "#9966cc",
+        "selected_text": "#111111",
+        "box_border": "#cfcfcf",
+        "divider_color": "#e2e2e2",
+        "box_radius": 0,
+        "block_gap": 20,
+        "right_align": "center",
+        "right_pad_desktop": 64
       }
     },
     "vanquish_transittimer_4G4aRN": {
@@ -282,7 +360,7 @@
         "title_size": 20,
         "card_name_size": 12,
         "card_width": 240,
-        "card_ratio": "2/3",
+        "card_ratio": "2\/3",
         "btn_radius": 2,
         "card_gap": 16,
         "section_padding": 32
@@ -326,7 +404,7 @@
         "gap": 16,
         "p_v": 40,
         "rd": 4,
-        "ratio": "1/1",
+        "ratio": "1\/1",
         "ac": "#111111",
         "sale_color": "#c8102e",
         "show_quick_add": true,
@@ -348,3 +426,4 @@
     "luxury_relatedgrid_88rbjE"
   ]
 }
+
