@@ -777,50 +777,512 @@
 /* Theme editor: when section is inactive (deselected), don't take over screen */
 .shopify-section--apex-product{contain:layout style}
 </style>
+<style>
+/* ══ Info columns v2 (blocks) — sticky bar rules above are untouched ══ */
+#ap{{ sid }}{
+  --sel:{{ section.settings.selected_fill | default: '#9966CC' }};
+  --sel-ink:{{ section.settings.selected_text | default: '#111111' }};
+  --div:{{ section.settings.divider_color | default: '#e2e2e2' }};
+  --box:{{ section.settings.box_border | default: '#cfcfcf' }};
+  --vb-r:{{ section.settings.box_radius | default: 0 }}px;
+  --gap:{{ section.settings.block_gap | default: 20 }}px;
+  --ease:cubic-bezier(.2,.7,.2,1);
+}
+#ap{{ sid }} .ap-col{{ sid }}{display:flex;flex-direction:column;width:100%;min-width:0}
+/* Safe vertical centring: centred when it fits, scrolls from the top when it doesn't (no clipped top) */
+#ap{{ sid }} .ap-left-body{{ sid }},#ap{{ sid }} .ap-right-body{{ sid }}{justify-content:flex-start}
+{%- if section.settings.right_align == 'top' -%}
+#ap{{ sid }} .ap-col-l{{ sid }}{margin-block:auto}
+#ap{{ sid }} .ap-col-r{{ sid }}{margin-block:0 auto}
+{%- else -%}
+#ap{{ sid }} .ap-col{{ sid }}{margin-block:auto}
+{%- endif -%}
+#ap{{ sid }} .ap-pf{{ sid }},#ap{{ sid }} .ap-right-body{{ sid }} form.ap-pf{display:contents}
+#ap{{ sid }} .ap-col{{ sid }}>*{flex-shrink:0}
+#ap{{ sid }} .ap-blk{{ sid }}{margin-bottom:var(--gap)}
+#ap{{ sid }} .ap-col{{ sid }}>.ap-blk{{ sid }}:last-child{margin-bottom:0}
+#ap{{ sid }} .ap-col{{ sid }} .ap-back{{ sid }}{margin-bottom:28px}
+#ap{{ sid }} .ap-eyebrow{{ sid }}{font-family:var(--fb);font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--sub);margin-bottom:10px}
+#ap{{ sid }} .ap-col{{ sid }} .ap-name{{ sid }}{margin-bottom:24px}
+#ap{{ sid }} .ap-bul{{ sid }}{
+  position:relative;padding-left:16px;max-width:24ch;
+  font-family:var(--fb);font-size:{{ section.settings.bullet_size | default: 12 }}px;font-weight:400;
+  text-transform:uppercase;letter-spacing:.02em;line-height:1.5;color:var(--ink);
+}
+#ap{{ sid }} .ap-bul{{ sid }}::before{content:'';position:absolute;left:3px;top:.62em;width:4px;height:4px;border-radius:50%;background:currentColor}
+#ap{{ sid }} .ap-bul{{ sid }}+.ap-blk{{ sid }},#ap{{ sid }} .ap-bul{{ sid }}+.ap-acc{{ sid }}{margin-top:18px}
+#ap{{ sid }} .ap-col{{ sid }} .ap-desc{{ sid }}{margin-top:0}
+#ap{{ sid }} .ap-col{{ sid }} .ap-price-row{{ sid }}{margin-bottom:var(--gap)}
+#ap{{ sid }} .ap-col{{ sid }} .ap-stock{{ sid }}{margin-bottom:14px;align-self:flex-start}
 
-<div id="ap{{ sid }}" style="padding-top:var(--top)" data-product-id="{{ product.id }}">
-  <div class="ap-grid{{ sid }}">
+/* Shipping / tax note + free text */
+#ap{{ sid }} .ap-note{{ sid }}{font-family:var(--fb);font-size:13px;line-height:1.45;color:var(--ink)}
+#ap{{ sid }} .ap-note{{ sid }} p,#ap{{ sid }} .ap-text{{ sid }} p{margin:0}
+#ap{{ sid }} .ap-note{{ sid }} a,#ap{{ sid }} .ap-text{{ sid }} a,#ap{{ sid }} .ap-acc-body{{ sid }} a{color:inherit;text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px}
+#ap{{ sid }} .ap-text{{ sid }}{font-family:var(--fb);font-size:13px;line-height:1.55;color:var(--sub)}
+#ap{{ sid }} .ap-text-label{{ sid }}{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink)}
+#ap{{ sid }} .ap-text-small{{ sid }}{font-size:11.5px}
 
-    <!-- LEFT -->
-    <div class="ap-left{{ sid }}">
-      <div class="ap-left-body{{ sid }}">
+/* Variant boxes */
+#ap{{ sid }} .ap-vp{{ sid }}{display:flex;flex-direction:column;gap:18px}
+#ap{{ sid }} .ap-vp-grp{{ sid }}[hidden]{display:none}
+#ap{{ sid }} .ap-vp-head{{ sid }}{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:10px}
+#ap{{ sid }} .ap-vp-lbl{{ sid }}{font-family:var(--fb);font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink)}
+#ap{{ sid }} .ap-vp-val{{ sid }}{font-weight:400;letter-spacing:.04em;color:var(--sub);margin-left:8px;text-transform:none}
+#ap{{ sid }} .ap-vp-val{{ sid }}::before{content:'— ';opacity:.6}
+#ap{{ sid }} .ap-vp-sg{{ sid }}{background:none;border:0;padding:2px 0;cursor:pointer;font-family:var(--fb);font-size:12px;color:var(--ink);text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px;transition:opacity .18s;touch-action:manipulation}
+#ap{{ sid }} .ap-vp-sg{{ sid }}:hover{opacity:.6}
+#ap{{ sid }} .ap-vp-sg{{ sid }}:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+#ap{{ sid }} .ap-vp-opts{{ sid }}{display:flex;flex-wrap:wrap;gap:8px}
+#ap{{ sid }} .ap-vb{{ sid }}{
+  position:relative;display:inline-flex;align-items:center;justify-content:center;
+  min-width:52px;height:48px;padding:0 14px;
+  background:var(--bg);color:var(--ink);
+  border:1px solid var(--box);border-radius:var(--vb-r);
+  font-family:var(--fb);font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;line-height:1.1;
+  cursor:pointer;overflow:hidden;
+  transition:background-color .18s var(--ease),border-color .18s var(--ease),color .18s var(--ease),box-shadow .18s var(--ease),transform .12s var(--ease);
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+}
+#ap{{ sid }} .ap-vb{{ sid }}:hover{border-color:var(--ink)}
+#ap{{ sid }} .ap-vb{{ sid }}:active{transform:scale(.96)}
+#ap{{ sid }} .ap-vb{{ sid }}:focus-visible{outline:2px solid var(--ink);outline-offset:2px;z-index:1}
+#ap{{ sid }} .ap-vb{{ sid }}.on{background:var(--sel);border-color:var(--sel);color:var(--sel-ink);font-weight:800}
+#ap{{ sid }} .ap-vb-sw{{ sid }}{width:52px;min-width:52px;height:52px;padding:3px;background:var(--bg)}
+#ap{{ sid }} .ap-vb-sw{{ sid }} img{width:100%;height:100%;object-fit:cover;display:block;border-radius:max(0px,calc(var(--vb-r) - 3px))}
+#ap{{ sid }} .ap-vb-dot{{ sid }}{width:100%;height:100%;display:block;border-radius:max(0px,calc(var(--vb-r) - 3px))}
+#ap{{ sid }} .ap-vb-sw{{ sid }}.on{background:var(--bg);border-color:var(--sel);box-shadow:0 0 0 1px var(--sel) inset,0 0 0 1px var(--sel)}
+#ap{{ sid }} .ap-vb{{ sid }}.unavail{color:var(--dim);border-color:var(--line);cursor:not-allowed}
+#ap{{ sid }} .ap-vb{{ sid }}.unavail::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(to top right,transparent calc(50% - .6px),currentColor 50%,transparent calc(50% + .6px));opacity:.55}
+#ap{{ sid }} .ap-vb-sw{{ sid }}.unavail img,#ap{{ sid }} .ap-vb-sw{{ sid }}.unavail .ap-vb-dot{{ sid }}{opacity:.4}
+#ap{{ sid }} .ap-vb{{ sid }}.unavail:hover{border-color:var(--line)}
+#ap{{ sid }} .ap-vb{{ sid }}.unavail.on{background:var(--bg);color:var(--dim);border-color:var(--sel)}
 
-        {%- if back_url != blank -%}
-          <a class="ap-back{{ sid }}" href="{{ back_url }}">
+/* Inline buy button (forwards to the sticky Add to cart) */
+#ap{{ sid }} .ap-buy{{ sid }}{display:flex;gap:8px;align-items:stretch}
+#ap{{ sid }} .ap-buy-btn{{ sid }}{
+  flex:1;min-width:0;display:flex;align-items:center;justify-content:space-between;gap:14px;
+  min-height:56px;padding:0 20px;
+  background:var(--ink);color:var(--bg);border:1px solid var(--ink);border-radius:var(--vb-r);
+  font-family:var(--fb);font-size:14px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;line-height:1;
+  cursor:pointer;white-space:nowrap;
+  transition:background-color .2s var(--ease),color .2s var(--ease),border-color .2s var(--ease),transform .12s var(--ease),opacity .2s;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+}
+#ap{{ sid }} .ap-buy-btn{{ sid }}.acc{background:var(--sel);border-color:var(--sel);color:var(--sel-ink)}
+#ap{{ sid }} .ap-buy-btn{{ sid }}:hover:not(:disabled){background:var(--sel);border-color:var(--sel);color:var(--sel-ink)}
+#ap{{ sid }} .ap-buy-btn{{ sid }}.acc:hover:not(:disabled){background:var(--ink);border-color:var(--ink);color:var(--bg)}
+#ap{{ sid }} .ap-buy-btn{{ sid }}:active:not(:disabled){transform:scale(.985)}
+#ap{{ sid }} .ap-buy-btn{{ sid }}:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+#ap{{ sid }} .ap-buy-btn{{ sid }}:disabled{background:var(--line);border-color:var(--line);color:var(--dim);cursor:not-allowed}
+#ap{{ sid }} .ap-buy-btn{{ sid }}.added{background:transparent;color:var(--ink);border-color:var(--ink)}
+#ap{{ sid }} .ap-buy-btn{{ sid }}.ld{opacity:.75;cursor:progress}
+#ap{{ sid }} .ap-buy-lbl{{ sid }}{overflow:hidden;text-overflow:ellipsis}
+#ap{{ sid }} .ap-buy-price{{ sid }}{font-variant-numeric:tabular-nums;letter-spacing:.04em;transition:opacity .18s}
+#ap{{ sid }} .ap-buy-btn{{ sid }}:disabled .ap-buy-price{{ sid }},#ap{{ sid }} .ap-buy-btn{{ sid }}.added .ap-buy-price{{ sid }},#ap{{ sid }} .ap-buy-btn{{ sid }}.ap-need .ap-buy-price{{ sid }}{display:none}
+#ap{{ sid }} .ap-bq{{ sid }}{display:flex;align-items:center;border:1px solid var(--box);border-radius:var(--vb-r);flex-shrink:0}
+#ap{{ sid }} .ap-bq{{ sid }} button{width:40px;height:100%;min-height:54px;background:none;border:0;font-size:18px;color:var(--ink);cursor:pointer;touch-action:manipulation}
+#ap{{ sid }} .ap-bq{{ sid }} button:disabled{opacity:.3;cursor:not-allowed}
+#ap{{ sid }} .ap-bq{{ sid }} button:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
+#ap{{ sid }} .ap-bq{{ sid }} span{min-width:22px;text-align:center;font-size:13px;font-variant-numeric:tabular-nums}
+
+/* Accordions */
+#ap{{ sid }} .ap-acc{{ sid }}{border-bottom:1px solid var(--div)}
+#ap{{ sid }} .ap-col{{ sid }}>.ap-acc{{ sid }}:first-child,#ap{{ sid }} .ap-col{{ sid }}>:not(.ap-acc{{ sid }})+.ap-acc{{ sid }}{border-top:1px solid var(--div)}
+#ap{{ sid }} .ap-col{{ sid }}>.ap-acc{{ sid }}+:not(.ap-acc{{ sid }}){margin-top:var(--gap)}
+#ap{{ sid }} .ap-acc-h{{ sid }}{margin:0;font:inherit}
+#ap{{ sid }} .ap-acc-btn{{ sid }}{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;
+  min-height:56px;padding:16px 0;background:none;border:0;cursor:pointer;text-align:left;text-decoration:none;
+  font-family:var(--fb);font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;line-height:1.2;color:var(--ink);
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:opacity .18s;
+}
+#ap{{ sid }} .ap-acc-btn{{ sid }}:hover{opacity:.7}
+#ap{{ sid }} .ap-acc-btn{{ sid }}:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+#ap{{ sid }} .ap-acc-car{{ sid }}{width:11px;height:8px;flex-shrink:0;fill:currentColor;transition:transform .25s var(--ease)}
+#ap{{ sid }} .ap-acc-btn{{ sid }}[aria-expanded="true"] .ap-acc-car{{ sid }}{transform:rotate(180deg)}
+#ap{{ sid }} .ap-acc-arr{{ sid }}{width:12px;height:12px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.6;transition:transform .2s var(--ease)}
+#ap{{ sid }} .ap-acc-btn{{ sid }}:hover .ap-acc-arr{{ sid }}{transform:translateX(3px)}
+#ap{{ sid }} .ap-acc-p{{ sid }}{display:grid;grid-template-rows:0fr;transition:grid-template-rows .25s var(--ease)}
+#ap{{ sid }} .ap-acc-p{{ sid }}.open{grid-template-rows:1fr}
+#ap{{ sid }} .ap-acc-in{{ sid }}{overflow:hidden;min-height:0}
+#ap{{ sid }} .ap-acc-body{{ sid }}{
+  padding:0 0 18px;font-family:var(--fb);font-size:13px;line-height:1.65;color:var(--sub);
+  opacity:0;transform:translateY(-4px);transition:opacity .22s var(--ease),transform .25s var(--ease);
+}
+#ap{{ sid }} .ap-acc-p{{ sid }}.open .ap-acc-body{{ sid }}{opacity:1;transform:none}
+#ap{{ sid }} .ap-acc-body{{ sid }} p{margin:0 0 8px}
+#ap{{ sid }} .ap-acc-body{{ sid }} p:last-child{margin:0}
+#ap{{ sid }} .ap-acc-body{{ sid }} strong{color:var(--ink);font-weight:600}
+#ap{{ sid }} .ap-acc-body{{ sid }} ul,#ap{{ sid }} .ap-acc-body{{ sid }} ol{padding-left:18px;margin:0 0 8px}
+#ap{{ sid }} .ap-acc-body{{ sid }} li{margin-bottom:3px}
+#ap{{ sid }} .ap-acc-body{{ sid }} img{max-width:100%;height:auto;display:block;margin:2px 0 12px}
+#ap{{ sid }} .ap-acc-body{{ sid }} table{width:100%;border-collapse:collapse;margin:0 0 10px;font-size:12px}
+#ap{{ sid }} .ap-acc-body{{ sid }} td,#ap{{ sid }} .ap-acc-body{{ sid }} th{border:1px solid var(--div);padding:5px 6px;text-align:left}
+#ap{{ sid }} .ap-acc-body{{ sid }} .ap-tbl-wrap,#ap{{ sid }} .ap-acc-body{{ sid }}>div{max-width:100%;overflow-x:auto}
+
+/* Trust list + spec rows */
+#ap{{ sid }} .ap-tr{{ sid }}{list-style:none;display:flex;flex-direction:column;gap:8px;padding:0}
+#ap{{ sid }} .ap-tr{{ sid }} li{display:flex;align-items:center;gap:10px;font-family:var(--fb);font-size:12.5px;letter-spacing:.02em;color:var(--ink)}
+#ap{{ sid }} .ap-tr{{ sid }} svg{width:16px;height:16px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linejoin:round}
+#ap{{ sid }} .ap-spec{{ sid }}{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--div);font-family:var(--fb);font-size:12.5px}
+#ap{{ sid }} .ap-spec{{ sid }} span:first-child{font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+#ap{{ sid }} .ap-spec{{ sid }}+:not(.ap-spec{{ sid }}){margin-top:var(--gap)}
+#ap{{ sid }} .ap-col{{ sid }} .ap-claim{{ sid }}{margin:0 0 var(--gap);border-radius:var(--vb-r)}
+#ap{{ sid }} .ap-col{{ sid }} .ap-claim-btn{{ sid }},#ap{{ sid }} .ap-col{{ sid }} .ap-claim{{ sid }} input[type=email]{border-radius:var(--vb-r) !important}
+#ap{{ sid }} .ap-col{{ sid }} .visually-hidden{position:absolute !important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+@media (max-width:640px){
+  #ap{{ sid }} .ap-col{{ sid }}{margin-block:0}
+  #ap{{ sid }} .ap-col-r{{ sid }}>.ap-acc{{ sid }}{margin-left:-22px;margin-right:-22px;padding-left:22px;padding-right:22px}
+  #ap{{ sid }} .ap-buy-btn{{ sid }}{min-height:56px}
+  #ap{{ sid }} .ap-vb{{ sid }}{min-width:54px;height:50px}
+  #ap{{ sid }} .ap-vb-sw{{ sid }}{width:54px;min-width:54px;height:54px}
+  #ap{{ sid }} .ap-col{{ sid }} .ap-name{{ sid }}{margin-bottom:16px}
+}
+@media (min-width:641px){
+  #ap{{ sid }} .ap-right-body{{ sid }}{padding-right:2px}
+}
+@media (prefers-reduced-motion:reduce){
+  #ap{{ sid }} .ap-vb{{ sid }},#ap{{ sid }} .ap-buy-btn{{ sid }},#ap{{ sid }} .ap-acc-car{{ sid }},#ap{{ sid }} .ap-acc-arr{{ sid }},#ap{{ sid }} .ap-acc-p{{ sid }},#ap{{ sid }} .ap-acc-body{{ sid }}{transition:none}
+}
+
+/* Column padding: the original rules were zeroed by the "#ap *{padding:0}" reset; restore them inside #ap */
+#ap{{ sid }} .ap-left-body{{ sid }}{padding:42px {{ section.settings.panel_padding }}px}
+#ap{{ sid }} .ap-right{{ sid }}{padding:0 {{ section.settings.right_pad_desktop | default: 64 }}px 0 28px}
+#ap{{ sid }} .ap-right-body{{ sid }}{padding:42px 0 24px}
+@media (max-width:640px){
+  #ap{{ sid }} .ap-left-body{{ sid }}{padding:24px 22px 4px}
+  #ap{{ sid }} .ap-right{{ sid }}{padding:0 22px}
+  #ap{{ sid }} .ap-right-body{{ sid }}{padding:16px 0 36px}
+}
+@media (min-width:641px) and (max-width:960px){
+  #ap{{ sid }} .ap-right{{ sid }}{padding:0 {{ section.settings.panel_padding }}px 0 20px}
+}
+/* Imported descriptions carry inline font sizes: keep them in the column's type scale */
+#ap{{ sid }} .ap-acc-body{{ sid }} [style]{font-size:inherit !important;line-height:inherit !important;font-family:inherit !important;color:inherit !important;margin-bottom:8px !important}
+/* Long option values (e.g. phone models): compact boxes, normal case, two or more per row */
+#ap{{ sid }} .ap-vp-long{{ sid }} .ap-vp-opts{{ sid }}{gap:6px}
+#ap{{ sid }} .ap-vp-long{{ sid }} .ap-vb{{ sid }}:not(.ap-vb-sw{{ sid }}){height:40px;min-width:0;padding:0 10px;font-size:12px;letter-spacing:.01em;text-transform:none;font-weight:500}
+#ap{{ sid }} .ap-vp-long{{ sid }} .ap-vb{{ sid }}.on:not(.ap-vb-sw{{ sid }}){font-weight:700}
+/* Claim card: restore its intended inner spacing (was zeroed by the section reset) */
+#ap{{ sid }} .ap-claim{{ sid }}{padding:14px 16px}
+#ap{{ sid }} .ap-claim{{ sid }} input[type=email]{padding:0 14px}
+#ap{{ sid }} .ap-claim{{ sid }} .ap-claim-btn{{ sid }}{padding:0 16px}
+/* Imported descriptions: drop empty spacer paragraphs, tighter rhythm */
+#ap{{ sid }} .ap-acc-body{{ sid }} p:empty,#ap{{ sid }} .ap-acc-body{{ sid }} p:has(>br:only-child){display:none}
+#ap{{ sid }} .ap-acc-body{{ sid }} p{margin:0 0 5px}
+</style>
+
+
+{%- comment -%}
+  PDP blocks (2026-10-08): every element in the left and right info columns is a section block.
+  Each block has a "Column" setting (left / right). On mobile the left column stacks above the right one.
+  The sticky bar below is unchanged; the column variant boxes use the same [data-opt] [data-vbtn] markup, so the
+  existing variant / price / bundle script drives both. The inline buy button only forwards to the sticky Add to cart.
+{%- endcomment -%}
+{%- liquid
+  assign blk_left = ''
+  assign blk_right = ''
+  assign has_size_target = false
+  for block in section.blocks
+    if block.type == 'size_guide_drawer'
+      assign has_size_target = true
+    elsif block.settings.is_size_guide == true
+      assign has_size_target = true
+    endif
+  endfor
+-%}
+{%- for block in section.blocks -%}
+  {%- liquid
+    assign bcol = block.settings.column
+    if bcol == blank
+      case block.type
+        when 'back', 'title', 'bullet', 'highlight', 'narrative', 'tagline', 'description'
+          assign bcol = 'left'
+        else
+          assign bcol = 'right'
+      endcase
+    endif
+    assign acc_render = false
+    assign acc_heading = ''
+    assign acc_html = ''
+    assign acc_img = nil
+    assign acc_link = ''
+    assign acc_open = false
+    assign acc_size = false
+  -%}
+  {%- capture bh -%}
+    {%- case block.type -%}
+
+      {%- when 'back' -%}
+        {%- assign b_url = block.settings.url | default: back_url -%}
+        {%- assign b_lbl = block.settings.label | default: back_label -%}
+        {%- if b_url != blank -%}
+          <a class="ap-back{{ sid }} ap-blk{{ sid }}" href="{{ b_url }}" {{ block.shopify_attributes }}>
             <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
-            <span>{{ back_label }}</span>
+            <span>{{ b_lbl }}</span>
           </a>
         {%- endif -%}
 
-        <h1 class="ap-name{{ sid }}">{{ product.title | escape }}</h1>
+      {%- when 'title' -%}
+        {%- if block.settings.eyebrow != blank -%}<p class="ap-eyebrow{{ sid }}" {{ block.shopify_attributes }}>{{ block.settings.eyebrow }}</p>{%- endif -%}
+        <h1 class="ap-name{{ sid }}" {{ block.shopify_attributes }}>{{ product.title | escape }}</h1>
 
-        {%- assign bullet_count = 0 -%}
-        {%- for block in section.blocks -%}
-          {%- if block.type == 'bullet' or block.type == 'highlight' -%}{%- assign bullet_count = bullet_count | plus: 1 -%}{%- endif -%}
-        {%- endfor -%}
+      {%- when 'bullet', 'highlight' -%}
+        {%- if block.settings.label != blank -%}<p class="ap-bul{{ sid }}" {{ block.shopify_attributes }}>{{ block.settings.label }}</p>{%- endif -%}
 
-        {%- if bullet_count > 0 -%}
-          <ul class="ap-bullets{{ sid }}">
-            {%- for block in section.blocks -%}
-              {%- if block.type == 'bullet' or block.type == 'highlight' -%}
-                <li {{ block.shopify_attributes }}>{{ block.settings.label }}</li>
+      {%- when 'narrative', 'tagline' -%}
+        {%- if block.settings.text != blank -%}<div class="ap-narrative{{ sid }} ap-blk{{ sid }}" {{ block.shopify_attributes }}>{{ block.settings.text }}</div>{%- endif -%}
+
+      {%- when 'description' -%}
+        {%- if product.description != blank -%}
+          <div class="ap-desc{{ sid }} ap-blk{{ sid }}" {{ block.shopify_attributes }}>{{ product.description | replace: '<img ', '<img decoding="async" fetchpriority="low" ' }}</div>
+        {%- endif -%}
+
+      {%- when 'price' -%}
+        <div class="ap-price-row{{ sid }} ap-blk{{ sid }}" {{ block.shopify_attributes }}>
+          <span class="ap-price{{ sid }}" id="ap-price{{ sid }}">{{ current_variant.price | money_without_trailing_zeros }}</span>
+          <span class="ap-was{{ sid }}" id="ap-was{{ sid }}"{% unless has_discount %} style="display:none"{% endunless %}>{% if has_discount %}{{ current_variant.compare_at_price | money_without_trailing_zeros }}{% endif %}</span>
+          <span class="ap-badge{{ sid }}" id="ap-badge{{ sid }}"{% unless has_discount %} style="display:none"{% endunless %}>{% if has_discount %}−{{ discount_pct }}%{% endif %}</span>
+        </div>
+
+      {%- when 'stock' -%}
+        <div class="ap-stock{{ sid }}{% if is_low_stock %} show{% endif %}" id="ap-stock{{ sid }}" data-low="{{ low_stock_at }}" {{ block.shopify_attributes }}>
+          {% if is_low_stock %}Only {{ inv }} left{% endif %}
+        </div>
+
+      {%- when 'note' -%}
+        {%- if block.settings.text != blank -%}<div class="ap-note{{ sid }} ap-blk{{ sid }}" {{ block.shopify_attributes }}>{{ block.settings.text }}</div>{%- endif -%}
+
+      {%- when 'text' -%}
+        {%- if block.settings.text != blank -%}<div class="ap-text{{ sid }} ap-text-{{ block.settings.style }}{{ sid }} ap-blk{{ sid }}" {{ block.shopify_attributes }}>{{ block.settings.text }}</div>{%- endif -%}
+
+      {%- when 'variant_picker' -%}
+        {%- unless product.has_only_default_variant -%}
+          <div class="ap-vp{{ sid }} ap-blk{{ sid }}" {{ block.shopify_attributes }}>
+            {%- for option in product.options_with_values -%}
+              {%- assign odn = option.name | downcase -%}
+              {%- if odn == 'title' -%}{%- continue -%}{%- endif -%}
+              {%- assign oi = forloop.index -%}
+              {%- assign is_color = false -%}
+              {%- if odn == 'color' or odn == 'colour' or odn contains 'color' or odn contains 'colour' -%}{%- assign is_color = true -%}{%- endif -%}
+              {%- assign cstyle = block.settings.color_style | default: 'image' -%}
+              {%- assign one_val = false -%}{%- if option.values.size == 1 and block.settings.hide_single -%}{%- assign one_val = true -%}{%- endif -%}
+              {%- assign is_long = false -%}
+              {%- for val in option.values -%}{%- assign vstr = val | append: '' -%}{%- if vstr.size > 6 -%}{%- assign is_long = true -%}{%- endif -%}{%- endfor -%}
+              <div class="ap-vp-grp{{ sid }}{% if is_long %} ap-vp-long{{ sid }}{% endif %}"{% if one_val %} hidden{% endif %}>
+                <div class="ap-vp-head{{ sid }}">
+                  <span class="ap-vp-lbl{{ sid }}" id="ap-vpl-{{ block.id }}-{{ oi }}">{{ option.name }}{%- if block.settings.show_selected -%}<span class="ap-vp-val{{ sid }}" data-vp-val="{{ oi }}">{{ option.selected_value }}</span>{%- endif -%}</span>
+                  {%- if has_size_target and block.settings.size_link_label != blank and odn contains 'size' -%}
+                    <button type="button" class="ap-vp-sg{{ sid }}" data-ap-open-size>{{ block.settings.size_link_label }}</button>
+                  {%- endif -%}
+                </div>
+                <div class="ap-vp-opts{{ sid }}" data-opt="{{ oi }}" role="radiogroup" aria-labelledby="ap-vpl-{{ block.id }}-{{ oi }}">
+                  {%- for val in option.values -%}
+                    {%- liquid
+                      assign is_on = false
+                      if option.selected_value == val
+                        assign is_on = true
+                      endif
+                      assign sw_img = nil
+                      assign sw_col = nil
+                      if is_color and cstyle != 'text'
+                        if val.swatch.image
+                          assign sw_img = val.swatch.image
+                        elsif val.swatch.color
+                          assign sw_col = val.swatch.color
+                        elsif cstyle == 'image' and val.variant.featured_image
+                          assign sw_img = val.variant.featured_image
+                        elsif cstyle == 'color'
+                          assign sw_col = val | handle
+                        endif
+                      endif
+                    -%}
+                    <button type="button" data-vbtn role="radio"
+                      class="ap-vb{{ sid }}{% if sw_img or sw_col %} ap-vb-sw{{ sid }}{% endif %}{% if is_on %} on{% endif %}{% unless val.available %} unavail{% endunless %}"
+                      data-val="{{ val | escape }}" aria-checked="{{ is_on }}" tabindex="{% if is_on %}0{% else %}-1{% endif %}"
+                      {% unless val.available %}aria-disabled="true"{% endunless %}
+                      {% if sw_img or sw_col %}aria-label="{{ val | escape }}" title="{{ val | escape }}"{% endif %}>
+                      {%- if sw_img -%}
+                        <img src="{{ sw_img | image_url: width: 120 }}" alt="" width="48" height="48" loading="lazy" decoding="async">
+                      {%- elsif sw_col -%}
+                        <span class="ap-vb-dot{{ sid }}" style="background:{{ sw_col }}"></span>
+                      {%- else -%}
+                        {{ val | escape }}
+                      {%- endif -%}
+                    </button>
+                  {%- endfor -%}
+                </div>
+              </div>
+            {%- endfor -%}
+          </div>
+        {%- endunless -%}
+
+      {%- when 'buy' -%}
+        <div class="ap-buy{{ sid }} ap-blk{{ sid }}{% if block.settings.show_qty %} has-q{% endif %}" {{ block.shopify_attributes }}>
+          {%- if block.settings.show_qty -%}
+            <div class="ap-bq{{ sid }}" role="group" aria-label="Quantity">
+              <button type="button" data-ap-q="-1" aria-label="Decrease quantity" disabled>−</button>
+              <span data-ap-qv aria-live="polite">1</span>
+              <button type="button" data-ap-q="1" aria-label="Increase quantity">+</button>
+            </div>
+          {%- endif -%}
+          <button type="button" class="ap-buy-btn{{ sid }}{% if block.settings.style == 'accent' %} acc{% endif %}" data-ap-buy {% unless current_variant.available %}disabled{% endunless %}>
+            <span class="ap-buy-lbl{{ sid }}" data-ap-buy-lbl>{%- if current_variant.available -%}{{ section.settings.atc_text }}{%- else -%}{{ section.settings.soldout_text }}{%- endif -%}</span>
+            {%- if block.settings.show_price -%}<span class="ap-buy-price{{ sid }}" data-ap-buy-price>{{ current_variant.price | money_without_trailing_zeros }}</span>{%- endif -%}
+          </button>
+        </div>
+
+      {%- when 'claim' -%}
+        {%- if lx_pdp_gift -%}
+          {%- assign lx_pdp_min_dollars = lx_pdp_min | divided_by: 100 -%}
+          <div class="ap-claim{{ sid }} ap-blk{{ sid }}" id="ap-claim{{ sid }}" data-lx-min="{{ lx_pdp_min }}" {{ block.shopify_attributes }}>
+            <p class="ap-claim-ttl{{ sid }}">Or get this pair FREE</p>
+            <p class="ap-claim-hint{{ sid }}" id="ap-claim-hint{{ sid }}">Free with ${{ lx_pdp_min_dollars }}+ of eligible items in your bag (one free pair per order). Buying it on its own? Use Add to cart.</p>
+            <label class="visually-hidden" for="ap-claim-email{{ sid }}">Email</label>
+            <input type="email" id="ap-claim-email{{ sid }}" name="lx_claim_email" placeholder="Email to claim" autocomplete="email">
+            <button type="button" class="ap-claim-btn{{ sid }}" id="ap-claim-btn{{ sid }}" disabled>Claim free</button>
+            <p class="ap-claim-err{{ sid }}" id="ap-claim-err{{ sid }}" role="alert"></p>
+          </div>
+        {%- endif -%}
+
+      {%- when 'trust' -%}
+        {%- if block.settings.item_1 != blank or block.settings.item_2 != blank or block.settings.item_3 != blank -%}
+          <ul class="ap-tr{{ sid }} ap-blk{{ sid }}" {{ block.shopify_attributes }}>
+            {%- for n in (1..3) -%}
+              {%- assign t_k = 'item_' | append: n -%}{%- assign i_k = 'icon_' | append: n -%}
+              {%- assign t_txt = block.settings[t_k] -%}{%- assign t_ic = block.settings[i_k] -%}
+              {%- if t_txt != blank -%}
+                <li>
+                  {%- case t_ic -%}
+                    {%- when 'truck' -%}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="7" cy="17.5" r="1.6"/><circle cx="17" cy="17.5" r="1.6"/></svg>
+                    {%- when 'return' -%}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9"/><polyline points="3 4 3 12 11 12"/></svg>
+                    {%- when 'shield' -%}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L4 6v6c0 5 3.5 9.5 8 10 4.5-.5 8-5 8-10V6l-8-4z"/></svg>
+                    {%- when 'box' -%}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg>
+                    {%- else -%}
+                  {%- endcase -%}
+                  <span>{{ t_txt }}</span>
+                </li>
               {%- endif -%}
             {%- endfor -%}
           </ul>
         {%- endif -%}
 
-        {%- for block in section.blocks -%}
-          {%- if block.type == 'narrative' and block.settings.text != blank -%}
-            <div class="ap-narrative{{ sid }}" {{ block.shopify_attributes }}>{{ block.settings.text }}</div>
-          {%- elsif block.type == 'tagline' and block.settings.text != blank -%}
-            <div class="ap-narrative{{ sid }}" {{ block.shopify_attributes }}>{{ block.settings.text }}</div>
-          {%- endif -%}
-        {%- endfor -%}
+      {%- when 'custom_liquid' -%}
+        {%- if block.settings.custom_liquid != blank -%}<div class="ap-cl{{ sid }} ap-blk{{ sid }}" {{ block.shopify_attributes }}>{{ block.settings.custom_liquid }}</div>{%- endif -%}
 
-        {%- if desc_mode == 'inline' and product.description != blank -%}
-          <div class="ap-desc{{ sid }}">{{ product.description | replace: '<img ', '<img decoding="async" fetchpriority="low" ' }}</div>
+      {%- when 'spec_row' -%}
+        {%- if block.settings.label != blank and block.settings.value != blank -%}
+          <div class="ap-spec{{ sid }}" {{ block.shopify_attributes }}><span>{{ block.settings.label }}</span><span>{{ block.settings.value }}</span></div>
         {%- endif -%}
 
+      {%- when 'collapsible' -%}
+        {%- liquid
+          assign acc_render = true
+          assign acc_heading = block.settings.heading
+          assign acc_img = block.settings.image
+          assign acc_link = block.settings.link_url
+          assign acc_open = block.settings.open
+          assign acc_size = block.settings.is_size_guide
+          case block.settings.source
+            when 'description'
+              assign acc_html = product.description | replace: '<img ', '<img decoding="async" fetchpriority="low" '
+            when 'page'
+              assign acc_html = block.settings.page.content
+            when 'metafield'
+              assign mf_parts = block.settings.metafield_key | strip | split: '.'
+              if mf_parts.size == 2
+                assign mf = product.metafields[mf_parts[0]][mf_parts[1]]
+                if mf != blank
+                  assign acc_html = mf | metafield_tag
+                endif
+              endif
+            else
+              assign acc_html = block.settings.content
+          endcase
+        -%}
+      {%- when 'size_guide_drawer', 'shipping' -%}
+        {%- liquid
+          assign acc_render = true
+          if block.type == 'shipping'
+            assign acc_heading = block.settings.title | default: 'Shipping & Returns'
+          else
+            assign acc_heading = block.settings.title | default: 'Size Guide'
+            assign acc_size = true
+          endif
+          assign acc_html = block.settings.content
+          assign acc_img = block.settings.image
+          assign acc_link = block.settings.redirect_url
+        -%}
+      {%- when 'details', 'material', 'care' -%}
+        {%- liquid
+          assign acc_render = true
+          case block.type
+            when 'details'
+              assign acc_heading = 'Details'
+            when 'material'
+              assign acc_heading = 'Composition'
+            else
+              assign acc_heading = 'Care'
+          endcase
+          assign acc_html = block.settings.content
+        -%}
+      {%- when 'accordion' -%}
+        {%- assign acc_render = true -%}{%- assign acc_heading = block.settings.title -%}{%- assign acc_html = block.settings.content -%}
+      {%- when 'size_fit' -%}
+        {%- liquid
+          assign acc_render = true
+          assign acc_heading = 'Size & Fit'
+          assign acc_html = block.settings.content
+          if block.settings.model_note != blank
+            assign acc_html = acc_html | append: '<p>' | append: block.settings.model_note | append: '</p>'
+          endif
+        -%}
+      {%- else -%}
+    {%- endcase -%}
+
+    {%- if acc_render and acc_heading != blank -%}
+      {%- assign acc_has = false -%}
+      {%- if acc_html != blank or acc_img != blank -%}{%- assign acc_has = true -%}{%- endif -%}
+      {%- if acc_link != blank -%}
+        <div class="ap-acc{{ sid }}"{% if acc_size %} data-kind="size"{% endif %} {{ block.shopify_attributes }}>
+          <a class="ap-acc-btn{{ sid }}" href="{{ acc_link }}"><span>{{ acc_heading }}</span><svg class="ap-acc-arr{{ sid }}" viewBox="0 0 12 12" aria-hidden="true"><path d="M4 2l4 4-4 4"/></svg></a>
+        </div>
+      {%- elsif acc_has -%}
+        <div class="ap-acc{{ sid }}"{% if acc_size %} data-kind="size"{% endif %} data-block-id="{{ block.id }}" {{ block.shopify_attributes }}>
+          <h2 class="ap-acc-h{{ sid }}">
+            <button type="button" class="ap-acc-btn{{ sid }}" id="ap-acb-{{ block.id }}" data-ap-acc aria-expanded="{{ acc_open }}" aria-controls="ap-acp-{{ block.id }}">
+              <span>{{ acc_heading }}</span>
+              <svg class="ap-acc-car{{ sid }}" viewBox="0 0 12 8" aria-hidden="true"><path d="M1 1.5h10L6 7z"/></svg>
+            </button>
+          </h2>
+          <div class="ap-acc-p{{ sid }}{% if acc_open %} open{% endif %}" id="ap-acp-{{ block.id }}" role="region" aria-labelledby="ap-acb-{{ block.id }}"{% unless acc_open %} inert{% endunless %}>
+            <div class="ap-acc-in{{ sid }}"><div class="ap-acc-body{{ sid }}">
+              {%- if acc_img != blank -%}<img src="{{ acc_img | image_url: width: 800 }}" width="400" height="{{ 400 | divided_by: acc_img.aspect_ratio | ceil }}" alt="{{ acc_heading | escape }}" loading="lazy" decoding="async">{%- endif -%}
+              {{ acc_html }}
+            </div></div>
+          </div>
+        </div>
+      {%- endif -%}
+    {%- endif -%}
+  {%- endcapture -%}
+  {%- liquid
+    if bcol == 'left'
+      assign blk_left = blk_left | append: bh
+    else
+      assign blk_right = blk_right | append: bh
+    endif
+  -%}
+{%- endfor -%}
+
+<div id="ap{{ sid }}" class="ap-v2{{ sid }}" style="padding-top:var(--top)" data-product-id="{{ product.id }}">
+  <div class="ap-grid{{ sid }}">
+
+    <!-- LEFT (blocks with Column = Left) -->
+    <div class="ap-left{{ sid }}">
+      <div class="ap-left-body{{ sid }}">
+        <div class="ap-col{{ sid }} ap-col-l{{ sid }}">{{ blk_left }}</div>
       </div>
     </div>
 
@@ -894,131 +1356,16 @@
       {%- endif -%}
     </div>
 
-    <!-- RIGHT -->
+    <!-- RIGHT (blocks with Column = Right) -->
     <div class="ap-right{{ sid }}">
       <div class="ap-right-body{{ sid }}">
-
-        {%- comment -%}
-          PDP dedupe 2026-10-05: the sticky bar (fixed, visible on load) already shows price, compare price and the
-          size/colour pickers, so the main price row is off by default. JS null-checks ap-price/ap-was/ap-badge.
-          Turn "Show price in main section" on to bring it back.
-        {%- endcomment -%}
-        {%- if section.settings.main_show_price -%}
-        <div class="ap-price-row{{ sid }}">
-          <span class="ap-price{{ sid }}" id="ap-price{{ sid }}">{{ current_variant.price | money_without_trailing_zeros }}</span>
-          <span class="ap-was{{ sid }}" id="ap-was{{ sid }}"{% unless has_discount %} style="display:none"{% endunless %}>{% if has_discount %}{{ current_variant.compare_at_price | money_without_trailing_zeros }}{% endif %}</span>
-          <span class="ap-badge{{ sid }}" id="ap-badge{{ sid }}"{% unless has_discount %} style="display:none"{% endunless %}>{% if has_discount %}−{{ discount_pct }}%{% endif %}</span>
-        </div>
-        {%- endif -%}
-
-        <div class="ap-stock{{ sid }}{% if is_low_stock %} show{% endif %}" id="ap-stock{{ sid }}" data-low="{{ low_stock_at }}">
-          {% if is_low_stock %}Only {{ inv }} left{% endif %}
-        </div>
-
-        {%- if section.settings.main_hide_options -%}<style>.ap-right-body{{ sid }} .ap-opt-lbl{{ sid }},.ap-right-body{{ sid }} .ap-swatches{{ sid }},.ap-right-body{{ sid }} .ap-stack{{ sid }}{display:none !important}</style>{%- endif -%}
-        {%- form 'product', product, id: form_id, novalidate: 'novalidate' -%}
+        <div class="ap-col{{ sid }} ap-col-r{{ sid }}">{{ blk_right }}</div>
+        {%- comment -%} Product form: always rendered (no visible fields). The sticky bar's single add posts this form. {%- endcomment -%}
+        {%- form 'product', product, id: form_id, novalidate: 'novalidate', class: 'ap-pf' -%}
           <input type="hidden" name="id" id="ap-vid{{ sid }}" value="{{ current_variant.id }}">
           <input type="hidden" name="quantity" id="ap-qty{{ sid }}" value="1">
-
-          {%- unless product.has_only_default_variant -%}
-            {%- for option in product.options_with_values -%}
-              {%- assign odn = option.name | downcase -%}
-              <label class="ap-opt-lbl{{ sid }}">{{ option.name }}</label>
-
-              {%- if odn == 'color' or odn == 'colour' -%}
-                <div class="ap-swatches{{ sid }}" data-opt="{{ forloop.index }}">
-                  {%- for val in option.values -%}
-                    <button type="button" data-vbtn class="ap-swatch{{ sid }}{% if option.selected_value == val %} on{% endif %}"
-                      data-val="{{ val }}" title="{{ val }}" aria-label="{{ val }}"
-                      style="background:{{ val | handle }};"></button>
-                  {%- endfor -%}
-                </div>
-              {%- else -%}
-                <div class="ap-stack{{ sid }}" data-opt="{{ forloop.index }}" role="radiogroup" aria-label="{{ option.name }}">
-                  {%- for val in option.values -%}
-                    <button type="button" data-vbtn
-                      class="ap-stack-btn{{ sid }}{% if option.selected_value == val %} on{% endif %}"
-                      data-val="{{ val }}" role="radio"
-                      aria-checked="{% if option.selected_value == val %}true{% else %}false{% endif %}">{{ val }}</button>
-                  {%- endfor -%}
-                </div>
-              {%- endif -%}
-            {%- endfor -%}
-          {%- endunless -%}
-
           <input type="submit" id="ap-fsub{{ sid }}" style="display:none" tabindex="-1" aria-hidden="true">
         {%- endform -%}
-
-        {%- if lx_pdp_gift -%}
-          {%- assign lx_pdp_min_dollars = lx_pdp_min | divided_by: 100 -%}
-          <div class="ap-claim{{ sid }}" id="ap-claim{{ sid }}" data-lx-min="{{ lx_pdp_min }}">
-            <p class="ap-claim-ttl{{ sid }}">Or get this pair FREE</p>
-            <p class="ap-claim-hint{{ sid }}" id="ap-claim-hint{{ sid }}">Free with ${{ lx_pdp_min_dollars }}+ of eligible items in your bag (one free pair per order). Buying it on its own? Use Add to cart.</p>
-            <label class="visually-hidden" for="ap-claim-email{{ sid }}">Email</label>
-            <input type="email" id="ap-claim-email{{ sid }}" name="lx_claim_email" placeholder="Email to claim" autocomplete="email">
-            <button type="button" class="ap-claim-btn{{ sid }}" id="ap-claim-btn{{ sid }}" disabled>Claim free</button>
-            <p class="ap-claim-err{{ sid }}" id="ap-claim-err{{ sid }}" role="alert"></p>
-          </div>
-        {%- endif -%}
-
-        {%- if show_sg or show_sh or show_desc_drawer -%}
-          <div class="ap-links{{ sid }}">
-            {%- if show_desc_drawer -%}
-              <div class="ap-link-row{{ sid }}">
-                <button type="button" class="ap-link-trig{{ sid }}" data-link-toggle="desc{{ sid }}" aria-expanded="false">
-                  <span>{{ desc_label }}</span>
-                  <svg viewBox="0 0 24 12" aria-hidden="true"><line x1="1" y1="6" x2="22" y2="6"/><polyline points="17 1 22 6 17 11"/></svg>
-                </button>
-                <div class="ap-link-body{{ sid }}" id="desc{{ sid }}">
-                  <div class="ap-link-inner{{ sid }}"><div class="ap-link-content{{ sid }}">{{ product.description | replace: '<img ', '<img decoding="async" fetchpriority="low" ' }}</div></div>
-                </div>
-              </div>
-            {%- endif -%}
-            {%- if show_sg -%}
-              <div class="ap-link-row{{ sid }}">
-                {%- if sg_redirect != blank -%}
-                  <a class="ap-link-trig{{ sid }}" href="{{ sg_redirect }}">
-                    <span>{{ sg_label }}</span>
-                    <svg viewBox="0 0 24 12" aria-hidden="true"><line x1="1" y1="6" x2="22" y2="6"/><polyline points="17 1 22 6 17 11"/></svg>
-                  </a>
-                {%- else -%}
-                  <button type="button" class="ap-link-trig{{ sid }}" data-link-toggle="sg{{ sid }}" aria-expanded="false">
-                    <span>{{ sg_label }}</span>
-                    <svg viewBox="0 0 24 12" aria-hidden="true"><line x1="1" y1="6" x2="22" y2="6"/><polyline points="17 1 22 6 17 11"/></svg>
-                  </button>
-                  <div class="ap-link-body{{ sid }}" id="sg{{ sid }}">
-                    <div class="ap-link-inner{{ sid }}"><div class="ap-link-content{{ sid }}">
-                      {%- if sg_image != blank -%}<img src="{{ sg_image | image_url: width: 600 }}" width="200" height="{{ 200 | divided_by: sg_image.aspect_ratio | ceil }}" alt="{{ sg_label | escape }}" loading="lazy" decoding="async">{%- endif -%}
-                      {{ sg_content }}
-                    </div></div>
-                  </div>
-                {%- endif -%}
-              </div>
-            {%- endif -%}
-            {%- if show_sh -%}
-              <div class="ap-link-row{{ sid }}">
-                {%- if sh_redirect != blank -%}
-                  <a class="ap-link-trig{{ sid }}" href="{{ sh_redirect }}">
-                    <span>{{ sh_label }}</span>
-                    <svg viewBox="0 0 24 12" aria-hidden="true"><line x1="1" y1="6" x2="22" y2="6"/><polyline points="17 1 22 6 17 11"/></svg>
-                  </a>
-                {%- else -%}
-                  <button type="button" class="ap-link-trig{{ sid }}" data-link-toggle="sh{{ sid }}" aria-expanded="false">
-                    <span>{{ sh_label }}</span>
-                    <svg viewBox="0 0 24 12" aria-hidden="true"><line x1="1" y1="6" x2="22" y2="6"/><polyline points="17 1 22 6 17 11"/></svg>
-                  </button>
-                  <div class="ap-link-body{{ sid }}" id="sh{{ sid }}">
-                    <div class="ap-link-inner{{ sid }}"><div class="ap-link-content{{ sid }}">
-                      {%- if sh_image != blank -%}<img src="{{ sh_image | image_url: width: 600 }}" width="200" height="{{ 200 | divided_by: sh_image.aspect_ratio | ceil }}" alt="{{ sh_label | escape }}" loading="lazy" decoding="async">{%- endif -%}
-                      {{ sh_content }}
-                    </div></div>
-                  </div>
-                {%- endif -%}
-              </div>
-            {%- endif -%}
-          </div>
-        {%- endif -%}
-
       </div>
     </div>
 
@@ -1440,7 +1787,7 @@
     BE.rows.textContent='';
     if(BP.mode<2||!BP.ready){return;}
     var v=findVariant();
-    BE.title.textContent='Your '+(BPCFG.labels[BP.mode]||'bundle');
+    BE.title.textContent=BPCFG.labels[BP.mode]?BPCFG.labels[BP.mode]+' bundle':'Bundle';
     BE.sub.textContent=BP.mode===2?'This piece plus one suggested add-on from another part of LEXE.':'This piece plus two suggested add-ons from other parts of LEXE.';
     /* this piece (fixed) */
     var r0=mk('div','ap-brow'+S+' fixed');
@@ -2065,102 +2412,642 @@
 })();
 </script>
 
+<script>
+/* Info columns v2 (blocks): accordions, variant-box a11y, inline buy button mirror.
+   Does not touch the sticky bar script above: the variant boxes use the same [data-opt] [data-vbtn] markup (so the
+   existing delegated click handler, findVariant and renderPrice drive both), and the inline button only clicks the
+   sticky Add to cart and mirrors its label / price / state. */
+(function(){
+  'use strict';
+  var S='{{ sid }}';
+  var root=document.getElementById('ap'+S);
+  if(!root)return;
+  function $$(q,el){return Array.prototype.slice.call((el||document).querySelectorAll(q));}
+
+  /* ── Accordions ── */
+  function setAcc(btn,open){
+    var p=document.getElementById(btn.getAttribute('aria-controls'));
+    btn.setAttribute('aria-expanded',open?'true':'false');
+    if(!p)return;
+    p.classList.toggle('open',open);
+    if(open)p.removeAttribute('inert');else p.setAttribute('inert','');
+  }
+  root.addEventListener('click',function(e){
+    var b=e.target.closest('[data-ap-acc]');
+    if(b&&root.contains(b)){setAcc(b,b.getAttribute('aria-expanded')!=='true');return;}
+    var sg=e.target.closest('[data-ap-open-size]');
+    if(sg){
+      var acc=root.querySelector('.ap-acc'+S+'[data-kind="size"]');if(!acc)return;
+      var ab=acc.querySelector('[data-ap-acc]');
+      if(ab){setAcc(ab,true);}
+      var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+      try{acc.scrollIntoView({behavior:reduce?'auto':'smooth',block:'nearest'});}catch(x){}
+      var f=ab||acc.querySelector('a');if(f)setTimeout(function(){f.focus({preventScroll:true});},reduce?0:260);
+    }
+  });
+  /* Theme editor: selecting an accordion block opens it */
+  document.addEventListener('shopify:block:select',function(e){
+    var el=e.target&&e.target.closest?e.target:null;if(!el||!root.contains(el))return;
+    var ab=el.querySelector&&el.querySelector('[data-ap-acc]');if(ab)setAcc(ab,true);
+  });
+
+  /* ── Variant boxes: roving tabindex, arrow keys, aria-disabled, selected value label ── */
+  var groups=$$('.ap-vp-opts'+S,root);
+  function syncBoxes(){
+    groups.forEach(function(g){
+      var btns=$$('[data-vbtn]',g),on=null;
+      btns.forEach(function(b){
+        var u=b.classList.contains('unavail');
+        if(u)b.setAttribute('aria-disabled','true');else b.removeAttribute('aria-disabled');
+        if(b.classList.contains('on'))on=b;
+      });
+      btns.forEach(function(b){b.tabIndex=(b===on||(!on&&b===btns[0]))?0:-1;});
+      var oi=g.getAttribute('data-opt');
+      var lab=root.querySelector('[data-vp-val="'+oi+'"]');
+      if(lab&&on&&lab.textContent!==on.getAttribute('data-val'))lab.textContent=on.getAttribute('data-val');
+    });
+  }
+  if(groups.length){
+    /* runs after the sticky script's own document click handler (registered earlier) */
+    document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('[data-vbtn]'))syncBoxes();});
+    groups.forEach(function(g){
+      g.addEventListener('keydown',function(e){
+        var k=e.key;
+        if(['ArrowRight','ArrowDown','ArrowLeft','ArrowUp','Home','End',' ','Enter'].indexOf(k)<0)return;
+        var btns=$$('[data-vbtn]',g),cur=btns.indexOf(document.activeElement);if(cur<0)return;
+        if(k===' '||k==='Enter'){return;}
+        e.preventDefault();
+        var n=btns.length,order=[],j;
+        if(k==='Home'){for(j=0;j<n;j++)order.push(j);}
+        else if(k==='End'){for(j=n-1;j>=0;j--)order.push(j);}
+        else{var dir=(k==='ArrowRight'||k==='ArrowDown')?1:-1;for(j=1;j<=n;j++)order.push(((cur+dir*j)%n+n)%n);}
+        var t=null;for(j=0;j<order.length;j++){if(!btns[order[j]].classList.contains('unavail')){t=order[j];break;}}
+        if(t===null)return;
+        btns[t].focus();btns[t].click();
+      });
+    });
+    syncBoxes();
+    /* markUnavailable in the sticky script may run after first paint; keep aria in step */
+    if('MutationObserver' in window){
+      var mo=new MutationObserver(function(){syncBoxes();});
+      groups.forEach(function(g){mo.observe(g,{subtree:true,attributes:true,attributeFilter:['class']});});
+    }
+  }
+
+  /* ── Inline buy button: forwards to the sticky Add to cart and mirrors it ── */
+  var atc=document.getElementById('ap-atc'+S);
+  var lbl=document.getElementById('ap-atc-lbl'+S);
+  var pr=document.getElementById('ap-atc-price'+S);
+  var buys=$$('[data-ap-buy]',root);
+  if(atc&&buys.length){
+    var mirror=function(){
+      buys.forEach(function(b){
+        b.disabled=atc.disabled;
+        var l=b.querySelector('[data-ap-buy-lbl]'),p=b.querySelector('[data-ap-buy-price]');
+        if(l&&lbl&&l.textContent!==lbl.textContent)l.textContent=lbl.textContent;
+        if(p&&pr&&p.textContent!==pr.textContent)p.textContent=pr.textContent;
+        ['ld','added','ap-need'].forEach(function(c){b.classList.toggle(c,atc.classList.contains(c));});
+      });
+    };
+    new MutationObserver(mirror).observe(atc,{attributes:true,attributeFilter:['class','disabled','aria-label'],childList:true,subtree:true,characterData:true});
+    mirror();
+    buys.forEach(function(b){b.addEventListener('click',function(){if(!atc.disabled)atc.click();});});
+  }
+  /* Optional inline quantity: forwards to the sticky quantity buttons */
+  var qVal=document.getElementById('ap-qty-val'+S),qDec=document.getElementById('ap-qty-dec'+S),qInc=document.getElementById('ap-qty-inc'+S);
+  var qWraps=$$('.ap-bq'+S,root);
+  if(qVal&&qWraps.length){
+    var qm=function(){
+      qWraps.forEach(function(w){
+        var v=w.querySelector('[data-ap-qv]');if(v&&v.textContent!==qVal.textContent)v.textContent=qVal.textContent;
+        var d=w.querySelector('[data-ap-q="-1"]');if(d&&qDec)d.disabled=qDec.disabled;
+      });
+    };
+    new MutationObserver(qm).observe(qVal,{childList:true,characterData:true,subtree:true});
+    if(qDec)new MutationObserver(qm).observe(qDec,{attributes:true,attributeFilter:['disabled']});
+    qWraps.forEach(function(w){
+      w.addEventListener('click',function(e){
+        var b=e.target.closest('[data-ap-q]');if(!b)return;
+        var t=b.getAttribute('data-ap-q')==='-1'?qDec:qInc;if(t&&!t.disabled)t.click();
+      });
+    });
+    qm();
+  }
+})();
+</script>
+
 {% schema %}
 {
   "name": "Maison Product",
   "tag": "section",
   "class": "maison-product-section",
   "settings": [
-    { "type": "header", "content": "Back Link" },
-    { "type": "url",  "id": "back_url",   "label": "Back link destination" },
-    { "type": "text", "id": "back_label", "label": "Back link label", "default": "Back" },
-
-    { "type": "header", "content": "Layout & Spacing" },
-    { "type": "range", "id": "sticky_top",    "label": "Site header height", "min": 0, "max": 160, "step": 2, "unit": "px", "default": 44 },
-    { "type": "range", "id": "panel_padding", "label": "Left/right column padding", "min": 12, "max": 80,  "step": 2, "unit": "px", "default": 40 },
-    { "type": "range", "id": "bar_height",    "label": "Sticky bar reserved height (fallback)", "min": 80, "max": 220, "step": 2, "unit": "px", "default": 160, "info": "Auto-measured at runtime; this is the fallback used before measure completes." },
-
-    { "type": "header", "content": "Colors" },
-    { "type": "color", "id": "bg_color",     "label": "Background", "default": "#ffffff" },
-    { "type": "color", "id": "text_color",   "label": "Text",       "default": "#111111" },
-    { "type": "color", "id": "accent_color", "label": "Accent (discount badge / urgency)", "default": "#b8865a" },
-
-    { "type": "header", "content": "Typography" },
-    { "type": "font_picker", "id": "heading_font", "label": "Product name font", "default": "barlow_condensed_n9" },
-    { "type": "font_picker", "id": "body_font",    "label": "Body / UI font",    "default": "barlow_n3" },
-    { "type": "range", "id": "name_size",   "label": "Product name size", "min": 16, "max": 80, "step": 1, "unit": "px", "default": 38 },
-    { "type": "range", "id": "price_size",  "label": "Price size",        "min": 16, "max": 60, "step": 1, "unit": "px", "default": 26 },
-    { "type": "range", "id": "bullet_size", "label": "Bullet / narrative size", "min": 9, "max": 18, "step": 1, "unit": "px", "default": 12 },
-
-    { "type": "header", "content": "Product Description" },
-    { "type": "select", "id": "description_mode", "label": "Where to show description", "default": "inline",
+    {
+      "type": "header",
+      "content": "Back Link"
+    },
+    {
+      "type": "url",
+      "id": "back_url",
+      "label": "Back link destination",
+      "info": "Used by the \"Back link\" block when the block has no link of its own."
+    },
+    {
+      "type": "text",
+      "id": "back_label",
+      "label": "Back link label",
+      "default": "Back"
+    },
+    {
+      "type": "header",
+      "content": "Layout & Spacing"
+    },
+    {
+      "type": "range",
+      "id": "sticky_top",
+      "label": "Site header height",
+      "min": 0,
+      "max": 160,
+      "step": 2,
+      "unit": "px",
+      "default": 44
+    },
+    {
+      "type": "range",
+      "id": "panel_padding",
+      "label": "Left/right column padding",
+      "min": 12,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "bar_height",
+      "label": "Sticky bar reserved height (fallback)",
+      "min": 80,
+      "max": 220,
+      "step": 2,
+      "unit": "px",
+      "default": 160,
+      "info": "Auto-measured at runtime; this is the fallback used before measure completes."
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text",
+      "default": "#111111"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent (discount badge / urgency)",
+      "default": "#b8865a"
+    },
+    {
+      "type": "header",
+      "content": "Info columns (blocks)"
+    },
+    {
+      "type": "paragraph",
+      "content": "Every element in the left and right columns is a block: add, remove or drag blocks under this section. Each block has a Column setting. The sticky add-to-cart bar is not affected."
+    },
+    {
+      "type": "color",
+      "id": "selected_fill",
+      "label": "Selected size / option fill",
+      "default": "#9966CC"
+    },
+    {
+      "type": "color",
+      "id": "selected_text",
+      "label": "Selected size / option text",
+      "default": "#111111",
+      "info": "Dark text on the amethyst fill keeps contrast readable (AA)."
+    },
+    {
+      "type": "color",
+      "id": "box_border",
+      "label": "Option box border",
+      "default": "#cfcfcf"
+    },
+    {
+      "type": "color",
+      "id": "divider_color",
+      "label": "Divider lines",
+      "default": "#e2e2e2"
+    },
+    {
+      "type": "range",
+      "id": "box_radius",
+      "label": "Box and button corner radius",
+      "min": 0,
+      "max": 12,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "block_gap",
+      "label": "Space between blocks",
+      "min": 8,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "select",
+      "id": "right_align",
+      "label": "Desktop vertical alignment",
+      "default": "center",
       "options": [
-        { "value": "inline", "label": "Show inline under bullets" },
-        { "value": "drawer", "label": "Show only in expandable drawer" },
-        { "value": "hide",   "label": "Hide completely" }
-      ]},
-    { "type": "text", "id": "description_label", "label": "Drawer link label", "default": "Description" },
-
-    { "type": "header", "content": "Stock Urgency" },
-    { "type": "checkbox", "id": "show_stock", "label": "Show low-stock indicator", "default": true, "info": "Shows 'Only N left' when inventory is at or below threshold." },
-    { "type": "range", "id": "low_stock_threshold", "label": "Low stock threshold", "min": 1, "max": 25, "step": 1, "default": 5 },
-
-    { "type": "header", "content": "Trust Strip (sticky bar)" },
-    { "type": "checkbox", "id": "show_trust_strip", "label": "Show trust strip above pills", "default": false },
-    { "type": "text", "id": "trust_1", "label": "Trust item 1", "default": "Free shipping over $80" },
-    { "type": "text", "id": "trust_2", "label": "Trust item 2", "default": "30-day returns" },
-    { "type": "text", "id": "trust_3", "label": "Trust item 3", "default": "Authentic" },
-
-    { "type": "header", "content": "Mini Product Pill (bundles)" },
-    { "type": "checkbox", "id": "show_pill", "label": "Show mini product pill row", "default": true },
-    { "type": "checkbox", "id": "main_show_price", "label": "Show price in main section", "default": false, "info": "Off: price and compare price show only in the sticky bar (visible on load), avoiding a duplicate." },
-    { "type": "checkbox", "id": "main_hide_options", "label": "Hide size/colour pickers in main section", "default": false, "info": "On: pickers stay in the sticky bar only. Markup is kept (CSS-hidden) so variant selection keeps working." },
-
-    { "type": "text",  "id": "single_label",    "label": "Single — label",    "default": "Single" },
-    { "type": "text",  "id": "single_sublabel", "label": "Single — subtitle", "default": "Just this piece" },
-
-    { "type": "text",  "id": "duo_label",       "label": "Duo — label",       "default": "Duo" },
-    { "type": "text",  "id": "duo_ribbon",      "label": "Duo — ribbon" },
-    { "type": "checkbox", "id": "duo_force_show", "label": "Show Duo pill", "default": true, "info": "Turn off to hide Duo for this product." },
-    { "type": "text",  "id": "duo_show_tag",    "label": "Or restrict Duo to products with this tag (leave blank to ignore)" },
-
-    { "type": "text",  "id": "triple_label",       "label": "Triple — label",       "default": "Trio" },
-    { "type": "text",  "id": "triple_ribbon",      "label": "Triple — ribbon" },
-    { "type": "checkbox", "id": "triple_force_show", "label": "Show Trio pill", "default": true, "info": "Turn off to hide Trio for this product." },
-    { "type": "text",  "id": "triple_show_tag",    "label": "Or restrict Trio to products with this tag (leave blank to ignore)" },
-
-    { "type": "header", "content": "Bundle add-ons (Duo and Trio)" },
-    { "type": "collection_list", "id": "bundle_collections", "label": "Add-on source collections", "limit": 8, "info": "Duo and Trio add-ons are picked at random from these collections, always from a different collection than the product itself. Leave empty to use Maze and LEXE. Collections that hold the free-glasses gift are always skipped. Do not add internal collections." },
-    { "type": "checkbox", "id": "bundle_swap", "label": "Show Swap control", "default": true },
-    { "type": "checkbox", "id": "bundle_require_cost", "label": "Only offer add-ons with a cost on file", "default": false, "info": "Bundles are sold at regular prices with no discount, so cost is not needed. Turn this on before adding any bundle discount so margins can be checked." },
-
-    { "type": "select", "id": "pill_thumb_source", "label": "Pill thumbnail source", "default": "featured",
+        {
+          "value": "center",
+          "label": "Centered"
+        },
+        {
+          "value": "top",
+          "label": "Right column from top"
+        }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "right_pad_desktop",
+      "label": "Right column outer padding (desktop)",
+      "min": 12,
+      "max": 96,
+      "step": 2,
+      "unit": "px",
+      "default": 64,
+      "info": "Keeps the column clear of the floating cart buttons on the right edge."
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "font_picker",
+      "id": "heading_font",
+      "label": "Product name font",
+      "default": "barlow_condensed_n9"
+    },
+    {
+      "type": "font_picker",
+      "id": "body_font",
+      "label": "Body / UI font",
+      "default": "barlow_n3"
+    },
+    {
+      "type": "range",
+      "id": "name_size",
+      "label": "Product name size",
+      "min": 16,
+      "max": 80,
+      "step": 1,
+      "unit": "px",
+      "default": 38
+    },
+    {
+      "type": "range",
+      "id": "price_size",
+      "label": "Price size",
+      "min": 16,
+      "max": 60,
+      "step": 1,
+      "unit": "px",
+      "default": 26
+    },
+    {
+      "type": "range",
+      "id": "bullet_size",
+      "label": "Bullet / narrative size",
+      "min": 9,
+      "max": 18,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "header",
+      "content": "Product Description"
+    },
+    {
+      "type": "select",
+      "id": "description_mode",
+      "label": "Where to show description",
+      "default": "inline",
       "options": [
-        { "value": "featured", "label": "Featured image" },
-        { "value": "variant",  "label": "Selected variant image" },
-        { "value": "first",    "label": "First image" },
-        { "value": "second",   "label": "Second image" },
-        { "value": "last",     "label": "Last image" }
-      ]},
-    { "type": "color", "id": "pill_bg",     "label": "Pill background",            "default": "#f4f4f2" },
-    { "type": "color", "id": "pill_bg_on",  "label": "Pill background (selected)", "default": "#eaeae6" },
-    { "type": "color", "id": "pill_text",   "label": "Pill text",                  "default": "#1a1a1a" },
-    { "type": "color", "id": "pill_accent", "label": "Pill accent",                "default": "#1a1a1a" },
-
-    { "type": "header", "content": "Add to Cart Button" },
-    { "type": "text", "id": "atc_text",      "label": "Default label",   "default": "Add to cart" },
-    { "type": "text", "id": "soldout_text",  "label": "Sold out label",  "default": "Sold Out" },
-    { "type": "text", "id": "view_bag_text", "label": "After-add label", "default": "View Bag" },
-    { "type": "text", "id": "loading_text",  "label": "Loading label",   "default": "Adding…" },
-    { "type": "url",  "id": "atc_link",      "label": "After-add custom URL (optional)" },
-    { "type": "url",  "id": "view_bag_url",  "label": "View Bag URL", "info": "Defaults to /cart." },
-    { "type": "checkbox", "id": "redirect_on_add", "label": "Redirect immediately on add", "default": false },
-    { "type": "range", "id": "atc_radius", "label": "Button corner radius", "min": 0, "max": 60, "step": 1, "unit": "px", "default": 10 },
-
-    { "type": "header", "content": "Cart Behavior" },
-    { "type": "checkbox", "id": "ajax_cart", "label": "Add to cart without page reload", "default": true },
-
-    { "type": "header", "content": "Brand Overlay" },
+        {
+          "value": "inline",
+          "label": "Show inline under bullets"
+        },
+        {
+          "value": "drawer",
+          "label": "Show only in expandable drawer"
+        },
+        {
+          "value": "hide",
+          "label": "Hide completely"
+        }
+      ],
+      "info": "Legacy: no longer used. Use the \"Product description\" or \"Collapsible row\" (source: Product description) blocks."
+    },
+    {
+      "type": "text",
+      "id": "description_label",
+      "label": "Drawer link label",
+      "default": "Description",
+      "info": "Legacy: no longer used. Set the heading on the Collapsible row block."
+    },
+    {
+      "type": "header",
+      "content": "Stock Urgency"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_stock",
+      "label": "Show low-stock indicator",
+      "default": true,
+      "info": "Shows 'Only N left' when inventory is at or below threshold."
+    },
+    {
+      "type": "range",
+      "id": "low_stock_threshold",
+      "label": "Low stock threshold",
+      "min": 1,
+      "max": 25,
+      "step": 1,
+      "default": 5
+    },
+    {
+      "type": "header",
+      "content": "Trust Strip (sticky bar)"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_trust_strip",
+      "label": "Show trust strip above pills",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "trust_1",
+      "label": "Trust item 1",
+      "default": "Free shipping over $80"
+    },
+    {
+      "type": "text",
+      "id": "trust_2",
+      "label": "Trust item 2",
+      "default": "30-day returns"
+    },
+    {
+      "type": "text",
+      "id": "trust_3",
+      "label": "Trust item 3",
+      "default": "Authentic"
+    },
+    {
+      "type": "header",
+      "content": "Mini Product Pill (bundles)"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_pill",
+      "label": "Show mini product pill row",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "main_show_price",
+      "label": "Show price in main section",
+      "default": false,
+      "info": "Legacy: no longer used. Add or remove the \"Price\" block instead."
+    },
+    {
+      "type": "checkbox",
+      "id": "main_hide_options",
+      "label": "Hide size/colour pickers in main section",
+      "default": false,
+      "info": "Legacy: no longer used. Add or remove the \"Variant picker\" block instead (the sticky bar keeps its own pickers)."
+    },
+    {
+      "type": "text",
+      "id": "single_label",
+      "label": "Single — label",
+      "default": "Single"
+    },
+    {
+      "type": "text",
+      "id": "single_sublabel",
+      "label": "Single — subtitle",
+      "default": "Just this piece"
+    },
+    {
+      "type": "text",
+      "id": "duo_label",
+      "label": "Duo — label",
+      "default": "Duo"
+    },
+    {
+      "type": "text",
+      "id": "duo_ribbon",
+      "label": "Duo — ribbon"
+    },
+    {
+      "type": "checkbox",
+      "id": "duo_force_show",
+      "label": "Show Duo pill",
+      "default": true,
+      "info": "Turn off to hide Duo for this product."
+    },
+    {
+      "type": "text",
+      "id": "duo_show_tag",
+      "label": "Or restrict Duo to products with this tag (leave blank to ignore)"
+    },
+    {
+      "type": "text",
+      "id": "triple_label",
+      "label": "Triple — label",
+      "default": "Trio"
+    },
+    {
+      "type": "text",
+      "id": "triple_ribbon",
+      "label": "Triple — ribbon"
+    },
+    {
+      "type": "checkbox",
+      "id": "triple_force_show",
+      "label": "Show Trio pill",
+      "default": true,
+      "info": "Turn off to hide Trio for this product."
+    },
+    {
+      "type": "text",
+      "id": "triple_show_tag",
+      "label": "Or restrict Trio to products with this tag (leave blank to ignore)"
+    },
+    {
+      "type": "header",
+      "content": "Bundle add-ons (Duo and Trio)"
+    },
+    {
+      "type": "collection_list",
+      "id": "bundle_collections",
+      "label": "Add-on source collections",
+      "limit": 8,
+      "info": "Duo and Trio add-ons are picked at random from these collections, always from a different collection than the product itself. Leave empty to use Maze and LEXE. Collections that hold the free-glasses gift are always skipped. Do not add internal collections."
+    },
+    {
+      "type": "checkbox",
+      "id": "bundle_swap",
+      "label": "Show Swap control",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "bundle_require_cost",
+      "label": "Only offer add-ons with a cost on file",
+      "default": false,
+      "info": "Bundles are sold at regular prices with no discount, so cost is not needed. Turn this on before adding any bundle discount so margins can be checked."
+    },
+    {
+      "type": "select",
+      "id": "pill_thumb_source",
+      "label": "Pill thumbnail source",
+      "default": "featured",
+      "options": [
+        {
+          "value": "featured",
+          "label": "Featured image"
+        },
+        {
+          "value": "variant",
+          "label": "Selected variant image"
+        },
+        {
+          "value": "first",
+          "label": "First image"
+        },
+        {
+          "value": "second",
+          "label": "Second image"
+        },
+        {
+          "value": "last",
+          "label": "Last image"
+        }
+      ]
+    },
+    {
+      "type": "color",
+      "id": "pill_bg",
+      "label": "Pill background",
+      "default": "#f4f4f2"
+    },
+    {
+      "type": "color",
+      "id": "pill_bg_on",
+      "label": "Pill background (selected)",
+      "default": "#eaeae6"
+    },
+    {
+      "type": "color",
+      "id": "pill_text",
+      "label": "Pill text",
+      "default": "#1a1a1a"
+    },
+    {
+      "type": "color",
+      "id": "pill_accent",
+      "label": "Pill accent",
+      "default": "#1a1a1a"
+    },
+    {
+      "type": "header",
+      "content": "Add to Cart Button"
+    },
+    {
+      "type": "text",
+      "id": "atc_text",
+      "label": "Default label",
+      "default": "Add to cart"
+    },
+    {
+      "type": "text",
+      "id": "soldout_text",
+      "label": "Sold out label",
+      "default": "Sold Out"
+    },
+    {
+      "type": "text",
+      "id": "view_bag_text",
+      "label": "After-add label",
+      "default": "View Bag"
+    },
+    {
+      "type": "text",
+      "id": "loading_text",
+      "label": "Loading label",
+      "default": "Adding…"
+    },
+    {
+      "type": "url",
+      "id": "atc_link",
+      "label": "After-add custom URL (optional)"
+    },
+    {
+      "type": "url",
+      "id": "view_bag_url",
+      "label": "View Bag URL",
+      "info": "Defaults to /cart."
+    },
+    {
+      "type": "checkbox",
+      "id": "redirect_on_add",
+      "label": "Redirect immediately on add",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "atc_radius",
+      "label": "Button corner radius",
+      "min": 0,
+      "max": 60,
+      "step": 1,
+      "unit": "px",
+      "default": 10
+    },
+    {
+      "type": "header",
+      "content": "Cart Behavior"
+    },
+    {
+      "type": "checkbox",
+      "id": "ajax_cart",
+      "label": "Add to cart without page reload",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Brand Overlay"
+    },
     {
       "type": "checkbox",
       "id": "show_brand_overlay",
@@ -2205,8 +3092,14 @@
       "label": "Font style",
       "default": "italic",
       "options": [
-        { "value": "normal", "label": "Normal" },
-        { "value": "italic", "label": "Italic" }
+        {
+          "value": "normal",
+          "label": "Normal"
+        },
+        {
+          "value": "italic",
+          "label": "Italic"
+        }
       ]
     },
     {
@@ -2215,109 +3108,166 @@
       "label": "Font weight",
       "default": "400",
       "options": [
-        { "value": "300", "label": "Light" },
-        { "value": "400", "label": "Regular" },
-        { "value": "500", "label": "Medium" },
-        { "value": "600", "label": "Semibold" },
-        { "value": "700", "label": "Bold" }
+        {
+          "value": "300",
+          "label": "Light"
+        },
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        }
       ]
     },
     {
       "type": "range",
       "id": "brand_name_size",
       "label": "Collection name size (desktop)",
-      "min": 14, "max": 64, "step": 1, "unit": "px",
+      "min": 14,
+      "max": 64,
+      "step": 1,
+      "unit": "px",
       "default": 30
     },
     {
       "type": "range",
       "id": "brand_name_size_mobile",
       "label": "Collection name size (mobile)",
-      "min": 12, "max": 48, "step": 1, "unit": "px",
+      "min": 12,
+      "max": 48,
+      "step": 1,
+      "unit": "px",
       "default": 22
     },
     {
       "type": "range",
       "id": "brand_logo_height",
       "label": "Logo height (desktop)",
-      "min": 10, "max": 60, "step": 1, "unit": "px",
+      "min": 10,
+      "max": 60,
+      "step": 1,
+      "unit": "px",
       "default": 22
     },
     {
       "type": "range",
       "id": "brand_logo_height_mobile",
       "label": "Logo height (mobile)",
-      "min": 8, "max": 48, "step": 1, "unit": "px",
+      "min": 8,
+      "max": 48,
+      "step": 1,
+      "unit": "px",
       "default": 18
     },
     {
       "type": "range",
       "id": "brand_logo_opacity",
       "label": "Logo opacity",
-      "min": 20, "max": 100, "step": 5, "unit": "%",
+      "min": 20,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
       "default": 90
     },
     {
       "type": "range",
       "id": "brand_sep_height",
       "label": "Separator height (desktop)",
-      "min": 10, "max": 60, "step": 1, "unit": "px",
+      "min": 10,
+      "max": 60,
+      "step": 1,
+      "unit": "px",
       "default": 26
     },
     {
       "type": "range",
       "id": "brand_sep_height_mobile",
       "label": "Separator height (mobile)",
-      "min": 8, "max": 48, "step": 1, "unit": "px",
+      "min": 8,
+      "max": 48,
+      "step": 1,
+      "unit": "px",
       "default": 20
     },
     {
       "type": "range",
       "id": "brand_sep_opacity",
       "label": "Separator opacity",
-      "min": 10, "max": 100, "step": 5, "unit": "%",
+      "min": 10,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
       "default": 55
     },
     {
       "type": "range",
       "id": "brand_gap",
       "label": "Gap between elements (desktop)",
-      "min": 4, "max": 32, "step": 1, "unit": "px",
+      "min": 4,
+      "max": 32,
+      "step": 1,
+      "unit": "px",
       "default": 12
     },
     {
       "type": "range",
       "id": "brand_gap_mobile",
       "label": "Gap between elements (mobile)",
-      "min": 4, "max": 24, "step": 1, "unit": "px",
+      "min": 4,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
       "default": 9
     },
     {
       "type": "range",
       "id": "brand_bottom",
       "label": "Distance from bottom (desktop)",
-      "min": 8, "max": 140, "step": 2, "unit": "px",
+      "min": 8,
+      "max": 140,
+      "step": 2,
+      "unit": "px",
       "default": 52
     },
     {
       "type": "range",
       "id": "brand_bottom_mobile",
       "label": "Distance from bottom (mobile)",
-      "min": 8, "max": 120, "step": 2, "unit": "px",
+      "min": 8,
+      "max": 120,
+      "step": 2,
+      "unit": "px",
       "default": 46
     },
     {
       "type": "range",
       "id": "brand_left",
       "label": "Distance from left (desktop)",
-      "min": 4, "max": 80, "step": 1, "unit": "px",
+      "min": 4,
+      "max": 80,
+      "step": 1,
+      "unit": "px",
       "default": 16
     },
     {
       "type": "range",
       "id": "brand_left_mobile",
       "label": "Distance from left (mobile)",
-      "min": 4, "max": 60, "step": 1, "unit": "px",
+      "min": 4,
+      "max": 60,
+      "step": 1,
+      "unit": "px",
       "default": 14
     },
     {
@@ -2329,104 +3279,1159 @@
     }
   ],
   "blocks": [
-    { "type": "bullet", "name": "Feature bullet", "settings": [
-      { "type": "text", "id": "label", "label": "Bullet text (auto-uppercased)", "default": "Quilted bomba" }
-    ]},
-    { "type": "narrative", "name": "Narrative (under bullets)", "limit": 1, "settings": [
-      { "type": "richtext", "id": "text", "label": "Text (auto-uppercased; each paragraph = new line)",
-        "default": "<p>This one man.</p><p>It's just incredible.</p><p>I love wearing it.</p>" }
-    ]},
-    { "type": "size_guide_drawer", "name": "Size Guide", "limit": 1, "settings": [
-      { "type": "text",         "id": "title",        "label": "Link label",     "default": "Size Guide" },
-      { "type": "richtext",     "id": "content",      "label": "Content",
-        "default": "<p>S — Chest 88–92cm</p><p>M — Chest 93–99cm</p><p>L — Chest 100–106cm</p><p>XL — Chest 107–114cm</p>" },
-      { "type": "image_picker", "id": "image",        "label": "Optional image" },
-      { "type": "url",          "id": "redirect_url", "label": "Optional redirect URL" }
-    ]},
-    { "type": "shipping", "name": "Shipping & Returns", "limit": 1, "settings": [
-      { "type": "text",         "id": "title",        "label": "Link label",     "default": "Shipping & Returns" },
-      { "type": "richtext",     "id": "content",      "label": "Content",
-        "default": "<p>Free standard shipping on orders over $80.</p><p>30-day returns — items must be unworn with original tags.</p>" },
-      { "type": "image_picker", "id": "image",        "label": "Optional image" },
-      { "type": "url",          "id": "redirect_url", "label": "Optional redirect URL" }
-    ]},
-    { "type": "highlight", "name": "Highlight (as bullet)", "settings": [
-      { "type": "text", "id": "label", "label": "Bullet text", "default": "Premium" },
-      { "type": "text", "id": "icon",  "label": "Icon (ignored)" }
-    ]},
-    { "type": "tagline", "name": "Tagline  (narrative)", "limit": 1, "settings": [
-      { "type": "text", "id": "text", "label": "Tagline text" }
-    ]},
-    { "type": "atc",          "name": "ATC (not rendered)",          "limit": 1, "settings": [] },
-    { "type": "dyn_checkout", "name": "Dynamic checkout ", "limit": 1, "settings": [] },
-    { "type": "spec_row",     "name": "Spec row (not rendered)", "settings": [
-      { "type": "text", "id": "label", "label": "Label" },
-      { "type": "text", "id": "value", "label": "Value" }
-    ]},
-    { "type": "size_fit",     "name": "Size & Fit (not rendered)",  "limit": 1, "settings": [
-      { "type": "richtext", "id": "content",     "label": "Content" },
-      { "type": "text",     "id": "model_note",  "label": "Model note" },
-      { "type": "text",     "id": "popular_size","label": "Popular size" },
-      { "type": "checkbox", "id": "show_finder", "label": "Show finder", "default": false }
-    ]},
-    { "type": "material",     "name": "Composition", "limit": 1, "settings": [
-      { "type": "richtext", "id": "content", "label": "Content" }
-    ]},
-    { "type": "care",         "name": "Care (not rendered)",        "limit": 1, "settings": [
-      { "type": "richtext", "id": "content", "label": "Content" }
-    ]},
-    { "type": "details",      "name": " Full Details ","limit": 1, "settings": [
-      { "type": "richtext", "id": "content", "label": "Content" }
-    ]},
-    { "type": "accordion",    "name": "Custom section ", "settings": [
-      { "type": "text",     "id": "title",   "label": "Label" },
-      { "type": "richtext", "id": "content", "label": "Content" }
-    ]}
-  ],
-  "presets": [{
-    "name": "VANQUISH PRODUCT3",
-    "settings": {
-      "back_label": "Back",
-      "bg_color": "#ffffff", "text_color": "#111111", "accent_color": "#b8865a",
-      "heading_font": "barlow_condensed_n9", "body_font": "barlow_n3",
-      "name_size": 38, "price_size": 26, "bullet_size": 12, "bar_height": 160,
-      "description_mode": "inline", "description_label": "Description",
-      "show_stock": true, "low_stock_threshold": 5,
-      "show_trust_strip": false, "trust_1": "Free shipping over $80", "trust_2": "30-day returns", "trust_3": "Authentic",
-      "show_pill": true,
-      "single_label": "Single", "single_sublabel": "Just this piece",
-      "duo_label": "Duo", "duo_force_show": true,
-      "triple_label": "Trio", "triple_force_show": true,
-      "pill_thumb_source": "featured",
-      "pill_bg": "#f4f4f2", "pill_bg_on": "#eaeae6", "pill_text": "#1a1a1a", "pill_accent": "#1a1a1a",
-      "ajax_cart": true, "atc_text": "Add to cart", "soldout_text": "Sold Out",
-      "view_bag_text": "View Bag", "loading_text": "Adding…", "redirect_on_add": false, "atc_radius": 10,
-      "show_brand_overlay": true, "script_font": "assistant_n4",
-      "brand_name_size": 30, "brand_name_size_mobile": 22,
-      "brand_logo_height": 22, "brand_logo_height_mobile": 18,
-      "brand_text_color": "#111111", "brand_sep_color": "#111111",
-      "brand_name_style": "italic", "brand_name_weight": "400",
-      "brand_gap": 12, "brand_gap_mobile": 9,
-      "brand_bottom": 52, "brand_bottom_mobile": 46,
-      "brand_left": 16, "brand_left_mobile": 14,
-      "brand_sep_height": 26, "brand_sep_height_mobile": 20,
-      "brand_sep_opacity": 55, "brand_logo_opacity": 90,
-      "brand_letter_spacing": "0em"
+    {
+      "type": "back",
+      "name": "Back link",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "select",
+          "id": "column",
+          "label": "Column",
+          "default": "left",
+          "options": [
+            {
+              "value": "left",
+              "label": "Left (beside images)"
+            },
+            {
+              "value": "right",
+              "label": "Right"
+            }
+          ],
+          "info": "On mobile the left column shows first, then the right column."
+        },
+        {
+          "type": "url",
+          "id": "url",
+          "label": "Link",
+          "info": "Blank = section setting Back link destination."
+        },
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label",
+          "info": "Blank = section setting Back link label."
+        }
+      ]
     },
-    "blocks": [
-      { "type": "bullet", "settings": { "label": "Quilted bomba" } },
-      { "type": "bullet", "settings": { "label": "Boxy fit" } },
-      { "type": "bullet", "settings": { "label": "YKK metal zipper" } },
-      { "type": "bullet", "settings": { "label": "100% poly" } },
-      { "type": "bullet", "settings": { "label": "Spike embroidery on collar" } },
-      { "type": "bullet", "settings": { "label": "Ribbed collar, cuffs and hem" } },
-      { "type": "bullet", "settings": { "label": "Made in Turkey" } },
-      { "type": "narrative" },
-      { "type": "size_guide_drawer" },
-      { "type": "shipping" }
+    {
+      "type": "title",
+      "name": "Title",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "select",
+          "id": "column",
+          "label": "Column",
+          "default": "left",
+          "options": [
+            {
+              "value": "left",
+              "label": "Left (beside images)"
+            },
+            {
+              "value": "right",
+              "label": "Right"
+            }
+          ],
+          "info": "On mobile the left column shows first, then the right column."
+        },
+        {
+          "type": "text",
+          "id": "eyebrow",
+          "label": "Small line above title (optional)"
+        }
+      ]
+    },
+    {
+      "type": "description",
+      "name": "Product description",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "select",
+          "id": "column",
+          "label": "Column",
+          "default": "left",
+          "options": [
+            {
+              "value": "left",
+              "label": "Left (beside images)"
+            },
+            {
+              "value": "right",
+              "label": "Right"
+            }
+          ],
+          "info": "On mobile the left column shows first, then the right column."
+        }
+      ]
+    },
+    {
+      "type": "price",
+      "name": "Price",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "select",
+          "id": "column",
+          "label": "Column",
+          "default": "right",
+          "options": [
+            {
+              "value": "left",
+              "label": "Left (beside images)"
+            },
+            {
+              "value": "right",
+              "label": "Right"
+            }
+          ],
+          "info": "On mobile the left column shows first, then the right column."
+        },
+        {
+          "type": "paragraph",
+          "content": "Shows the live total (variant x quantity, plus add-ons when Duo/Trio is chosen), same as the sticky bar."
+        }
+      ]
+    },
+    {
+      "type": "stock",
+      "name": "Low-stock note",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "select",
+          "id": "column",
+          "label": "Column",
+          "default": "right",
+          "options": [
+            {
+              "value": "left",
+              "label": "Left (beside images)"
+            },
+            {
+              "value": "right",
+              "label": "Right"
+            }
+          ],
+          "info": "On mobile the left column shows first, then the right column."
+        },
+        {
+          "type": "paragraph",
+          "content": "Shows 'Only N left' from real inventory when at or below the section's Low stock threshold."
+        }
+      ]
+    },
+    {
+      "type": "note",
+      "name": "Shipping / tax note",
+      "settings": [
+        {
+          "type": "select",
+          "id": "column",
+          "label": "Column",
+          "default": "right",
+          "options": [
+            {
+              "value": "left",
+              "label": "Left (beside images)"
+            },
+            {
+              "value": "right",
+              "label": "Right"
+            }
+          ],
+          "info": "On mobile the left column shows first, then the right column."
+        },
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "Text",
+          "default": "<p><a href=\"/policies/shipping-policy\">Shipping</a> calculated at checkout.</p>"
+        }
+      ]
+    },
+    {
+      "type": "variant_picker",
+      "name": "Variant picker",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "select",
+          "id": "column",
+          "label": "Column",
+          "default": "right",
+          "options": [
+            {
+              "value": "left",
+              "label": "Left (beside images)"
+            },
+            {
+              "value": "right",
+              "label": "Right"
+            }
+          ],
+          "info": "On mobile the left column shows first, then the right column."
+        },
+        {
+          "type": "checkbox",
+          "id": "hide_single",
+          "label": "Hide options with only one value",
+          "default": true
+        },
+        {
+          "type": "checkbox",
+          "id": "show_selected",
+          "label": "Show selected value next to option name",
+          "default": true
+        },
+        {
+          "type": "select",
+          "id": "color_style",
+          "label": "Colour options",
+          "default": "image",
+          "options": [
+            {
+              "value": "image",
+              "label": "Variant image (text box if none)"
+            },
+            {
+              "value": "color",
+              "label": "Colour dot from name"
+            },
+            {
+              "value": "text",
+              "label": "Text boxes"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "size_link_label",
+          "label": "Size link label",
+          "default": "Size guide",
+          "info": "Shown next to Size options when a row is marked 'Open from the Size guide link'. Blank hides it."
+        }
+      ]
+    },
+    {
+      "type": "buy",
+      "name": "Buy button (inline)",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "select",
+          "id": "column",
+          "label": "Column",
+          "default": "right",
+          "options": [
+            {
+              "value": "left",
+              "label": "Left (beside images)"
+            },
+            {
+              "value": "right",
+              "label": "Right"
+            }
+          ],
+          "info": "On mobile the left column shows first, then the right column."
+        },
+        {
+          "type": "paragraph",
+          "content": "Optional. Works exactly like the sticky bar's Add to cart (same Single/Duo/Trio choice, quantity and label). The sticky bar stays either way."
+        },
+        {
+          "type": "checkbox",
+          "id": "show_price",
+          "label": "Show price inside button",
+          "default": true
+        },
+        {
+          "type": "checkbox",
+          "id": "show_qty",
+          "label": "Show quantity stepper",
+          "default": false
+        },
+        {
+          "type": "select",
+          "id": "style",
+          "label": "Style",
+          "default": "ink",
+          "options": [
+            {
+              "value": "ink",
+              "label": "Solid black"
+            },
+            {
+              "value": "accent",
+              "label": "Amethyst"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "claim",
+      "name": "Free-glasses claim",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "select",
+          "id": "column",
+          "label": "Column",
+          "default": "right",
+          "options": [
+            {
+              "value": "left",
+              "label": "Left (beside images)"
+            },
+            {
+              "value": "right",
+              "label": "Right"
+            }
+          ],
+          "info": "On mobile the left column shows first, then the right column."
+        },
+        {
+          "type": "paragraph",
+          "content": "Shows only on products that are an active free-glasses gift (LEXESPECS offer, cost on file). Removing this block removes the Claim option from those pages."
+        }
+      ]
+    },
+    {
+      "type": "collapsible",
+      "name": "Collapsible row",
+      "settings": [
+        {
+          "type": "select",
+          "id": "column",
+          "label": "Column",
+          "default": "right",
+          "options": [
+            {
+              "value": "left",
+              "label": "Left (beside images)"
+            },
+            {
+              "value": "right",
+              "label": "Right"
+            }
+          ],
+          "info": "On mobile the left column shows first, then the right column."
+        },
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading",
+          "default": "Details"
+        },
+        {
+          "type": "select",
+          "id": "source",
+          "label": "Content source",
+          "default": "content",
+          "options": [
+            {
+              "value": "content",
+              "label": "Text below"
+            },
+            {
+              "value": "description",
+              "label": "Product description"
+            },
+            {
+              "value": "page",
+              "label": "Page"
+            },
+            {
+              "value": "metafield",
+              "label": "Product metafield"
+            }
+          ]
+        },
+        {
+          "type": "richtext",
+          "id": "content",
+          "label": "Text"
+        },
+        {
+          "type": "page",
+          "id": "page",
+          "label": "Page"
+        },
+        {
+          "type": "text",
+          "id": "metafield_key",
+          "label": "Metafield (namespace.key)",
+          "info": "e.g. custom.size_chart"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image (optional)"
+        },
+        {
+          "type": "url",
+          "id": "link_url",
+          "label": "Link instead of opening (optional)"
+        },
+        {
+          "type": "checkbox",
+          "id": "open",
+          "label": "Open by default",
+          "default": false
+        },
+        {
+          "type": "checkbox",
+          "id": "is_size_guide",
+          "label": "Open from the 'Size guide' link",
+          "default": false
+        },
+        {
+          "type": "paragraph",
+          "content": "Rows with no content are hidden automatically."
+        }
+      ]
+    },
+    {
+      "type": "trust",
+      "name": "Trust list",
+      "settings": [
+        {
+          "type": "select",
+          "id": "column",
+          "label": "Column",
+          "default": "right",
+          "options": [
+            {
+              "value": "left",
+              "label": "Left (beside images)"
+            },
+            {
+              "value": "right",
+              "label": "Right"
+            }
+          ],
+          "info": "On mobile the left column shows first, then the right column."
+        },
+        {
+          "type": "text",
+          "id": "item_1",
+          "label": "Item 1"
+        },
+        {
+          "type": "select",
+          "id": "icon_1",
+          "label": "Icon 1",
+          "default": "truck",
+          "options": [
+            {
+              "value": "truck",
+              "label": "Truck"
+            },
+            {
+              "value": "return",
+              "label": "Return"
+            },
+            {
+              "value": "shield",
+              "label": "Shield"
+            },
+            {
+              "value": "box",
+              "label": "Box"
+            },
+            {
+              "value": "none",
+              "label": "None"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "item_2",
+          "label": "Item 2"
+        },
+        {
+          "type": "select",
+          "id": "icon_2",
+          "label": "Icon 2",
+          "default": "return",
+          "options": [
+            {
+              "value": "truck",
+              "label": "Truck"
+            },
+            {
+              "value": "return",
+              "label": "Return"
+            },
+            {
+              "value": "shield",
+              "label": "Shield"
+            },
+            {
+              "value": "box",
+              "label": "Box"
+            },
+            {
+              "value": "none",
+              "label": "None"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "item_3",
+          "label": "Item 3"
+        },
+        {
+          "type": "select",
+          "id": "icon_3",
+          "label": "Icon 3",
+          "default": "box",
+          "options": [
+            {
+              "value": "truck",
+              "label": "Truck"
+            },
+            {
+              "value": "return",
+              "label": "Return"
+            },
+            {
+              "value": "shield",
+              "label": "Shield"
+            },
+            {
+              "value": "box",
+              "label": "Box"
+            },
+            {
+              "value": "none",
+              "label": "None"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": "Only list what is true for every order."
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "name": "Text",
+      "settings": [
+        {
+          "type": "select",
+          "id": "column",
+          "label": "Column",
+          "default": "right",
+          "options": [
+            {
+              "value": "left",
+              "label": "Left (beside images)"
+            },
+            {
+              "value": "right",
+              "label": "Right"
+            }
+          ],
+          "info": "On mobile the left column shows first, then the right column."
+        },
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "Text",
+          "default": "<p>Add text here.</p>"
+        },
+        {
+          "type": "select",
+          "id": "style",
+          "label": "Style",
+          "default": "body",
+          "options": [
+            {
+              "value": "body",
+              "label": "Body"
+            },
+            {
+              "value": "small",
+              "label": "Small"
+            },
+            {
+              "value": "label",
+              "label": "Bold label"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "custom_liquid",
+      "name": "Custom Liquid",
+      "settings": [
+        {
+          "type": "select",
+          "id": "column",
+          "label": "Column",
+          "default": "right",
+          "options": [
+            {
+              "value": "left",
+              "label": "Left (beside images)"
+            },
+            {
+              "value": "right",
+              "label": "Right"
+            }
+          ],
+          "info": "On mobile the left column shows first, then the right column."
+        },
+        {
+          "type": "liquid",
+          "id": "custom_liquid",
+          "label": "Custom Liquid"
+        }
+      ]
+    },
+    {
+      "type": "bullet",
+      "name": "Feature bullet",
+      "settings": [
+        {
+          "type": "select",
+          "id": "column",
+          "label": "Column",
+          "default": "left",
+          "options": [
+            {
+              "value": "left",
+              "label": "Left (beside images)"
+            },
+            {
+              "value": "right",
+              "label": "Right"
+            }
+          ],
+          "info": "On mobile the left column shows first, then the right column."
+        },
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Bullet text (auto-uppercased)",
+          "default": "Quilted bomba"
+        }
+      ]
+    },
+    {
+      "type": "narrative",
+      "name": "Narrative",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "select",
+          "id": "column",
+          "label": "Column",
+          "default": "left",
+          "options": [
+            {
+              "value": "left",
+              "label": "Left (beside images)"
+            },
+            {
+              "value": "right",
+              "label": "Right"
+            }
+          ],
+          "info": "On mobile the left column shows first, then the right column."
+        },
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "Text (auto-uppercased; each paragraph = new line)",
+          "default": "<p>This one man.</p><p>It's just incredible.</p><p>I love wearing it.</p>"
+        }
+      ]
+    },
+    {
+      "type": "size_guide_drawer",
+      "name": "Size guide row",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "select",
+          "id": "column",
+          "label": "Column",
+          "default": "right",
+          "options": [
+            {
+              "value": "left",
+              "label": "Left (beside images)"
+            },
+            {
+              "value": "right",
+              "label": "Right"
+            }
+          ],
+          "info": "On mobile the left column shows first, then the right column."
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Link label",
+          "default": "Size Guide"
+        },
+        {
+          "type": "richtext",
+          "id": "content",
+          "label": "Content",
+          "default": "<p>S — Chest 88–92cm</p><p>M — Chest 93–99cm</p><p>L — Chest 100–106cm</p><p>XL — Chest 107–114cm</p>"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Optional image"
+        },
+        {
+          "type": "url",
+          "id": "redirect_url",
+          "label": "Optional redirect URL"
+        }
+      ]
+    },
+    {
+      "type": "shipping",
+      "name": "Shipping & returns row",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "select",
+          "id": "column",
+          "label": "Column",
+          "default": "right",
+          "options": [
+            {
+              "value": "left",
+              "label": "Left (beside images)"
+            },
+            {
+              "value": "right",
+              "label": "Right"
+            }
+          ],
+          "info": "On mobile the left column shows first, then the right column."
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Link label",
+          "default": "Shipping & Returns"
+        },
+        {
+          "type": "richtext",
+          "id": "content",
+          "label": "Content",
+          "default": "<p>Free standard shipping on orders over $80.</p><p>30-day returns — items must be unworn with original tags.</p>"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Optional image"
+        },
+        {
+          "type": "url",
+          "id": "redirect_url",
+          "label": "Optional redirect URL"
+        }
+      ]
+    },
+    {
+      "type": "highlight",
+      "name": "Highlight (as bullet)",
+      "settings": [
+        {
+          "type": "select",
+          "id": "column",
+          "label": "Column",
+          "default": "left",
+          "options": [
+            {
+              "value": "left",
+              "label": "Left (beside images)"
+            },
+            {
+              "value": "right",
+              "label": "Right"
+            }
+          ],
+          "info": "On mobile the left column shows first, then the right column."
+        },
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Bullet text",
+          "default": "Premium"
+        },
+        {
+          "type": "text",
+          "id": "icon",
+          "label": "Icon (ignored)"
+        }
+      ]
+    },
+    {
+      "type": "tagline",
+      "name": "Tagline",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "select",
+          "id": "column",
+          "label": "Column",
+          "default": "left",
+          "options": [
+            {
+              "value": "left",
+              "label": "Left (beside images)"
+            },
+            {
+              "value": "right",
+              "label": "Right"
+            }
+          ],
+          "info": "On mobile the left column shows first, then the right column."
+        },
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Tagline text"
+        }
+      ]
+    },
+    {
+      "type": "atc",
+      "name": "ATC (not rendered)",
+      "limit": 1,
+      "settings": []
+    },
+    {
+      "type": "dyn_checkout",
+      "name": "Dynamic checkout ",
+      "limit": 1,
+      "settings": []
+    },
+    {
+      "type": "spec_row",
+      "name": "Spec row",
+      "settings": [
+        {
+          "type": "select",
+          "id": "column",
+          "label": "Column",
+          "default": "right",
+          "options": [
+            {
+              "value": "left",
+              "label": "Left (beside images)"
+            },
+            {
+              "value": "right",
+              "label": "Right"
+            }
+          ],
+          "info": "On mobile the left column shows first, then the right column."
+        },
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label"
+        },
+        {
+          "type": "text",
+          "id": "value",
+          "label": "Value"
+        }
+      ]
+    },
+    {
+      "type": "size_fit",
+      "name": "Size & fit (row)",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "select",
+          "id": "column",
+          "label": "Column",
+          "default": "right",
+          "options": [
+            {
+              "value": "left",
+              "label": "Left (beside images)"
+            },
+            {
+              "value": "right",
+              "label": "Right"
+            }
+          ],
+          "info": "On mobile the left column shows first, then the right column."
+        },
+        {
+          "type": "richtext",
+          "id": "content",
+          "label": "Content"
+        },
+        {
+          "type": "text",
+          "id": "model_note",
+          "label": "Model note"
+        },
+        {
+          "type": "text",
+          "id": "popular_size",
+          "label": "Popular size"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_finder",
+          "label": "Show finder",
+          "default": false
+        }
+      ]
+    },
+    {
+      "type": "material",
+      "name": "Composition (row)",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "select",
+          "id": "column",
+          "label": "Column",
+          "default": "right",
+          "options": [
+            {
+              "value": "left",
+              "label": "Left (beside images)"
+            },
+            {
+              "value": "right",
+              "label": "Right"
+            }
+          ],
+          "info": "On mobile the left column shows first, then the right column."
+        },
+        {
+          "type": "richtext",
+          "id": "content",
+          "label": "Content"
+        }
+      ]
+    },
+    {
+      "type": "care",
+      "name": "Care (row)",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "select",
+          "id": "column",
+          "label": "Column",
+          "default": "right",
+          "options": [
+            {
+              "value": "left",
+              "label": "Left (beside images)"
+            },
+            {
+              "value": "right",
+              "label": "Right"
+            }
+          ],
+          "info": "On mobile the left column shows first, then the right column."
+        },
+        {
+          "type": "richtext",
+          "id": "content",
+          "label": "Content"
+        }
+      ]
+    },
+    {
+      "type": "details",
+      "name": "Full details (row)",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "select",
+          "id": "column",
+          "label": "Column",
+          "default": "right",
+          "options": [
+            {
+              "value": "left",
+              "label": "Left (beside images)"
+            },
+            {
+              "value": "right",
+              "label": "Right"
+            }
+          ],
+          "info": "On mobile the left column shows first, then the right column."
+        },
+        {
+          "type": "richtext",
+          "id": "content",
+          "label": "Content"
+        }
+      ]
+    },
+    {
+      "type": "accordion",
+      "name": "Custom row (legacy)",
+      "settings": [
+        {
+          "type": "select",
+          "id": "column",
+          "label": "Column",
+          "default": "right",
+          "options": [
+            {
+              "value": "left",
+              "label": "Left (beside images)"
+            },
+            {
+              "value": "right",
+              "label": "Right"
+            }
+          ],
+          "info": "On mobile the left column shows first, then the right column."
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Label"
+        },
+        {
+          "type": "richtext",
+          "id": "content",
+          "label": "Content"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "VANQUISH PRODUCT3",
+      "settings": {
+        "back_label": "HOME",
+        "bg_color": "#ffffff",
+        "text_color": "#111111",
+        "accent_color": "#b8865a",
+        "heading_font": "barlow_condensed_n9",
+        "body_font": "barlow_n3",
+        "name_size": 38,
+        "price_size": 26,
+        "bullet_size": 12,
+        "bar_height": 160,
+        "description_mode": "inline",
+        "description_label": "Description",
+        "show_stock": true,
+        "low_stock_threshold": 5,
+        "show_trust_strip": false,
+        "trust_1": "Free shipping over $80",
+        "trust_2": "30-day returns",
+        "trust_3": "Authentic",
+        "show_pill": true,
+        "single_label": "Single",
+        "single_sublabel": "Just this piece",
+        "duo_label": "Duo",
+        "duo_force_show": true,
+        "triple_label": "Trio",
+        "triple_force_show": true,
+        "pill_thumb_source": "featured",
+        "pill_bg": "#f4f4f2",
+        "pill_bg_on": "#eaeae6",
+        "pill_text": "#1a1a1a",
+        "pill_accent": "#1a1a1a",
+        "ajax_cart": true,
+        "atc_text": "Add to cart",
+        "soldout_text": "Sold Out",
+        "view_bag_text": "View Bag",
+        "loading_text": "Adding…",
+        "redirect_on_add": false,
+        "atc_radius": 10,
+        "show_brand_overlay": true,
+        "script_font": "assistant_n4",
+        "brand_name_size": 30,
+        "brand_name_size_mobile": 22,
+        "brand_logo_height": 22,
+        "brand_logo_height_mobile": 18,
+        "brand_text_color": "#111111",
+        "brand_sep_color": "#111111",
+        "brand_name_style": "italic",
+        "brand_name_weight": "400",
+        "brand_gap": 12,
+        "brand_gap_mobile": 9,
+        "brand_bottom": 52,
+        "brand_bottom_mobile": 46,
+        "brand_left": 16,
+        "brand_left_mobile": 14,
+        "brand_sep_height": 26,
+        "brand_sep_height_mobile": 20,
+        "brand_sep_opacity": 55,
+        "brand_logo_opacity": 90,
+        "brand_letter_spacing": "0em"
+      },
+      "blocks": [
+        {
+          "type": "back"
+        },
+        {
+          "type": "title"
+        },
+        {
+          "type": "note"
+        },
+        {
+          "type": "stock"
+        },
+        {
+          "type": "variant_picker"
+        },
+        {
+          "type": "buy"
+        },
+        {
+          "type": "claim"
+        },
+        {
+          "type": "collapsible",
+          "settings": {
+            "heading": "Size & Description",
+            "source": "description",
+            "is_size_guide": true
+          }
+        },
+        {
+          "type": "collapsible",
+          "settings": {
+            "heading": "Shipping & Returns",
+            "source": "content",
+            "content": "<p>Free Standard Shipping On Eligible Orders.</p><p>30-day returns — items must be unworn with original tags.</p>"
+          }
+        }
+      ]
+    }
+  ],
+  "disabled_on": {
+    "groups": [
+      "header",
+      "footer"
     ]
-  }],
-  "disabled_on": { "groups": ["header","footer"] }
+  }
 }
 {% endschema %}
-
