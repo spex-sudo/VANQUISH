@@ -955,6 +955,64 @@
           <input type="hidden" name="id" id="ap-vid{{ sid }}" value="{{ current_variant.id }}">
           <input type="hidden" name="quantity" id="ap-qty{{ sid }}" value="1">
           <div class="ap-col{{ sid }}">
+            {%- assign has_note = false -%}
+            {%- assign has_picker = false -%}
+            {%- assign has_atc = false -%}
+            {%- assign has_details = false -%}
+            {%- for block in section.blocks -%}
+              {%- if block.type == 'checkout_note' -%}{%- assign has_note = true -%}{%- endif -%}
+              {%- if block.type == 'variant_picker' -%}{%- assign has_picker = true -%}{%- endif -%}
+              {%- if block.type == 'column_atc' -%}{%- assign has_atc = true -%}{%- endif -%}
+              {%- if block.type == 'accordion' and block.settings.source == 'description' -%}{%- assign has_details = true -%}{%- endif -%}
+            {%- endfor -%}
+
+            {%- unless has_note -%}
+              <p class="ap-note{{ sid }}"><u>Shipping</u> calculated at checkout.</p>
+            {%- endunless -%}
+
+            {%- unless has_picker -%}
+              {%- unless product.has_only_default_variant -%}
+                {%- for option in product.options_with_values -%}
+                  {%- assign odn = option.name | downcase -%}
+                  <span class="ap-size-lbl{{ sid }}">{{ option.name }}</span>
+                  {%- if odn == 'color' or odn == 'colour' -%}
+                    <div class="ap-swatches{{ sid }}" data-opt="{{ forloop.index }}">
+                      {%- for val in option.values -%}
+                        <button type="button" data-vbtn class="ap-swatch{{ sid }}{% if option.selected_value == val %} on{% endif %}" data-val="{{ val }}" title="{{ val }}" aria-label="{{ val }}" style="background:{{ val | handle }};"></button>
+                      {%- endfor -%}
+                    </div>
+                  {%- else -%}
+                    <div class="ap-stack{{ sid }} ap-sizes{{ sid }}" data-opt="{{ forloop.index }}" role="radiogroup" aria-label="{{ option.name }}">
+                      {%- for val in option.values -%}
+                        <button type="button" data-vbtn class="ap-stack-btn{{ sid }}{% if option.selected_value == val %} on{% endif %}" data-val="{{ val }}" role="radio" aria-checked="{% if option.selected_value == val %}true{% else %}false{% endif %}">{{ val }}</button>
+                      {%- endfor -%}
+                    </div>
+                  {%- endif -%}
+                {%- endfor -%}
+              {%- endunless -%}
+            {%- endunless -%}
+
+            {%- unless has_atc -%}
+              <button type="button" class="ap-col-atc{{ sid }}" data-col-atc {% unless current_variant.available %}disabled{% endunless %}>
+                <span data-col-atc-label>{{ section.settings.atc_text | default: 'Add to cart' }}</span>
+                <span id="ap-col-price{{ sid }}">{{ current_variant.price | money }}</span>
+              </button>
+            {%- endunless -%}
+
+            {%- unless has_details -%}
+              {%- if product.description != blank -%}
+                <div class="ap-acc{{ sid }} ap-link-row{{ sid }}">
+                  <button type="button" class="ap-link-trig{{ sid }}" data-link-toggle="desc{{ sid }}" aria-expanded="false">
+                    <span>Details</span>
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                  </button>
+                  <div class="ap-link-body{{ sid }}" id="desc{{ sid }}">
+                    <div class="ap-link-inner{{ sid }}"><div class="ap-link-content{{ sid }}">{{ product.description }}</div></div>
+                  </div>
+                </div>
+              {%- endif -%}
+            {%- endunless -%}
+
             {%- for block in section.blocks -%}
               {%- case block.type -%}
                 {%- when 'checkout_note' -%}
