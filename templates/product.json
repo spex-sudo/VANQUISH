@@ -67,7 +67,7 @@
           "lexespecs"
         ],
         "bundle_swap": true,
-        "bundle_require_cost": true,
+        "bundle_require_cost": false,
         "pill_thumb_source": "featured",
         "pill_bg": "#f4f4f2",
         "pill_bg_on": "#eaeae6",
