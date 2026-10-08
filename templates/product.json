@@ -8,6 +8,7 @@
  * ------------------------------------------------------------
  */
 {
+  "layout": "theme",
   "sections": {
     "product_information_7L3YfD": {
       "type": "product-information",
