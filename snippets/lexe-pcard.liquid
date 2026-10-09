@@ -1,0 +1,74 @@
+{%- comment -%}
+  LEXE product card for non-collection pages (/collections rows).
+  Mirrors the Apex Zenith grid card: lead + hover image, New badge, wishlist heart
+  (same apex_favs_v1 storage / ApexFavorites API), quick add, colour swatches, price.
+  Params: product, eager (bool), show_wish, show_qa, show_sw, new_days
+{%- endcomment -%}
+{%- if product != blank -%}
+{%- liquid
+  assign img1 = product.featured_image
+  assign img2 = product.images[1]
+  assign first_var = product.selected_or_first_available_variant
+  assign on_sale = false
+  if show_compare and product.compare_at_price > product.price
+    assign on_sale = true
+  endif
+  assign is_new = false
+  assign nd = new_days | default: 30
+  assign created_s = product.created_at | date: '%s' | plus: 0
+  assign now_s = 'now' | date: '%s' | plus: 0
+  assign age_d = now_s | minus: created_s | divided_by: 86400
+  if age_d <= nd
+    assign is_new = true
+  endif
+  assign color_idx = -1
+  for opt in product.options_with_values
+    assign on = opt.name | downcase
+    if on == 'color' or on == 'colour'
+      assign color_idx = forloop.index0
+      break
+    endif
+  endfor
+-%}
+<article class="lxl-card" data-handle="{{ product.handle }}">
+  <div class="lxl-card-media">
+    <a href="{{ product.url }}" class="lxl-card-link" aria-label="{{ product.title | escape }}" data-lxl-evt="row_product_click"></a>
+    {%- if img1 -%}
+      <img class="lxl-card-img" src="{{ img1 | image_url: width: 600 }}"
+        srcset="{{ img1 | image_url: width: 360 }} 360w, {{ img1 | image_url: width: 600 }} 600w{% if img1.width >= 900 %}, {{ img1 | image_url: width: 900 }} 900w{% endif %}"
+        sizes="(max-width: 768px) 46vw, 23vw" width="600" height="600"
+        alt="{{ img1.alt | default: product.title | escape }}" loading="{% if eager %}eager{% else %}lazy{% endif %}" decoding="async">
+      {%- if img2 -%}
+        <img class="lxl-card-img lxl-card-img2" src="{{ img2 | image_url: width: 600 }}" width="600" height="600" alt="" aria-hidden="true" loading="lazy" decoding="async">
+      {%- endif -%}
+    {%- endif -%}
+    {%- if is_new -%}<span class="lxl-badge">New</span>{%- endif -%}
+    {%- if show_wish -%}
+      <button type="button" class="lxl-wish" data-lxl-wish="{{ product.handle }}" aria-label="Save {{ product.title | escape }}" aria-pressed="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </button>
+    {%- endif -%}
+    {%- if show_qa and product.available -%}
+      <button type="button" class="lxl-qa" data-lxl-qa="{{ product.handle }}" data-variants="{{ product.variants.size }}" data-first-vid="{{ first_var.id }}" aria-label="Add {{ product.title | escape }}">Add</button>
+    {%- endif -%}
+  </div>
+  <div class="lxl-card-info">
+    {%- if show_sw and color_idx >= 0 -%}
+      {%- assign copt = product.options_with_values[color_idx] -%}
+      <div class="lxl-sw-row" aria-label="Colours">
+        {%- for val in copt.values limit: 4 -%}
+          {%- assign sw_vid = '' -%}
+          {%- for v in product.variants -%}{%- if v.options[color_idx] == val -%}{%- assign sw_vid = v.id -%}{%- break -%}{%- endif -%}{%- endfor -%}
+          <a class="lxl-sw" href="{{ product.url }}?variant={{ sw_vid }}" title="{{ val | escape }}" aria-label="{{ val | escape }}" style="background-color: {{ val | handle }};"></a>
+        {%- endfor -%}
+        {%- if copt.values.size > 4 -%}<span class="lxl-sw-more">+{{ copt.values.size | minus: 4 }}</span>{%- endif -%}
+      </div>
+    {%- endif -%}
+    <a href="{{ product.url }}" class="lxl-card-title">{{ product.title | escape }}</a>
+    <div class="lxl-card-price">
+      <span{% if on_sale %} class="is-sale"{% endif %}>{{ product.price | money }}</span>
+      {%- if on_sale -%}<s>{{ product.compare_at_price | money }}</s>{%- endif -%}
+    </div>
+  </div>
+</article>
+{%- endif -%}

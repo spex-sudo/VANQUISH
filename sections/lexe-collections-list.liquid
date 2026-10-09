@@ -1,0 +1,629 @@
+{%- comment -%}
+  LEXE · Collections index (/collections). Order follows Baymard's intermediary-category guidance:
+  collection thumbnails first, supporting content (rows, looks, signup) below.
+{%- endcomment -%}
+{%- liquid
+  assign sid = section.id
+  assign acc = section.settings.accent | default: '#9966CC'
+  assign tile_blocks = section.blocks | where: 'type', 'tile'
+  assign look_blocks = section.blocks | where: 'type', 'look'
+  assign excl = section.settings.exclude_handles | downcase | split: ','
+  assign drop_list = section.settings.drop_handles | remove: ' ' | downcase | split: ','
+  assign shown_count = 0
+  if tile_blocks.size > 0
+    for b in tile_blocks
+      if b.settings.collection != blank or b.settings.style == 'black'
+        if b.settings.collection != blank and drop_list contains b.settings.collection.handle
+          continue
+        endif
+        assign shown_count = shown_count | plus: 1
+      endif
+    endfor
+  else
+    for c in collections
+      assign ch = c.handle | downcase
+      if excl contains ch or c.products_count == 0
+        continue
+      endif
+      assign shown_count = shown_count | plus: 1
+    endfor
+  endif
+-%}
+<style>
+  {{ section.settings.headline_font | font_face: font_display: 'swap' }}
+  #lxl-{{ sid }} { --acc: {{ acc }}; --hf: {{ section.settings.headline_font.family }}, 'Oswald', 'Arial Narrow', Impact, sans-serif; --hw: {{ section.settings.headline_font.weight | default: 700 }};
+    --ink: #0b0b0c; --paper: #fff; --mut: #6b6b70; --line: #e7e7ea; --r: 4px; --tile-ratio: {{ section.settings.tile_ratio_desktop }};
+    background: var(--paper); color: var(--ink); overflow-x: clip; }
+  #lxl-{{ sid }} *, #lxl-{{ sid }} *::before, #lxl-{{ sid }} *::after { box-sizing: border-box; }
+  #lxl-{{ sid }} .lxl-wrap { max-width: 1360px; margin: 0 auto; padding: 0 {{ section.settings.pad_x }}px; }
+  #lxl-{{ sid }} .lxl-meta { font: 600 11px/1 inherit; font-family: inherit; letter-spacing: .18em; text-transform: uppercase; color: var(--mut); }
+  #lxl-{{ sid }} .lxl-meta b { color: var(--acc); font-weight: 600; }
+  #lxl-{{ sid }} .lxl-h { font-family: var(--hf); font-weight: var(--hw); text-transform: uppercase; letter-spacing: .01em; line-height: .92; margin: 0; }
+
+  /* Opener */
+  #lxl-{{ sid }} .lxl-open { position: relative; background: #0b0b0c; color: #fff; overflow: hidden; padding: {{ section.settings.open_pad_top }}px 0 34px; }
+  #lxl-{{ sid }} .lxl-wm { position: absolute; inset: auto -2% -18% auto; font-family: var(--hf); font-weight: 700; font-size: clamp(160px, 26vw, 380px); line-height: .8; color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,{{ section.settings.wm_opacity | divided_by: 100.0 }}); letter-spacing: -.02em; pointer-events: none; user-select: none; white-space: nowrap; }
+  #lxl-{{ sid }} .lxl-open-grid { position: relative; display: grid; grid-template-columns: 1fr auto; gap: 40px; align-items: end; }
+  #lxl-{{ sid }} .lxl-open .lxl-meta { color: rgba(255,255,255,.62); display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 16px; }
+  #lxl-{{ sid }} .lxl-open h1 { font-size: clamp(44px, 6.4vw, 92px); }
+  #lxl-{{ sid }} .lxl-open h1 em { font-style: normal; color: var(--acc); }
+  #lxl-{{ sid }} .lxl-open-sub { margin: 16px 0 0; max-width: 46ch; font-size: 15px; line-height: 1.5; color: rgba(255,255,255,.78); }
+  #lxl-{{ sid }} .lxl-open-fig { margin: 0; width: {{ section.settings.hero_w }}px; aspect-ratio: 3 / 4; overflow: hidden; border-radius: var(--r); background: #1a1a1c; position: relative; }
+  #lxl-{{ sid }} .lxl-open-fig img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; display: block; }
+  #lxl-{{ sid }} .lxl-open-fig figcaption { position: absolute; left: 10px; bottom: 10px; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #fff; background: rgba(0,0,0,.45); padding: 5px 8px; border-radius: 2px; }
+
+  /* Section heads */
+  #lxl-{{ sid }} .lxl-sec { padding: {{ section.settings.sec_gap }}px 0 0; }
+  #lxl-{{ sid }} .lxl-head { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+  #lxl-{{ sid }} .lxl-head .lxl-h { font-size: clamp(26px, 3vw, 40px); }
+  #lxl-{{ sid }} .lxl-head .lxl-meta { display: block; margin-bottom: 8px; }
+  #lxl-{{ sid }} .lxl-more { font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ink); text-decoration: none; border-bottom: 1px solid currentColor; padding-bottom: 3px; white-space: nowrap; }
+  #lxl-{{ sid }} .lxl-more:hover, #lxl-{{ sid }} .lxl-more:focus-visible { color: var(--acc); }
+
+  /* Tiles */
+  #lxl-{{ sid }} .lxl-tiles { display: grid; grid-template-columns: repeat({{ section.settings.tiles_cols }}, minmax(0,1fr)); gap: 12px; }
+  #lxl-{{ sid }} .lxl-tiles.is-sec { grid-template-columns: repeat({{ section.settings.sec_cols }}, minmax(0,1fr)); gap: 10px; margin-top: 12px; }
+  #lxl-{{ sid }} .lxl-tile { position: relative; display: block; aspect-ratio: var(--tile-ratio); overflow: hidden; border-radius: var(--r); background: #111; color: #fff; text-decoration: none; isolation: isolate; }
+  #lxl-{{ sid }} .lxl-tile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 25%; transition: transform .7s cubic-bezier(.2,.7,.2,1); {% if section.settings.tile_mono %}filter: grayscale(1) contrast(1.05);{% endif %} }
+  #lxl-{{ sid }} .lxl-tile::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.28) 0%, rgba(0,0,0,0) 28%, rgba(0,0,0,0) 46%, rgba(0,0,0,{{ section.settings.tile_shade | divided_by: 100.0 }}) 100%); z-index: 1; }
+  #lxl-{{ sid }} .lxl-tile.is-black { background: #000; }
+  #lxl-{{ sid }} .lxl-tile.is-black::after { background: none; }
+  #lxl-{{ sid }} .lxl-tile.is-black .lxl-tile-mark { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--hf); font-weight: 700; font-size: clamp(56px, 7vw, 110px); color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,.16); text-transform: uppercase; }
+  #lxl-{{ sid }} .lxl-tile-top { position: absolute; top: 12px; left: 12px; right: 12px; z-index: 2; display: flex; justify-content: space-between; font-size: 10px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: rgba(255,255,255,.9); }
+  #lxl-{{ sid }} .lxl-tile-bot { position: absolute; left: 16px; right: 16px; bottom: 16px; z-index: 2; }
+  #lxl-{{ sid }} .lxl-tile-name { font-family: var(--hf); font-weight: var(--hw); text-transform: uppercase; font-size: clamp(26px, 2.6vw, 40px); line-height: .95; display: block; }
+  #lxl-{{ sid }} .is-sec .lxl-tile-name { font-size: clamp(18px, 1.6vw, 24px); }
+  #lxl-{{ sid }} .lxl-tile-label { display: block; font-size: 13px; line-height: 1.35; color: rgba(255,255,255,.82); margin-top: 6px; max-width: 32ch; }
+  #lxl-{{ sid }} .lxl-tile-cta { display: inline-block; margin-top: 12px; font-size: 11px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; padding-bottom: 4px; background: linear-gradient(var(--acc), var(--acc)) 0 100% / 0 2px no-repeat, linear-gradient(#fff, #fff) 0 100% / 100% 1px no-repeat; transition: background-size .35s ease; }
+  #lxl-{{ sid }} .is-sec .lxl-tile-cta { margin-top: 8px; font-size: 10px; }
+  @media (hover: hover) {
+    #lxl-{{ sid }} .lxl-tile:hover img { transform: scale(1.05); }
+    #lxl-{{ sid }} .lxl-tile:hover .lxl-tile-cta { background-size: 100% 2px, 100% 1px; }
+  }
+  #lxl-{{ sid }} .lxl-tile:focus-visible { outline: 2px solid var(--acc); outline-offset: 3px; }
+
+  /* Product rows */
+  #lxl-{{ sid }} .lxl-row { display: grid; grid-template-columns: repeat({{ section.settings.row_cols }}, minmax(0,1fr)); gap: 18px 14px; }
+  #lxl-{{ sid }} .lxl-card { position: relative; min-width: 0; }
+  #lxl-{{ sid }} .lxl-card-media { position: relative; aspect-ratio: 1 / 1; background: #f4f4f5; border-radius: var(--r); overflow: hidden; }
+  #lxl-{{ sid }} .lxl-card-link { position: absolute; inset: 0; z-index: 2; }
+  #lxl-{{ sid }} .lxl-card-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: opacity .35s ease, transform .6s ease; }
+  #lxl-{{ sid }} .lxl-card-img2 { opacity: 0; }
+  @media (hover: hover) { #lxl-{{ sid }} .lxl-card:hover .lxl-card-img2 { opacity: 1; } }
+  #lxl-{{ sid }} .lxl-badge { position: absolute; top: 10px; left: 10px; z-index: 3; font-size: 9.5px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; background: #0b0b0c; color: #fff; padding: 4px 7px; border-radius: 2px; }
+  #lxl-{{ sid }} .lxl-wish { position: absolute; top: 8px; right: 8px; z-index: 3; width: 32px; height: 32px; border-radius: 50%; border: 0; background: rgba(255,255,255,.92); display: grid; place-items: center; cursor: pointer; }
+  #lxl-{{ sid }} .lxl-wish svg { width: 14px; height: 14px; fill: none; stroke: #111; stroke-width: 2; }
+  #lxl-{{ sid }} .lxl-wish.is-saved svg { fill: var(--acc); stroke: var(--acc); }
+  #lxl-{{ sid }} .lxl-qa { position: absolute; right: 8px; bottom: 8px; z-index: 3; height: 30px; padding: 0 13px; border-radius: 999px; border: 0; background: #111; color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
+  #lxl-{{ sid }} .lxl-qa:hover, #lxl-{{ sid }} .lxl-qa:focus-visible { background: var(--acc); }
+  #lxl-{{ sid }} .lxl-qa.is-loading { opacity: .6; pointer-events: none; }
+  #lxl-{{ sid }} .lxl-sheet { position: absolute; left: 6px; right: 6px; bottom: 6px; z-index: 4; background: #fff; border-radius: var(--r); padding: 10px; box-shadow: 0 6px 24px rgba(0,0,0,.18); }
+  #lxl-{{ sid }} .lxl-sheet-h { display: flex; justify-content: space-between; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; margin-bottom: 8px; }
+  #lxl-{{ sid }} .lxl-sheet-h button { border: 0; background: none; font-size: 14px; cursor: pointer; line-height: 1; }
+  #lxl-{{ sid }} .lxl-sheet-v { display: flex; flex-wrap: wrap; gap: 6px; }
+  #lxl-{{ sid }} .lxl-sheet-v button { border: 1px solid #111; background: #fff; border-radius: 999px; padding: 6px 10px; font-size: 11px; cursor: pointer; }
+  #lxl-{{ sid }} .lxl-sheet-v button:hover { background: #111; color: #fff; }
+  #lxl-{{ sid }} .lxl-card-info { padding-top: 10px; }
+  #lxl-{{ sid }} .lxl-sw-row { display: flex; gap: 5px; align-items: center; margin-bottom: 7px; min-height: 12px; }
+  #lxl-{{ sid }} .lxl-sw { width: 12px; height: 12px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.2); display: block; }
+  #lxl-{{ sid }} .lxl-sw-more { font-size: 10px; color: var(--mut); }
+  #lxl-{{ sid }} .lxl-card-title { display: block; font-size: 13px; font-weight: 600; color: var(--ink); text-decoration: none; line-height: 1.3; }
+  #lxl-{{ sid }} .lxl-card-price { margin-top: 6px; font-size: 13px; font-weight: 700; }
+  #lxl-{{ sid }} .lxl-card-price s { color: var(--mut); font-weight: 400; margin-left: 6px; }
+
+  /* Looks */
+  #lxl-{{ sid }} .lxl-looks { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+  #lxl-{{ sid }} .lxl-look { position: relative; display: block; aspect-ratio: 4 / 3; overflow: hidden; border-radius: var(--r); background: #111; color: #fff; text-decoration: none; }
+  #lxl-{{ sid }} .lxl-look img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .7s cubic-bezier(.2,.7,.2,1); }
+  #lxl-{{ sid }} .lxl-look::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0,0,0,.72) 0%, rgba(0,0,0,.25) 55%, rgba(0,0,0,0) 100%); }
+  #lxl-{{ sid }} .lxl-look-body { position: absolute; left: 28px; bottom: 28px; right: 40%; z-index: 2; }
+  #lxl-{{ sid }} .lxl-look-eb { font-size: 10px; letter-spacing: .2em; text-transform: uppercase; display: flex; align-items: center; gap: 10px; }
+  #lxl-{{ sid }} .lxl-look-eb::before { content: ''; width: 22px; height: 2px; background: var(--acc); }
+  #lxl-{{ sid }} .lxl-look .lxl-h { font-size: clamp(28px, 3vw, 44px); margin-top: 10px; }
+  #lxl-{{ sid }} .lxl-look-h { display: block; }
+  #lxl-{{ sid }} .lxl-look-sub { display: block; margin-top: 10px; font-size: 14px; line-height: 1.45; color: rgba(255,255,255,.85); }
+  #lxl-{{ sid }} .lxl-look-cta { display: inline-block; margin-top: 14px; font-size: 11px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; padding-bottom: 4px; border-bottom: 2px solid var(--acc); }
+  @media (hover: hover) { #lxl-{{ sid }} .lxl-look:hover img { transform: scale(1.04); } }
+
+  /* Signup */
+  #lxl-{{ sid }} .lxl-sign { margin-top: {{ section.settings.sec_gap }}px; background: #0b0b0c; color: #fff; position: relative; overflow: hidden; }
+  #lxl-{{ sid }} .lxl-sign .lxl-wm { font-size: clamp(120px, 18vw, 260px); inset: auto auto -22% -1%; }
+  #lxl-{{ sid }} .lxl-sign-in { position: relative; display: grid; grid-template-columns: 1fr minmax(0, 480px); gap: 40px; align-items: center; padding-top: 56px; padding-bottom: 56px; }
+  #lxl-{{ sid }} .lxl-sign .lxl-meta { color: rgba(255,255,255,.6); display: block; margin-bottom: 12px; }
+  #lxl-{{ sid }} .lxl-sign .lxl-h { font-size: clamp(36px, 4.6vw, 64px); }
+  #lxl-{{ sid }} .lxl-sign-sub { margin: 14px 0 0; font-size: 15px; line-height: 1.5; color: rgba(255,255,255,.8); max-width: 44ch; }
+  #lxl-{{ sid }} .lxl-form { display: grid; gap: 12px; }
+  #lxl-{{ sid }} .lxl-form-row { display: flex; gap: 8px; }
+  #lxl-{{ sid }} .lxl-form label.lxl-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  #lxl-{{ sid }} .lxl-form input[type=email] { flex: 1; min-width: 0; height: 50px; border: 1px solid rgba(255,255,255,.4); background: transparent; color: #fff; padding: 0 16px; font-size: 16px; border-radius: 2px; }
+  #lxl-{{ sid }} .lxl-form input[type=email]::placeholder { color: rgba(255,255,255,.55); }
+  #lxl-{{ sid }} .lxl-form input[type=email]:focus { outline: none; border-color: var(--acc); }
+  #lxl-{{ sid }} .lxl-form button { height: 50px; padding: 0 22px; border: 0; background: #fff; color: #0b0b0c; font-weight: 800; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; border-radius: 2px; cursor: pointer; white-space: nowrap; }
+  #lxl-{{ sid }} .lxl-form button:hover, #lxl-{{ sid }} .lxl-form button:focus-visible { background: var(--acc); color: #fff; }
+  #lxl-{{ sid }} .lxl-consent { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; line-height: 1.4; color: rgba(255,255,255,.85); cursor: pointer; }
+  #lxl-{{ sid }} .lxl-consent input { margin-top: 2px; width: 16px; height: 16px; accent-color: var(--acc); flex: none; }
+  #lxl-{{ sid }} .lxl-note { font-size: 12px; color: rgba(255,255,255,.6); }
+  #lxl-{{ sid }} .lxl-note a { color: #fff; text-decoration: underline; }
+  #lxl-{{ sid }} .lxl-msg { font-size: 14px; padding: 10px 12px; border-left: 2px solid var(--acc); background: rgba(255,255,255,.06); }
+
+  #lxl-toast-{{ sid }} { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; background: #111; color: #fff; font-size: 13px; padding: 10px 16px; border-radius: 999px; z-index: 9999; transition: opacity .25s, transform .25s; pointer-events: none; }
+  #lxl-toast-{{ sid }}.is-on { opacity: 1; transform: translate(-50%, 0); }
+
+  @media (max-width: 900px) {
+    #lxl-{{ sid }} .lxl-open-grid { grid-template-columns: 1fr; }
+    #lxl-{{ sid }} .lxl-open-fig { {% unless section.settings.hero_mobile %}display: none;{% endunless %} width: 100%; aspect-ratio: 16 / 9; }
+    #lxl-{{ sid }} .lxl-sign-in { grid-template-columns: 1fr; gap: 24px; padding-top: 40px; padding-bottom: 40px; }
+  }
+  @media (max-width: 768px) {
+    #lxl-{{ sid }} .lxl-wrap { padding: 0 14px; }
+    #lxl-{{ sid }} .lxl-open { padding: {{ section.settings.open_pad_top_mobile }}px 0 22px; }
+    #lxl-{{ sid }} .lxl-open h1 { font-size: 44px; }
+    #lxl-{{ sid }} .lxl-open-sub { font-size: 14px; margin-top: 10px; }
+    #lxl-{{ sid }} .lxl-open .lxl-meta { margin-bottom: 10px; gap: 12px; }
+    #lxl-{{ sid }} { --tile-ratio: {{ section.settings.tile_ratio }}; }
+    #lxl-{{ sid }} .lxl-tiles { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; }
+    #lxl-{{ sid }} .lxl-tiles.is-sec { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 8px; margin: 12px -14px 0; padding: 0 14px 4px; scrollbar-width: none; overscroll-behavior-x: contain; touch-action: pan-x pan-y; scroll-padding-left: 14px; }
+    #lxl-{{ sid }} .lxl-tiles.is-sec::-webkit-scrollbar { display: none; }
+    #lxl-{{ sid }} .lxl-tiles.is-sec .lxl-tile { flex: 0 0 40%; scroll-snap-align: start; }
+    #lxl-{{ sid }} .lxl-tile-top { top: 9px; left: 10px; right: 10px; font-size: 9px; }
+    #lxl-{{ sid }} .lxl-tile-bot { left: 11px; right: 11px; bottom: 11px; }
+    #lxl-{{ sid }} .lxl-tile-name { font-size: 24px; }
+    #lxl-{{ sid }} .is-sec .lxl-tile-name { font-size: 18px; }
+    #lxl-{{ sid }} .lxl-tile-label { display: none; }
+    #lxl-{{ sid }} .lxl-tile-cta { margin-top: 8px; font-size: 10px; }
+    #lxl-{{ sid }} .lxl-row { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 10px; margin: 0 -14px; padding: 0 14px 6px; scrollbar-width: none; overscroll-behavior-x: contain; touch-action: pan-x pan-y; scroll-padding-left: 14px; }
+    #lxl-{{ sid }} .lxl-row::-webkit-scrollbar { display: none; }
+    #lxl-{{ sid }} .lxl-row .lxl-card { flex: 0 0 44%; scroll-snap-align: start; }
+    #lxl-{{ sid }} .lxl-looks { grid-template-columns: 1fr; }
+    #lxl-{{ sid }} .lxl-look { aspect-ratio: 4 / 5; }
+    #lxl-{{ sid }} .lxl-look::after { background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,.75) 100%); }
+    #lxl-{{ sid }} .lxl-look-body { left: 18px; right: 18px; bottom: 18px; }
+    #lxl-{{ sid }} .lxl-look-sub, #lxl-{{ sid }} .lxl-look-eb { display: none; }
+    #lxl-{{ sid }} .lxl-form-row { flex-direction: column; }
+    #lxl-{{ sid }} .lxl-form button { width: 100%; }
+  }
+  @media (prefers-reduced-motion: reduce) { #lxl-{{ sid }} * { transition: none !important; } }
+
+  {%- if section.settings.hide_footer_signup -%}
+  [id^="shopify-section-"][id*="__lexe_specs_offer_"] { display: none !important; }
+  {%- endif -%}
+  {%- if section.settings.hide_floaters -%}
+  aside[id^="apex-notch-"], .vqsc-tag, #ads-agent-host, [id^="ApexAscend-"], .apex-qn { display: none !important; visibility: hidden !important; }
+  {%- endif -%}
+</style>
+
+<link rel="preload" as="font" href="{{ section.settings.headline_font | font_url }}" type="font/woff2" crossorigin>
+<div id="lxl-{{ sid }}" class="lxl" data-lxl>
+  {%- comment -%} 1) Opener {%- endcomment -%}
+  {%- if section.settings.show_opener -%}
+  <header class="lxl-open">
+    {%- if section.settings.wordmark != blank -%}<span class="lxl-wm" aria-hidden="true">{{ section.settings.wordmark | escape }}</span>{%- endif -%}
+    <div class="lxl-wrap lxl-open-grid">
+      <div>
+        <div class="lxl-meta">
+          {%- if section.settings.meta_1 != blank -%}<span>[ {{ section.settings.meta_1 | escape }} ]</span>{%- endif -%}
+          {%- if section.settings.show_count -%}<span>[ <b>{{ shown_count }}</b> {{ section.settings.count_label | escape }} ]</span>{%- endif -%}
+        </div>
+        {%- liquid
+          assign words = section.settings.title | split: ' '
+        -%}
+        <h1 class="lxl-h">
+          {%- for w in words -%}{%- if forloop.last and words.size > 1 and section.settings.accent_last -%}<em>{{ w | escape }}</em>{%- else -%}{{ w | escape }} {% endif -%}{%- endfor -%}
+        </h1>
+        {%- if section.settings.sub != blank -%}<p class="lxl-open-sub">{{ section.settings.sub | escape }}</p>{%- endif -%}
+      </div>
+      {%- liquid
+        assign hero_img = section.settings.hero_image
+        if hero_img == blank and section.settings.hero_product != blank
+          assign hero_img = section.settings.hero_product.featured_image
+        endif
+      -%}
+      {%- if section.settings.show_hero and hero_img != blank -%}
+        <figure class="lxl-open-fig">
+          {%- assign hw = section.settings.hero_w | times: 2 | at_most: hero_img.width -%}
+          <img src="{{ hero_img | image_url: width: hw }}" srcset="{{ hero_img | image_url: width: section.settings.hero_w }} 1x, {{ hero_img | image_url: width: hw }} 2x"
+            width="{{ hero_img.width }}" height="{{ hero_img.height }}" alt="{{ hero_img.alt | default: section.settings.hero_product.title | escape }}" loading="eager" fetchpriority="high" decoding="async">
+          {%- if section.settings.hero_caption != blank -%}<figcaption>{{ section.settings.hero_caption | escape }}</figcaption>{%- endif -%}
+        </figure>
+      {%- endif -%}
+    </div>
+  </header>
+  {%- endif -%}
+
+  {%- comment -%} 2) Collection tiles {%- endcomment -%}
+  {%- capture tile_cta -%}{{ section.settings.tile_cta | escape }}{%- endcapture -%}
+  <section class="lxl-sec lxl-wrap" aria-label="{{ section.settings.tiles_aria | escape }}" style="padding-top: {{ section.settings.tiles_gap }}px">
+    {%- if tile_blocks.size > 0 -%}
+      {%- for size in (1..2) -%}
+        {%- assign want = 'primary' -%}{%- if size == 2 -%}{%- assign want = 'secondary' -%}{%- endif -%}
+        {%- assign any = false -%}
+        {%- for b in tile_blocks -%}{%- if b.settings.size == want -%}{%- unless b.settings.collection != blank and drop_list contains b.settings.collection.handle -%}{%- assign any = true -%}{%- endunless -%}{%- endif -%}{%- endfor -%}
+        {%- if any -%}
+          {%- if size == 2 and section.settings.sec_title != blank -%}
+            <div class="lxl-head" style="margin-top: 34px"><div><span class="lxl-meta">[ {{ section.settings.sec_meta | escape }} ]</span><h2 class="lxl-h">{{ section.settings.sec_title | escape }}</h2></div></div>
+          {%- endif -%}
+          <div class="lxl-tiles{% if size == 2 %} is-sec{% endif %}">
+          {%- for b in tile_blocks -%}
+            {%- if b.settings.size != want -%}{%- continue -%}{%- endif -%}
+            {%- liquid
+              assign c = b.settings.collection
+              assign is_black = false
+              if b.settings.style == 'black'
+                assign is_black = true
+              endif
+              if c == blank and is_black == false
+                continue
+              endif
+              if c != blank and drop_list contains c.handle
+                continue
+              endif
+              assign img = b.settings.image
+              if img == blank and b.settings.product != blank
+                assign img = b.settings.product.featured_image
+              endif
+              if img == blank and c != blank and is_black == false
+                for p in c.products limit: 1
+                  assign img = p.featured_image
+                endfor
+              endif
+              assign name = b.settings.title | default: c.title
+              assign url = c.url | default: b.settings.link
+              assign n = c.products_count | default: 0
+              assign idx = forloop.index | prepend: '0' | slice: -2, 2
+            -%}
+            <a class="lxl-tile{% if is_black %} is-black{% endif %}" href="{{ url }}" data-lxl-evt="collection_tile_click" data-lxl-name="{{ c.handle | default: name | escape }}" {{ b.shopify_attributes }}>
+              {%- if is_black -%}
+                <span class="lxl-tile-mark" aria-hidden="true">{{ name | escape }}</span>
+              {%- elsif img != blank -%}
+                {%- assign tw = 900 -%}{%- if size == 2 -%}{%- assign tw = 600 -%}{%- endif -%}
+                {%- assign tw = tw | at_most: img.width -%}
+                <img src="{{ img | image_url: width: tw }}" srcset="{% if img.width >= 400 %}{{ img | image_url: width: 400 }} 400w, {% endif %}{{ img | image_url: width: tw }} {{ tw }}w"
+                  sizes="{% if size == 2 %}(max-width: 768px) 40vw, {{ 100 | divided_by: section.settings.sec_cols }}vw{% else %}(max-width: 768px) 48vw, {{ 100 | divided_by: section.settings.tiles_cols }}vw{% endif %}"
+                  width="{{ img.width }}" height="{{ img.height }}" alt="" loading="{% if size == 1 and forloop.index <= section.settings.eager_tiles %}eager{% else %}lazy{% endif %}" decoding="async">
+              {%- endif -%}
+              <span class="lxl-tile-top"><span>[ {{ idx }} ]</span>{%- if section.settings.show_tile_count and c != blank -%}<span>{{ n }} {% if n == 1 %}{{ section.settings.count_one | escape }}{% else %}{{ section.settings.count_many | escape }}{% endif %}</span>{%- endif -%}</span>
+              <span class="lxl-tile-bot">
+                <span class="lxl-tile-name">{{ name | escape }}</span>
+                {%- if b.settings.label != blank and size == 1 -%}<span class="lxl-tile-label">{{ b.settings.label | escape }}</span>{%- endif -%}
+                {%- if tile_cta != blank -%}<span class="lxl-tile-cta">{{ tile_cta }}</span>{%- endif -%}
+              </span>
+            </a>
+          {%- endfor -%}
+          </div>
+        {%- endif -%}
+      {%- endfor -%}
+    {%- else -%}
+      <div class="lxl-tiles">
+        {%- for c in collections -%}
+          {%- assign ch = c.handle | downcase -%}
+          {%- if excl contains ch or c.products_count == 0 -%}{%- continue -%}{%- endif -%}
+          {%- assign img = nil -%}{%- for p in c.products limit: 1 -%}{%- assign img = p.featured_image -%}{%- endfor -%}
+          <a class="lxl-tile" href="{{ c.url }}" data-lxl-evt="collection_tile_click" data-lxl-name="{{ c.handle }}">
+            {%- if img -%}<img src="{{ img | image_url: width: 600 }}" width="{{ img.width }}" height="{{ img.height }}" alt="" loading="lazy" decoding="async">{%- endif -%}
+            <span class="lxl-tile-top"><span>[ {{ forloop.index }} ]</span><span>{{ c.products_count }} {{ section.settings.count_many | escape }}</span></span>
+            <span class="lxl-tile-bot"><span class="lxl-tile-name">{{ c.title | escape }}</span>{%- if tile_cta != blank -%}<span class="lxl-tile-cta">{{ tile_cta }}</span>{%- endif -%}</span>
+          </a>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </section>
+
+  {%- comment -%} 3a) Latest arrivals {%- endcomment -%}
+  {%- liquid
+    assign pick_handles = ''
+    for p in section.settings.picks
+      assign pick_handles = pick_handles | append: ',' | append: p.handle
+    endfor
+    assign pick_handles = pick_handles | append: ','
+    assign row_excl = section.settings.row_exclude | remove: ' ' | prepend: ',' | append: ','
+  -%}
+  {%- if section.settings.show_latest and section.settings.latest_collection != blank -%}
+    {%- assign lc = section.settings.latest_collection -%}
+    <section class="lxl-sec lxl-wrap" aria-labelledby="lxl-latest-{{ sid }}">
+      <div class="lxl-head">
+        <div><span class="lxl-meta">[ {{ section.settings.latest_meta | escape }} ]</span><h2 class="lxl-h" id="lxl-latest-{{ sid }}">{{ section.settings.latest_title | escape }}</h2></div>
+        {%- if section.settings.latest_link_label != blank -%}<a class="lxl-more" href="{{ lc.url }}?sort_by=created-descending">{{ section.settings.latest_link_label | escape }}</a>{%- endif -%}
+      </div>
+      <div class="lxl-row">
+        {%- paginate lc.products by 250 -%}
+          {%- assign sorted = lc.products | sort: 'created_at' | reverse -%}
+          {%- assign shown = 0 -%}
+          {%- for product in sorted -%}
+            {%- if shown >= section.settings.row_limit -%}{%- break -%}{%- endif -%}
+            {%- assign key = ',' | append: product.handle | append: ',' -%}
+            {%- if product.available == false or product.featured_image == blank or product.tags contains 'needs-clean-image' -%}{%- continue -%}{%- endif -%}
+            {%- if section.settings.latest_skip_picks and pick_handles contains key -%}{%- continue -%}{%- endif -%}
+            {%- if row_excl contains key -%}{%- continue -%}{%- endif -%}
+            {%- render 'lexe-pcard', product: product, eager: false, show_wish: section.settings.show_wish, show_qa: section.settings.show_qa, show_sw: section.settings.show_sw, new_days: section.settings.new_days, show_compare: section.settings.show_compare -%}
+            {%- assign shown = shown | plus: 1 -%}
+          {%- endfor -%}
+        {%- endpaginate -%}
+      </div>
+    </section>
+  {%- endif -%}
+
+  {%- comment -%} 3b) Looks {%- endcomment -%}
+  {%- if section.settings.show_looks and look_blocks.size > 0 -%}
+    <section class="lxl-sec lxl-wrap" aria-label="{{ section.settings.looks_aria | escape }}">
+      {%- if section.settings.looks_title != blank -%}
+        <div class="lxl-head"><div><span class="lxl-meta">[ {{ section.settings.looks_meta | escape }} ]</span><h2 class="lxl-h">{{ section.settings.looks_title | escape }}</h2></div></div>
+      {%- endif -%}
+      <div class="lxl-looks">
+        {%- for b in look_blocks limit: 2 -%}
+          {%- liquid
+            assign img = b.settings.image
+            if img == blank and b.settings.product != blank
+              assign img = b.settings.product.featured_image
+            endif
+            assign url = b.settings.link
+            if url == blank and b.settings.product != blank
+              assign url = b.settings.product.url
+            endif
+          -%}
+          <a class="lxl-look" href="{{ url | default: '#' }}" data-lxl-evt="look_card_click" data-lxl-name="{{ b.settings.product.handle | escape }}" {{ b.shopify_attributes }}>
+            {%- if img != blank -%}
+              {%- assign lw = 1100 | at_most: img.width -%}
+              <img src="{{ img | image_url: width: lw }}" srcset="{% if img.width >= 600 %}{{ img | image_url: width: 600 }} 600w, {% endif %}{{ img | image_url: width: lw }} {{ lw }}w" sizes="(max-width: 768px) 100vw, 50vw" width="{{ img.width }}" height="{{ img.height }}" alt="{{ b.settings.product.title | escape }}" loading="lazy" decoding="async" style="object-position: {{ b.settings.focal }}">
+            {%- endif -%}
+            <span class="lxl-look-body">
+              {%- if b.settings.eyebrow != blank -%}<span class="lxl-look-eb">{{ b.settings.eyebrow | escape }}</span>{%- endif -%}
+              {%- if b.settings.headline != blank -%}<span class="lxl-h lxl-look-h">{{ b.settings.headline | escape }}</span>{%- endif -%}
+              {%- if b.settings.sub != blank -%}<span class="lxl-look-sub">{{ b.settings.sub | escape }}</span>{%- endif -%}
+              {%- if b.settings.cta != blank -%}<span class="lxl-look-cta">{{ b.settings.cta | escape }}</span>{%- endif -%}
+            </span>
+          </a>
+        {%- endfor -%}
+      </div>
+    </section>
+  {%- endif -%}
+
+  {%- comment -%} 3c) Editor's picks {%- endcomment -%}
+  {%- if section.settings.show_picks -%}
+    <section class="lxl-sec lxl-wrap" aria-labelledby="lxl-picks-{{ sid }}">
+      <div class="lxl-head">
+        <div><span class="lxl-meta">[ {{ section.settings.picks_meta | escape }} ]</span><h2 class="lxl-h" id="lxl-picks-{{ sid }}">{{ section.settings.picks_title | escape }}</h2></div>
+        {%- if section.settings.picks_link_label != blank and section.settings.picks_collection != blank -%}<a class="lxl-more" href="{{ section.settings.picks_collection.url }}">{{ section.settings.picks_link_label | escape }}</a>{%- endif -%}
+      </div>
+      <div class="lxl-row">
+        {%- if section.settings.picks_mode == 'bestselling' and section.settings.picks_collection != blank -%}
+          {%- assign shown = 0 -%}
+          {%- for product in section.settings.picks_collection.products -%}
+            {%- if shown >= section.settings.row_limit -%}{%- break -%}{%- endif -%}
+            {%- if product.available == false or product.featured_image == blank or product.tags contains 'needs-clean-image' -%}{%- continue -%}{%- endif -%}
+            {%- render 'lexe-pcard', product: product, eager: false, show_wish: section.settings.show_wish, show_qa: section.settings.show_qa, show_sw: section.settings.show_sw, new_days: section.settings.new_days, show_compare: section.settings.show_compare -%}
+            {%- assign shown = shown | plus: 1 -%}
+          {%- endfor -%}
+        {%- else -%}
+          {%- for product in section.settings.picks limit: section.settings.row_limit -%}
+            {%- render 'lexe-pcard', product: product, eager: false, show_wish: section.settings.show_wish, show_qa: section.settings.show_qa, show_sw: section.settings.show_sw, new_days: section.settings.new_days, show_compare: section.settings.show_compare -%}
+          {%- endfor -%}
+        {%- endif -%}
+      </div>
+    </section>
+  {%- endif -%}
+
+  {%- comment -%} 4) Drop alerts (Shopify native customer form → customer with email marketing consent, tagged) {%- endcomment -%}
+  {%- if section.settings.show_signup -%}
+    <section class="lxl-sign" id="drop-alerts" aria-labelledby="lxl-sign-{{ sid }}">
+      {%- if section.settings.wordmark != blank -%}<span class="lxl-wm" aria-hidden="true">{{ section.settings.wordmark | escape }}</span>{%- endif -%}
+      <div class="lxl-wrap lxl-sign-in">
+        <div>
+          {%- if section.settings.sign_meta != blank -%}<span class="lxl-meta">[ {{ section.settings.sign_meta | escape }} ]</span>{%- endif -%}
+          <h2 class="lxl-h" id="lxl-sign-{{ sid }}">{{ section.settings.sign_title | escape }}</h2>
+          {%- if section.settings.sign_sub != blank -%}<p class="lxl-sign-sub">{{ section.settings.sign_sub | escape }}</p>{%- endif -%}
+        </div>
+        {%- form 'customer', id: 'lxl-form', class: 'lxl-form' -%}
+          <input type="hidden" name="contact[tags]" value="{{ section.settings.sign_tag | escape }}">
+          {%- if form.posted_successfully? -%}
+            <p class="lxl-msg" role="status">{{ section.settings.sign_success | escape }}</p>
+          {%- else -%}
+            {%- if form.errors -%}<p class="lxl-msg" role="alert">{{ form.errors.translated_fields.email | capitalize }} {{ form.errors.messages.email }}</p>{%- endif -%}
+            <div class="lxl-form-row">
+              <label class="lxl-sr" for="lxl-email-{{ sid }}">{{ section.settings.sign_email_label | escape }}</label>
+              <input type="email" id="lxl-email-{{ sid }}" name="contact[email]" required autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="{{ section.settings.sign_email_label | escape }}">
+              <button type="submit">{{ section.settings.sign_button | escape }}</button>
+            </div>
+            <label class="lxl-consent">
+              <input type="checkbox" name="contact[accepts_marketing]" value="true" required>
+              <span>{{ section.settings.sign_consent | escape }}</span>
+            </label>
+            {%- if section.settings.sign_note != blank -%}<p class="lxl-note">{{ section.settings.sign_note }}</p>{%- endif -%}
+          {%- endif -%}
+        {%- endform -%}
+      </div>
+    </section>
+  {%- endif -%}
+  <div id="lxl-toast-{{ sid }}" role="status" aria-live="polite"></div>
+</div>
+
+<script>
+(function () {
+  var root = document.getElementById('lxl-{{ sid }}');
+  if (!root || root.__lxl) return; root.__lxl = 1;
+  var toastEl = document.getElementById('lxl-toast-{{ sid }}'), tt;
+  function toast(m) { if (!toastEl) return; toastEl.textContent = m; toastEl.classList.add('is-on'); clearTimeout(tt); tt = setTimeout(function () { toastEl.classList.remove('is-on'); }, 2200); }
+  function track(name, data) {
+    try { (window.dataLayer = window.dataLayer || []).push(Object.assign({ event: name }, data || {})); } catch (e) {}
+    try { if (window.Shopify && Shopify.analytics && typeof Shopify.analytics.publish === 'function') Shopify.analytics.publish(name, data || {}); } catch (e) {}
+  }
+  var FAV = 'apex_favs_v1';
+  function favs() { try { var l = JSON.parse(localStorage.getItem(FAV) || '[]'); return Array.isArray(l) ? l : []; } catch (e) { return []; } }
+  function applyFav() { var l = favs(); root.querySelectorAll('[data-lxl-wish]').forEach(function (b) { var on = l.indexOf(b.getAttribute('data-lxl-wish')) !== -1; b.classList.toggle('is-saved', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); }); }
+  applyFav();
+  document.addEventListener('apex:favorites-changed', applyFav);
+  window.addEventListener('storage', function (e) { if (e.key === FAV) applyFav(); });
+
+  function add(vid, btn) {
+    var fd = new FormData(); fd.append('id', vid); fd.append('quantity', 1);
+    if (btn) btn.classList.add('is-loading');
+    return fetch('/cart/add.js', { method: 'POST', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, body: fd })
+      .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw j; return j; }); })
+      .then(function (d) { document.dispatchEvent(new CustomEvent('cart:refresh', { detail: d })); document.dispatchEvent(new CustomEvent('apex:added', { detail: d })); toast('Added to bag'); })
+      .catch(function (e) { toast((e && (e.description || e.message)) || 'Could not add'); })
+      .finally(function () { if (btn) btn.classList.remove('is-loading'); });
+  }
+  function closeSheets() { root.querySelectorAll('.lxl-sheet').forEach(function (s) { s.remove(); }); }
+
+  root.addEventListener('click', function (e) {
+    var w = e.target.closest('[data-lxl-wish]');
+    if (w) {
+      e.preventDefault(); e.stopPropagation();
+      var h = w.getAttribute('data-lxl-wish');
+      if (window.ApexFavorites && typeof window.ApexFavorites.toggle === 'function') { window.ApexFavorites.toggle(h); }
+      else { var l = favs(), i = l.indexOf(h); if (i === -1) l.push(h); else l.splice(i, 1); try { localStorage.setItem(FAV, JSON.stringify(l)); } catch (x) {} document.dispatchEvent(new CustomEvent('apex:favorites-changed', { detail: { handle: h, action: i === -1 ? 'add' : 'remove' } })); }
+      applyFav(); return;
+    }
+    var q = e.target.closest('[data-lxl-qa]');
+    if (q) {
+      e.preventDefault(); e.stopPropagation();
+      var n = parseInt(q.getAttribute('data-variants'), 10), fv = q.getAttribute('data-first-vid'), hd = q.getAttribute('data-lxl-qa');
+      if (n === 1 && fv) { add(fv, q); return; }
+      closeSheets(); q.classList.add('is-loading');
+      fetch('/products/' + hd + '.js').then(function (r) { return r.json(); }).then(function (p) {
+        q.classList.remove('is-loading');
+        var s = document.createElement('div'); s.className = 'lxl-sheet'; s.setAttribute('role', 'dialog'); s.setAttribute('aria-label', 'Choose an option');
+        s.innerHTML = '<div class="lxl-sheet-h"><span>Choose</span><button type="button" aria-label="Close">×</button></div><div class="lxl-sheet-v"></div>';
+        var box = s.querySelector('.lxl-sheet-v');
+        p.variants.filter(function (v) { return v.available; }).slice(0, 16).forEach(function (v) { var b = document.createElement('button'); b.type = 'button'; b.textContent = v.title; b.addEventListener('click', function (ev) { ev.preventDefault(); ev.stopPropagation(); add(v.id, null).then(closeSheets); }); box.appendChild(b); });
+        s.querySelector('.lxl-sheet-h button').addEventListener('click', function (ev) { ev.preventDefault(); ev.stopPropagation(); closeSheets(); });
+        s.addEventListener('click', function (ev) { ev.stopPropagation(); });
+        q.closest('.lxl-card-media').appendChild(s);
+        var first = box.querySelector('button'); if (first) first.focus({ preventScroll: true });
+      }).catch(function () { q.classList.remove('is-loading'); location.href = '/products/' + hd; });
+      return;
+    }
+    var t = e.target.closest('[data-lxl-evt]');
+    if (t) track(t.getAttribute('data-lxl-evt'), { name: t.getAttribute('data-lxl-name') || '', href: t.getAttribute('href') || '' });
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeSheets(); });
+  document.addEventListener('click', function (e) { if (!e.target.closest('.lxl-sheet')) closeSheets(); });
+  var f = root.querySelector('.lxl-form');
+  if (f) f.addEventListener('submit', function () { track('drop_alert_submit', { tag: '{{ section.settings.sign_tag | escape }}' }); });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "LEXE collections index",
+  "tag": "section",
+  "class": "lxl-section",
+  "settings": [
+    { "type": "header", "content": "Opener" },
+    { "type": "checkbox", "id": "show_opener", "label": "Show opener", "default": true },
+    { "type": "text", "id": "meta_1", "label": "Bracket label", "default": "Index" },
+    { "type": "checkbox", "id": "show_count", "label": "Show collection count label", "default": true },
+    { "type": "text", "id": "count_label", "label": "Count label", "default": "collections" },
+    { "type": "text", "id": "title", "label": "Headline", "default": "All collections" },
+    { "type": "checkbox", "id": "accent_last", "label": "Accent the last word", "default": true },
+    { "type": "textarea", "id": "sub", "label": "Sub line", "default": "Placeholder: one line on what LEXE is, under 90 characters." },
+    { "type": "text", "id": "wordmark", "label": "Wordmark texture text", "default": "LEXE" },
+    { "type": "range", "id": "wm_opacity", "label": "Wordmark opacity (%)", "min": 2, "max": 30, "step": 1, "default": 10 },
+    { "type": "checkbox", "id": "show_hero", "label": "Show hero image", "default": true },
+    { "type": "product", "id": "hero_product", "label": "Hero image from product (lead image)" },
+    { "type": "image_picker", "id": "hero_image", "label": "Hero image override", "info": "Real product photo only. Use one at least 2x the display width." },
+    { "type": "range", "id": "hero_w", "label": "Hero image width (desktop px)", "min": 160, "max": 420, "step": 10, "default": 220 },
+    { "type": "text", "id": "hero_caption", "label": "Hero caption", "default": "Placeholder: product name in the photo" },
+    { "type": "checkbox", "id": "hero_mobile", "label": "Show hero image on mobile", "default": false },
+    { "type": "range", "id": "open_pad_top", "label": "Top padding desktop (clears header)", "min": 60, "max": 200, "step": 4, "default": 96 },
+    { "type": "range", "id": "open_pad_top_mobile", "label": "Top padding mobile", "min": 60, "max": 200, "step": 4, "default": 104 },
+    { "type": "font_picker", "id": "headline_font", "label": "Headline font", "default": "oswald_n7" },
+    { "type": "color", "id": "accent", "label": "Accent", "default": "#9966CC" },
+
+    { "type": "header", "content": "Collection tiles" },
+    { "type": "paragraph", "content": "Add 'Collection tile' blocks to choose and order collections. With no tile blocks, every published collection with products is listed except the handles excluded below." },
+    { "type": "textarea", "id": "exclude_handles", "label": "Auto mode: exclude handles (comma separated)", "default": "all,frontpage,vanquish-collection,specs-offer-eligible,lexespecs-gift" },
+    { "type": "textarea", "id": "drop_handles", "label": "Hide these collection tiles (handles, comma separated)", "default": "iphone-cases,maze" },
+    { "type": "text", "id": "tiles_aria", "label": "Tiles region label (screen readers)", "default": "Collections" },
+    { "type": "select", "id": "tile_ratio_desktop", "label": "Tile crop ratio (desktop, all tiles)", "default": "1 / 1", "options": [ { "value": "3 / 4", "label": "3:4" }, { "value": "4 / 5", "label": "4:5" }, { "value": "1 / 1", "label": "1:1" } ] },
+    { "type": "select", "id": "tile_ratio", "label": "Tile crop ratio (mobile, all tiles)", "default": "4 / 5", "options": [ { "value": "3 / 4", "label": "3:4" }, { "value": "4 / 5", "label": "4:5" }, { "value": "1 / 1", "label": "1:1" } ] },
+    { "type": "range", "id": "tiles_cols", "label": "Primary columns (desktop)", "min": 2, "max": 4, "step": 1, "default": 3 },
+    { "type": "range", "id": "sec_cols", "label": "Secondary columns (desktop)", "min": 3, "max": 6, "step": 1, "default": 5 },
+    { "type": "range", "id": "tile_shade", "label": "Tile bottom shade (%)", "min": 20, "max": 90, "step": 5, "default": 70 },
+    { "type": "checkbox", "id": "tile_mono", "label": "Monochrome tile photos", "default": false },
+    { "type": "text", "id": "tile_cta", "label": "Tile link label", "default": "Explore" },
+    { "type": "checkbox", "id": "show_tile_count", "label": "Show product counts", "default": true },
+    { "type": "text", "id": "count_one", "label": "Count word (1)", "default": "piece" },
+    { "type": "text", "id": "count_many", "label": "Count word (many)", "default": "pieces" },
+    { "type": "text", "id": "sec_meta", "label": "Secondary bracket label", "default": "More" },
+    { "type": "text", "id": "sec_title", "label": "Secondary heading", "default": "More collections" },
+    { "type": "range", "id": "eager_tiles", "label": "Eager-load first N tiles", "min": 0, "max": 6, "step": 1, "default": 3 },
+    { "type": "range", "id": "tiles_gap", "label": "Space above tiles", "min": 8, "max": 60, "step": 2, "default": 22 },
+
+    { "type": "header", "content": "Product rows" },
+    { "type": "range", "id": "row_limit", "label": "Products per row", "min": 4, "max": 12, "step": 1, "default": 8 },
+    { "type": "range", "id": "row_cols", "label": "Columns (desktop)", "min": 3, "max": 6, "step": 1, "default": 4 },
+    { "type": "checkbox", "id": "show_wish", "label": "Wishlist heart", "default": true },
+    { "type": "checkbox", "id": "show_qa", "label": "Quick add", "default": true },
+    { "type": "checkbox", "id": "show_sw", "label": "Colour swatches", "default": true },
+    { "type": "checkbox", "id": "show_compare", "label": "Show compare-at price", "default": false },
+    { "type": "range", "id": "new_days", "label": "'New' badge for products added in the last N days", "min": 7, "max": 60, "step": 1, "default": 30 },
+    { "type": "checkbox", "id": "show_latest", "label": "Show latest arrivals", "default": true },
+    { "type": "collection", "id": "latest_collection", "label": "Latest arrivals from", "info": "Newest first, by date added (first 250 products of the collection)." },
+    { "type": "text", "id": "latest_meta", "label": "Latest: bracket label", "default": "Just in" },
+    { "type": "text", "id": "latest_title", "label": "Latest: heading", "default": "Latest arrivals" },
+    { "type": "text", "id": "latest_link_label", "label": "Latest: link label", "default": "View all" },
+    { "type": "textarea", "id": "row_exclude", "label": "Rows: never show these product handles (comma separated)", "info": "For lead photos with printed brand or supplier text." },
+    { "type": "checkbox", "id": "latest_skip_picks", "label": "Latest: skip products already in Editor's picks", "default": true },
+    { "type": "checkbox", "id": "show_picks", "label": "Show editor's picks", "default": true },
+    { "type": "select", "id": "picks_mode", "label": "Picks source", "default": "picks", "options": [ { "value": "picks", "label": "Hand-picked list" }, { "value": "bestselling", "label": "Best-selling (collection below)" } ] },
+    { "type": "product_list", "id": "picks", "label": "Hand-picked products", "limit": 12 },
+    { "type": "collection", "id": "picks_collection", "label": "Best-selling from (and link target)" },
+    { "type": "text", "id": "picks_meta", "label": "Picks: bracket label", "default": "Chosen by us" },
+    { "type": "text", "id": "picks_title", "label": "Picks: heading", "default": "Editor's picks" },
+    { "type": "text", "id": "picks_link_label", "label": "Picks: link label", "default": "View all" },
+
+    { "type": "header", "content": "Looks" },
+    { "type": "checkbox", "id": "show_looks", "label": "Show look cards", "default": true },
+    { "type": "text", "id": "looks_meta", "label": "Looks: bracket label", "default": "Looks" },
+    { "type": "text", "id": "looks_title", "label": "Looks: heading", "default": "Placeholder: looks heading" },
+    { "type": "text", "id": "looks_aria", "label": "Looks region label (screen readers)", "default": "Looks" },
+
+    { "type": "header", "content": "Drop alerts" },
+    { "type": "checkbox", "id": "show_signup", "label": "Show drop-alert signup", "default": true },
+    { "type": "text", "id": "sign_meta", "label": "Bracket label", "default": "Drop alerts" },
+    { "type": "text", "id": "sign_title", "label": "Headline", "default": "First to know." },
+    { "type": "textarea", "id": "sign_sub", "label": "Sub line", "default": "Get an email when a new LEXE drop lands. Nothing else, and you can unsubscribe anytime." },
+    { "type": "text", "id": "sign_email_label", "label": "Email field label", "default": "Email address" },
+    { "type": "text", "id": "sign_button", "label": "Button", "default": "Get drop alerts" },
+    { "type": "text", "id": "sign_consent", "label": "Consent checkbox (never pre-ticked)", "default": "I agree to receive LEXE drop emails." },
+    { "type": "inline_richtext", "id": "sign_note", "label": "Small print", "default": "Placeholder: privacy note with a link to the privacy policy." },
+    { "type": "text", "id": "sign_success", "label": "Success message", "default": "Placeholder: thanks message after signup." },
+    { "type": "text", "id": "sign_tag", "label": "Customer tag", "default": "drop-alerts" },
+
+    { "type": "header", "content": "Layout" },
+    { "type": "range", "id": "pad_x", "label": "Side padding (desktop)", "min": 12, "max": 60, "step": 2, "default": 32 },
+    { "type": "range", "id": "sec_gap", "label": "Space between sections", "min": 24, "max": 100, "step": 4, "default": 56 },
+    { "type": "checkbox", "id": "hide_footer_signup", "label": "Hide the footer signup on this page", "default": true, "info": "Keeps one signup per page." },
+    { "type": "checkbox", "id": "hide_floaters", "label": "Hide floating extras on this page", "default": true, "info": "Hides Pull here, notch heart/chevron, assistant button, back-to-top and header quick-nav." }
+  ],
+  "blocks": [
+    {
+      "type": "tile", "name": "Collection tile",
+      "settings": [
+        { "type": "collection", "id": "collection", "label": "Collection" },
+        { "type": "select", "id": "size", "label": "Size", "default": "primary", "options": [ { "value": "primary", "label": "Primary (large)" }, { "value": "secondary", "label": "Secondary (small)" } ] },
+        { "type": "select", "id": "style", "label": "Style", "default": "image", "options": [ { "value": "image", "label": "Photo" }, { "value": "black", "label": "Black card" } ] },
+        { "type": "product", "id": "product", "label": "Photo from product (lead image)", "info": "Use a clean real product photo. Never a collection image with printed text." },
+        { "type": "image_picker", "id": "image", "label": "Photo override" },
+        { "type": "text", "id": "title", "label": "Name override" },
+        { "type": "text", "id": "label", "label": "Tile label (desktop, primary only)", "default": "Placeholder: tile label, under 40 characters" },
+        { "type": "url", "id": "link", "label": "Link (if no collection)" }
+      ]
+    },
+    {
+      "type": "look", "name": "Look card", "limit": 2,
+      "settings": [
+        { "type": "product", "id": "product", "label": "Product (photo + link)" },
+        { "type": "image_picker", "id": "image", "label": "Photo override" },
+        { "type": "select", "id": "focal", "label": "Photo focus", "default": "50% 25%", "options": [ { "value": "50% 0%", "label": "Top" }, { "value": "50% 25%", "label": "Upper" }, { "value": "50% 50%", "label": "Center" } ] },
+        { "type": "text", "id": "eyebrow", "label": "Eyebrow (desktop)", "default": "Placeholder: eyebrow" },
+        { "type": "text", "id": "headline", "label": "Headline", "default": "Placeholder: look headline" },
+        { "type": "textarea", "id": "sub", "label": "Sub line (desktop only)", "default": "Placeholder: one factual line about the piece." },
+        { "type": "text", "id": "cta", "label": "Link label", "default": "See the look" },
+        { "type": "url", "id": "link", "label": "Link override" }
+      ]
+    }
+  ],
+  "presets": [ { "name": "LEXE collections index" } ]
+}
+{% endschema %}
