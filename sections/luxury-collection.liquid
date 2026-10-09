@@ -878,7 +878,7 @@
   }
   .apex-ed-eyebrow::before { background: {{ section.settings.ed_mark_color | default: '#9966CC' }} !important; }
   .apex-ed-sub { font-size: 14px; line-height: 1.45; max-width: 38ch; color: rgba(255,255,255,.86); }
-  @media (max-width: 768px) { .apex-ed-sub { display: none !important; } }
+  @media (max-width: 768px) { .apex-ed-sub, .apex-ed-eyebrow { display: none !important; } }
   .apex-rtile-name { text-transform: none; letter-spacing: .06em; font-size: 13px; }
 </style>
 
@@ -3262,6 +3262,7 @@
   ]
 }
 {% endschema %}
+
 
 
 
