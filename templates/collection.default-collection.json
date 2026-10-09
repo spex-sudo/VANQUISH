@@ -358,7 +358,8 @@
             "cta_label": "See the look",
             "cta_link": "",
             "sub": ""
-          }
+          },
+          "disabled": true
         }
       },
       "block_order": [
