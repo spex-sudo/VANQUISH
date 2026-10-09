@@ -78,7 +78,7 @@
         "carousel_card_C9HR34": {
           "type": "carousel_card",
           "settings": {
-            "image": "shopify://shop_images/vanquish_pro_1200.jpg",
+            "image": "shopify:\/\/shop_images\/vanquish_pro_1200.jpg",
             "collection": "industrial-assets",
             "label": "EXODUS COLLECTION",
             "link": ""
@@ -87,7 +87,7 @@
         "carousel_card_dGgA8y": {
           "type": "carousel_card",
           "settings": {
-            "image": "shopify://shop_images/DEVICI_STUDIOS.jpg",
+            "image": "shopify:\/\/shop_images\/DEVICI_STUDIOS.jpg",
             "collection": "maze",
             "label": "MAZE COLLECTION",
             "link": ""
@@ -96,7 +96,7 @@
         "carousel_card_nj6QeH": {
           "type": "carousel_card",
           "settings": {
-            "image": "shopify://shop_images/e3c1e618-a1e0-4a9a-9183-5964b783997b-Max.jpg",
+            "image": "shopify:\/\/shop_images\/e3c1e618-a1e0-4a9a-9183-5964b783997b-Max.jpg",
             "collection": "apparell",
             "label": "VANQUISH COLLECTION",
             "link": ""
@@ -119,7 +119,7 @@
         "hero_layout": "grid",
         "split_pct": 50,
         "promo_bg": "#0a0a0a",
-        "promo_bg_image": "shopify://shop_images/IMG_0729.png",
+        "promo_bg_image": "shopify:\/\/shop_images\/IMG_0729.png",
         "promo_fg": "#ffffff",
         "promo_eyebrow": "New collection",
         "promo_headline": "Up To 50% Off",
@@ -223,7 +223,7 @@
         "gap": 16,
         "p_v": 40,
         "rd": 4,
-        "ratio": "1/1",
+        "ratio": "1\/1",
         "ac": "#111111",
         "sale_color": "#c8102e",
         "show_quick_add": true,
@@ -238,7 +238,7 @@
     "lexe_intro": {
       "type": "custom-liquid",
       "settings": {
-        "custom_liquid": "{% if collection.description != blank %}<div class=\"lexe-coll-intro\" style=\"max-width:760px;margin:0 auto;padding:28px 20px 40px;font-size:15px;line-height:1.65;\">{{ collection.description }}</div><style>.lexe-coll-intro a{text-decoration:underline;text-underline-offset:2px;color:inherit}.lexe-coll-intro p{margin:0 0 12px}</style>{% endif %}",
+        "custom_liquid": "{% if collection.description != blank %}<div class=\"lexe-coll-intro\" style=\"max-width:760px;margin:0 auto;padding:28px 20px 40px;font-size:15px;line-height:1.65;\">{{ collection.description }}<\/div><style>.lexe-coll-intro a{text-decoration:underline;text-underline-offset:2px;color:inherit}.lexe-coll-intro p{margin:0 0 12px}<\/style>{% endif %}",
         "color_scheme": "",
         "section_width": "page-width"
       }
@@ -348,3 +348,4 @@
     "lexe_intro"
   ]
 }
+
