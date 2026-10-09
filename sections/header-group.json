@@ -132,19 +132,21 @@
           "type": "collection",
           "settings": {
             "collection": "lexe",
-            "product": "womens-embroidered-flame-patchwork-biker-jacket-leather-coat-with-lining"
+            "product": "wool-collar-cotton-jacket-with-plush-leather-jacket"
           }
         },
         "collection_JXPMLw": {
           "type": "collection",
           "settings": {
-            "collection": "exodus"
+            "collection": "exodus",
+            "product": ""
           }
         },
         "collection_4XRPEG": {
           "type": "collection",
           "settings": {
-            "collection": "lexespecs"
+            "collection": "lexespecs",
+            "product": ""
           }
         },
         "flash_notif_LCEm8c": {
@@ -177,7 +179,8 @@
         "collection_kTm6jJ": {
           "type": "collection",
           "settings": {
-            "collection": "maze"
+            "collection": "maze",
+            "product": ""
           }
         }
       },
