@@ -15,6 +15,7 @@
         "carousel_card_x76JMB": {
           "type": "carousel_card",
           "settings": {
+            "product": "",
             "collection": "industrial-assets",
             "label": "",
             "link": ""
@@ -23,6 +24,7 @@
         "carousel_card_xbU89z": {
           "type": "carousel_card",
           "settings": {
+            "product": "",
             "collection": "lexespecs",
             "label": "",
             "link": ""
@@ -31,6 +33,7 @@
         "carousel_card_f9Y6Vy": {
           "type": "carousel_card",
           "settings": {
+            "product": "",
             "collection": "maze",
             "label": "",
             "link": ""
@@ -39,10 +42,10 @@
         "carousel_card_mxUadY": {
           "type": "carousel_card",
           "settings": {
+            "product": "womens-embroidered-flame-patchwork-biker-jacket-leather-coat-with-lining",
             "collection": "lexe",
             "label": "",
-            "link": "",
-            "product": "womens-embroidered-flame-patchwork-biker-jacket-leather-coat-with-lining"
+            "link": ""
           }
         }
       },
@@ -53,11 +56,18 @@
         "carousel_card_mxUadY"
       ],
       "settings": {
-        "font": "system_ui_n4",
+        "font": "syne_n8",
         "hero_style": "editorial",
         "ed_height": 680,
         "pad_top": 150,
         "pad_top_mobile": 140,
+        "compact_mode": true,
+        "compact_hide_carousel": true,
+        "compact_pad_top": 96,
+        "compact_pad_left": 180,
+        "compact_pad_top_mobile": 140,
+        "compact_headline_size": 46,
+        "compact_headline_size_mobile": 32,
         "headline_font": "oswald_n7",
         "ed_headline_size": 120,
         "headline_source": "title",
@@ -75,11 +85,14 @@
         "meta_center": "LEXE by Devici Studios",
         "side_copy": "Jackets, eyewear, footwear and more.\nNew drops land here first.",
         "count_label": "pieces",
+        "count_label_one": "piece",
         "view_all_label": "View all",
-        "accent_color": "#9B6BD1",
-        "accent_color_2": "#6E3FA3",
+        "accent_color": "#9b6bd1",
+        "accent_color_2": "#6e3fa3",
         "accent_text_color": "#0a0a0a",
         "backdrop_source": "collection",
+        "backdrop_product": "pu-leather-diamond-fishbone-corset-mesh-top",
+        "backdrop_product_handles": "lexe",
         "duotone_strength": 70,
         "shade_strength": 85,
         "wordmark_text": "LEXE",
@@ -130,16 +143,108 @@
         "autoplay_delay": 4,
         "show_dots": true,
         "dot_color": "#d4b6ff",
-        "show_card_label": false,
-        "backdrop_product": "pu-leather-diamond-fishbone-corset-mesh-top",
-        "backdrop_product_handles": "lexe",
-        "compact_mode": true,
-        "compact_hide_carousel": true,
-        "compact_pad_top": 96,
-        "compact_pad_left": 180,
-        "compact_pad_top_mobile": 140,
-        "compact_headline_size": 46,
-        "compact_headline_size_mobile": 32
+        "show_card_label": false
+      }
+    },
+    "lexe_strip": {
+      "type": "lexe-collection-strip",
+      "blocks": {
+        "col_lexe": {
+          "type": "collection",
+          "settings": {
+            "collection": "lexe",
+            "product": "womens-embroidered-flame-patchwork-biker-jacket-leather-coat-with-lining",
+            "solid": false,
+            "title": "",
+            "link": "",
+            "icon": "jacket"
+          }
+        },
+        "col_lexespecs": {
+          "type": "collection",
+          "settings": {
+            "collection": "lexespecs",
+            "product": "",
+            "solid": false,
+            "title": "",
+            "link": "",
+            "icon": "glasses"
+          }
+        },
+        "col_exodus": {
+          "type": "collection",
+          "settings": {
+            "collection": "exodus",
+            "product": "",
+            "solid": true,
+            "title": "",
+            "link": "",
+            "icon": "bolt"
+          }
+        },
+        "col_women": {
+          "type": "collection",
+          "settings": {
+            "collection": "women",
+            "product": "black-strap-blue-diamond-inlaid-mid-size-dress",
+            "solid": false,
+            "title": "",
+            "link": "",
+            "icon": "woman"
+          }
+        },
+        "col_men": {
+          "type": "collection",
+          "settings": {
+            "collection": "men",
+            "product": "autumn-commuting-temperament-black-elongated-suit-jacket-high-end-silhouette",
+            "solid": false,
+            "title": "",
+            "link": "",
+            "icon": "man"
+          }
+        },
+        "col_shoes": {
+          "type": "collection",
+          "settings": {
+            "collection": "shoes",
+            "product": "multi-buckle-platform-knee-high-boots",
+            "solid": false,
+            "title": "",
+            "link": "",
+            "icon": "shoe"
+          }
+        }
+      },
+      "block_order": [
+        "col_lexe",
+        "col_lexespecs",
+        "col_exodus",
+        "col_women",
+        "col_men",
+        "col_shoes"
+      ],
+      "disabled": true,
+      "settings": {
+        "eyebrow": "LEXE by Devici Studios",
+        "heading": "Shop by collection",
+        "heading_align": "center",
+        "title_font": "oswald_n7",
+        "cta_label": "Shop now",
+        "columns_desktop": 6,
+        "mobile_layout": "swipe",
+        "ratio": 130,
+        "gap": 12,
+        "radius": 4,
+        "max_width": 1440,
+        "pad_top": 48,
+        "pad_bottom": 48,
+        "bg": "#ffffff",
+        "fg": "#0a0a0a",
+        "card_bg": "#0a0a0a",
+        "accent_color": "#9b6bd1",
+        "overlay": 85,
+        "mono": true
       }
     },
     "grid": {
@@ -214,9 +319,9 @@
             "focal": "top",
             "eyebrow": "LEXE · Outerwear",
             "headline": "The long line.",
+            "sub": "A long black blazer, for cold mornings and late commutes.",
             "cta_label": "See the look",
-            "cta_link": "",
-            "sub": "A long black blazer, for cold mornings and late commutes."
+            "cta_link": ""
           }
         },
         "editorial_2": {
@@ -227,9 +332,9 @@
             "focal": "top",
             "eyebrow": "LEXE · Dresses",
             "headline": "All black. All shape.",
+            "sub": "A fitted black dress with pleats.",
             "cta_label": "Explore the drop",
-            "cta_link": "",
-            "sub": "A fitted black dress with pleats."
+            "cta_link": ""
           }
         },
         "editorial_3": {
@@ -240,9 +345,9 @@
             "focal": "center",
             "eyebrow": "Specs",
             "headline": "Shade, at full width.",
+            "sub": "One sweep of lens, edge to edge.",
             "cta_label": "See the frames",
-            "cta_link": "",
-            "sub": "One sweep of lens, edge to edge."
+            "cta_link": ""
           }
         },
         "editorial_4": {
@@ -253,9 +358,9 @@
             "focal": "center",
             "eyebrow": "Specs · Y2K",
             "headline": "Say it with a visor.",
+            "sub": "A Y2K visor frame with letter detailing.",
             "cta_label": "See the frames",
-            "cta_link": "",
-            "sub": "A Y2K visor frame with letter detailing."
+            "cta_link": ""
           }
         }
       },
@@ -315,15 +420,25 @@
         "ed_every_rows_desktop": 4,
         "ed_every_rows_mobile": 8,
         "ed_ratio_mobile": "4/5",
-        "lx_accent": "#9B6BD1",
-        "lx_accent_2": "#6E3FA3",
+        "lx_accent": "#9b6bd1",
+        "lx_accent_2": "#6e3fa3",
         "fc_video_enable": true,
         "fc_video_url": "",
         "fc_use_product_video": false,
         "hide_floaters": true,
         "sink_tagged": true,
         "sort_low_label": "Sort: low to high",
-        "ed_mark_color": "#9966CC"
+        "ed_mark_color": "#9966cc"
+      }
+    },
+    "lexe_intro": {
+      "type": "custom-liquid",
+      "settings": {
+        "custom_liquid": "{% if collection.description != blank %}<div class=\"lexe-coll-intro\" style=\"max-width:760px;margin:0 auto;padding:28px 20px 40px;font-size:15px;line-height:1.65;\">{{ collection.description }}</div><style>.lexe-coll-intro a{text-decoration:underline;text-underline-offset:2px;color:inherit}.lexe-coll-intro p{margin:0 0 12px}</style>{% endif %}",
+        "color_scheme": "",
+        "section_width": "page-width",
+        "padding-block-start": 0,
+        "padding-block-end": 0
       }
     },
     "vanquish_scratch_iVnnRn": {
@@ -365,9 +480,9 @@
         "brush_size": 42,
         "bg_color": "#020202",
         "text_color": "#ffffff",
-        "muted_color": "#FFFFFF",
-        "accent_color": "#110F12",
-        "accent_text": "#FFFFFF",
+        "muted_color": "#ffffff",
+        "accent_color": "#110f12",
+        "accent_text": "#ffffff",
         "foil_color_a": "#f3d36a",
         "foil_color_b": "#c9a227",
         "card_radius": 18,
@@ -375,112 +490,6 @@
         "image_tr": "shopify://shop_images/IMG-0591.jpg",
         "image_bl": "shopify://shop_images/lexe-by-devici-studios-logo.png"
       }
-    },
-    "lexe_intro": {
-      "type": "custom-liquid",
-      "settings": {
-        "custom_liquid": "{% if collection.description != blank %}<div class=\"lexe-coll-intro\" style=\"max-width:760px;margin:0 auto;padding:28px 20px 40px;font-size:15px;line-height:1.65;\">{{ collection.description }}</div><style>.lexe-coll-intro a{text-decoration:underline;text-underline-offset:2px;color:inherit}.lexe-coll-intro p{margin:0 0 12px}</style>{% endif %}",
-        "color_scheme": "",
-        "section_width": "page-width"
-      }
-    },
-    "lexe_strip": {
-      "type": "lexe-collection-strip",
-      "blocks": {
-        "col_lexe": {
-          "type": "collection",
-          "settings": {
-            "collection": "lexe",
-            "title": "",
-            "link": "",
-            "icon": "jacket",
-            "product": "womens-embroidered-flame-patchwork-biker-jacket-leather-coat-with-lining",
-            "solid": false
-          }
-        },
-        "col_lexespecs": {
-          "type": "collection",
-          "settings": {
-            "collection": "lexespecs",
-            "title": "",
-            "link": "",
-            "icon": "glasses"
-          }
-        },
-        "col_exodus": {
-          "type": "collection",
-          "settings": {
-            "collection": "exodus",
-            "title": "",
-            "link": "",
-            "icon": "bolt",
-            "product": "",
-            "solid": true
-          }
-        },
-        "col_women": {
-          "type": "collection",
-          "settings": {
-            "collection": "women",
-            "title": "",
-            "link": "",
-            "icon": "woman",
-            "product": "black-strap-blue-diamond-inlaid-mid-size-dress",
-            "solid": false
-          }
-        },
-        "col_men": {
-          "type": "collection",
-          "settings": {
-            "collection": "men",
-            "title": "",
-            "link": "",
-            "icon": "man",
-            "product": "autumn-commuting-temperament-black-elongated-suit-jacket-high-end-silhouette",
-            "solid": false
-          }
-        },
-        "col_shoes": {
-          "type": "collection",
-          "settings": {
-            "collection": "shoes",
-            "title": "",
-            "link": "",
-            "icon": "shoe",
-            "product": "multi-buckle-platform-knee-high-boots"
-          }
-        }
-      },
-      "block_order": [
-        "col_lexe",
-        "col_lexespecs",
-        "col_exodus",
-        "col_women",
-        "col_men",
-        "col_shoes"
-      ],
-      "settings": {
-        "eyebrow": "LEXE by Devici Studios",
-        "heading": "Shop by collection",
-        "heading_align": "center",
-        "title_font": "oswald_n7",
-        "cta_label": "Shop now",
-        "columns_desktop": 6,
-        "mobile_layout": "swipe",
-        "ratio": 130,
-        "gap": 12,
-        "radius": 4,
-        "max_width": 1440,
-        "pad_top": 48,
-        "pad_bottom": 48,
-        "bg": "#ffffff",
-        "fg": "#0a0a0a",
-        "card_bg": "#0a0a0a",
-        "accent_color": "#9B6BD1",
-        "overlay": 85,
-        "mono": true
-      },
-      "disabled": true
     }
   },
   "order": [
