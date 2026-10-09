@@ -512,6 +512,7 @@
 <style>
   {%- if hero_style == 'editorial' -%}
   {{ section.settings.headline_font | font_face: font_display: 'swap' }}
+  #lxh-{{ sid }} .lxh-h .w { white-space: nowrap; }
   #lxh-{{ sid }} {
     --lx-accent: {{ section.settings.accent_color | default: '#9B6BD1' }};
     --lx-accent-2: {{ section.settings.accent_color_2 | default: '#6E3FA3' }};
@@ -675,8 +676,8 @@
     cursor: pointer; transition: background .2s ease, border-color .2s ease, transform .2s ease;
     -webkit-tap-highlight-color: transparent;
   }
-  #lxh-{{ sid }} .lxh-arrow:hover { background: var(--lx-accent); border-color: var(--lx-accent); transform: rotate(45deg); }
-  #lxh-{{ sid }} .lxh-arrow svg { width: 18px; height: 18px; transform: rotate(-45deg); }
+  #lxh-{{ sid }} .lxh-arrow:hover { background: var(--lx-accent); border-color: var(--lx-accent); color: {{ section.settings.accent_text_color }}; transform: translateY(2px); }
+  #lxh-{{ sid }} .lxh-arrow svg { width: 18px; height: 18px; }
 
   @media (max-width: 989px) and (min-width: 769px) {
     #lxh-{{ sid }} { --lx-ds: {{ section.settings.diamond_size | times: 0.8 | round }}px; }
@@ -717,6 +718,7 @@
 
   {%- if hero_style == 'editorial' -%}
   <!-- ══ EDITORIAL HERO (LEXE 2026-10-09) ═════════════════════ -->
+  <link rel="preload" as="font" href="{{ section.settings.headline_font | font_url }}" type="font/woff2" crossorigin>
   <div id="lxh-{{ sid }}" data-lxh class="lxh{% if section.settings.stack_words %} is-stacked{% endif %}{% if section.settings.diamond_style == 'fill' %} is-fill{% endif %}">
 
     {%- if ed_bd != blank -%}
@@ -867,7 +869,7 @@
           {%- endif -%}
           {%- if section.settings.show_arrow -%}
             <button type="button" class="lxh-arrow" data-chc-scroll aria-label="Scroll to products">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg>
             </button>
           {%- endif -%}
         </div>
@@ -1376,7 +1378,7 @@
       "max": 200,
       "step": 2,
       "unit": "px",
-      "default": 110
+      "default": 150
     },
     {
       "type": "range",
@@ -1386,7 +1388,7 @@
       "max": 200,
       "step": 2,
       "unit": "px",
-      "default": 96
+      "default": 140
     },
     {
       "type": "header",
