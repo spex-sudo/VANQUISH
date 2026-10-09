@@ -279,7 +279,7 @@
             "headline": "The long line.",
             "cta_label": "See the look",
             "cta_link": "",
-            "sub": "A black blazer cut long, for cold mornings and late commutes."
+            "sub": "A long black blazer, for cold mornings and late commutes."
           }
         },
         "editorial_2": {
@@ -327,8 +327,8 @@
             "only_collection": "women",
             "product": "black-fitted-pleated-bodycon-dress",
             "focal": "top",
-            "eyebrow": "LEXE · Dresses",
-            "headline": "All black. All shape.",
+            "eyebrow": "Women · Dresses",
+            "headline": "Cut close. Kept dark.",
             "cta_label": "Explore the drop",
             "cta_link": "",
             "sub": "A fitted black dress with pleats."
@@ -340,24 +340,24 @@
             "only_collection": "women",
             "product": "autumn-commuting-temperament-black-elongated-suit-jacket-high-end-silhouette",
             "focal": "top",
-            "eyebrow": "LEXE · Outerwear",
-            "headline": "The long line.",
+            "eyebrow": "Women · Outerwear",
+            "headline": "Tailoring, taken long.",
             "cta_label": "See the look",
             "cta_link": "",
-            "sub": "A black blazer cut long, for cold mornings and late commutes."
+            "sub": "A long, loose blazer with a suit collar. In black or off-white."
           }
         },
         "editorial_m1": {
           "type": "editorial",
           "settings": {
             "only_collection": "men",
-            "product": "autumn-commuting-temperament-black-elongated-suit-jacket-high-end-silhouette",
+            "product": "mens-zip-up-long-sleeve-denim-jacket",
             "focal": "top",
-            "eyebrow": "LEXE · Outerwear",
-            "headline": "The long line.",
+            "eyebrow": "Men · Outerwear",
+            "headline": "Sharp all the way down.",
             "cta_label": "See the look",
             "cta_link": "",
-            "sub": "A black blazer cut long, for cold mornings and late commutes."
+            "sub": ""
           }
         }
       },
