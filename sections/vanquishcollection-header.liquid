@@ -1155,7 +1155,7 @@
     if (EDITORIAL) {
       var sec = ROOT.closest('.shopify-section');
       var nx = sec ? sec.nextElementSibling : null;
-      while (nx && (nx.offsetHeight === 0 || nx.tagName === 'SCRIPT' || nx.tagName === 'STYLE')) nx = nx.nextElementSibling;
+      while (nx && (nx.offsetHeight === 0 || nx.tagName === 'SCRIPT' || nx.tagName === 'STYLE' || nx.querySelector('[data-lxs]'))) nx = nx.nextElementSibling;
       if (nx) return nx;
     }
     return ROOT.querySelector('[data-chc-wrap]');
