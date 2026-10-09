@@ -158,6 +158,7 @@
         "meta_center": "LEXE by Devici Studios",
         "side_copy": "Jackets, eyewear, footwear and more.\nNew drops land here first.",
         "count_label": "pieces",
+          "count_label_one": "piece",
         "view_all_label": "View all",
         "accent_color": "#9B6BD1",
         "accent_color_2": "#6E3FA3",
@@ -187,7 +188,7 @@
         "diamond_size_mobile": 105,
         "diamond_gap": 14,
         "diamond_radius": 6,
-        "grid_height_mobile": 320
+        "grid_height_mobile": 280
       }
     },
     "luxury_collection_dpMLw3": {

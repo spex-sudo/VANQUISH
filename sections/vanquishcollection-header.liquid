@@ -863,7 +863,7 @@
         <div class="lxh-count">
           {%- if section.settings.show_count -%}
             <div>
-              {%- if ed_count > 0 -%}<small>{{ ed_count }} {{ section.settings.count_label | default: 'pieces' | escape }}</small>{%- endif -%}
+              {%- if ed_count > 0 -%}<small>{{ ed_count }} {% if ed_count == 1 %}{{ section.settings.count_label_one | default: 'piece' | escape }}{% else %}{{ section.settings.count_label | default: 'pieces' | escape }}{% endif %}</small>{%- endif -%}
               <a class="lxh-view" href="{{ ed_view_url }}" data-lxh-view>{{ section.settings.view_all_label | default: 'View all' | escape }} &rarr;</a>
             </div>
           {%- endif -%}
@@ -1544,6 +1544,12 @@
       "id": "count_label",
       "label": "Product count label",
       "default": "pieces"
+    },
+    {
+      "type": "text",
+      "id": "count_label_one",
+      "label": "Product count label (1 item)",
+      "default": "piece"
     },
     {
       "type": "text",
