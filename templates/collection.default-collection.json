@@ -158,7 +158,7 @@
         "meta_center": "LEXE by Devici Studios",
         "side_copy": "Jackets, eyewear, footwear and more.\nNew drops land here first.",
         "count_label": "pieces",
-          "count_label_one": "piece",
+        "count_label_one": "piece",
         "view_all_label": "View all",
         "accent_color": "#9B6BD1",
         "accent_color_2": "#6E3FA3",
@@ -188,7 +188,9 @@
         "diamond_size_mobile": 105,
         "diamond_gap": 14,
         "diamond_radius": 6,
-        "grid_height_mobile": 280
+        "grid_height_mobile": 280,
+        "backdrop_product": "pu-leather-diamond-fishbone-corset-mesh-top",
+        "backdrop_product_handles": "lexe"
       }
     },
     "luxury_collection_dpMLw3": {
@@ -250,7 +252,9 @@
             "collection": "lexe",
             "title": "",
             "link": "",
-            "icon": "jacket"
+            "icon": "jacket",
+            "product": "womens-embroidered-flame-patchwork-biker-jacket-leather-coat-with-lining",
+            "solid": false
           }
         },
         "col_lexespecs": {
@@ -268,7 +272,9 @@
             "collection": "exodus",
             "title": "",
             "link": "",
-            "icon": "bolt"
+            "icon": "bolt",
+            "product": "",
+            "solid": true
           }
         },
         "col_women": {
@@ -277,7 +283,9 @@
             "collection": "women",
             "title": "",
             "link": "",
-            "icon": "woman"
+            "icon": "woman",
+            "product": "black-strap-blue-diamond-inlaid-mid-size-dress",
+            "solid": false
           }
         },
         "col_men": {
@@ -286,7 +294,9 @@
             "collection": "men",
             "title": "",
             "link": "",
-            "icon": "man"
+            "icon": "man",
+            "product": "autumn-commuting-temperament-black-elongated-suit-jacket-high-end-silhouette",
+            "solid": false
           }
         },
         "col_shoes": {

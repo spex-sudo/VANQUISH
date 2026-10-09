@@ -122,7 +122,23 @@
   endif
 
   assign ed_bd = nil
-  if section.settings.backdrop_source == 'promo' and section.settings.promo_bg_image != blank
+  assign ed_bd_src = section.settings.backdrop_source
+  assign ed_bd_list = section.settings.backdrop_product_handles | remove: ' ' | split: ','
+  if active_col != nil and ed_bd_list contains active_col.handle
+    assign ed_bd_src = 'product'
+  endif
+  if ed_bd_src == 'product'
+    if section.settings.backdrop_product != blank and section.settings.backdrop_product.featured_image != blank
+      assign ed_bd = section.settings.backdrop_product.featured_image
+    elsif active_col != nil
+      for bp in active_col.products limit: 12
+        if bp.featured_image != blank
+          assign ed_bd = bp.featured_image
+          break
+        endif
+      endfor
+    endif
+  elsif section.settings.backdrop_source == 'promo' and section.settings.promo_bg_image != blank
     assign ed_bd = section.settings.promo_bg_image
   elsif section.settings.backdrop_source != 'none'
     if section.settings.hero_image != blank
@@ -1591,6 +1607,10 @@
           "label": "Hero image, else collection image"
         },
         {
+          "value": "product",
+          "label": "Product image"
+        },
+        {
           "value": "promo",
           "label": "Promo background image"
         },
@@ -1598,7 +1618,21 @@
           "value": "none",
           "label": "None (solid colour)"
         }
-      ]
+      ],
+      "info": "Product image = 'Backdrop product' below, else the collection's first product with an image."
+    },
+    {
+      "type": "product",
+      "id": "backdrop_product",
+      "label": "Backdrop product",
+      "info": "Used when backdrop = Product image, or on the collections listed below."
+    },
+    {
+      "type": "text",
+      "id": "backdrop_product_handles",
+      "label": "Always use product backdrop on these collections",
+      "default": "lexe",
+      "info": "Comma-separated collection handles, e.g. lexe. Use when a collection image has text you don't want shown."
     },
     {
       "type": "range",
@@ -2135,4 +2169,5 @@
   ]
 }
 {% endschema %}
+
 
