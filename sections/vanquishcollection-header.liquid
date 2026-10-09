@@ -73,6 +73,88 @@
   endif
 -%}
 
+{%- liquid
+  # ── Editorial hero variables (LEXE redesign 2026-10-09) ──
+  assign hero_style = section.settings.hero_style | default: 'editorial'
+  assign ed_title = ''
+  if active_col != nil
+    assign ed_title = active_col.title
+  endif
+  if template.name == 'collection' and collection != blank
+    assign ed_title = collection.title
+  endif
+  if section.settings.headline_source == 'custom' and section.settings.promo_headline != blank
+    assign ed_title = section.settings.promo_headline | replace: '[title]', ed_title
+  endif
+  assign ed_mf_col = nil
+  if template.name == 'collection' and collection != blank
+    assign ed_mf_col = collection
+  endif
+  if ed_mf_col != nil and ed_mf_col.metafields.custom.hero_headline != blank
+    assign ed_title = ed_mf_col.metafields.custom.hero_headline.value | default: ed_mf_col.metafields.custom.hero_headline
+  endif
+  if ed_title == blank
+    assign ed_title = shop.name
+  endif
+  assign ed_words = ed_title | strip | split: ' '
+  assign ed_tcount = ed_words.size
+  assign ed_line2 = section.settings.headline_line2 | strip
+  if ed_line2 != blank
+    assign ed_words2 = ed_line2 | split: ' '
+    assign ed_words = ed_words | concat: ed_words2
+  endif
+  assign ed_wcount = ed_words.size
+  assign ed_accent_mode = section.settings.accent_mode | default: 'last'
+  assign ed_accent_custom = section.settings.accent_text | strip | upcase
+
+  assign ed_num = section.settings.col_number | strip
+  if ed_mf_col != nil and ed_mf_col.metafields.custom.collection_number != blank
+    assign ed_num = ed_mf_col.metafields.custom.collection_number.value | default: ed_mf_col.metafields.custom.collection_number
+  endif
+
+  assign ed_sub = section.settings.subline | strip
+  if ed_mf_col != nil and ed_mf_col.metafields.custom.hero_subline != blank
+    assign ed_sub = ed_mf_col.metafields.custom.hero_subline.value | default: ed_mf_col.metafields.custom.hero_subline
+  endif
+  if ed_sub == blank and active_col != nil and active_col.description != blank
+    assign ed_desc = active_col.description | strip_html | strip_newlines | strip
+    assign ed_sub = ed_desc | split: '. ' | first | split: '.' | first | append: '.' | truncate: 150
+  endif
+
+  assign ed_bd = nil
+  if section.settings.backdrop_source == 'promo' and section.settings.promo_bg_image != blank
+    assign ed_bd = section.settings.promo_bg_image
+  elsif section.settings.backdrop_source != 'none'
+    if section.settings.hero_image != blank
+      assign ed_bd = section.settings.hero_image
+    elsif active_col != nil and active_col.featured_image != blank
+      assign ed_bd = active_col.featured_image
+    endif
+  endif
+
+  assign dcount = section.settings.diamond_count | default: 9
+  assign dcols = 2
+  for c in (2..4)
+    assign csq = c | times: c
+    if csq >= dcount
+      assign dcols = c
+      break
+    endif
+    assign dcols = c
+  endfor
+  assign drows = dcount | plus: dcols | minus: 1 | divided_by: dcols
+  assign dlast = dcount | minus: 1
+
+  assign ed_count = 0
+  assign ed_view_url = routes.all_products_collection_url
+  if active_col != nil
+    assign ed_count = active_col.products_count
+    assign ed_view_url = active_col.url
+  endif
+  assign ed_btn1_url = section.settings.btn1_link
+  assign ed_btn2_url = section.settings.btn2_link | default: routes.collections_url
+-%}
+
 <style>
   {{ section.settings.font | font_face: font_display: 'swap' }}
 
@@ -86,7 +168,7 @@
     --cv:        {{ section.settings.cards_visible }};
     --card-gap:  6px;
     --card-rad:  {{ section.settings.card_radius }}px;
-    --card-w:    200px; /* overwritten by JS on first paint */
+    --card-w:    calc((100% - var(--card-gap) * (var(--cv) - 1)) / var(--cv)); /* CSS first paint = JS value, no layout shift */
     font-family: var(--font);
     width: 100%;
     display: block;
@@ -427,9 +509,372 @@
     }
   }
 </style>
+<style>
+  {%- if hero_style == 'editorial' -%}
+  {{ section.settings.headline_font | font_face: font_display: 'swap' }}
+  #lxh-{{ sid }} {
+    --lx-accent: {{ section.settings.accent_color | default: '#9B6BD1' }};
+    --lx-accent-2: {{ section.settings.accent_color_2 | default: '#6E3FA3' }};
+    --lx-fg: {{ section.settings.promo_fg | default: '#ffffff' }};
+    --lx-bg: {{ section.settings.hero_bg | default: '#0a0a0a' }};
+    --lx-duo: {{ section.settings.duotone_strength | divided_by: 100.0 }};
+    --lx-shade: {{ section.settings.shade_strength | divided_by: 100.0 }};
+    --lx-hfont: {{ section.settings.headline_font.family }}, 'Oswald', 'Arial Narrow', Impact, sans-serif;
+    --lx-hw: {{ section.settings.headline_font.weight | default: 700 }};
+    --lx-hsize: {{ section.settings.ed_headline_size }}px;
+    --lx-ds: {{ section.settings.diamond_size }}px;
+    --lx-dgap: {{ section.settings.diamond_gap }}px;
+    --lx-drad: {{ section.settings.diamond_radius }}px;
+    --lx-dcols: {{ dcols }};
+    --lx-drows: {{ drows }};
+    --lx-split: {{ section.settings.split_pct }}%;
+    --lx-pt: {{ section.settings.pad_top }}px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: {{ section.settings.ed_height }}px;
+    width: 100%;
+    overflow: hidden;
+    isolation: isolate;
+    background: var(--lx-bg);
+    color: var(--lx-fg);
+    font-family: var(--font);
+    contain: paint;
+  }
+  #lxh-{{ sid }} *, #lxh-{{ sid }} *::before, #lxh-{{ sid }} *::after { box-sizing: border-box; }
+
+  /* Backdrop: photo -> greyscale -> accent duotone -> shade for contrast */
+  #lxh-{{ sid }} .lxh-bd { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: -3; }
+  #lxh-{{ sid }} .lxh-bd img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+    filter: grayscale(1) contrast(1.15) brightness(.8);
+    transform: scale(1.04);
+  }
+  #lxh-{{ sid }} .lxh-tone {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: -2; pointer-events: none;
+    background: linear-gradient(135deg, var(--lx-accent) 0%, var(--lx-accent-2) 55%, #000 100%);
+    mix-blend-mode: color; opacity: var(--lx-duo);
+  }
+  #lxh-{{ sid }} .lxh-shade {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: -2; pointer-events: none;
+    background:
+      linear-gradient(90deg, rgba(0,0,0,.92) 0%, rgba(0,0,0,.7) 38%, rgba(0,0,0,.25) 70%, rgba(0,0,0,.45) 100%),
+      linear-gradient(0deg, rgba(0,0,0,.85) 0%, rgba(0,0,0,0) 30%);
+    opacity: var(--lx-shade);
+  }
+  /* Wordmark texture */
+  #lxh-{{ sid }} .lxh-wm {
+    position: absolute; z-index: -1; pointer-events: none; user-select: none;
+    left: -2%; top: 50%;
+    transform: translateY(-50%) rotate(-7deg) skewX(-12deg);
+    font-family: var(--lx-hfont); font-weight: 900; font-style: italic;
+    font-size: clamp(160px, 34vw, 560px); line-height: .8; letter-spacing: -.04em;
+    text-transform: uppercase; white-space: nowrap;
+    color: transparent;
+    -webkit-text-stroke: 2px rgba(255,255,255,.10);
+    text-shadow: 0 0 22px rgba(255,255,255,.06), 6px 6px 0 rgba(255,255,255,.03);
+    opacity: {{ section.settings.wordmark_opacity | divided_by: 100.0 }};
+    filter: blur(.4px);
+  }
+
+  /* Meta row */
+  #lxh-{{ sid }} .lxh-meta {
+    display: flex; justify-content: space-between; align-items: center; gap: 16px;
+    padding: var(--lx-pt) clamp(20px, 4vw, 64px) 0;
+    font-size: 10px; letter-spacing: .32em; text-transform: uppercase; line-height: 1.4;
+    color: var(--lx-fg); opacity: .72;
+  }
+  #lxh-{{ sid }} .lxh-meta span:nth-child(2) { flex: 1; text-align: center; }
+
+  /* Body: content + diamond zone */
+  #lxh-{{ sid }} .lxh-body { position: relative; flex: 1 1 auto; display: flex; align-items: center; min-height: 0; }
+  #lxh-{{ sid }} .lxh-content {
+    position: relative; z-index: 2;
+    width: calc(100% - var(--lx-split)); max-width: 760px;
+    padding: 28px clamp(20px, 4vw, 64px) 32px;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 18px;
+  }
+  #lxh-{{ sid }} .lxh-eyebrow {
+    margin: 0; display: inline-flex; align-items: center; gap: 10px;
+    font-size: 11px; font-weight: 700; letter-spacing: .34em; text-transform: uppercase; color: var(--lx-accent);
+  }
+  #lxh-{{ sid }} .lxh-eyebrow::before { content: ''; width: 22px; height: 2px; background: currentColor; }
+  #lxh-{{ sid }} .lxh-h {
+    margin: 0; font-family: var(--lx-hfont); font-weight: var(--lx-hw);
+    font-size: clamp(48px, 8.4vw, var(--lx-hsize)); line-height: .9; letter-spacing: -.005em;
+    text-transform: uppercase; color: var(--lx-fg);
+    overflow-wrap: anywhere; font-stretch: condensed;
+  }
+  #lxh-{{ sid }} .lxh-h .w { display: inline; }
+  #lxh-{{ sid }}.is-stacked .lxh-h .w { display: block; }
+  #lxh-{{ sid }} .lxh-h .is-accent { color: var(--lx-accent); }
+  #lxh-{{ sid }} .lxh-h sup {
+    font-family: var(--font); font-size: max(11px, .14em); font-weight: 600; letter-spacing: .12em;
+    vertical-align: top; position: relative; top: .5em; margin-left: .35em; color: var(--lx-fg); opacity: .85;
+  }
+  #lxh-{{ sid }} .lxh-sub { margin: 0; max-width: 46ch; font-size: 15px; line-height: 1.55; color: var(--lx-fg); opacity: .82; }
+  #lxh-{{ sid }} .lxh-ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 4px; }
+  #lxh-{{ sid }} .lxh-btn {
+    display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: 0 26px;
+    font-family: var(--font); font-size: 11px; font-weight: 700; letter-spacing: .24em; text-transform: uppercase;
+    text-decoration: none; cursor: pointer; border-radius: {{ section.settings.button_radius }}px;
+    transition: background .2s ease, color .2s ease, border-color .2s ease, transform .2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #lxh-{{ sid }} .lxh-btn--solid { background: var(--lx-accent); color: {{ section.settings.accent_text_color }}; border: 1px solid var(--lx-accent); }
+  #lxh-{{ sid }} .lxh-btn--solid:hover { background: var(--lx-accent-2); border-color: var(--lx-accent-2); }
+  #lxh-{{ sid }} .lxh-btn--ghost { background: transparent; color: var(--lx-fg); border: 1px solid rgba(255,255,255,.7); }
+  #lxh-{{ sid }} .lxh-btn--ghost:hover { background: var(--lx-fg); color: var(--lx-bg); border-color: var(--lx-fg); }
+  #lxh-{{ sid }} .lxh-btn:focus-visible, #lxh-{{ sid }} .lxh-arrow:focus-visible, #lxh-{{ sid }} .lxh-view:focus-visible { outline: 2px solid var(--lx-accent); outline-offset: 3px; }
+
+  /* Diamond zone */
+  #lxh-{{ sid }} .lxh-media { position: absolute; top: 0; right: 0; bottom: 0; width: var(--lx-split); overflow: hidden; z-index: 1; }
+  #lxh-{{ sid }} .lxh-dg {
+    position: absolute; top: 50%; left: 50%;
+    display: grid;
+    grid-template-columns: repeat(var(--lx-dcols), var(--lx-ds));
+    grid-auto-rows: var(--lx-ds);
+    gap: var(--lx-dgap);
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+  #lxh-{{ sid }} .lxh-dc {
+    position: relative; overflow: hidden; border-radius: var(--lx-drad);
+    background: rgba(255,255,255,.04); outline: 1px solid rgba(255,255,255,.12); outline-offset: -1px;
+  }
+  #lxh-{{ sid }} .lxh-dc img {
+    position: absolute; top: 50%; left: 50%; width: 142%; height: 142%; max-width: none; object-fit: cover; display: block;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    transition: transform .6s cubic-bezier(.2,.7,.2,1), filter .4s ease;
+  }
+  #lxh-{{ sid }} .lxh-dc:hover img { transform: translate(-50%, -50%) rotate(-45deg) scale(1.08); }
+  #lxh-{{ sid }} .lxh-dc.is-feature { outline: 2px solid var(--lx-accent); }
+  /* Fill style: classic edge-to-edge grid */
+  #lxh-{{ sid }}.is-fill .lxh-dg {
+    top: -120px; left: -120px; right: -120px; bottom: -120px; transform: rotate(45deg);
+    grid-template-columns: repeat(var(--lx-dcols), 1fr); grid-template-rows: repeat(var(--lx-drows), 1fr); grid-auto-rows: auto;
+  }
+  #lxh-{{ sid }}.is-fill .lxh-dc { outline: 0; }
+
+  /* Bottom bar */
+  #lxh-{{ sid }} .lxh-foot {
+    position: relative; z-index: 2;
+    display: flex; justify-content: space-between; align-items: flex-end; gap: 24px;
+    padding: 0 clamp(20px, 4vw, 64px) 28px;
+  }
+  #lxh-{{ sid }} .lxh-side { margin: 0; max-width: 300px; font-size: 10px; line-height: 1.7; letter-spacing: .22em; text-transform: uppercase; opacity: .7; }
+  #lxh-{{ sid }} .lxh-count { display: flex; align-items: center; gap: 16px; margin-left: auto; }
+  #lxh-{{ sid }} .lxh-count small { display: block; font-size: 10px; letter-spacing: .3em; text-transform: uppercase; opacity: .65; }
+  #lxh-{{ sid }} .lxh-view {
+    color: var(--lx-fg); text-decoration: none; font-size: 12px; font-weight: 700; letter-spacing: .24em; text-transform: uppercase;
+    border-bottom: 2px solid var(--lx-accent); padding-bottom: 3px;
+  }
+  #lxh-{{ sid }} .lxh-arrow {
+    flex: 0 0 auto; width: 56px; height: 56px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 1px solid rgba(255,255,255,.55); background: rgba(0,0,0,.35); color: var(--lx-fg);
+    cursor: pointer; transition: background .2s ease, border-color .2s ease, transform .2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #lxh-{{ sid }} .lxh-arrow:hover { background: var(--lx-accent); border-color: var(--lx-accent); transform: rotate(45deg); }
+  #lxh-{{ sid }} .lxh-arrow svg { width: 18px; height: 18px; transform: rotate(-45deg); }
+
+  @media (max-width: 989px) and (min-width: 769px) {
+    #lxh-{{ sid }} { --lx-ds: {{ section.settings.diamond_size | times: 0.8 | round }}px; }
+  }
+  @media (max-width: 768px) {
+    #lxh-{{ sid }} {
+      min-height: 0;
+      --lx-ds: {{ section.settings.diamond_size_mobile }}px;
+      --lx-dgap: {{ section.settings.diamond_gap | times: 0.7 | round }}px;
+      --lx-pt: {{ section.settings.pad_top_mobile }}px;
+    }
+    #lxh-{{ sid }} .lxh-meta { font-size: 9px; letter-spacing: .24em; padding-left: 20px; padding-right: 20px; }
+    #lxh-{{ sid }} .lxh-meta span:nth-child(2) { display: none; }
+    #lxh-{{ sid }} .lxh-body { flex-direction: column; align-items: stretch; }
+    #lxh-{{ sid }} .lxh-content { width: 100%; max-width: none; padding: 20px 20px 8px; gap: 14px; }
+    #lxh-{{ sid }} .lxh-h { font-size: clamp(44px, 15vw, 76px); }
+    #lxh-{{ sid }} .lxh-sub { font-size: 14px; }
+    #lxh-{{ sid }} .lxh-ctas { width: 100%; }
+    #lxh-{{ sid }} .lxh-btn { flex: 1 1 140px; padding: 0 14px; }
+    #lxh-{{ sid }} .lxh-media { position: relative; width: 100%; height: {{ section.settings.grid_height_mobile }}px; }
+    #lxh-{{ sid }} .lxh-shade {
+      background: linear-gradient(180deg, rgba(0,0,0,.88) 0%, rgba(0,0,0,.72) 50%, rgba(0,0,0,.35) 75%, rgba(0,0,0,.85) 100%);
+    }
+    #lxh-{{ sid }} .lxh-wm { top: 34%; font-size: 52vw; }
+    #lxh-{{ sid }} .lxh-foot { flex-wrap: wrap; padding: 16px 20px 22px; gap: 14px; }
+    #lxh-{{ sid }} .lxh-side { max-width: none; flex: 1 1 100%; }
+    #lxh-{{ sid }} .lxh-count { margin-left: 0; width: 100%; justify-content: space-between; }
+    #lxh-{{ sid }} .lxh-arrow { width: 48px; height: 48px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #lxh-{{ sid }} .lxh-dc img, #lxh-{{ sid }} .lxh-btn, #lxh-{{ sid }} .lxh-arrow { transition: none; }
+  }
+  {%- endif -%}
+</style>
+
 
 <div id="chc-{{ sid }}">
 
+  {%- if hero_style == 'editorial' -%}
+  <!-- ══ EDITORIAL HERO (LEXE 2026-10-09) ═════════════════════ -->
+  <div id="lxh-{{ sid }}" data-lxh class="lxh{% if section.settings.stack_words %} is-stacked{% endif %}{% if section.settings.diamond_style == 'fill' %} is-fill{% endif %}">
+
+    {%- if ed_bd != blank -%}
+      <div class="lxh-bd" aria-hidden="true">
+        <img
+          src="{{ ed_bd | image_url: width: 1600 }}"
+          srcset="{{ ed_bd | image_url: width: 750 }} 750w, {{ ed_bd | image_url: width: 1200 }} 1200w, {{ ed_bd | image_url: width: 1600 }} 1600w, {{ ed_bd | image_url: width: 2200 }} 2200w"
+          sizes="100vw"
+          width="1600"
+          height="{{ 1600 | divided_by: ed_bd.aspect_ratio | ceil }}"
+          alt=""
+          loading="eager"
+          fetchpriority="high"
+          decoding="async">
+      </div>
+    {%- endif -%}
+    <div class="lxh-tone" aria-hidden="true"></div>
+    <div class="lxh-shade" aria-hidden="true"></div>
+    {%- if section.settings.show_wordmark and section.settings.wordmark_text != blank -%}
+      <div class="lxh-wm" aria-hidden="true">{{ section.settings.wordmark_text | escape }}</div>
+    {%- endif -%}
+
+    {%- if section.settings.show_meta -%}
+      <div class="lxh-meta">
+        <span>[ {{ section.settings.meta_left | default: 'Collection' | escape }} ]</span>
+        <span>{{ section.settings.meta_center | escape }}</span>
+        <span>{% if ed_num != blank %}[ {{ ed_num | escape }} ]{% endif %}</span>
+      </div>
+    {%- endif -%}
+
+    <div class="lxh-body">
+      <div class="lxh-content">
+        {%- if section.settings.show_eyebrow and section.settings.promo_eyebrow != blank -%}
+          <p class="lxh-eyebrow">{{ section.settings.promo_eyebrow | escape }}</p>
+        {%- endif -%}
+
+        {%- if section.settings.show_headline -%}
+          {%- if template.name == 'collection' -%}<h1 class="lxh-h">{%- else -%}<h2 class="lxh-h">{%- endif -%}
+            {%- for w in ed_words -%}
+              {%- liquid
+                assign is_acc = false
+                if ed_accent_mode == 'last' and forloop.last and ed_wcount > 1
+                  assign is_acc = true
+                elsif ed_accent_mode == 'last' and ed_wcount == 1
+                  assign is_acc = false
+                elsif ed_accent_mode == 'first' and forloop.first
+                  assign is_acc = true
+                elsif ed_accent_mode == 'line2' and forloop.index > ed_tcount
+                  assign is_acc = true
+                elsif ed_accent_mode == 'title' and forloop.index <= ed_tcount
+                  assign is_acc = true
+                elsif ed_accent_mode == 'custom' and ed_accent_custom != blank
+                  assign wu = w | upcase | remove: ',' | remove: '.'
+                  if ed_accent_custom contains wu
+                    assign is_acc = true
+                  endif
+                endif
+              -%}
+              <span class="w{% if is_acc %} is-accent{% endif %}">{{ w | escape }}{% if forloop.last and section.settings.show_number and ed_num != blank %}<sup>{{ ed_num | escape }}&trade;</sup>{% endif %}</span>{% unless forloop.last %} {% endunless %}
+            {%- endfor -%}
+          {%- if template.name == 'collection' -%}</h1>{%- else -%}</h2>{%- endif -%}
+        {%- endif -%}
+
+        {%- if section.settings.show_subline and ed_sub != blank -%}
+          <p class="lxh-sub">{{ ed_sub | escape }}</p>
+        {%- endif -%}
+
+        {%- if section.settings.show_btn1 or section.settings.show_btn2 -%}
+          <div class="lxh-ctas">
+            {%- if section.settings.show_btn1 and section.settings.hero_cta_label != blank -%}
+              {%- if ed_btn1_url != blank -%}
+                <a class="lxh-btn lxh-btn--solid" href="{{ ed_btn1_url }}">{{ section.settings.hero_cta_label | escape }}</a>
+              {%- else -%}
+                <button type="button" class="lxh-btn lxh-btn--solid" data-chc-scroll>{{ section.settings.hero_cta_label | escape }}</button>
+              {%- endif -%}
+            {%- endif -%}
+            {%- if section.settings.show_btn2 and section.settings.btn2_label != blank -%}
+              <a class="lxh-btn lxh-btn--ghost" href="{{ ed_btn2_url }}">{{ section.settings.btn2_label | escape }}</a>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+      </div>
+
+      {%- if section.settings.show_grid -%}
+      <div class="lxh-media" aria-hidden="true">
+        {%- if section.settings.hero_layout == 'image' and hero_img != blank -%}
+          <div class="chc-simg-{{ sid }}">
+            <img src="{{ hero_img | image_url: width: 1200 }}" srcset="{{ hero_img | image_url: width: 640 }} 640w, {{ hero_img | image_url: width: 1200 }} 1200w" sizes="(max-width: 768px) 100vw, {{ section.settings.split_pct }}vw" width="1200" height="{{ 1200 | divided_by: hero_img.aspect_ratio | ceil }}" alt="" loading="eager" decoding="async" style="width:100%;height:100%;object-fit:cover;display:block">
+          </div>
+        {%- else -%}
+          <div class="lxh-dg">
+            {%- assign dfilled = 0 -%}
+            {%- if active_col != nil and active_col.products.size > 0 -%}
+              {%- assign psize = active_col.products.size -%}
+              {%- for i in (0..dlast) -%}
+                {%- if i >= psize and section.settings.diamond_repeat == false -%}{%- break -%}{%- endif -%}
+                {%- assign pi = i | modulo: psize -%}
+                {%- assign dp = active_col.products[pi] -%}
+                {%- assign dfilled = dfilled | plus: 1 -%}
+                <div class="lxh-dc{% if i == 0 and section.settings.diamond_feature %} is-feature{% endif %}">
+                  {%- if dp.featured_image != blank -%}
+                    <img src="{{ dp.featured_image | image_url: width: 480 }}" srcset="{{ dp.featured_image | image_url: width: 320 }} 320w, {{ dp.featured_image | image_url: width: 480 }} 480w" sizes="{{ section.settings.diamond_size | times: 1.5 | round }}px" width="480" height="{{ 480 | divided_by: dp.featured_image.aspect_ratio | ceil }}" alt="" loading="{% if dfilled <= 4 %}eager{% else %}lazy{% endif %}" decoding="async">
+                  {%- endif -%}
+                </div>
+              {%- endfor -%}
+            {%- else -%}
+              {%- comment -%} No active collection: use block images / block collections round-robin {%- endcomment -%}
+              {%- for block in section.blocks -%}
+                {%- if block.type == 'carousel_card' and block.settings.image != blank and dfilled < dcount -%}
+                  {%- assign dfilled = dfilled | plus: 1 -%}
+                  <div class="lxh-dc"><img src="{{ block.settings.image | image_url: width: 480 }}" width="480" height="{{ 480 | divided_by: block.settings.image.aspect_ratio | ceil }}" alt="" loading="{% if dfilled <= 4 %}eager{% else %}lazy{% endif %}" decoding="async"></div>
+                {%- endif -%}
+              {%- endfor -%}
+              {%- for block in section.blocks -%}
+                {%- if dfilled >= dcount -%}{%- break -%}{%- endif -%}
+                {%- if block.type == 'carousel_card' and block.settings.image == blank and block.settings.collection != blank -%}
+                  {%- for dp in collections[block.settings.collection].products limit: 3 -%}
+                    {%- if dfilled >= dcount -%}{%- break -%}{%- endif -%}
+                    {%- if dp.featured_image != blank -%}
+                      {%- assign dfilled = dfilled | plus: 1 -%}
+                      <div class="lxh-dc"><img src="{{ dp.featured_image | image_url: width: 480 }}" width="480" height="{{ 480 | divided_by: dp.featured_image.aspect_ratio | ceil }}" alt="" loading="{% if dfilled <= 4 %}eager{% else %}lazy{% endif %}" decoding="async"></div>
+                    {%- endif -%}
+                  {%- endfor -%}
+                {%- endif -%}
+              {%- endfor -%}
+            {%- endif -%}
+            {%- if dfilled < dcount -%}
+              {%- assign dempty = dcount | minus: dfilled -%}
+              {%- for e in (1..dempty) -%}<div class="lxh-dc"></div>{%- endfor -%}
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+      </div>
+      {%- endif -%}
+    </div>
+
+    {%- if section.settings.show_side_copy or section.settings.show_count or section.settings.show_arrow -%}
+      <div class="lxh-foot">
+        {%- if section.settings.show_side_copy and section.settings.side_copy != blank -%}
+          <p class="lxh-side">{{ section.settings.side_copy | escape | newline_to_br }}</p>
+        {%- endif -%}
+        <div class="lxh-count">
+          {%- if section.settings.show_count -%}
+            <div>
+              {%- if ed_count > 0 -%}<small>{{ ed_count }} {{ section.settings.count_label | default: 'pieces' | escape }}</small>{%- endif -%}
+              <a class="lxh-view" href="{{ ed_view_url }}" data-lxh-view>{{ section.settings.view_all_label | default: 'View all' | escape }} &rarr;</a>
+            </div>
+          {%- endif -%}
+          {%- if section.settings.show_arrow -%}
+            <button type="button" class="lxh-arrow" data-chc-scroll aria-label="Scroll to products">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>
+            </button>
+          {%- endif -%}
+        </div>
+      </div>
+    {%- endif -%}
+  </div>
+  {%- else -%}
   <!-- ══ HERO BANNER ══════════════════════════════════════════ -->
   <div class="chc-hero-{{ sid }}">
 
@@ -603,6 +1048,7 @@
     </div>
 
   </div><!-- /hero -->
+  {%- endif -%}
 
 
   <!-- ══ CARD CAROUSEL ════════════════════════════════════════ -->
@@ -701,18 +1147,28 @@
      Placed before the carousel-existence guard so the button
      still works (falls back to scrolling one viewport) even
      on pages where no cards rendered. */
-  var ctaBtn = ROOT.querySelector('[data-chc-scroll]');
-  if (ctaBtn) {
-    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    ctaBtn.addEventListener('click', function () {
-      var scrollTarget = ROOT.querySelector('[data-chc-wrap]');
-      if (scrollTarget && scrollTarget.scrollIntoView) {
-        scrollTarget.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
-      } else {
-        window.scrollBy({ top: window.innerHeight, behavior: reduceMotion ? 'auto' : 'smooth' });
-      }
-    });
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var EDITORIAL = {{ hero_style | json }} === 'editorial';
+  function chcTarget() {
+    if (EDITORIAL) {
+      var sec = ROOT.closest('.shopify-section');
+      var nx = sec ? sec.nextElementSibling : null;
+      while (nx && (nx.offsetHeight === 0 || nx.tagName === 'SCRIPT' || nx.tagName === 'STYLE')) nx = nx.nextElementSibling;
+      if (nx) return nx;
+    }
+    return ROOT.querySelector('[data-chc-wrap]');
   }
+  function chcGo(e) {
+    if (e) e.preventDefault();
+    var t = chcTarget();
+    if (t && t.scrollIntoView) t.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+    else window.scrollBy({ top: window.innerHeight, behavior: reduceMotion ? 'auto' : 'smooth' });
+  }
+  ROOT.querySelectorAll('[data-chc-scroll]').forEach(function (b) { b.addEventListener('click', chcGo); });
+  var viewLink = ROOT.querySelector('[data-lxh-view]');
+  if (viewLink) viewLink.addEventListener('click', function (e) {
+    try { if (new URL(viewLink.href, location.href).pathname === location.pathname) chcGo(e); } catch (err) {}
+  });
 
   var wrap   = ROOT.querySelector('[data-chc-wrap]');
   var track  = ROOT.querySelector('[data-chc-track]');
@@ -871,103 +1327,752 @@
   "name": "Collection Hero",
   "tag": "section",
   "settings": [
-
-    { "type": "header", "content": "━━ Typography" },
-    { "type": "font_picker", "id": "font", "label": "Font", "default": "sans-serif" },
-
-    { "type": "header", "content": "━━ Data Source",
-      "info": "Auto uses the active collection page. On pages with no collection (e.g. /collections, homepage) it falls back to your Carousel Card blocks — so add those to control what shows there." },
+    {
+      "type": "header",
+      "content": "━━ Typography"
+    },
+    {
+      "type": "font_picker",
+      "id": "font",
+      "label": "Font",
+      "default": "sans-serif"
+    },
+    {
+      "type": "header",
+      "content": "━━ Hero Style",
+      "info": "Editorial = LEXE poster layout (Oct 2026). Classic = the previous split banner."
+    },
+    {
+      "type": "select",
+      "id": "hero_style",
+      "label": "Hero style",
+      "default": "editorial",
+      "options": [
+        {
+          "value": "editorial",
+          "label": "Editorial (LEXE poster)"
+        },
+        {
+          "value": "classic",
+          "label": "Classic split banner"
+        }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "ed_height",
+      "label": "Editorial height (desktop)",
+      "min": 420,
+      "max": 960,
+      "step": 20,
+      "unit": "px",
+      "default": 680
+    },
+    {
+      "type": "range",
+      "id": "pad_top",
+      "label": "Top padding (clears header) — desktop",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "default": 110
+    },
+    {
+      "type": "range",
+      "id": "pad_top_mobile",
+      "label": "Top padding — mobile",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "default": 96
+    },
+    {
+      "type": "header",
+      "content": "━━ Editorial Headline"
+    },
+    {
+      "type": "font_picker",
+      "id": "headline_font",
+      "label": "Headline font (condensed works best)",
+      "default": "oswald_n7"
+    },
+    {
+      "type": "range",
+      "id": "ed_headline_size",
+      "label": "Headline max size",
+      "min": 48,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 120
+    },
+    {
+      "type": "select",
+      "id": "headline_source",
+      "label": "Headline text",
+      "default": "title",
+      "options": [
+        {
+          "value": "title",
+          "label": "Collection title"
+        },
+        {
+          "value": "custom",
+          "label": "Custom (uses 'Headline' field below)"
+        }
+      ],
+      "info": "Custom text can include [title]. A collection metafield custom.hero_headline overrides both."
+    },
+    {
+      "type": "text",
+      "id": "headline_line2",
+      "label": "Extra headline words",
+      "info": "Added after the title, e.g. 'Collection'."
+    },
+    {
+      "type": "checkbox",
+      "id": "stack_words",
+      "label": "Stack each word on its own line",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "accent_mode",
+      "label": "Accent colour on",
+      "default": "last",
+      "options": [
+        {
+          "value": "last",
+          "label": "Last word"
+        },
+        {
+          "value": "first",
+          "label": "First word"
+        },
+        {
+          "value": "title",
+          "label": "Collection title words"
+        },
+        {
+          "value": "line2",
+          "label": "Extra headline words"
+        },
+        {
+          "value": "custom",
+          "label": "Custom word(s) below"
+        },
+        {
+          "value": "none",
+          "label": "None"
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "accent_text",
+      "label": "Custom accent word(s)"
+    },
+    {
+      "type": "text",
+      "id": "col_number",
+      "label": "Collection number",
+      "default": "01",
+      "info": "Shown as [ 01 ] and 01™ after the headline. Metafield custom.collection_number overrides per collection."
+    },
+    {
+      "type": "textarea",
+      "id": "subline",
+      "label": "Subline",
+      "info": "Blank = first sentence of the collection description. Metafield custom.hero_subline overrides."
+    },
+    {
+      "type": "header",
+      "content": "━━ Editorial Buttons & Labels"
+    },
+    {
+      "type": "url",
+      "id": "btn1_link",
+      "label": "Button 1 link",
+      "info": "Button 1 label = 'Button Label' in Promo Overlay. Blank link = scroll to products."
+    },
+    {
+      "type": "text",
+      "id": "btn2_label",
+      "label": "Button 2 label",
+      "default": "Explore collection"
+    },
+    {
+      "type": "url",
+      "id": "btn2_link",
+      "label": "Button 2 link",
+      "info": "Blank = all collections page."
+    },
+    {
+      "type": "range",
+      "id": "button_radius",
+      "label": "Button corner radius",
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "text",
+      "id": "meta_left",
+      "label": "Top-left label",
+      "default": "Collection"
+    },
+    {
+      "type": "text",
+      "id": "meta_center",
+      "label": "Top-centre label",
+      "default": "LEXE by Devici Studios"
+    },
+    {
+      "type": "textarea",
+      "id": "side_copy",
+      "label": "Side copy (bottom left)",
+      "default": "Jackets, eyewear, footwear and more.\nNew drops land here first."
+    },
+    {
+      "type": "text",
+      "id": "count_label",
+      "label": "Product count label",
+      "default": "pieces"
+    },
+    {
+      "type": "text",
+      "id": "view_all_label",
+      "label": "View all label",
+      "default": "View all"
+    },
+    {
+      "type": "header",
+      "content": "━━ Editorial Colours & Backdrop",
+      "info": "Text colour = Promo Overlay text colour. Base colour = Background / Grid Gap colour."
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent colour",
+      "default": "#9B6BD1"
+    },
+    {
+      "type": "color",
+      "id": "accent_color_2",
+      "label": "Accent deep (hover / duotone)",
+      "default": "#6E3FA3"
+    },
+    {
+      "type": "color",
+      "id": "accent_text_color",
+      "label": "Solid button text",
+      "default": "#0a0a0a"
+    },
+    {
+      "type": "select",
+      "id": "backdrop_source",
+      "label": "Backdrop image",
+      "default": "collection",
+      "options": [
+        {
+          "value": "collection",
+          "label": "Hero image, else collection image"
+        },
+        {
+          "value": "promo",
+          "label": "Promo background image"
+        },
+        {
+          "value": "none",
+          "label": "None (solid colour)"
+        }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "duotone_strength",
+      "label": "Duotone strength",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 70
+    },
+    {
+      "type": "range",
+      "id": "shade_strength",
+      "label": "Dark overlay strength",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 85
+    },
+    {
+      "type": "text",
+      "id": "wordmark_text",
+      "label": "Wordmark texture text",
+      "default": "LEXE"
+    },
+    {
+      "type": "range",
+      "id": "wordmark_opacity",
+      "label": "Wordmark visibility",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 100
+    },
+    {
+      "type": "header",
+      "content": "━━ Editorial Show / Hide"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_meta",
+      "label": "Top labels",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_eyebrow",
+      "label": "Eyebrow",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_headline",
+      "label": "Headline",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_number",
+      "label": "Collection number (™)",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_subline",
+      "label": "Subline",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_btn1",
+      "label": "Button 1",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_btn2",
+      "label": "Button 2",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_side_copy",
+      "label": "Side copy",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_count",
+      "label": "Product count + View all",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_arrow",
+      "label": "Circular arrow button",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_wordmark",
+      "label": "Wordmark texture",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_grid",
+      "label": "Diamond grid",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "━━ Diamond Grid (Editorial)"
+    },
+    {
+      "type": "select",
+      "id": "diamond_style",
+      "label": "Grid style",
+      "default": "tiles",
+      "options": [
+        {
+          "value": "tiles",
+          "label": "Floating diamond tiles"
+        },
+        {
+          "value": "fill",
+          "label": "Edge-to-edge (classic)"
+        }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "diamond_count",
+      "label": "Diamond count",
+      "min": 4,
+      "max": 16,
+      "step": 1,
+      "default": 9
+    },
+    {
+      "type": "range",
+      "id": "diamond_size",
+      "label": "Diamond size — desktop",
+      "min": 80,
+      "max": 260,
+      "step": 10,
+      "unit": "px",
+      "default": 170
+    },
+    {
+      "type": "range",
+      "id": "diamond_size_mobile",
+      "label": "Diamond size — mobile",
+      "min": 60,
+      "max": 180,
+      "step": 5,
+      "unit": "px",
+      "default": 105
+    },
+    {
+      "type": "range",
+      "id": "diamond_gap",
+      "label": "Diamond gap",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "diamond_radius",
+      "label": "Diamond corner radius",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "default": 6,
+      "info": "0 = sharp corners."
+    },
+    {
+      "type": "range",
+      "id": "grid_height_mobile",
+      "label": "Grid area height — mobile",
+      "min": 200,
+      "max": 520,
+      "step": 10,
+      "unit": "px",
+      "default": 320
+    },
+    {
+      "type": "checkbox",
+      "id": "diamond_repeat",
+      "label": "Repeat products to fill all diamonds",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "diamond_feature",
+      "label": "Accent outline on first diamond",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "━━ Data Source",
+      "info": "Auto uses the active collection page. On pages with no collection (e.g. /collections, homepage) it falls back to your Carousel Card blocks — so add those to control what shows there."
+    },
     {
       "type": "select",
       "id": "panel_source",
       "label": "Card Source",
       "default": "auto",
       "options": [
-        { "value": "auto",   "label": "Current collection (auto)" },
-        { "value": "manual", "label": "Specific collection" },
-        { "value": "mixed",  "label": "Custom blocks + collection fill" },
-        { "value": "blocks", "label": "Custom blocks only" }
+        {
+          "value": "auto",
+          "label": "Current collection (auto)"
+        },
+        {
+          "value": "manual",
+          "label": "Specific collection"
+        },
+        {
+          "value": "mixed",
+          "label": "Custom blocks + collection fill"
+        },
+        {
+          "value": "blocks",
+          "label": "Custom blocks only"
+        }
       ]
     },
-    { "type": "collection", "id": "panel_collection",
-      "label": "Collection — Manual / Mixed mode" },
-    { "type": "range", "id": "auto_limit", "label": "Max auto products",
-      "min": 4, "max": 24, "step": 2, "default": 12 },
-
-    { "type": "header", "content": "━━ Hero Banner" },
-    { "type": "range", "id": "hero_height", "label": "Height",
-      "min": 180, "max": 700, "step": 20, "unit": "px", "default": 420 },
-    { "type": "color", "id": "hero_bg", "label": "Background / Grid Gap Colour",
+    {
+      "type": "collection",
+      "id": "panel_collection",
+      "label": "Collection — Manual / Mixed mode"
+    },
+    {
+      "type": "range",
+      "id": "auto_limit",
+      "label": "Max auto products",
+      "min": 4,
+      "max": 24,
+      "step": 2,
+      "default": 12
+    },
+    {
+      "type": "header",
+      "content": "━━ Hero Banner"
+    },
+    {
+      "type": "range",
+      "id": "hero_height",
+      "label": "Height (Classic style)",
+      "min": 180,
+      "max": 700,
+      "step": 20,
+      "unit": "px",
+      "default": 420
+    },
+    {
+      "type": "color",
+      "id": "hero_bg",
+      "label": "Background / Grid Gap Colour",
       "default": "#0a0a0a",
-      "info": "Fills the gap lines between diamonds and any uncovered corners." },
+      "info": "Fills the gap lines between diamonds and any uncovered corners."
+    },
     {
       "type": "select",
       "id": "hero_layout",
       "label": "Left Image Style",
       "default": "grid",
       "options": [
-        { "value": "grid",  "label": "Diamond grid (collection products)" },
-        { "value": "image", "label": "Single hero image" }
+        {
+          "value": "grid",
+          "label": "Diamond grid (collection products)"
+        },
+        {
+          "value": "image",
+          "label": "Single hero image"
+        }
       ]
     },
-    { "type": "image_picker", "id": "hero_image", "label": "Hero Image",
-      "info": "Used in Single Image mode, or as fallback when no collection is active." },
-    { "type": "range", "id": "split_pct", "label": "Image Zone Width",
-      "min": 40, "max": 72, "step": 2, "unit": "%", "default": 60,
-      "info": "Percentage of the hero width used by the imagery side." },
-
-    { "type": "header", "content": "━━ Promo Overlay" },
-    { "type": "color", "id": "promo_bg", "label": "Background Colour", "default": "#0a0a0a",
-      "info": "Solid colour fallback when no background image is set." },
-    { "type": "image_picker", "id": "promo_bg_image", "label": "Background Image",
-      "info": "Optional. Overlays the solid colour. Use a dark or high-contrast image to keep text legible." },
-    { "type": "color", "id": "promo_fg",       "label": "Text Colour",       "default": "#ffffff" },
-    { "type": "text",  "id": "promo_eyebrow",  "label": "Eyebrow",           "default": "Jersey Meets Streetwear" },
-    { "type": "text",  "id": "promo_headline", "label": "Headline",          "default": "Up To 50% Off",
-      "info": "Main promotional message — discount, season, launch, etc." },
-    { "type": "range", "id": "headline_size",  "label": "Headline Max Size",
-      "min": 32, "max": 100, "step": 2, "unit": "px", "default": 68 },
-    { "type": "text",  "id": "promo_sub",      "label": "Sub-text",          "default": "Selected Styles" },
-    { "type": "color", "id": "btn_bg",         "label": "Button Background", "default": "#f5e100" },
-    { "type": "color", "id": "btn_fg",         "label": "Button Text",       "default": "#0a0a0a" },
-    { "type": "text",  "id": "hero_cta_label", "label": "Button Label",      "default": "Shop Now",
-      "info": "Clicking smooth-scrolls down to the card carousel below." },
-
-    { "type": "header", "content": "━━ Card Carousel" },
-    { "type": "color", "id": "card_bg", "label": "Carousel Background", "default": "#f5f5f5" },
-    { "type": "range", "id": "card_radius", "label": "Card Corner Radius",
-      "min": 0, "max": 24, "step": 2, "unit": "px", "default": 10 },
-    { "type": "range", "id": "cards_visible", "label": "Cards Visible — Desktop",
-      "min": 2, "max": 7, "step": 1, "default": 5 },
-    { "type": "range", "id": "cards_visible_mobile", "label": "Cards Visible — Mobile",
-      "min": 1, "max": 4, "step": 1, "default": 2 },
-    { "type": "range", "id": "card_ratio", "label": "Card Height Ratio",
-      "min": 80, "max": 220, "step": 5, "unit": "%", "default": 155,
-      "info": "Height as % of card width. 100 = square · 155 = portrait." },
-    { "type": "range", "id": "autoplay_delay", "label": "Auto-advance Interval",
-      "min": 2, "max": 10, "step": 1, "unit": "s", "default": 4 },
-    { "type": "checkbox", "id": "show_dots",      "label": "Show dot indicators",        "default": true },
-    { "type": "color",    "id": "dot_color",       "label": "Dot Colour",                "default": "#0a0a0a" },
-    { "type": "checkbox", "id": "show_card_label", "label": "Show product name on cards", "default": true }
-
+    {
+      "type": "image_picker",
+      "id": "hero_image",
+      "label": "Hero Image",
+      "info": "Used in Single Image mode, or as fallback when no collection is active."
+    },
+    {
+      "type": "range",
+      "id": "split_pct",
+      "label": "Image Zone Width",
+      "min": 40,
+      "max": 72,
+      "step": 2,
+      "unit": "%",
+      "default": 60,
+      "info": "Percentage of the hero width used by the imagery side."
+    },
+    {
+      "type": "header",
+      "content": "━━ Promo Overlay"
+    },
+    {
+      "type": "color",
+      "id": "promo_bg",
+      "label": "Background Colour",
+      "default": "#0a0a0a",
+      "info": "Solid colour fallback when no background image is set."
+    },
+    {
+      "type": "image_picker",
+      "id": "promo_bg_image",
+      "label": "Background Image",
+      "info": "Optional. Overlays the solid colour. Use a dark or high-contrast image to keep text legible."
+    },
+    {
+      "type": "color",
+      "id": "promo_fg",
+      "label": "Text Colour",
+      "default": "#ffffff"
+    },
+    {
+      "type": "text",
+      "id": "promo_eyebrow",
+      "label": "Eyebrow",
+      "default": "Jersey Meets Streetwear",
+      "info": "Also the Editorial eyebrow (e.g. NEW COLLECTION)."
+    },
+    {
+      "type": "text",
+      "id": "promo_headline",
+      "label": "Headline",
+      "default": "Up To 50% Off",
+      "info": "Classic headline. Editorial uses it only when Headline text = Custom."
+    },
+    {
+      "type": "range",
+      "id": "headline_size",
+      "label": "Headline Max Size",
+      "min": 32,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 68
+    },
+    {
+      "type": "text",
+      "id": "promo_sub",
+      "label": "Sub-text",
+      "default": "Selected Styles"
+    },
+    {
+      "type": "color",
+      "id": "btn_bg",
+      "label": "Button Background",
+      "default": "#f5e100"
+    },
+    {
+      "type": "color",
+      "id": "btn_fg",
+      "label": "Button Text",
+      "default": "#0a0a0a"
+    },
+    {
+      "type": "text",
+      "id": "hero_cta_label",
+      "label": "Button Label",
+      "default": "Shop Now",
+      "info": "Classic: scrolls to the carousel. Editorial: Button 1 label (link set in Editorial Buttons)."
+    },
+    {
+      "type": "header",
+      "content": "━━ Card Carousel"
+    },
+    {
+      "type": "color",
+      "id": "card_bg",
+      "label": "Carousel Background",
+      "default": "#f5f5f5"
+    },
+    {
+      "type": "range",
+      "id": "card_radius",
+      "label": "Card Corner Radius",
+      "min": 0,
+      "max": 24,
+      "step": 2,
+      "unit": "px",
+      "default": 10
+    },
+    {
+      "type": "range",
+      "id": "cards_visible",
+      "label": "Cards Visible — Desktop",
+      "min": 2,
+      "max": 7,
+      "step": 1,
+      "default": 5
+    },
+    {
+      "type": "range",
+      "id": "cards_visible_mobile",
+      "label": "Cards Visible — Mobile",
+      "min": 1,
+      "max": 4,
+      "step": 1,
+      "default": 2
+    },
+    {
+      "type": "range",
+      "id": "card_ratio",
+      "label": "Card Height Ratio",
+      "min": 80,
+      "max": 220,
+      "step": 5,
+      "unit": "%",
+      "default": 155,
+      "info": "Height as % of card width. 100 = square · 155 = portrait."
+    },
+    {
+      "type": "range",
+      "id": "autoplay_delay",
+      "label": "Auto-advance Interval",
+      "min": 2,
+      "max": 10,
+      "step": 1,
+      "unit": "s",
+      "default": 4
+    },
+    {
+      "type": "checkbox",
+      "id": "show_dots",
+      "label": "Show dot indicators",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "dot_color",
+      "label": "Dot Colour",
+      "default": "#0a0a0a"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_card_label",
+      "label": "Show product name on cards",
+      "default": true
+    }
   ],
-
   "blocks": [
     {
       "type": "carousel_card",
       "name": "Carousel Card",
       "settings": [
-        { "type": "image_picker", "id": "image",      "label": "Image" },
-        { "type": "collection",   "id": "collection", "label": "Collection",
-          "info": "Auto-pulls image, link and label. Override with fields below." },
-        { "type": "text", "id": "label", "label": "Card Label" },
-        { "type": "url",  "id": "link",  "label": "Custom Link" }
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "Collection",
+          "info": "Auto-pulls image, link and label. Override with fields below."
+        },
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Card Label"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Custom Link"
+        }
       ]
     }
   ],
-
   "max_blocks": 20,
-
   "presets": [
     {
       "name": "Collection Hero",
@@ -987,13 +2092,39 @@
         "show_dots": true
       },
       "blocks": [
-        { "type": "carousel_card", "settings": { "label": "Brands" } },
-        { "type": "carousel_card", "settings": { "label": "New In" } },
-        { "type": "carousel_card", "settings": { "label": "Spring & Summer" } },
-        { "type": "carousel_card", "settings": { "label": "Plus-Size" } },
-        { "type": "carousel_card", "settings": { "label": "Outfits" } }
+        {
+          "type": "carousel_card",
+          "settings": {
+            "label": "Brands"
+          }
+        },
+        {
+          "type": "carousel_card",
+          "settings": {
+            "label": "New In"
+          }
+        },
+        {
+          "type": "carousel_card",
+          "settings": {
+            "label": "Spring & Summer"
+          }
+        },
+        {
+          "type": "carousel_card",
+          "settings": {
+            "label": "Plus-Size"
+          }
+        },
+        {
+          "type": "carousel_card",
+          "settings": {
+            "label": "Outfits"
+          }
+        }
       ]
     }
   ]
 }
 {% endschema %}
+
