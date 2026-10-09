@@ -11,50 +11,6 @@
   "sections": {
     "header": {
       "type": "vanquishcollection-header",
-      "blocks": {
-        "carousel_card_x76JMB": {
-          "type": "carousel_card",
-          "settings": {
-            "product": "",
-            "collection": "industrial-assets",
-            "label": "",
-            "link": ""
-          }
-        },
-        "carousel_card_xbU89z": {
-          "type": "carousel_card",
-          "settings": {
-            "product": "",
-            "collection": "lexespecs",
-            "label": "",
-            "link": ""
-          }
-        },
-        "carousel_card_f9Y6Vy": {
-          "type": "carousel_card",
-          "settings": {
-            "product": "",
-            "collection": "maze",
-            "label": "",
-            "link": ""
-          }
-        },
-        "carousel_card_mxUadY": {
-          "type": "carousel_card",
-          "settings": {
-            "product": "womens-embroidered-flame-patchwork-biker-jacket-leather-coat-with-lining",
-            "collection": "lexe",
-            "label": "",
-            "link": ""
-          }
-        }
-      },
-      "block_order": [
-        "carousel_card_x76JMB",
-        "carousel_card_xbU89z",
-        "carousel_card_f9Y6Vy",
-        "carousel_card_mxUadY"
-      ],
       "settings": {
         "font": "syne_n8",
         "hero_style": "editorial",
