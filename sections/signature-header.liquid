@@ -768,13 +768,22 @@
                 <div class="apex-vault-grid">
                   {%- for block in section.blocks -%}
                     {%- if block.type == 'collection' and block.settings.collection != blank -%}
+                      {%- liquid
+                        assign vimg = block.settings.image
+                        if vimg == blank and block.settings.product != blank and block.settings.product.featured_image != blank
+                          assign vimg = block.settings.product.featured_image
+                        endif
+                        if vimg == blank
+                          assign vimg = block.settings.collection.featured_image
+                        endif
+                      -%}
                       <a href="{{ block.settings.collection.url }}" class="apex-vault-item" {{ block.shopify_attributes }}>
                         <div class="apex-vault-img-wrap">
-                          {%- if block.settings.collection.featured_image -%}
+                          {%- if vimg != blank -%}
                             <img
-                              src="{{ block.settings.collection.featured_image | image_url: width: 360 }}"
+                              src="{{ vimg | image_url: width: 360 }}"
                               width="360"
-                              height="{{ 360 | divided_by: block.settings.collection.featured_image.aspect_ratio | ceil }}"
+                              height="{{ 360 | divided_by: vimg.aspect_ratio | ceil }}"
                               alt="{{ block.settings.collection.title | escape }}"
                               class="apex-vault-img"
                               loading="lazy">
@@ -1295,7 +1304,9 @@
     {
       "type": "collection", "name": "Vault Collection", "limit": 4,
       "settings": [
-        { "type": "collection", "id": "collection", "label": "Collection" }
+        { "type": "collection", "id": "collection", "label": "Collection" },
+        { "type": "image_picker", "id": "image", "label": "Custom image", "info": "Optional. Overrides the collection image." },
+        { "type": "product", "id": "product", "label": "Image from product", "info": "Used when no custom image is set." }
       ]
     },
     {

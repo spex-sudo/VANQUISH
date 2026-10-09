@@ -113,7 +113,7 @@
         "hero_layout": "grid",
         "split_pct": 50,
         "promo_bg": "#0a0a0a",
-        "promo_bg_image": "shopify:\/\/shop_images\/IMG_0729.png",
+        "promo_bg_image": "shopify://shop_images/IMG_0729.png",
         "promo_fg": "#ffffff",
         "promo_eyebrow": "New collection",
         "promo_headline": "Up To 50% Off",
@@ -169,7 +169,7 @@
         "gap": 16,
         "p_v": 40,
         "rd": 4,
-        "ratio": "1\/1",
+        "ratio": "1/1",
         "ac": "#111111",
         "sale_color": "#c8102e",
         "show_quick_add": true,
@@ -227,14 +227,14 @@
         "foil_color_b": "#c9a227",
         "card_radius": 18,
         "btn_radius": 40,
-        "image_tr": "shopify:\/\/shop_images\/IMG-0591.jpg",
-        "image_bl": "shopify:\/\/shop_images\/lexe-by-devici-studios-logo.png"
+        "image_tr": "shopify://shop_images/IMG-0591.jpg",
+        "image_bl": "shopify://shop_images/lexe-by-devici-studios-logo.png"
       }
     },
     "lexe_intro": {
       "type": "custom-liquid",
       "settings": {
-        "custom_liquid": "{% if collection.description != blank %}<div class=\"lexe-coll-intro\" style=\"max-width:760px;margin:0 auto;padding:28px 20px 40px;font-size:15px;line-height:1.65;\">{{ collection.description }}<\/div><style>.lexe-coll-intro a{text-decoration:underline;text-underline-offset:2px;color:inherit}.lexe-coll-intro p{margin:0 0 12px}<\/style>{% endif %}",
+        "custom_liquid": "{% if collection.description != blank %}<div class=\"lexe-coll-intro\" style=\"max-width:760px;margin:0 auto;padding:28px 20px 40px;font-size:15px;line-height:1.65;\">{{ collection.description }}</div><style>.lexe-coll-intro a{text-decoration:underline;text-underline-offset:2px;color:inherit}.lexe-coll-intro p{margin:0 0 12px}</style>{% endif %}",
         "color_scheme": "",
         "section_width": "page-width"
       }
@@ -301,7 +301,8 @@
             "collection": "shoes",
             "title": "",
             "link": "",
-            "icon": "shoe"
+            "icon": "shoe",
+            "product": "multi-buckle-platform-knee-high-boots"
           }
         }
       },
@@ -344,4 +345,3 @@
     "vanquish_scratch_iVnnRn"
   ]
 }
-
