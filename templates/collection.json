@@ -41,7 +41,8 @@
           "settings": {
             "collection": "lexe",
             "label": "",
-            "link": ""
+            "link": "",
+            "product": "womens-embroidered-flame-patchwork-biker-jacket-leather-coat-with-lining"
           }
         }
       },
@@ -129,7 +130,9 @@
         "autoplay_delay": 4,
         "show_dots": true,
         "dot_color": "#d4b6ff",
-        "show_card_label": false
+        "show_card_label": false,
+        "backdrop_product": "pu-leather-diamond-fishbone-corset-mesh-top",
+        "backdrop_product_handles": "lexe"
       }
     },
     "grid": {
@@ -245,7 +248,9 @@
             "collection": "lexe",
             "title": "",
             "link": "",
-            "icon": "jacket"
+            "icon": "jacket",
+            "product": "womens-embroidered-flame-patchwork-biker-jacket-leather-coat-with-lining",
+            "solid": false
           }
         },
         "col_lexespecs": {
@@ -263,7 +268,9 @@
             "collection": "exodus",
             "title": "",
             "link": "",
-            "icon": "bolt"
+            "icon": "bolt",
+            "product": "",
+            "solid": true
           }
         },
         "col_women": {
@@ -272,7 +279,9 @@
             "collection": "women",
             "title": "",
             "link": "",
-            "icon": "woman"
+            "icon": "woman",
+            "product": "black-strap-blue-diamond-inlaid-mid-size-dress",
+            "solid": false
           }
         },
         "col_men": {
@@ -281,7 +290,9 @@
             "collection": "men",
             "title": "",
             "link": "",
-            "icon": "man"
+            "icon": "man",
+            "product": "autumn-commuting-temperament-black-elongated-suit-jacket-high-end-silhouette",
+            "solid": false
           }
         },
         "col_shoes": {

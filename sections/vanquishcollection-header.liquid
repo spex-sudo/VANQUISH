@@ -1082,6 +1082,9 @@
           {%- if block.type == 'carousel_card' -%}
             {%- liquid
               assign ci = block.settings.image
+              if ci == blank and block.settings.product != blank and block.settings.product.featured_image != blank
+                assign ci = block.settings.product.featured_image
+              endif
               assign cu = block.settings.link
               assign cl = block.settings.label
               if block.settings.collection != blank
@@ -2094,6 +2097,12 @@
           "type": "image_picker",
           "id": "image",
           "label": "Image"
+        },
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Image from product",
+          "info": "Used when no image is set; overrides the collection image."
         },
         {
           "type": "collection",
