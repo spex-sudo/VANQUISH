@@ -109,7 +109,7 @@
         "show_arrow": true,
         "show_wordmark": true,
         "show_grid": true,
-        "diamond_style": "tiles",
+        "diamond_style": "fill",
         "diamond_count": 9,
         "diamond_size": 170,
         "diamond_size_mobile": 105,
