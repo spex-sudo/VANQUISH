@@ -113,7 +113,7 @@
         "hero_layout": "grid",
         "split_pct": 50,
         "promo_bg": "#0a0a0a",
-        "promo_bg_image": "shopify://shop_images/IMG_0729.png",
+        "promo_bg_image": "shopify:\/\/shop_images\/IMG_0729.png",
         "promo_fg": "#ffffff",
         "promo_eyebrow": "New collection",
         "promo_headline": "Up To 50% Off",
@@ -132,7 +132,14 @@
         "dot_color": "#d4b6ff",
         "show_card_label": false,
         "backdrop_product": "pu-leather-diamond-fishbone-corset-mesh-top",
-        "backdrop_product_handles": "lexe"
+        "backdrop_product_handles": "lexe",
+        "compact_mode": true,
+        "compact_hide_carousel": true,
+        "compact_pad_top": 96,
+        "compact_pad_left": 180,
+        "compact_pad_top_mobile": 140,
+        "compact_headline_size": 46,
+        "compact_headline_size_mobile": 32
       }
     },
     "grid": {
@@ -153,23 +160,129 @@
         "price": {
           "type": "price",
           "settings": {}
+        },
+        "rail_lexe": {
+          "type": "rail_collection",
+          "settings": {
+            "collection": "lexe",
+            "product": "womens-embroidered-flame-patchwork-biker-jacket-leather-coat-with-lining",
+            "use_collection_image": false,
+            "title": "LEXE"
+          }
+        },
+        "rail_lexespecs": {
+          "type": "rail_collection",
+          "settings": {
+            "collection": "lexespecs",
+            "product": "elliptical-small-frame-sunglasses-new-fashion-trend-high-end-sunglasses",
+            "use_collection_image": false,
+            "title": "Specs"
+          }
+        },
+        "rail_women": {
+          "type": "rail_collection",
+          "settings": {
+            "collection": "women",
+            "product": "black-strap-blue-diamond-inlaid-mid-size-dress",
+            "use_collection_image": false,
+            "title": "Women"
+          }
+        },
+        "rail_men": {
+          "type": "rail_collection",
+          "settings": {
+            "collection": "men",
+            "product": "pu-leather-black-leather-jacket-for-men-and-women",
+            "use_collection_image": false,
+            "title": "Men"
+          }
+        },
+        "rail_shoes": {
+          "type": "rail_collection",
+          "settings": {
+            "collection": "shoes",
+            "product": "multi-buckle-platform-knee-high-boots",
+            "use_collection_image": false,
+            "title": "Shoes"
+          }
+        },
+        "editorial_1": {
+          "type": "editorial",
+          "settings": {
+            "only_collection": "lexe",
+            "product": "autumn-commuting-temperament-black-elongated-suit-jacket-high-end-silhouette",
+            "focal": "top",
+            "eyebrow": "LEXE · Outerwear",
+            "headline": "The long line.",
+            "cta_label": "See the look",
+            "cta_link": "",
+            "sub": "A black blazer cut long, for cold mornings and late commutes."
+          }
+        },
+        "editorial_2": {
+          "type": "editorial",
+          "settings": {
+            "only_collection": "lexe",
+            "product": "black-fitted-pleated-bodycon-dress",
+            "focal": "top",
+            "eyebrow": "LEXE · Dresses",
+            "headline": "All black. All shape.",
+            "cta_label": "Explore the drop",
+            "cta_link": "",
+            "sub": "A fitted black dress with pleats."
+          }
+        },
+        "editorial_3": {
+          "type": "editorial",
+          "settings": {
+            "only_collection": "lexespecs",
+            "product": "new-fashion-one-piece-large-frame-sunglasses-men-and-women-wide-frame-sunglasses",
+            "focal": "center",
+            "eyebrow": "Specs",
+            "headline": "Shade, at full width.",
+            "cta_label": "See the frames",
+            "cta_link": "",
+            "sub": "One sweep of lens, edge to edge."
+          }
+        },
+        "editorial_4": {
+          "type": "editorial",
+          "settings": {
+            "only_collection": "lexespecs",
+            "product": "new-y2k-spice-girl-sunglasses-letter-integrated-sunvisor-sunglasses-womens-advanced-slimming-glasses",
+            "focal": "center",
+            "eyebrow": "Specs · Y2K",
+            "headline": "Say it with a visor.",
+            "cta_label": "See the frames",
+            "cta_link": "",
+            "sub": "A Y2K visor frame with letter detailing."
+          }
         }
       },
       "block_order": [
         "swatches_icre89",
         "title",
         "rating",
-        "price"
+        "price",
+        "rail_lexe",
+        "rail_lexespecs",
+        "rail_women",
+        "rail_men",
+        "rail_shoes",
+        "editorial_1",
+        "editorial_2",
+        "editorial_3",
+        "editorial_4"
       ],
       "settings": {
-        "page_limit": 12,
-        "pc_cols": 4,
+        "page_limit": 20,
+        "pc_cols": 5,
         "mb_cols": 2,
         "max_w": 1300,
         "gap": 16,
-        "p_v": 40,
+        "p_v": 10,
         "rd": 4,
-        "ratio": "1/1",
+        "ratio": "1\/1",
         "ac": "#111111",
         "sale_color": "#c8102e",
         "show_quick_add": true,
@@ -178,7 +291,39 @@
         "low_stock_threshold": 10,
         "new_hours": 108,
         "max_card_images": 4,
-        "max_swatches": 4
+        "max_swatches": 4,
+        "show_rail": true,
+        "rail_label": "Shop by category",
+        "rail_auto_types": true,
+        "rail_type_limit": 8,
+        "rail_tile_h": 56,
+        "rail_tile_h_mobile": 48,
+        "rail_radius": 4,
+        "rail_gap": 12,
+        "show_chips": true,
+        "chip_filters": "availability, product type, color, colour, size, price",
+        "chip_values_per_filter": 6,
+        "chip_price_ranges": "0-25, 25-50, 50-",
+        "chip_sorts": "created-descending:New in",
+        "chip_instock_label": "In stock",
+        "chip_show_all": true,
+        "chip_all_label": "All filters",
+        "chip_clear_label": "Clear",
+        "show_editorial": true,
+        "ed_row_desktop": 2,
+        "ed_row_mobile": 4,
+        "ed_every_rows_desktop": 4,
+        "ed_every_rows_mobile": 8,
+        "ed_ratio_mobile": "4\/5",
+        "lx_accent": "#9B6BD1",
+        "lx_accent_2": "#6E3FA3",
+        "fc_video_enable": true,
+        "fc_video_url": "",
+        "fc_use_product_video": false,
+        "hide_floaters": true,
+        "sink_tagged": true,
+        "sort_low_label": "Sort: low to high",
+        "ed_mark_color": "#9966CC"
       }
     },
     "vanquish_scratch_iVnnRn": {
@@ -227,14 +372,14 @@
         "foil_color_b": "#c9a227",
         "card_radius": 18,
         "btn_radius": 40,
-        "image_tr": "shopify://shop_images/IMG-0591.jpg",
-        "image_bl": "shopify://shop_images/lexe-by-devici-studios-logo.png"
+        "image_tr": "shopify:\/\/shop_images\/IMG-0591.jpg",
+        "image_bl": "shopify:\/\/shop_images\/lexe-by-devici-studios-logo.png"
       }
     },
     "lexe_intro": {
       "type": "custom-liquid",
       "settings": {
-        "custom_liquid": "{% if collection.description != blank %}<div class=\"lexe-coll-intro\" style=\"max-width:760px;margin:0 auto;padding:28px 20px 40px;font-size:15px;line-height:1.65;\">{{ collection.description }}</div><style>.lexe-coll-intro a{text-decoration:underline;text-underline-offset:2px;color:inherit}.lexe-coll-intro p{margin:0 0 12px}</style>{% endif %}",
+        "custom_liquid": "{% if collection.description != blank %}<div class=\"lexe-coll-intro\" style=\"max-width:760px;margin:0 auto;padding:28px 20px 40px;font-size:15px;line-height:1.65;\">{{ collection.description }}<\/div><style>.lexe-coll-intro a{text-decoration:underline;text-underline-offset:2px;color:inherit}.lexe-coll-intro p{margin:0 0 12px}<\/style>{% endif %}",
         "color_scheme": "",
         "section_width": "page-width"
       }
@@ -334,7 +479,8 @@
         "accent_color": "#9B6BD1",
         "overlay": 85,
         "mono": true
-      }
+      },
+      "disabled": true
     }
   },
   "order": [
@@ -345,3 +491,4 @@
     "vanquish_scratch_iVnnRn"
   ]
 }
+

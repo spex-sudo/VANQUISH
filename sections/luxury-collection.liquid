@@ -803,6 +803,83 @@
   }
   .apex-card.is-filtered-out { display: none !important; }
 
+  /* ── LEXE upgrade 2026-10-09: rail, chips, editorial, first-card video ── */
+  #ApexZenith-{{ sid }} { --lx-acc: {{ section.settings.lx_accent | default: '#9B6BD1' }}; --lx-acc2: {{ section.settings.lx_accent_2 | default: '#6E3FA3' }}; }
+  .apex-rail-{{ sid }}, .apex-chips-{{ sid }} { position: relative; margin: 0 0 {{ section.settings.rail_gap }}px; }
+  .apex-rail-{{ sid }} .apex-rail-track, .apex-chips-{{ sid }} .apex-chips-track {
+    display: flex; gap: 10px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none;
+    -webkit-overflow-scrolling: touch; touch-action: pan-x pan-y; padding: 2px 2px 4px; scroll-snap-type: x proximity;
+  }
+  .apex-rail-{{ sid }} .apex-rail-track::-webkit-scrollbar, .apex-chips-{{ sid }} .apex-chips-track::-webkit-scrollbar { display: none; }
+  .apex-rtile {
+    flex: 0 0 auto; scroll-snap-align: start; display: inline-flex; align-items: center; gap: 10px;
+    height: {{ section.settings.rail_tile_h }}px; padding: 0 16px 0 0; border-radius: {{ section.settings.rail_radius }}px;
+    background: #0a0a0a; color: #fff; text-decoration: none; overflow: hidden; border: 1px solid #0a0a0a;
+    transition: border-color .2s ease, background .2s ease; -webkit-tap-highlight-color: transparent;
+  }
+  .apex-rtile-img { flex: 0 0 auto; width: {{ section.settings.rail_tile_h }}px; height: 100%; background: #1a1a1a; overflow: hidden; }
+  .apex-rtile-img img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .5s ease; }
+  .apex-rtile:hover .apex-rtile-img img { transform: scale(1.08); }
+  .apex-rtile-name { font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .apex-rtile:hover, .apex-rtile:focus-visible { border-color: var(--lx-acc); }
+  .apex-rtile.is-current { background: #fff; color: #0a0a0a; border-color: #0a0a0a; box-shadow: inset 0 -3px 0 var(--lx-acc); }
+  .apex-rtile:focus-visible, .apex-chip:focus-visible { outline: 2px solid var(--lx-acc); outline-offset: 2px; }
+  .apex-chip {
+    flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 16px;
+    border: 1px solid #d6d6d6; border-radius: 999px; background: #fff; color: #111; text-decoration: none; cursor: pointer;
+    font: inherit; font-size: 12px; font-weight: 600; letter-spacing: .06em; white-space: nowrap; transition: border-color .2s, background .2s, color .2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .apex-chip:hover { border-color: #111; }
+  .apex-chip.is-on { background: #0a0a0a; border-color: #0a0a0a; color: #fff; box-shadow: inset 0 -2px 0 var(--lx-acc); }
+  .apex-chip--all { background: #0a0a0a; color: #fff; border-color: #0a0a0a; }
+  .apex-chip--all svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+  .apex-chip--clear { border-color: var(--lx-acc); color: var(--lx-acc2); }
+  .apex-chip-sw { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0,0,0,.2); }
+
+  .apex-ed-{{ sid }} {
+    order: var(--o-d); grid-column: span {% if section.settings.pc_cols >= 2 %}2{% else %}1{% endif %};
+    position: relative; min-height: 320px; border-radius: var(--rd); overflow: hidden; background: #0a0a0a; contain: layout paint;
+  }
+  .apex-ed-link { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: block; color: #fff; text-decoration: none; }
+  .apex-ed-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .8s cubic-bezier(.2,.7,.2,1); }
+  .apex-ed-{{ sid }}:hover .apex-ed-img { transform: scale(1.04); }
+  .apex-ed-shade { position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0) 25%, rgba(0,0,0,.55) 55%, rgba(0,0,0,.88) 100%), linear-gradient(135deg, rgba(110,63,163,.3), rgba(0,0,0,0) 55%); }
+  .apex-ed-body { position: absolute; left: 0; right: 0; bottom: 0; padding: clamp(18px, 2.4vw, 32px); display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+  .apex-ed-eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 10px; font-weight: 700; letter-spacing: .3em; text-transform: uppercase; color: #fff; }
+  .apex-ed-eyebrow::before { content: ''; width: 18px; height: 2px; background: var(--lx-acc); }
+  .apex-ed-h { font-family: 'Oswald', 'Arial Narrow', Impact, sans-serif; font-weight: 700; font-size: clamp(26px, 2.6vw, 44px); line-height: .95; text-transform: uppercase; max-width: 16ch; }
+  .apex-ed-cta { font-size: 11px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; padding-bottom: 4px; border-bottom: 2px solid var(--lx-acc); }
+  .apex-ed-{{ sid }}:hover .apex-ed-cta { border-color: #fff; }
+
+  .apex-fc-video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; opacity: 0; pointer-events: none; transition: opacity .4s ease; }
+  .apex-fc-video.is-playing { opacity: 1; }
+
+  @media (max-width: 768px) {
+    .apex-ed-{{ sid }} { order: var(--o-m); grid-column: 1 / -1; min-height: 0; aspect-ratio: {{ section.settings.ed_ratio_mobile }}; }
+    .apex-rtile { height: {{ section.settings.rail_tile_h_mobile }}px; }
+    .apex-rtile-img { width: {{ section.settings.rail_tile_h_mobile }}px; }
+    .apex-rtile-name { font-size: 11px; }
+    .apex-chip { height: 34px; padding: 0 14px; font-size: 11px; }
+    .apex-rail-{{ sid }}, .apex-chips-{{ sid }} { margin-left: -20px; margin-right: -20px; }
+    .apex-rail-{{ sid }} .apex-rail-track, .apex-chips-{{ sid }} .apex-chips-track { padding-left: 20px; padding-right: 20px; scroll-padding-left: 20px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .apex-ed-img, .apex-rtile-img img { transition: none; } }
+
+
+  /* ── CD fix 2026-10-09: collection-page floaters, mobile card chrome, sink tagged ── */
+  {%- if template.name == 'collection' and section.settings.hide_floaters -%}
+  aside[id^="apex-notch-"], .vqsc-tag, #ads-agent-host, #ApexAscend-{{ sid }}, .apex-qn { display: none !important; visibility: hidden !important; }
+  {%- endif -%}
+  @media (max-width: 768px) {
+    #ApexZenith-{{ sid }} .apex-counter { display: none !important; }
+    #ApexZenith-{{ sid }} .apex-dots { left: 8px; transform: none; bottom: 14px; }
+  }
+  .apex-ed-eyebrow::before { background: {{ section.settings.ed_mark_color | default: '#9966CC' }} !important; }
+  .apex-ed-sub { font-size: 14px; line-height: 1.45; max-width: 38ch; color: rgba(255,255,255,.86); }
+  @media (max-width: 768px) { .apex-ed-sub { display: none !important; } }
+  .apex-rtile-name { text-transform: none; letter-spacing: .06em; font-size: 13px; }
 </style>
 
 <div id="ApexZenith-{{ sid }}" data-apex-section="{{ sid }}">
@@ -824,6 +901,180 @@
   {%- if template.name == 'collection' -%}
 
     {%- comment %} ── COLLECTION PAGE — show only this collection's products ── {%- endcomment %}
+    {%- comment -%} ── LEXE upgrade 2026-10-09: rail + quick-filter chips (collection pages) ── {%- endcomment -%}
+    {%- liquid
+      assign lx_cur_handle = collection.handle
+      assign lx_ed_count = 0
+      for b in section.blocks
+        if b.type == 'editorial'
+          assign lx_ed_count = lx_ed_count | plus: 1
+        endif
+      endfor
+    -%}
+    {%- if section.settings.show_rail -%}
+      <nav class="apex-rail-{{ sid }}" aria-label="{{ section.settings.rail_label | escape }}">
+        <div class="apex-rail-track" data-lx-scroller>
+          {%- if section.settings.rail_auto_types -%}
+            {%- for f in collection.filters -%}
+              {%- if f.param_name == 'filter.p.product_type' -%}
+                {%- for v in f.values limit: section.settings.rail_type_limit -%}
+                  {%- if v.count > 0 or v.active -%}
+                    {%- assign t_img = nil -%}
+                    {%- for tp in collection.products limit: 50 -%}
+                      {%- if tp.type == v.value and tp.featured_image != blank -%}{%- assign t_img = tp.featured_image -%}{%- break -%}{%- endif -%}
+                    {%- endfor -%}
+                    <a class="apex-rtile{% if v.active %} is-current{% endif %}" href="{% if v.active %}{{ v.url_to_remove }}{% else %}{{ v.url_to_add }}{% endif %}" data-lx-sub="type:{{ v.value | escape }}"{% if v.active %} aria-current="true"{% endif %}>
+                      <span class="apex-rtile-img">{%- if t_img -%}<img src="{{ t_img | image_url: width: 120 }}" srcset="{{ t_img | image_url: width: 120 }} 1x, {{ t_img | image_url: width: 200 }} 2x" width="60" height="60" alt="" loading="lazy" decoding="async">{%- endif -%}</span>
+                      <span class="apex-rtile-name">{{ v.label }}</span>
+                    </a>
+                  {%- endif -%}
+                {%- endfor -%}
+              {%- endif -%}
+            {%- endfor -%}
+          {%- endif -%}
+          {%- for block in section.blocks -%}
+            {%- if block.type == 'rail_collection' and block.settings.collection != blank -%}
+              {%- liquid
+                assign rc = block.settings.collection
+                assign r_img = block.settings.image
+                if r_img == blank and block.settings.product != blank
+                  assign r_img = block.settings.product.featured_image
+                endif
+                if r_img == blank and block.settings.use_collection_image
+                  assign r_img = rc.featured_image
+                endif
+                assign r_name = block.settings.title | default: rc.title
+                assign r_cur = false
+                if rc.handle == lx_cur_handle
+                  assign r_cur = true
+                endif
+              -%}
+              <a class="apex-rtile{% if r_cur %} is-current{% endif %}" href="{{ rc.url }}" data-lx-sub="collection:{{ rc.handle }}" {{ block.shopify_attributes }}{% if r_cur %} aria-current="page"{% endif %}>
+                <span class="apex-rtile-img">{%- if r_img != blank -%}<img src="{{ r_img | image_url: width: 120 }}" srcset="{{ r_img | image_url: width: 120 }} 1x, {{ r_img | image_url: width: 200 }} 2x" width="60" height="60" alt="" loading="lazy" decoding="async">{%- endif -%}</span>
+                <span class="apex-rtile-name">{{ r_name | escape }}</span>
+              </a>
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      </nav>
+    {%- endif -%}
+
+    {%- if section.settings.show_chips -%}
+      {%- liquid
+        assign chip_keys = section.settings.chip_filters | downcase | split: ','
+        assign lx_any_active = false
+      -%}
+      <div class="apex-chips-{{ sid }}" role="toolbar" aria-label="Quick filters">
+        <div class="apex-chips-track" data-lx-scroller>
+          {%- if section.settings.chip_show_all -%}
+            <button type="button" class="apex-chip apex-chip--all" data-lx-chip="all-filters" data-lx-open-filters>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>{{ section.settings.chip_all_label | escape }}
+            </button>
+          {%- endif -%}
+          {%- for f in collection.filters -%}
+            {%- liquid
+              assign fl = f.label | downcase | strip
+              assign fp = f.param_name | downcase
+              assign want = false
+              for k in chip_keys
+                assign kk = k | strip
+                if kk != blank
+                  if fl == kk or fp contains kk
+                    assign want = true
+                  endif
+                endif
+              endfor
+            -%}
+            {%- if want -%}
+              {%- if f.type == 'price_range' -%}
+                {%- if section.settings.chip_price_ranges != blank -%}
+                  {%- liquid
+                    assign pbase = f.url_to_remove
+                    if pbase contains '?'
+                      assign pjoin = '&'
+                    else
+                      assign pjoin = '?'
+                    endif
+                    assign cur_min = f.min_value.value | default: -1
+                    assign cur_max = f.max_value.value | default: -1
+                    assign ranges = section.settings.chip_price_ranges | split: ','
+                  -%}
+                  {%- for r in ranges -%}
+                    {%- liquid
+                      assign rp = r | strip | split: '-'
+                      assign rmin = rp[0] | strip
+                      assign rmax = rp[1] | strip
+                      assign rurl = pbase | append: pjoin
+                      if rmin != blank and rmin != '0'
+                        assign rurl = rurl | append: f.min_value.param_name | append: '=' | append: rmin | append: '&'
+                      endif
+                      if rmax != blank
+                        assign rurl = rurl | append: f.max_value.param_name | append: '=' | append: rmax
+                      endif
+                      assign rmin_c = rmin | times: 100
+                      assign rmax_c = rmax | times: 100
+                      assign r_on = false
+                      if rmax != blank and cur_max == rmax_c
+                        assign r_on = true
+                      endif
+                      if rmax == blank and rmin != blank and cur_min == rmin_c and cur_max == -1
+                        assign r_on = true
+                      endif
+                      if r_on
+                        assign lx_any_active = true
+                        assign rurl = pbase
+                      endif
+                      if rmin == blank or rmin == '0'
+                        capture rlabel
+                          echo 'Under '
+                          echo rmax | times: 100 | money_without_trailing_zeros
+                        endcapture
+                      elsif rmax == blank
+                        capture rlabel
+                          echo rmin | times: 100 | money_without_trailing_zeros
+                          echo '+'
+                        endcapture
+                      else
+                        capture rlabel
+                          echo rmin | times: 100 | money_without_trailing_zeros
+                          echo '–'
+                          echo rmax | times: 100 | money_without_trailing_zeros
+                        endcapture
+                      endif
+                    -%}
+                    <a class="apex-chip{% if r_on %} is-on{% endif %}" href="{{ rurl }}" data-lx-chip="price:{{ r | strip }}"{% if r_on %} aria-pressed="true"{% endif %}>{{ rlabel | strip }}</a>
+                  {%- endfor -%}
+                {%- endif -%}
+              {%- else -%}
+                {%- for v in f.values limit: section.settings.chip_values_per_filter -%}
+                  {%- if v.count > 0 or v.active -%}
+                    {%- if v.active -%}{%- assign lx_any_active = true -%}{%- endif -%}
+                    {%- assign vlabel = v.label -%}
+                    {%- if fp contains 'availability' -%}{%- if v.value == '1' -%}{%- assign vlabel = section.settings.chip_instock_label -%}{%- else -%}{%- continue -%}{%- endif -%}{%- endif -%}
+                    <a class="apex-chip{% if v.active %} is-on{% endif %}" href="{% if v.active %}{{ v.url_to_remove }}{% else %}{{ v.url_to_add }}{% endif %}" data-lx-chip="{{ f.label | escape }}:{{ v.label | escape }}"{% if v.active %} aria-pressed="true"{% endif %}>
+                      {%- if f.presentation == 'swatch' and v.swatch.color -%}<span class="apex-chip-sw" style="background: {{ v.swatch.color }}"></span>{%- endif -%}
+                      {{ vlabel | escape }}
+                    </a>
+                  {%- endif -%}
+                {%- endfor -%}
+              {%- endif -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {%- if section.settings.chip_sorts != blank -%}
+            {%- assign sorts = section.settings.chip_sorts | split: ',' -%}
+            {%- for so in sorts -%}
+              {%- assign sp = so | split: ':' -%}
+              {%- assign sv = sp[0] | strip -%}
+              {%- assign sl = sp[1] | default: sv | strip -%}
+              <a class="apex-chip apex-chip--sort{% if collection.sort_by == sv %} is-on{% endif %}" href="{{ collection.url }}?sort_by={{ sv }}" data-lx-chip="sort:{{ sv }}" data-lx-sort="{{ sv }}"{% if collection.sort_by == sv %} aria-pressed="true"{% endif %}>{{ sl | escape }}</a>
+            {%- endfor -%}
+          {%- endif -%}
+          {%- if lx_any_active -%}
+            <a class="apex-chip apex-chip--clear" href="{{ collection.url }}{% if collection.sort_by != collection.default_sort_by %}?sort_by={{ collection.sort_by }}{% endif %}" data-lx-chip="clear">{{ section.settings.chip_clear_label | escape }} ✕</a>
+          {%- endif -%}
+        </div>
+      </div>
+    {%- endif -%}
     {%- paginate collection.products by section.settings.page_limit -%}
       <div class="apex-grid-{{ sid }}" id="ApexGrid-{{ sid }}">
         {%- for product in collection.products -%}
@@ -893,9 +1144,58 @@
           endfor
         -%}
 
-        <div class="apex-card" data-pid="{{ product.id }}" data-handle="{{ product.handle }}" data-available="{% if product.available %}true{% else %}false{% endif %}" data-type="{{ product.type | escape }}" data-vendor="{{ product.vendor | escape }}" data-price="{{ product.price }}" data-sale="{% if on_sale %}true{% else %}false{% endif %}">
+        {%- if forloop.first -%}{%- assign lx_vis = 0 -%}{%- endif -%}
+        {%- assign lx_gi = paginate.current_offset | plus: forloop.index0 -%}
+        {%- assign lx_sunk = false -%}
+        {%- if section.settings.sink_tagged and product.tags contains 'needs-clean-image' -%}{%- assign lx_sunk = true -%}{%- endif -%}
+        {%- if lx_sunk -%}
+          {%- assign lx_ord = lx_gi | times: 2 | plus: 1000000 -%}
+        {%- else -%}
+          {%- assign lx_ord = paginate.current_offset | plus: lx_vis | times: 2 -%}
+          {%- assign lx_vis = lx_vis | plus: 1 -%}
+        {%- endif -%}
+        <div class="apex-card" style="order: {{ lx_ord }}" data-lx-gi="{{ lx_gi }}" data-pid="{{ product.id }}" data-handle="{{ product.handle }}" data-available="{% if product.available %}true{% else %}false{% endif %}" data-type="{{ product.type | escape }}" data-vendor="{{ product.vendor | escape }}" data-price="{{ product.price }}" data-sale="{% if on_sale %}true{% else %}false{% endif %}">
           <div class="apex-media">
             <a href="{{ product.url }}" class="apex-link" aria-label="{{ product.title | escape }}"></a>
+            {%- if lx_gi == 0 and section.settings.fc_video_enable -%}
+              {%- liquid
+                assign fc_src = ''
+                assign fc_vid = section.settings.fc_video
+                if fc_vid == blank and section.settings.fc_use_product_video
+                  for m in product.media
+                    if m.media_type == 'video'
+                      assign fc_vid = m
+                      break
+                    endif
+                  endfor
+                endif
+                if fc_vid != blank
+                  assign best_w = 0
+                  for srcx in fc_vid.sources
+                    if srcx.mime_type == 'video/mp4' and srcx.width <= 1080 and srcx.width >= best_w
+                      assign best_w = srcx.width
+                      assign fc_src = srcx.url
+                    endif
+                  endfor
+                  if fc_src == ''
+                    for srcx in fc_vid.sources
+                      if srcx.mime_type == 'video/mp4'
+                        assign fc_src = srcx.url
+                        break
+                      endif
+                    endfor
+                  endif
+                endif
+                if fc_src == '' and section.settings.fc_video_url != blank
+                  assign fc_src = section.settings.fc_video_url
+                endif
+              -%}
+              {%- if fc_src != '' -%}
+                <video class="apex-fc-video" muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1"
+                  data-lx-src="{{ fc_src }}" data-handle="{{ product.handle }}"
+                  {% if product.featured_image %}poster="{{ product.featured_image | image_url: width: 600 }}"{% endif %}></video>
+              {%- endif -%}
+            {%- endif -%}
 
             {%- comment %} Badges (max 2 visible — priority order) {%- endcomment -%}
             <div class="apex-badges" aria-hidden="true">
@@ -1054,6 +1354,91 @@
             {%- endfor -%}
           </div>
         </div>
+        {%- comment -%} ── LEXE editorial cards (position-based, one DOM copy, CSS order per breakpoint) ── {%- endcomment -%}
+        {%- liquid
+          assign lx_ed_ok = false
+          if section.settings.show_editorial and lx_ed_count > 0
+            if lx_sunk == false or forloop.last
+              assign lx_ed_ok = true
+            endif
+          endif
+        -%}
+        {%- if lx_ed_ok -%}
+          {%- assign lx_gi1 = paginate.current_offset | plus: lx_vis -%}
+          {%- assign lx_k = 0 -%}
+          {%- for block in section.blocks -%}
+            {%- if block.type == 'editorial' -%}
+              {%- liquid
+                assign ok_col = true
+                if block.settings.only_collection != blank and block.settings.only_collection.handle != collection.handle
+                  assign ok_col = false
+                endif
+              -%}
+              {%- if ok_col -%}
+                {%- liquid
+                  assign lx_k0 = lx_k
+                  assign lx_k = lx_k | plus: 1
+                  assign d_row = lx_k0 | times: section.settings.ed_every_rows_desktop | plus: section.settings.ed_row_desktop
+                  assign m_row = lx_k0 | times: section.settings.ed_every_rows_mobile | plus: section.settings.ed_row_mobile
+                  assign d_after = d_row | times: section.settings.pc_cols
+                  assign m_after = m_row | times: section.settings.mb_cols
+                  assign at_here = false
+                  if lx_gi1 == d_after and lx_sunk == false
+                    assign at_here = true
+                  endif
+                  comment
+                    Short result sets (filters): if the slot is past the end, place the card after the last product on page 1.
+                  endcomment
+                  if forloop.parentloop.last and paginate.current_page == 1 and lx_gi1 < d_after and lx_k0 == 0
+                    assign at_here = true
+                  endif
+                -%}
+                {%- if at_here -%}
+                  {%- liquid
+                    assign e_img = block.settings.image
+                    if e_img == blank and block.settings.product != blank
+                      assign e_img = block.settings.product.featured_image
+                    endif
+                    assign e_url = block.settings.cta_link
+                    if e_url == blank and block.settings.product != blank
+                      assign e_url = block.settings.product.url
+                    endif
+                    if e_url == blank
+                      assign e_url = collection.url
+                    endif
+                    assign o_d = d_after | times: 2 | minus: 1
+                    assign o_m = m_after | times: 2 | minus: 1
+                    if forloop.parentloop.last and lx_gi1 < d_after
+                      assign o_d = lx_gi1 | times: 2 | plus: 1
+                    endif
+                    if forloop.parentloop.last and lx_gi1 < m_after
+                      assign o_m = lx_gi1 | times: 2 | plus: 1
+                    endif
+                  -%}
+                  <div class="apex-ed apex-ed-{{ sid }}" data-lx-ed="{{ block.id }}" data-lx-ed-title="{{ block.settings.headline | escape }}" style="--o-d: {{ o_d }}; --o-m: {{ o_m }};" {{ block.shopify_attributes }}>
+                    <a class="apex-ed-link" href="{{ e_url }}" data-lx-ed-click>
+                      {%- if e_img != blank -%}
+                        {%- assign e_w = e_img.width | at_most: 1400 -%}
+                        <img class="apex-ed-img" src="{{ e_img | image_url: width: e_w }}"
+                          srcset="{% if e_img.width >= 600 %}{{ e_img | image_url: width: 600 }} 600w, {% endif %}{% if e_img.width >= 900 %}{{ e_img | image_url: width: 900 }} 900w, {% endif %}{{ e_img | image_url: width: e_w }} {{ e_w }}w"
+                          sizes="(max-width: 768px) 100vw, {{ 200 | divided_by: section.settings.pc_cols }}vw"
+                          width="{{ e_img.width }}" height="{{ e_img.height }}" alt="{{ e_img.alt | default: block.settings.headline | escape }}" loading="lazy" decoding="async"
+                          style="object-position: {{ block.settings.focal | default: 'center' }}">
+                      {%- endif -%}
+                      <span class="apex-ed-shade" aria-hidden="true"></span>
+                      <span class="apex-ed-body">
+                        {%- if block.settings.eyebrow != blank -%}<span class="apex-ed-eyebrow">{{ block.settings.eyebrow | escape }}</span>{%- endif -%}
+                        {%- if block.settings.headline != blank -%}<span class="apex-ed-h">{{ block.settings.headline | escape }}</span>{%- endif -%}
+                        {%- if block.settings.sub != blank -%}<span class="apex-ed-sub">{{ block.settings.sub | escape }}</span>{%- endif -%}
+                        {%- if block.settings.cta_label != blank -%}<span class="apex-ed-cta">{{ block.settings.cta_label | escape }} <span aria-hidden="true">→</span></span>{%- endif -%}
+                      </span>
+                    </a>
+                  </div>
+                {%- endif -%}
+              {%- endif -%}
+            {%- endif -%}
+          {%- endfor -%}
+        {%- endif -%}
         {%- endfor -%}
       </div>
 
@@ -1349,7 +1734,7 @@
             <p>Sort</p>
             <select name="sort_by" aria-label="Sort">
               {%- for option in collection.sort_options -%}
-                <option value="{{ option.value }}" {% if option.value == collection.sort_by %}selected{% endif %}>{{ option.name }}</option>
+                <option value="{{ option.value }}" {% if option.value == collection.sort_by %}selected{% endif %}>{% if option.value == 'price-ascending' and section.settings.sort_low_label != blank %}{{ section.settings.sort_low_label }}{% else %}{{ option.name }}{% endif %}</option>
               {%- endfor -%}
             </select>
           </div>
@@ -2197,58 +2582,686 @@
 })();
 </script>
 
+<script>
+/* LEXE upgrade 2026-10-09: analytics hooks, chips, editorial views, first-card video. No third-party scripts. */
+(function () {
+  'use strict';
+  var ROOT = document.getElementById('ApexZenith-{{ sid }}');
+  if (!ROOT) return;
+  var COL = {{ collection.handle | default: '' | json }};
+  function track(name, detail) {
+    detail = detail || {};
+    detail.collection = COL;
+    detail.section_id = '{{ sid }}';
+    try { window.dataLayer = window.dataLayer || []; var o = { event: name }; for (var k in detail) o[k] = detail[k]; window.dataLayer.push(o); } catch (e) {}
+    try { if (window.Shopify && window.Shopify.analytics && typeof window.Shopify.analytics.publish === 'function') window.Shopify.analytics.publish(name, detail); } catch (e) {}
+  }
+  window.lexeTrack = window.lexeTrack || track;
+
+  ROOT.addEventListener('click', function (e) {
+    var chip = e.target.closest('[data-lx-chip]');
+    if (chip && ROOT.contains(chip)) {
+      track('filter_chip_click', { chip: chip.getAttribute('data-lx-chip'), was_active: chip.classList.contains('is-on') });
+      if (chip.hasAttribute('data-lx-open-filters')) {
+        e.preventDefault();
+        var fab = document.getElementById('ApexFilterFab-{{ sid }}');
+        if (fab) fab.click();
+      } else if (chip.hasAttribute('data-lx-sort')) {
+        e.preventDefault();
+        var u = new URL(window.location.href);
+        if (chip.classList.contains('is-on')) u.searchParams.delete('sort_by'); else u.searchParams.set('sort_by', chip.getAttribute('data-lx-sort'));
+        u.searchParams.delete('page');
+        window.location.href = u.toString();
+      }
+      return;
+    }
+    var sub = e.target.closest('[data-lx-sub]');
+    if (sub && ROOT.contains(sub)) { track('subcollection_click', { target: sub.getAttribute('data-lx-sub'), href: sub.getAttribute('href') }); return; }
+    var ed = e.target.closest('[data-lx-ed-click]');
+    if (ed) { var c = ed.closest('[data-lx-ed]'); track('editorial_card_click', { id: c && c.getAttribute('data-lx-ed'), title: c && c.getAttribute('data-lx-ed-title') }); }
+  });
+
+  /* editorial_card_view: fires once per card when 50% visible */
+  if ('IntersectionObserver' in window) {
+    var eio = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        eio.unobserve(en.target);
+        var depth = Math.round((window.scrollY + window.innerHeight) / Math.max(1, document.documentElement.scrollHeight) * 100);
+        track('editorial_card_view', { id: en.target.getAttribute('data-lx-ed'), title: en.target.getAttribute('data-lx-ed-title'), scroll_depth_pct: depth });
+      });
+    }, { threshold: 0.5 });
+    var observeEds = function () {
+      ROOT.querySelectorAll('[data-lx-ed]:not([data-lx-obs])').forEach(function (el) { el.setAttribute('data-lx-obs', ''); eio.observe(el); });
+    };
+    observeEds();
+    document.addEventListener('apex:appended', observeEds);
+  }
+
+  /* First-card video: poster first; starts only after window load + in view; never on Save-Data, 2g/3g or reduced motion */
+  var v = ROOT.querySelector('video[data-lx-src]');
+  if (v) {
+    var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection || {};
+    var slow = !!conn.saveData || /(^|-)(2g|3g)$/.test(conn.effectiveType || '');
+    var rm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!slow && !rm && 'IntersectionObserver' in window) {
+      var start = function () {
+        var played = false;
+        new IntersectionObserver(function (entries) {
+          entries.forEach(function (en) {
+            if (en.isIntersecting) {
+              if (!v.getAttribute('src')) { v.setAttribute('src', v.getAttribute('data-lx-src')); }
+              var p = v.play();
+              if (p && p.then) p.then(function () {
+                v.classList.add('is-playing');
+                if (!played) { played = true; track('first_card_video_play', { handle: v.getAttribute('data-handle') }); }
+              }).catch(function () {});
+            } else if (!v.paused) { v.pause(); }
+          });
+        }, { threshold: 0.35 }).observe(v);
+      };
+      if (document.readyState === 'complete') start(); else window.addEventListener('load', start, { once: true });
+    }
+  }
+})();
+</script>
+
 {% schema %}
 {
   "name": "Apex Zenith Master V15",
-  "max_blocks": 12,
+  "max_blocks": 30,
   "settings": [
-    { "type": "header", "content": "Layout" },
-    { "type": "range", "id": "page_limit", "label": "Products per page", "min": 4, "max": 48, "step": 4, "default": 12 },
-    { "type": "range", "id": "pc_cols",    "label": "Desktop columns",   "min": 2, "max": 6, "step": 1, "default": 4 },
-    { "type": "range", "id": "mb_cols",    "label": "Mobile columns",    "min": 1, "max": 3, "step": 1, "default": 2 },
-    { "type": "range", "id": "max_w",      "label": "Max width",         "min": 800, "max": 1600, "step": 50, "default": 1300 },
-    { "type": "range", "id": "gap",        "label": "Card gap",          "min": 6, "max": 50, "step": 2, "default": 16 },
-    { "type": "range", "id": "p_v",        "label": "Vertical padding",  "min": 0, "max": 100, "step": 5, "default": 40 },
-    { "type": "range", "id": "rd",         "label": "Image rounding",    "min": 0, "max": 40, "step": 2, "default": 4 },
-    { "type": "select", "id": "ratio", "label": "Image ratio",
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "page_limit",
+      "label": "Products per page",
+      "min": 4,
+      "max": 48,
+      "step": 4,
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "pc_cols",
+      "label": "Desktop columns",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "mb_cols",
+      "label": "Mobile columns",
+      "min": 1,
+      "max": 3,
+      "step": 1,
+      "default": 2
+    },
+    {
+      "type": "range",
+      "id": "max_w",
+      "label": "Max width",
+      "min": 800,
+      "max": 1600,
+      "step": 50,
+      "default": 1300
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "Card gap",
+      "min": 6,
+      "max": 50,
+      "step": 2,
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "p_v",
+      "label": "Vertical padding",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "rd",
+      "label": "Image rounding",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "default": 4
+    },
+    {
+      "type": "select",
+      "id": "ratio",
+      "label": "Image ratio",
       "options": [
-        { "value": "1/1", "label": "Square" },
-        { "value": "3/4", "label": "Portrait (3:4)" },
-        { "value": "4/5", "label": "Portrait (4:5)" },
-        { "value": "4/3", "label": "Landscape" }
-      ], "default": "1/1" },
-
-    { "type": "header", "content": "Colors" },
-    { "type": "color", "id": "ac",         "label": "Accent",     "default": "#111111" },
-    { "type": "color", "id": "sale_color", "label": "Sale color", "default": "#c8102e" },
-
-    { "type": "header", "content": "Conversion Features" },
-    { "type": "checkbox", "id": "show_quick_add", "label": "Show quick-add (+) button", "default": true },
-    { "type": "checkbox", "id": "show_wishlist",  "label": "Show wishlist heart",       "default": true },
-    { "type": "checkbox", "id": "show_savings",   "label": "Show 'Save $X' on sale items", "default": true },
-    { "type": "range",    "id": "low_stock_threshold", "label": "Low stock threshold", "min": 0, "max": 20, "step": 1, "default": 5,
-      "info": "Show 'Only X left' badge when inventory ≤ this. 0 = disabled." },
-    { "type": "range",    "id": "new_hours", "label": "Hours a product counts as 'New'", "min": 0, "max": 200, "step": 2, "unit": "h", "default": 24,
-      "info": "0 = disabled. 24 = last day, 168 = last week. Compares against product creation date." },
-    { "type": "range",    "id": "max_card_images", "label": "Max images per card", "min": 1, "max": 8, "step": 1, "default": 4,
-      "info": "How many product images render per card with switcher dots. Higher = more options to swipe through but heavier page weight." },
-    { "type": "range",    "id": "max_swatches", "label": "Max color swatches shown", "min": 2, "max": 8, "step": 1, "default": 4 }
+        {
+          "value": "1/1",
+          "label": "Square"
+        },
+        {
+          "value": "3/4",
+          "label": "Portrait (3:4)"
+        },
+        {
+          "value": "4/5",
+          "label": "Portrait (4:5)"
+        },
+        {
+          "value": "4/3",
+          "label": "Landscape"
+        }
+      ],
+      "default": "1/1"
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "ac",
+      "label": "Accent",
+      "default": "#111111"
+    },
+    {
+      "type": "color",
+      "id": "sale_color",
+      "label": "Sale color",
+      "default": "#c8102e"
+    },
+    {
+      "type": "header",
+      "content": "Conversion Features"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_quick_add",
+      "label": "Show quick-add (+) button",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_wishlist",
+      "label": "Show wishlist heart",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_savings",
+      "label": "Show 'Save $X' on sale items",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "low_stock_threshold",
+      "label": "Low stock threshold",
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "default": 5,
+      "info": "Show 'Only X left' badge when inventory ≤ this. 0 = disabled."
+    },
+    {
+      "type": "range",
+      "id": "new_hours",
+      "label": "Hours a product counts as 'New'",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "h",
+      "default": 24,
+      "info": "0 = disabled. 24 = last day, 168 = last week. Compares against product creation date."
+    },
+    {
+      "type": "range",
+      "id": "max_card_images",
+      "label": "Max images per card",
+      "min": 1,
+      "max": 8,
+      "step": 1,
+      "default": 4,
+      "info": "How many product images render per card with switcher dots. Higher = more options to swipe through but heavier page weight."
+    },
+    {
+      "type": "range",
+      "id": "max_swatches",
+      "label": "Max color swatches shown",
+      "min": 2,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "header",
+      "content": "LEXE · Category rail",
+      "info": "Shown above the grid on collection pages. Add 'Rail collection' blocks. Product-type tiles appear automatically once the Product type filter is enabled in Search & Discovery."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_rail",
+      "label": "Show category rail",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "rail_label",
+      "label": "Rail accessible label",
+      "default": "Shop by category"
+    },
+    {
+      "type": "checkbox",
+      "id": "rail_auto_types",
+      "label": "Auto tiles from Product type filter",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "rail_type_limit",
+      "label": "Max product-type tiles",
+      "min": 2,
+      "max": 12,
+      "step": 1,
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "rail_tile_h",
+      "label": "Tile height — desktop",
+      "min": 40,
+      "max": 96,
+      "step": 4,
+      "unit": "px",
+      "default": 56
+    },
+    {
+      "type": "range",
+      "id": "rail_tile_h_mobile",
+      "label": "Tile height — mobile",
+      "min": 36,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "rail_radius",
+      "label": "Tile corner radius",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "rail_gap",
+      "label": "Space below rail / chips",
+      "min": 4,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "header",
+      "content": "LEXE · Quick filter chips",
+      "info": "Built from Shopify storefront filters (Search & Discovery). The full filter drawer stays available."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_chips",
+      "label": "Show filter chips",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "chip_filters",
+      "label": "Filters shown as chips",
+      "default": "availability, product type, color, colour, size, price",
+      "info": "Comma-separated filter names. Only filters enabled in Search & Discovery appear."
+    },
+    {
+      "type": "range",
+      "id": "chip_values_per_filter",
+      "label": "Max chips per filter",
+      "min": 2,
+      "max": 12,
+      "step": 1,
+      "default": 6
+    },
+    {
+      "type": "text",
+      "id": "chip_price_ranges",
+      "label": "Price range chips",
+      "default": "0-25, 25-50, 50-",
+      "info": "Whole currency units, e.g. 0-25 (under), 25-50, 50- (and up). Blank = none."
+    },
+    {
+      "type": "text",
+      "id": "chip_sorts",
+      "label": "Sort chips",
+      "default": "created-descending:New in, price-ascending:Price low–high",
+      "info": "value:label pairs. Values: best-selling, created-descending, price-ascending, price-descending."
+    },
+    {
+      "type": "text",
+      "id": "chip_instock_label",
+      "label": "In-stock chip label",
+      "default": "In stock"
+    },
+    {
+      "type": "checkbox",
+      "id": "chip_show_all",
+      "label": "Show 'All filters' chip (opens drawer)",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "chip_all_label",
+      "label": "'All filters' label",
+      "default": "All filters"
+    },
+    {
+      "type": "text",
+      "id": "chip_clear_label",
+      "label": "Clear label",
+      "default": "Clear"
+    },
+    {
+      "type": "header",
+      "content": "LEXE · Editorial cards",
+      "info": "Add 'Editorial card' blocks. Card 1 sits after the desktop/mobile row below; more cards repeat every N rows."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_editorial",
+      "label": "Show editorial cards",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "ed_row_desktop",
+      "label": "First card after row — desktop",
+      "min": 1,
+      "max": 8,
+      "step": 1,
+      "default": 2
+    },
+    {
+      "type": "range",
+      "id": "ed_row_mobile",
+      "label": "First card after row — mobile",
+      "min": 1,
+      "max": 12,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "ed_every_rows_desktop",
+      "label": "Repeat every N rows — desktop",
+      "min": 2,
+      "max": 12,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "ed_every_rows_mobile",
+      "label": "Repeat every N rows — mobile",
+      "min": 2,
+      "max": 20,
+      "step": 1,
+      "default": 8
+    },
+    {
+      "type": "select",
+      "id": "ed_ratio_mobile",
+      "label": "Mobile card shape",
+      "default": "4/5",
+      "options": [
+        {
+          "value": "1/1",
+          "label": "Square"
+        },
+        {
+          "value": "4/5",
+          "label": "Portrait 4:5"
+        },
+        {
+          "value": "3/4",
+          "label": "Portrait 3:4"
+        }
+      ]
+    },
+    {
+      "type": "color",
+      "id": "lx_accent",
+      "label": "Accent",
+      "default": "#9B6BD1"
+    },
+    {
+      "type": "color",
+      "id": "lx_accent_2",
+      "label": "Accent deep",
+      "default": "#6E3FA3"
+    },
+    {
+      "type": "header",
+      "content": "LEXE · First card video",
+      "info": "Muted, looping, plays inline after page load when in view. Poster = product image. Skipped on Save-Data, 2G/3G and reduced motion. Use real footage under 6 s."
+    },
+    {
+      "type": "checkbox",
+      "id": "fc_video_enable",
+      "label": "Enable first-card video",
+      "default": true
+    },
+    {
+      "type": "video",
+      "id": "fc_video",
+      "label": "Video (Shopify-hosted)"
+    },
+    {
+      "type": "text",
+      "id": "fc_video_url",
+      "label": "Or MP4 URL (Shopify CDN)"
+    },
+    {
+      "type": "checkbox",
+      "id": "fc_use_product_video",
+      "label": "Else use the first product's own video",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "LEXE · Collection page clean-up"
+    },
+    {
+      "type": "checkbox",
+      "id": "hide_floaters",
+      "label": "Collection pages: hide floating extras",
+      "default": true,
+      "info": "Hides Pull here, notch heart/chevron, assistant button, back-to-top and header quick-nav. Only the Filter pill stays. Other page types unchanged."
+    },
+    {
+      "type": "checkbox",
+      "id": "sink_tagged",
+      "label": "Move products tagged 'needs-clean-image' to the end",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "sort_low_label",
+      "label": "Sort menu label for price low→high",
+      "default": "Sort: low to high"
+    },
+    {
+      "type": "color",
+      "id": "ed_mark_color",
+      "label": "Editorial eyebrow mark",
+      "default": "#9966CC"
+    }
   ],
   "blocks": [
-    { "type": "@app" },
-    { "type": "title",    "name": "Title",       "limit": 1 },
-    { "type": "rating",   "name": "Rating (Judge.me)", "limit": 1 },
-    { "type": "price",    "name": "Price",       "limit": 1 },
-    { "type": "swatches", "name": "Color swatches", "limit": 1 }
+    {
+      "type": "@app"
+    },
+    {
+      "type": "title",
+      "name": "Title",
+      "limit": 1
+    },
+    {
+      "type": "rating",
+      "name": "Rating (Judge.me)",
+      "limit": 1
+    },
+    {
+      "type": "price",
+      "name": "Price",
+      "limit": 1
+    },
+    {
+      "type": "swatches",
+      "name": "Color swatches",
+      "limit": 1
+    },
+    {
+      "type": "rail_collection",
+      "name": "Rail collection",
+      "settings": [
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "Collection"
+        },
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Image from product",
+          "info": "Recommended: a clean product shot."
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Custom image"
+        },
+        {
+          "type": "checkbox",
+          "id": "use_collection_image",
+          "label": "Fall back to collection image",
+          "default": false,
+          "info": "Leave off if the collection image has text on it."
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Custom title"
+        }
+      ]
+    },
+    {
+      "type": "editorial",
+      "name": "Editorial card",
+      "settings": [
+        {
+          "type": "collection",
+          "id": "only_collection",
+          "label": "Only on this collection",
+          "info": "Blank = every collection using this template."
+        },
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Product (image + default link)"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Custom image",
+          "info": "Real product photography only."
+        },
+        {
+          "type": "select",
+          "id": "focal",
+          "label": "Image focus",
+          "default": "center",
+          "options": [
+            {
+              "value": "center",
+              "label": "Center"
+            },
+            {
+              "value": "top",
+              "label": "Top"
+            },
+            {
+              "value": "bottom",
+              "label": "Bottom"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "eyebrow",
+          "label": "Eyebrow",
+          "default": "LEXE editorial"
+        },
+        {
+          "type": "text",
+          "id": "headline",
+          "label": "Headline",
+          "default": "Headline placeholder"
+        },
+        {
+          "type": "textarea",
+          "id": "sub",
+          "label": "Sub line (desktop only)"
+        },
+        {
+          "type": "text",
+          "id": "cta_label",
+          "label": "Link label",
+          "default": "Explore the drop"
+        },
+        {
+          "type": "url",
+          "id": "cta_link",
+          "label": "Link",
+          "info": "Blank = the product page."
+        }
+      ]
+    }
   ],
   "presets": [
-    { "name": "Apex Zenith V15",
+    {
+      "name": "Apex Zenith V15",
       "blocks": [
-        { "type": "title" },
-        { "type": "rating" },
-        { "type": "price" }
+        {
+          "type": "title"
+        },
+        {
+          "type": "rating"
+        },
+        {
+          "type": "price"
+        }
       ]
     }
   ]
 }
 {% endschema %}
+
+
+

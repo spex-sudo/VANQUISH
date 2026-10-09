@@ -71,6 +71,9 @@
   if source_mode != 'blocks' and active_col != nil
     assign card_count = card_count | plus: active_col.products.size
   endif
+  if section.settings.compact_mode and section.settings.compact_hide_carousel
+    assign card_count = 0
+  endif
 -%}
 
 {%- liquid
@@ -559,6 +562,24 @@
     contain: paint;
   }
   #lxh-{{ sid }} *, #lxh-{{ sid }} *::before, #lxh-{{ sid }} *::after { box-sizing: border-box; }
+  /* ── Compact mode (collection pages with the Apex grid) ── */
+  #lxh-{{ sid }}.is-compact { min-height: 0; flex-direction: row; align-items: flex-end; gap: 24px;
+    padding: {{ section.settings.compact_pad_top }}px clamp(20px, 4vw, 64px) 16px {{ section.settings.compact_pad_left }}px; }
+  #lxh-{{ sid }}.is-compact .lxh-meta, #lxh-{{ sid }}.is-compact .lxh-media, #lxh-{{ sid }}.is-compact .lxh-sub,
+  #lxh-{{ sid }}.is-compact .lxh-ctas, #lxh-{{ sid }}.is-compact .lxh-side, #lxh-{{ sid }}.is-compact .lxh-eyebrow,
+  #lxh-{{ sid }}.is-compact .lxh-arrow { display: none !important; }
+  #lxh-{{ sid }}.is-compact .lxh-body { flex: 1 1 auto; min-width: 0; }
+  #lxh-{{ sid }}.is-compact .lxh-content { width: auto; max-width: none; padding: 0; gap: 0; }
+  #lxh-{{ sid }}.is-compact .lxh-h { font-size: {{ section.settings.compact_headline_size }}px; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  #lxh-{{ sid }}.is-compact .lxh-h .w { display: inline !important; }
+  #lxh-{{ sid }}.is-compact .lxh-foot { padding: 0; flex: 0 0 auto; }
+  #lxh-{{ sid }}.is-compact .lxh-wm { font-size: clamp(120px, 16vw, 260px); }
+  @media (max-width: 768px) {
+    #lxh-{{ sid }}.is-compact { padding: {{ section.settings.compact_pad_top_mobile }}px 16px 12px; gap: 12px; }
+    #lxh-{{ sid }}.is-compact .lxh-h { font-size: {{ section.settings.compact_headline_size_mobile }}px; white-space: normal; overflow: visible; text-overflow: clip; line-height: .95; }
+    #lxh-{{ sid }}.is-compact .lxh-count small { font-size: 9px; }
+    #lxh-{{ sid }}.is-compact .lxh-view { font-size: 10px; }
+  }
 
   /* Backdrop: photo -> greyscale -> accent duotone -> shade for contrast */
   #lxh-{{ sid }} .lxh-bd { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: -3; }
@@ -735,7 +756,7 @@
   {%- if hero_style == 'editorial' -%}
   <!-- ══ EDITORIAL HERO (LEXE 2026-10-09) ═════════════════════ -->
   <link rel="preload" as="font" href="{{ section.settings.headline_font | font_url }}" type="font/woff2" crossorigin>
-  <div id="lxh-{{ sid }}" data-lxh class="lxh{% if section.settings.stack_words %} is-stacked{% endif %}{% if section.settings.diamond_style == 'fill' %} is-fill{% endif %}">
+  <div id="lxh-{{ sid }}" data-lxh class="lxh{% if section.settings.compact_mode %} is-compact{% endif %}{% if section.settings.stack_words %} is-stacked{% endif %}{% if section.settings.diamond_style == 'fill' %} is-fill{% endif %}">
 
     {%- if ed_bd != blank -%}
       <div class="lxh-bd" aria-hidden="true">
@@ -1408,6 +1429,74 @@
       "step": 2,
       "unit": "px",
       "default": 140
+    },
+    {
+      "type": "header",
+      "content": "━━ Compact Mode",
+      "info": "Short title band for collection pages so products show above the fold. Turn off for the full poster hero."
+    },
+    {
+      "type": "checkbox",
+      "id": "compact_mode",
+      "label": "Compact mode",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "compact_hide_carousel",
+      "label": "Hide card carousel in compact mode",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "compact_pad_top",
+      "label": "Compact top padding — desktop",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "default": 96
+    },
+    {
+      "type": "range",
+      "id": "compact_pad_left",
+      "label": "Compact left padding — desktop",
+      "min": 0,
+      "max": 300,
+      "step": 4,
+      "unit": "px",
+      "default": 180,
+      "info": "Clears the fixed Back Home pill."
+    },
+    {
+      "type": "range",
+      "id": "compact_pad_top_mobile",
+      "label": "Compact top padding — mobile",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "default": 140
+    },
+    {
+      "type": "range",
+      "id": "compact_headline_size",
+      "label": "Compact headline size — desktop",
+      "min": 24,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "default": 46
+    },
+    {
+      "type": "range",
+      "id": "compact_headline_size_mobile",
+      "label": "Compact headline size — mobile",
+      "min": 20,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "default": 32
     },
     {
       "type": "header",
@@ -2178,5 +2267,8 @@
   ]
 }
 {% endschema %}
+
+
+
 
 
