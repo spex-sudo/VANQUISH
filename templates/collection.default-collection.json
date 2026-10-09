@@ -117,17 +117,17 @@
         "hero_height": 420,
         "hero_bg": "#0a0a0a",
         "hero_layout": "grid",
-        "split_pct": 60,
+        "split_pct": 50,
         "promo_bg": "#0a0a0a",
         "promo_bg_image": "shopify://shop_images/IMG_0729.png",
         "promo_fg": "#ffffff",
-        "promo_eyebrow": "Jersey Meets Streetwear",
+        "promo_eyebrow": "New collection",
         "promo_headline": "Up To 50% Off",
         "headline_size": 68,
         "promo_sub": "Selected Styles",
         "btn_bg": "#6a02fb",
         "btn_fg": "#0a0a0a",
-        "hero_cta_label": "Shop Now",
+        "hero_cta_label": "Shop now",
         "card_bg": "#f5f5f5",
         "card_radius": 18,
         "cards_visible": 5,
@@ -136,7 +136,58 @@
         "autoplay_delay": 4,
         "show_dots": true,
         "dot_color": "#0a0a0a",
-        "show_card_label": true
+        "show_card_label": true,
+        "hero_style": "editorial",
+        "ed_height": 680,
+        "pad_top": 110,
+        "pad_top_mobile": 96,
+        "headline_font": "oswald_n7",
+        "ed_headline_size": 120,
+        "headline_source": "title",
+        "headline_line2": "Collection",
+        "stack_words": true,
+        "accent_mode": "last",
+        "accent_text": "",
+        "col_number": "01",
+        "subline": "",
+        "btn1_link": "",
+        "btn2_label": "Explore collection",
+        "btn2_link": "",
+        "button_radius": 0,
+        "meta_left": "Collection",
+        "meta_center": "LEXE by Devici Studios",
+        "side_copy": "Jackets, eyewear, footwear and more.\nNew drops land here first.",
+        "count_label": "pieces",
+        "view_all_label": "View all",
+        "accent_color": "#9B6BD1",
+        "accent_color_2": "#6E3FA3",
+        "accent_text_color": "#0a0a0a",
+        "backdrop_source": "collection",
+        "duotone_strength": 70,
+        "shade_strength": 85,
+        "wordmark_text": "LEXE",
+        "wordmark_opacity": 100,
+        "show_meta": true,
+        "show_eyebrow": true,
+        "show_headline": true,
+        "show_number": true,
+        "show_subline": true,
+        "show_btn1": true,
+        "show_btn2": true,
+        "show_side_copy": true,
+        "show_count": true,
+        "show_arrow": true,
+        "show_wordmark": true,
+        "show_grid": true,
+        "diamond_repeat": true,
+        "diamond_feature": true,
+        "diamond_style": "tiles",
+        "diamond_count": 9,
+        "diamond_size": 170,
+        "diamond_size_mobile": 105,
+        "diamond_gap": 14,
+        "diamond_radius": 6,
+        "grid_height_mobile": 320
       }
     },
     "luxury_collection_dpMLw3": {
@@ -188,11 +239,100 @@
         "color_scheme": "",
         "section_width": "page-width"
       }
+    },
+    "lexe_strip": {
+      "type": "lexe-collection-strip",
+      "blocks": {
+        "col_lexe": {
+          "type": "collection",
+          "settings": {
+            "collection": "lexe",
+            "title": "",
+            "link": "",
+            "icon": "jacket"
+          }
+        },
+        "col_lexespecs": {
+          "type": "collection",
+          "settings": {
+            "collection": "lexespecs",
+            "title": "",
+            "link": "",
+            "icon": "glasses"
+          }
+        },
+        "col_exodus": {
+          "type": "collection",
+          "settings": {
+            "collection": "exodus",
+            "title": "",
+            "link": "",
+            "icon": "bolt"
+          }
+        },
+        "col_women": {
+          "type": "collection",
+          "settings": {
+            "collection": "women",
+            "title": "",
+            "link": "",
+            "icon": "woman"
+          }
+        },
+        "col_men": {
+          "type": "collection",
+          "settings": {
+            "collection": "men",
+            "title": "",
+            "link": "",
+            "icon": "man"
+          }
+        },
+        "col_shoes": {
+          "type": "collection",
+          "settings": {
+            "collection": "shoes",
+            "title": "",
+            "link": "",
+            "icon": "shoe"
+          }
+        }
+      },
+      "block_order": [
+        "col_lexe",
+        "col_lexespecs",
+        "col_exodus",
+        "col_women",
+        "col_men",
+        "col_shoes"
+      ],
+      "settings": {
+        "eyebrow": "LEXE by Devici Studios",
+        "heading": "Shop by collection",
+        "heading_align": "center",
+        "title_font": "oswald_n7",
+        "cta_label": "Shop now",
+        "columns_desktop": 6,
+        "mobile_layout": "swipe",
+        "ratio": 130,
+        "gap": 12,
+        "radius": 4,
+        "max_width": 1440,
+        "pad_top": 48,
+        "pad_bottom": 48,
+        "bg": "#ffffff",
+        "fg": "#0a0a0a",
+        "card_bg": "#0a0a0a",
+        "accent_color": "#9B6BD1",
+        "overlay": 85,
+        "mono": true
+      }
     }
   },
   "order": [
     "main",
     "vanquishcollection_header_TJzBWn",
+    "lexe_strip",
     "luxury_collection_dpMLw3",
     "lexe_intro"
   ]
