@@ -180,6 +180,15 @@
   {%- if is_pw and s.hide_default_footer -%}
     .password-footer{ display: none !important; }
   {%- endif -%}
+  {%- if is_pw -%}
+    dialog.password-dialog{ background: #000; color: #fff; }
+    dialog.password-dialog::backdrop{ background: rgba(0,0,0,.6); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+    dialog.password-dialog .password-dialog__title{ color: #fff; font-family: var(--lb-head-global, inherit); }
+    dialog.password-dialog .close-button{ color: #fff; }
+    dialog.password-dialog input[type=password]{ background: rgba(255,255,255,.08); color: #fff; border: 1px solid rgba(255,255,255,.22); border-radius: {{ s.control_radius }}px; }
+    dialog.password-dialog input[type=password]::placeholder{ color: rgba(255,255,255,.6); }
+    dialog.password-dialog .password-dialog__submit-button{ background: {{ s.accent }}; color: #fff; border-radius: {{ s.control_radius }}px; }
+  {%- endif -%}
 </style>
 
 <section id="lb-{{ sid }}" class="lb" data-lb aria-label="{{ s.headline | escape }}">
