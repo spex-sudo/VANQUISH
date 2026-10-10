@@ -69,7 +69,8 @@
         "newin_mode": "auto",
         "newin_show_image": true,
         "newin_link_to": "product",
-        "hide_widgets": true
+        "hide_widgets": true,
+        "newin_skip_tag": "needs-clean-image"
       }
     }
   },

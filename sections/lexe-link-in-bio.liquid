@@ -22,8 +22,15 @@
     assign ni_product = s.newin_product
   elsif new_col != blank
     paginate new_col.products by 250
-      assign ni_sorted = new_col.products | sort: 'created_at'
-      assign ni_product = ni_sorted | last
+      assign ni_sorted = new_col.products | sort: 'created_at' | reverse
+      assign ni_skip = s.newin_skip_tag | strip
+      for p in ni_sorted
+        if ni_skip != blank and p.tags contains ni_skip
+          continue
+        endif
+        assign ni_product = p
+        break
+      endfor
     endpaginate
   endif
   if ni_product != blank and s.newin_link_to == 'product'
@@ -507,6 +514,7 @@
     { "type": "select", "id": "newin_mode", "label": "Featured item", "default": "auto", "options": [
       { "value": "auto", "label": "Auto: newest product in the collection" }, { "value": "product", "label": "Picked product" } ] },
     { "type": "product", "id": "newin_product", "label": "Picked product" },
+    { "type": "text", "id": "newin_skip_tag", "label": "Skip products tagged", "default": "needs-clean-image", "info": "Auto mode skips products with this tag." },
     { "type": "checkbox", "id": "newin_show_image", "label": "Show product image", "default": true, "info": "Hidden automatically if the product has no image." },
     { "type": "select", "id": "newin_link_to", "label": "Explore link goes to", "default": "product", "options": [
       { "value": "product", "label": "The product" }, { "value": "collection", "label": "The collection (newest first)" } ] },
