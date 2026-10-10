@@ -1,0 +1,70 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "layout": "password",
+  "sections": {
+    "lexe_lib": {
+      "type": "lexe-link-in-bio",
+      "name": "Link-in-Bio Page",
+      "blocks": {
+        "link_tiktok": {
+          "type": "link",
+          "settings": {
+            "label": "TikTok",
+            "url": "https://www.tiktok.com/@lexe.studio",
+            "note": "@lexe.studio",
+            "icon": "tiktok",
+            "style": "glass",
+            "new_tab": true
+          }
+        },
+        "link_shop": {
+          "type": "link",
+          "settings": {
+            "label": "vanquish7.studio",
+            "url": "shopify://collections/lexe",
+            "note": "Shop LEXE",
+            "icon": "shop",
+            "style": "solid",
+            "new_tab": false
+          }
+        }
+      },
+      "block_order": [
+        "link_tiktok",
+        "link_shop"
+      ],
+      "settings": {
+        "bg_image": "shopify://shop_images/37FC0DE7D25C22B7DBD7B225DCEC1C76.jpg",
+        "bg_position": "center",
+        "bg_overlay": 45,
+        "logo": "shopify://shop_images/F16CC35F-32F4-4BD3-8C8D-90CB457D79DF.png",
+        "logo_height": 34,
+        "new_in_collection": "lexe",
+        "heading_font": "oswald_n6",
+        "headline": "LEXE",
+        "line": "Outerwear, specs and statement pieces.",
+        "accent": "#9966cc",
+        "text_color": "#ffffff",
+        "glass_tint": "#ffffff",
+        "ticket_bg": "#ffffff",
+        "ticket_text": "#000000",
+        "newin_bg": "#000000",
+        "card_radius": 8,
+        "control_radius": 8,
+        "footer_text": "© Devici Studios",
+        "hide_default_footer": true
+      }
+    }
+  },
+  "order": [
+    "lexe_lib"
+  ]
+}
