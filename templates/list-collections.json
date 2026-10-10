@@ -189,7 +189,7 @@
         "open_pad_top": 96,
         "open_pad_top_mobile": 104,
         "headline_font": "syne_n7",
-        "accent": "#e2c6ff",
+        "accent": "#D8D0FF",
         "exclude_handles": "all,frontpage,vanquish-collection,specs-offer-eligible,lexespecs-gift",
         "drop_handles": "iphone-cases,maze",
         "tiles_aria": "Collections",
