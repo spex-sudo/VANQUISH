@@ -1,0 +1,462 @@
+{%- comment -%}
+  LEXE Link-in-Bio / Members Ticket  (v1.0 · 2026-10-10)
+  Works on the password template and on normal page templates (e.g. page.links).
+  Signup = Shopify customer form (contact[tags] newsletter + src-<channel>), no apps.
+{%- endcomment -%}
+{%- liquid
+  assign s = section.settings
+  assign sid = section.id
+  assign is_pw = false
+  if template.name == 'password' or template.suffix == 'pwpreview'
+    assign is_pw = true
+  endif
+  assign shop_url = s.shop_url | default: routes.root_url
+  assign new_col = s.new_in_collection
+  if new_col != blank
+    assign new_url = new_col.url | append: '?sort_by=created-descending'
+  else
+    assign new_url = routes.all_products_collection_url | append: '?sort_by=created-descending'
+  endif
+  assign privacy_url = shop.privacy_policy.url | default: '/policies/privacy-policy'
+  assign glass_a = s.glass_opacity | divided_by: 100.0
+  assign glass_bg = s.glass_tint | color_modify: 'alpha', glass_a
+  assign form_id = 'lb-form-' | append: sid
+-%}
+
+{%- if s.heading_font != blank -%}
+  <style>{{ s.heading_font | font_face: font_display: 'swap' }}</style>
+{%- endif -%}
+
+<style>
+  #lb-{{ sid }}{
+    --lb-accent: {{ s.accent }};
+    --lb-text: {{ s.text_color }};
+    --lb-muted: {{ s.text_color | color_modify: 'alpha', 0.68 }};
+    --lb-glass: {{ glass_bg }};
+    --lb-glass-line: {{ s.text_color | color_modify: 'alpha', 0.18 }};
+    --lb-ticket-bg: {{ s.ticket_bg }};
+    --lb-ticket-text: {{ s.ticket_text }};
+    --lb-black: {{ s.newin_bg }};
+    --lb-r: {{ s.card_radius }}px;
+    --lb-rc: {{ s.control_radius }}px;
+    --lb-head: {% if s.heading_font != blank %}{{ s.heading_font.family }}, {{ s.heading_font.fallback_families }}{% else %}var(--font-heading--family, sans-serif){% endif %};
+    position: relative; isolation: isolate; color: var(--lb-text);
+    min-height: 100svh; background: #000;
+    font-family: var(--font-body--family, system-ui, sans-serif);
+  }
+  #lb-{{ sid }} *{ box-sizing: border-box; }
+  #lb-{{ sid }} .lb-bg{ position: sticky; top: 0; height: 100svh; margin-bottom: -100svh; overflow: hidden; z-index: 0; pointer-events: none; }
+  #lb-{{ sid }} .lb-bg img{ width: 100%; height: 100%; object-fit: cover; object-position: {{ s.bg_position }}; display: block; }
+  #lb-{{ sid }} .lb-bg::after{ content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,{{ s.bg_overlay | divided_by: 100.0 }}) 0%, rgba(0,0,0,{{ s.bg_overlay | plus: 15 | at_most: 100 | divided_by: 100.0 }}) 100%); }
+  #lb-{{ sid }} .lb-wrap{ position: relative; z-index: 1; width: 100%; max-width: {{ s.max_width }}px; margin: 0 auto;
+    padding: max(16px, env(safe-area-inset-top)) 14px max(20px, env(safe-area-inset-bottom));
+    display: grid; gap: 10px; grid-template-columns: 1fr;
+    grid-template-areas: "hero" "email" "ticket" "newin" "links" "foot"; }
+  #lb-{{ sid }} .lb-card{ border-radius: var(--lb-r); padding: 18px; position: relative; min-width: 0; }
+  #lb-{{ sid }} .lb-glass{ background: var(--lb-glass); border: 1px solid var(--lb-glass-line);
+    -webkit-backdrop-filter: blur({{ s.glass_blur }}px) saturate(120%); backdrop-filter: blur({{ s.glass_blur }}px) saturate(120%); }
+  #lb-{{ sid }} a{ color: inherit; }
+
+  /* HERO */
+  #lb-{{ sid }} .lb-hero{ grid-area: hero; display: flex; flex-direction: column; gap: 22px; padding: 14px 16px 20px; }
+  #lb-{{ sid }} .lb-top{ display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  #lb-{{ sid }} .lb-mark{ display: flex; align-items: center; gap: 8px; text-decoration: none; min-width: 0; }
+  #lb-{{ sid }} .lb-mark img{ height: {{ s.logo_height }}px; width: auto; display: block; }
+  #lb-{{ sid }} .lb-nav{ display: inline-flex; padding: 3px; gap: 2px; border-radius: calc(var(--lb-rc) + 3px); background: rgba(0,0,0,.45); border: 1px solid var(--lb-glass-line); }
+  #lb-{{ sid }} .lb-nav a{ font-size: 12px; line-height: 1; padding: 8px 12px; border-radius: var(--lb-rc); text-decoration: none; white-space: nowrap; letter-spacing: .02em; }
+  #lb-{{ sid }} .lb-nav a:first-child{ background: var(--lb-accent); color: #fff; }
+  #lb-{{ sid }} .lb-nav a:hover{ background: rgba(255,255,255,.12); }
+  #lb-{{ sid }} .lb-nav a:first-child:hover{ background: var(--lb-accent); filter: brightness(1.08); }
+  #lb-{{ sid }} .lb-eyebrow{ font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--lb-muted); margin: 0 0 8px; display: flex; align-items: center; gap: 8px; }
+  #lb-{{ sid }} .lb-dot{ width: 6px; height: 6px; border-radius: 50%; background: var(--lb-accent); flex: none; }
+  #lb-{{ sid }} .lb-h1{ font-family: var(--lb-head); font-weight: {{ s.heading_font.weight | default: 700 }}; font-size: clamp(64px, 22vw, {{ s.headline_size }}px);
+    line-height: .86; letter-spacing: -.01em; text-transform: uppercase; margin: 0; color: var(--lb-text); overflow-wrap: anywhere; }
+  #lb-{{ sid }} .lb-line{ margin: 10px 0 0; font-size: 15px; line-height: 1.4; color: var(--lb-muted); max-width: 34ch; }
+
+  /* EMAIL */
+  #lb-{{ sid }} .lb-email{ grid-area: email; scroll-margin-top: 16px; }
+  #lb-{{ sid }} .lb-h2{ font-size: 24px; line-height: 1.1; font-weight: 600; margin: 0; letter-spacing: -.01em; }
+  #lb-{{ sid }} .lb-sub{ margin: 6px 0 16px; color: var(--lb-muted); font-size: 14px; }
+  #lb-{{ sid }} .lb-field{ display: flex; align-items: center; gap: 6px; padding: 5px 5px 5px 14px; border-radius: var(--lb-rc);
+    background: rgba(255,255,255,.1); border: 1px solid var(--lb-glass-line); transition: border-color .2s, background .2s; }
+  #lb-{{ sid }} .lb-field:focus-within{ border-color: var(--lb-accent); background: rgba(255,255,255,.14); }
+  #lb-{{ sid }} .lb-at{ color: var(--lb-muted); font-size: 15px; flex: none; }
+  #lb-{{ sid }} .lb-field input{ flex: 1; min-width: 0; height: 44px; border: 0; outline: 0; background: transparent; color: var(--lb-text);
+    font: inherit; font-size: 16px; padding: 0 4px; }
+  #lb-{{ sid }} .lb-field input::placeholder{ color: var(--lb-muted); opacity: 1; }
+  #lb-{{ sid }} .lb-go{ flex: none; width: 44px; height: 44px; border: 0; cursor: pointer; display: grid; place-items: center;
+    border-radius: {% if s.arrow_shape == 'circle' %}50%{% else %}var(--lb-rc){% endif %}; background: var(--lb-accent); color: #fff; transition: transform .15s, filter .15s; }
+  #lb-{{ sid }} .lb-go:hover{ filter: brightness(1.08); }
+  #lb-{{ sid }} .lb-go:active{ transform: scale(.94); }
+  #lb-{{ sid }} .lb-go svg{ width: 18px; height: 18px; }
+  #lb-{{ sid }} .lb-go[aria-busy="true"] svg{ animation: lb-spin .8s linear infinite; }
+  @keyframes lb-spin{ to{ transform: rotate(360deg); } }
+  #lb-{{ sid }} .lb-consent{ margin: 12px 2px 0; font-size: 12px; line-height: 1.45; color: var(--lb-muted); }
+  #lb-{{ sid }} .lb-consent a{ color: var(--lb-text); text-underline-offset: 2px; }
+  #lb-{{ sid }} .lb-msg{ margin: 10px 2px 0; font-size: 13px; min-height: 0; }
+  #lb-{{ sid }} .lb-msg:empty{ display: none; }
+  #lb-{{ sid }} .lb-msg.is-error{ color: #fff; border-left: 2px solid var(--lb-accent); padding-left: 8px; }
+  #lb-{{ sid }} .lb-hp{ position: absolute !important; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+  #lb-{{ sid }} .lb-done-note{ display: none; margin: 0; font-size: 14px; color: var(--lb-muted); }
+  #lb-{{ sid }}.is-joined .lb-form{ display: none; }
+  #lb-{{ sid }}.is-joined .lb-done-note{ display: block; }
+
+  /* TICKET */
+  #lb-{{ sid }} .lb-ticket{ grid-area: ticket; perspective: 1200px; padding: 0; min-height: 210px; }
+  #lb-{{ sid }} .lb-flip{ position: relative; width: 100%; height: 100%; min-height: inherit; transform-style: preserve-3d; transition: transform .7s cubic-bezier(.2,.7,.2,1); }
+  #lb-{{ sid }}.is-joined .lb-flip{ transform: rotateY(180deg); }
+  #lb-{{ sid }} .lb-face{ position: absolute; inset: 0; border-radius: var(--lb-r); background: var(--lb-ticket-bg); color: var(--lb-ticket-text);
+    -webkit-backface-visibility: hidden; backface-visibility: hidden; display: flex; overflow: hidden; }
+  #lb-{{ sid }} .lb-face--front{ position: relative; min-height: inherit; height: 100%; }
+  #lb-{{ sid }} .lb-face--back{ transform: rotateY(180deg); background: var(--lb-accent); color: #fff; flex-direction: column; justify-content: space-between; padding: 20px; }
+  #lb-{{ sid }} .lb-stub{ flex: 0 0 46%; padding: 18px 16px; display: flex; flex-direction: column; justify-content: space-between; gap: 14px;
+    background: {{ s.ticket_text | color_modify: 'alpha', 0.05 }}; position: relative; }
+  #lb-{{ sid }} .lb-stub::after{ content: ""; position: absolute; top: 14px; bottom: 14px; right: -1px; border-right: 2px dashed {{ s.ticket_text | color_modify: 'alpha', 0.22 }}; }
+  #lb-{{ sid }} .lb-notch{ position: absolute; left: 46%; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,.88); transform: translateX(-50%); z-index: 2; }
+  #lb-{{ sid }} .lb-notch--t{ top: -10px; } #lb-{{ sid }} .lb-notch--b{ bottom: -10px; }
+  #lb-{{ sid }} .lb-big{ font-family: var(--lb-head); font-weight: {{ s.heading_font.weight | default: 700 }}; font-size: 40px; line-height: .9; text-transform: uppercase; margin: 0; }
+  #lb-{{ sid }} .lb-big span{ display: block; color: {{ s.ticket_text | color_modify: 'alpha', 0.4 }}; }
+  #lb-{{ sid }} .lb-date{ font-size: 13px; line-height: 1.35; margin: 0; }
+  #lb-{{ sid }} .lb-mono{ font-size: 10px; letter-spacing: .2em; text-transform: uppercase; opacity: .6; margin: 0; }
+  #lb-{{ sid }} .lb-tmain{ flex: 1; padding: 18px 16px; display: flex; flex-direction: column; justify-content: space-between; gap: 14px; text-align: right; align-items: flex-end; }
+  #lb-{{ sid }} .lb-tline{ margin: 0; font-size: 14px; line-height: 1.35; }
+  #lb-{{ sid }} .lb-orb{ width: 76px; height: 76px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, {{ s.accent | color_modify: 'alpha', 0.55 }}, var(--lb-accent) 60%); align-self: flex-end; }
+  #lb-{{ sid }} .lb-join{ display: inline-flex; align-items: center; gap: 0; border: 0; padding: 0; background: none; cursor: pointer; color: inherit; font: inherit; }
+  #lb-{{ sid }} .lb-join b{ font-weight: 500; font-size: 13px; background: var(--lb-ticket-text); color: var(--lb-ticket-bg); padding: 10px 16px; border-radius: var(--lb-rc); }
+  #lb-{{ sid }} .lb-join i{ width: 36px; height: 36px; margin-left: -4px; border-radius: 50%; background: var(--lb-ticket-text); color: var(--lb-ticket-bg); display: grid; place-items: center; font-style: normal; }
+  #lb-{{ sid }} .lb-back-h{ font-family: var(--lb-head); font-weight: {{ s.heading_font.weight | default: 700 }}; text-transform: uppercase; font-size: 44px; line-height: .9; margin: 0; }
+  #lb-{{ sid }} .lb-back-p{ margin: 0; font-size: 15px; line-height: 1.4; max-width: 26ch; }
+
+  /* NEW IN */
+  #lb-{{ sid }} .lb-newin{ grid-area: newin; background: var(--lb-black); color: #fff; text-decoration: none; display: flex; flex-direction: column; justify-content: space-between; gap: 22px; min-height: 140px; transition: transform .2s; }
+  #lb-{{ sid }} .lb-newin:hover{ transform: translateY(-2px); }
+  #lb-{{ sid }} .lb-newin h3{ margin: 0; font-size: 30px; line-height: 1; font-weight: 500; letter-spacing: -.01em; }
+  #lb-{{ sid }} .lb-newin p{ margin: 6px 0 0; color: rgba(255,255,255,.55); font-size: 15px; }
+  #lb-{{ sid }} .lb-newin .lb-cta{ align-self: flex-end; font-size: 16px; display: inline-flex; align-items: center; gap: 8px; }
+  #lb-{{ sid }} .lb-newin .lb-cta::after{ content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--lb-accent); }
+
+  /* LINKS */
+  #lb-{{ sid }} .lb-links{ grid-area: links; display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 0; list-style: none; }
+  #lb-{{ sid }} .lb-links li{ flex: 1 1 150px; }
+  #lb-{{ sid }} .lb-pill{ display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 48px; padding: 0 16px;
+    border-radius: var(--lb-rc); text-decoration: none; font-size: 14px; color: var(--lb-text);
+    background: var(--lb-glass); border: 1px solid var(--lb-glass-line);
+    -webkit-backdrop-filter: blur({{ s.glass_blur }}px); backdrop-filter: blur({{ s.glass_blur }}px); transition: border-color .2s; }
+  #lb-{{ sid }} .lb-pill:hover{ border-color: var(--lb-accent); }
+  #lb-{{ sid }} .lb-pill--solid{ background: #fff; color: #000; border-color: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  #lb-{{ sid }} .lb-pill span{ display: inline-flex; align-items: center; gap: 10px; }
+  #lb-{{ sid }} .lb-pill svg{ width: 16px; height: 16px; flex: none; }
+  #lb-{{ sid }} .lb-pill em{ font-style: normal; font-size: 12px; opacity: .6; }
+
+  /* FOOT */
+  #lb-{{ sid }} .lb-foot{ grid-area: foot; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 0 4px; font-size: 12px; color: var(--lb-muted); text-align: center; }
+  #lb-{{ sid }} .lb-pwbtn{ background: none; border: 0; color: var(--lb-muted); font: inherit; font-size: 12px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 10px 6px; min-height: 44px; }
+  #lb-{{ sid }} .lb-pwbtn:hover{ color: var(--lb-text); }
+  #lb-{{ sid }} .lb-copy{ margin: 0; letter-spacing: .04em; }
+
+  #lb-{{ sid }} :focus-visible{ outline: 2px solid var(--lb-accent); outline-offset: 2px; }
+
+  @media (min-width: 750px){
+    #lb-{{ sid }} .lb-wrap{ padding: 48px 24px 28px; gap: 14px; align-content: center; min-height: 100svh;
+      grid-template-columns: minmax(0,1fr) minmax(0,.86fr);
+      grid-template-areas: "hero hero" "email ticket" "newin ticket" "links links" "foot foot"; }
+    #lb-{{ sid }} .lb-card{ padding: 24px; }
+    #lb-{{ sid }} .lb-hero{ padding: 18px 24px 26px; flex-direction: column; }
+    #lb-{{ sid }} .lb-h1{ font-size: {{ s.headline_size }}px; }
+    #lb-{{ sid }} .lb-ticket{ padding: 0; min-height: 100%; }
+    #lb-{{ sid }} .lb-big{ font-size: 56px; }
+    #lb-{{ sid }} .lb-stub, #lb-{{ sid }} .lb-tmain{ padding: 24px 20px; }
+    #lb-{{ sid }} .lb-orb{ width: 120px; height: 120px; }
+    #lb-{{ sid }} .lb-links li{ flex: 1 1 0; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    #lb-{{ sid }} .lb-flip, #lb-{{ sid }} .lb-newin{ transition: none; }
+  }
+  {%- if is_pw and s.hide_default_footer -%}
+    .password-footer{ display: none !important; }
+  {%- endif -%}
+</style>
+
+<section id="lb-{{ sid }}" class="lb" data-lb aria-label="{{ s.headline | escape }}">
+  <div class="lb-bg" aria-hidden="true">
+    {%- if s.bg_image != blank -%}
+      {{ s.bg_image | image_url: width: 2000 | image_tag: loading: 'eager', fetchpriority: 'high', alt: '', widths: '600, 900, 1200, 1600, 2000', sizes: '100vw' }}
+    {%- endif -%}
+  </div>
+
+  <div class="lb-wrap">
+    {%- comment -%} HERO {%- endcomment -%}
+    <div class="lb-card lb-glass lb-hero">
+      <div class="lb-top">
+        <a class="lb-mark" href="{{ shop_url }}" aria-label="{{ shop.name | escape }}">
+          {%- if s.logo != blank -%}
+            {{ s.logo | image_url: width: 240 | image_tag: alt: shop.name, loading: 'eager', height: s.logo_height }}
+          {%- endif -%}
+        </a>
+        <nav class="lb-nav" aria-label="Quick links">
+          <a href="#lb-email-{{ sid }}" data-lb-jump>{{ s.nav_join_label | escape }}</a>
+          <a href="{{ shop_url }}">{{ s.nav_shop_label | escape }}</a>
+        </nav>
+      </div>
+      <div>
+        {%- if is_pw and s.status_text != blank -%}
+          <p class="lb-eyebrow"><span class="lb-dot"></span>{{ s.status_text | escape }}</p>
+        {%- elsif s.eyebrow != blank -%}
+          <p class="lb-eyebrow"><span class="lb-dot"></span>{{ s.eyebrow | escape }}</p>
+        {%- endif -%}
+        <h1 class="lb-h1">{{ s.headline | escape }}</h1>
+        {%- if s.line != blank -%}<p class="lb-line">{{ s.line | escape }}</p>{%- endif -%}
+      </div>
+    </div>
+
+    {%- comment -%} EMAIL {%- endcomment -%}
+    <div class="lb-card lb-glass lb-email" id="lb-email-{{ sid }}">
+      {%- form 'customer', id: form_id, class: 'lb-form-el', novalidate: 'novalidate' -%}
+        {%- if form.posted_successfully? -%}<span data-lb-posted hidden></span>{%- endif -%}
+        <h2 class="lb-h2">{{ s.email_heading | escape }}</h2>
+        <p class="lb-sub">{{ s.email_sub | escape }}</p>
+        <div class="lb-form">
+          <input type="hidden" name="contact[tags]" value="newsletter, src-direct" data-lb-tags>
+          <input type="hidden" name="contact[accepts_marketing]" value="true">
+          <div class="lb-hp" aria-hidden="true"><label>Leave empty<input type="text" name="contact[company_website]" tabindex="-1" autocomplete="off"></label></div>
+          <div class="lb-field">
+            <span class="lb-at" aria-hidden="true">@</span>
+            <label for="lb-email-input-{{ sid }}" class="visually-hidden">{{ s.email_placeholder | escape }}</label>
+            <input id="lb-email-input-{{ sid }}" type="email" name="contact[email]" inputmode="email" autocomplete="email"
+              autocapitalize="off" spellcheck="false" required placeholder="{{ s.email_placeholder | escape }}"
+              aria-describedby="lb-consent-{{ sid }} lb-msg-{{ sid }}" data-lb-input>
+            <button type="submit" class="lb-go" aria-label="{{ s.submit_label | escape }}" data-lb-go>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </button>
+          </div>
+          <p class="lb-consent" id="lb-consent-{{ sid }}">
+            {{ s.consent_before | escape }} <a href="{{ privacy_url }}" target="_blank" rel="noopener">{{ s.consent_link | escape }}</a>{{ s.consent_after | escape }}
+          </p>
+        </div>
+        <p class="lb-done-note">{{ s.success_note | escape }}</p>
+        <p class="lb-msg{% if form.errors %} is-error{% endif %}" id="lb-msg-{{ sid }}" role="status" aria-live="polite" data-lb-msg>
+          {%- if form.errors -%}{{ form.errors.translated_fields.email | default: 'Email' }} {{ form.errors.messages.email | default: 'needs another look.' }}{%- endif -%}
+        </p>
+      {%- endform -%}
+    </div>
+
+    {%- comment -%} TICKET {%- endcomment -%}
+    <div class="lb-card lb-ticket">
+      <div class="lb-flip" data-lb-flip>
+        <div class="lb-face lb-face--front" aria-hidden="false">
+          <span class="lb-notch lb-notch--t"></span><span class="lb-notch lb-notch--b"></span>
+          <div class="lb-stub">
+            <p class="lb-big">{{ s.ticket_title_1 | escape }}<span>{{ s.ticket_title_2 | escape }}</span></p>
+            {%- if s.ticket_date != blank -%}<p class="lb-date">{{ s.ticket_date | escape | newline_to_br }}</p>{%- endif -%}
+            <p class="lb-mono">{{ s.ticket_stub_label | escape }}</p>
+          </div>
+          <div class="lb-tmain">
+            <p class="lb-tline">{{ s.ticket_line | escape | newline_to_br }}</p>
+            <span class="lb-orb" aria-hidden="true"></span>
+            <button type="button" class="lb-join" data-lb-jump-btn aria-controls="lb-email-input-{{ sid }}">
+              <b>{{ s.ticket_cta | escape }}</b><i aria-hidden="true">&rsaquo;</i>
+            </button>
+          </div>
+        </div>
+        <div class="lb-face lb-face--back" aria-hidden="true">
+          <p class="lb-mono" style="opacity:.8">{{ s.ticket_stub_label | escape }}</p>
+          <div>
+            <p class="lb-back-h">{{ s.success_heading | escape }}</p>
+            <p class="lb-back-p">{{ s.success_text | escape }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {%- comment -%} NEW IN {%- endcomment -%}
+    <a class="lb-card lb-newin" href="{{ new_url }}">
+      <div>
+        <h3>{{ s.newin_heading | escape }}</h3>
+        <p>{{ s.newin_sub | default: new_col.title | escape }}</p>
+      </div>
+      <span class="lb-cta">{{ s.newin_cta | escape }}</span>
+    </a>
+
+    {%- comment -%} LINK PILLS {%- endcomment -%}
+    {%- if section.blocks.size > 0 -%}
+      <ul class="lb-links" role="list">
+        {%- for block in section.blocks -%}
+          {%- if block.settings.url != blank -%}
+            <li {{ block.shopify_attributes }}>
+              <a class="lb-pill{% if block.settings.style == 'solid' %} lb-pill--solid{% endif %}" href="{{ block.settings.url }}"
+                {% if block.settings.new_tab %}target="_blank" rel="noopener"{% endif %}>
+                <span>
+                  {%- case block.settings.icon -%}
+                    {%- when 'tiktok' -%}<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.6 5.82A4.28 4.28 0 0 1 15.5 3h-3.1v12.4a2.59 2.59 0 0 1-2.59 2.5 2.6 2.6 0 0 1-2.6-2.6 2.6 2.6 0 0 1 3.37-2.48V9.66A5.7 5.7 0 0 0 4.1 15.3a5.7 5.7 0 0 0 5.7 5.7 5.7 5.7 0 0 0 5.7-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3a4.3 4.3 0 0 1-3.2-1.48z"/></svg>
+                    {%- when 'instagram' -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+                    {%- when 'whatsapp' -%}<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.15l-.3-.18-3 .78.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.25-.12-1.47-.72-1.7-.8-.23-.09-.4-.13-.56.12-.17.25-.64.8-.79.97-.14.17-.29.19-.54.06a6.7 6.7 0 0 1-3.32-2.9c-.25-.43.25-.4.71-1.33.08-.16.04-.31-.02-.43l-.76-1.83c-.2-.48-.4-.42-.56-.42h-.48a.92.92 0 0 0-.66.31 2.78 2.78 0 0 0-.87 2.07 4.83 4.83 0 0 0 1 2.56 11 11 0 0 0 4.24 3.74c1.58.68 2.2.74 2.99.62.48-.07 1.47-.6 1.68-1.18.2-.58.2-1.08.15-1.18-.06-.11-.23-.17-.48-.29z"/></svg>
+                    {%- when 'shop' -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h12l-1 13H7L6 7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
+                    {%- else -%}
+                  {%- endcase -%}
+                  {{ block.settings.label | escape }}
+                </span>
+                {%- if block.settings.note != blank -%}<em>{{ block.settings.note | escape }}</em>{%- else -%}<em aria-hidden="true">&#8599;</em>{%- endif -%}
+              </a>
+            </li>
+          {%- endif -%}
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+
+    <div class="lb-foot">
+      {%- if is_pw -%}
+        <button type="button" class="lb-pwbtn" data-lb-pw>{{ s.password_link_text | escape }}</button>
+      {%- endif -%}
+      {%- if s.footer_text != blank -%}<p class="lb-copy">{{ s.footer_text | escape }}</p>{%- endif -%}
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  var root = document.getElementById('lb-{{ sid }}'); if(!root) return;
+  var form = root.querySelector('.lb-form-el'), input = root.querySelector('[data-lb-input]'),
+      msg = root.querySelector('[data-lb-msg]'), go = root.querySelector('[data-lb-go]'),
+      tags = root.querySelector('[data-lb-tags]'), flip = root.querySelector('[data-lb-flip]');
+  /* channel attribution: ?src=ig -> "newsletter, src-ig" */
+  try {
+    var src = new URLSearchParams(location.search).get('src');
+    if (src) { try{ sessionStorage.setItem('lexe_src', src); }catch(e){} }
+    else { try{ src = sessionStorage.getItem('lexe_src'); }catch(e){} }
+    src = (src || '').toLowerCase().replace(/[^a-z0-9-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,20).replace(/-+$/,'');
+    if (tags) tags.value = 'newsletter, src-' + (src || 'direct');
+  } catch(e){}
+  function joined(){
+    root.classList.add('is-joined');
+    var faces = root.querySelectorAll('.lb-face');
+    if (faces[0]) faces[0].setAttribute('aria-hidden','true');
+    if (faces[1]) faces[1].setAttribute('aria-hidden','false');
+    if (msg){ msg.className = 'lb-msg'; msg.textContent = {{ s.success_heading | append: ' ' | append: s.success_text | json }}; }
+  }
+  if (root.querySelector('[data-lb-posted]') || /customer_posted=true/.test(location.search)) joined();
+  /* desktop-only autofocus (mobile keyboard would cover the page) */
+  if (input && !root.classList.contains('is-joined') && window.matchMedia('(min-width: 750px) and (pointer: fine)').matches && !location.hash) {
+    try { input.focus({ preventScroll: true }); } catch(e){}
+  }
+  function toEmail(e){ if(e) e.preventDefault(); var c = root.querySelector('#lb-email-{{ sid }}');
+    if (c) c.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+    if (input && !root.classList.contains('is-joined')) setTimeout(function(){ try{ input.focus({ preventScroll: true }); }catch(e){} }, 350); }
+  root.querySelectorAll('[data-lb-jump],[data-lb-jump-btn]').forEach(function(a){ a.addEventListener('click', toEmail); });
+  var valid = function(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v); };
+  if (form) form.addEventListener('submit', function(e){
+    var v = (input.value || '').trim();
+    if (!valid(v)) { e.preventDefault(); msg.className = 'lb-msg is-error'; msg.textContent = {{ s.invalid_text | json }}; input.focus(); return; }
+    if (!window.fetch || !window.FormData) return; /* native post fallback */
+    e.preventDefault();
+    go.setAttribute('aria-busy','true'); go.disabled = true; msg.className='lb-msg'; msg.textContent = '';
+    fetch(form.action, { method: 'POST', body: new FormData(form), credentials: 'same-origin', headers: { 'Accept': 'text/html' } })
+      .then(function(r){
+        if (/\/challenge/.test(r.url)) { form.submit(); return; }           /* Shopify bot check: hand over to native submit */
+        if (/customer_posted=true/.test(r.url)) { joined(); return; }
+        return r.text().then(function(html){
+          if (/customer_posted=true|posted_successfully/.test(html)) { joined(); return; }
+          form.submit();                                                     /* let Shopify render its own error */
+        });
+      })
+      .catch(function(){ form.submit(); })
+      .finally(function(){ go.removeAttribute('aria-busy'); go.disabled = false; });
+  });
+  /* store password: open the theme's own storefront_password dialog */
+  var pw = root.querySelector('[data-lb-pw]');
+  if (pw) pw.addEventListener('click', function(){
+    var d = document.querySelector('#password-form dialog, dialog.password-dialog');
+    if (d && d.showModal) { try { d.showModal(); } catch(e){ d.setAttribute('open',''); } var f = d.querySelector('input[type=password]'); if (f) f.focus(); }
+    else { location.href = '/password'; }
+  });
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Link-in-Bio Page",
+  "tag": "div",
+  "class": "section-lexe-lib",
+  "blocks": [
+    {
+      "type": "link",
+      "name": "Link pill",
+      "settings": [
+        { "type": "text", "id": "label", "label": "Label", "default": "Shop LEXE" },
+        { "type": "url", "id": "url", "label": "Link" },
+        { "type": "text", "id": "note", "label": "Right-side note", "info": "e.g. @lexe.studio. Blank shows an arrow." },
+        { "type": "select", "id": "icon", "label": "Icon", "default": "none", "options": [
+          { "value": "none", "label": "None" }, { "value": "shop", "label": "Shop bag" }, { "value": "tiktok", "label": "TikTok" },
+          { "value": "instagram", "label": "Instagram" }, { "value": "whatsapp", "label": "WhatsApp" } ] },
+        { "type": "select", "id": "style", "label": "Style", "default": "glass", "options": [
+          { "value": "glass", "label": "Glass" }, { "value": "solid", "label": "Solid white" } ] },
+        { "type": "checkbox", "id": "new_tab", "label": "Open in new tab", "default": false }
+      ]
+    }
+  ],
+  "settings": [
+    { "type": "header", "content": "Backdrop" },
+    { "type": "image_picker", "id": "bg_image", "label": "Background photo", "info": "Use a real LEXE product or brand photo." },
+    { "type": "select", "id": "bg_position", "label": "Photo focal point", "default": "center", "options": [
+      { "value": "center top", "label": "Top" }, { "value": "center", "label": "Center" }, { "value": "center bottom", "label": "Bottom" },
+      { "value": "left center", "label": "Left" }, { "value": "right center", "label": "Right" } ] },
+    { "type": "range", "id": "bg_overlay", "label": "Darken photo", "min": 0, "max": 90, "step": 5, "unit": "%", "default": 55 },
+    { "type": "header", "content": "Hero card" },
+    { "type": "image_picker", "id": "logo", "label": "Logo / monogram (light)" },
+    { "type": "range", "id": "logo_height", "label": "Logo height", "min": 20, "max": 64, "step": 2, "unit": "px", "default": 34 },
+    { "type": "text", "id": "nav_join_label", "label": "Nav pill 1 (jumps to signup)", "default": "Members" },
+    { "type": "text", "id": "nav_shop_label", "label": "Nav pill 2 (shop link)", "default": "Shop" },
+    { "type": "url", "id": "shop_url", "label": "Shop link", "info": "Blank = home page." },
+    { "type": "text", "id": "status_text", "label": "Status line (password page only)", "default": "Private preview" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow (other pages)", "default": "Members access" },
+    { "type": "text", "id": "headline", "label": "Headline", "default": "LEXE" },
+    { "type": "range", "id": "headline_size", "label": "Headline size (desktop)", "min": 64, "max": 200, "step": 4, "unit": "px", "default": 148 },
+    { "type": "textarea", "id": "line", "label": "Short line", "default": "Outerwear, specs and statement pieces." },
+    { "type": "header", "content": "Email card" },
+    { "type": "text", "id": "email_heading", "label": "Heading", "default": "LEXE members." },
+    { "type": "text", "id": "email_sub", "label": "Subheading", "default": "First look at every drop." },
+    { "type": "text", "id": "email_placeholder", "label": "Placeholder", "default": "Your email" },
+    { "type": "text", "id": "submit_label", "label": "Arrow button label (screen readers)", "default": "Join LEXE members" },
+    { "type": "select", "id": "arrow_shape", "label": "Arrow button shape", "default": "circle", "options": [
+      { "value": "circle", "label": "Circle" }, { "value": "match", "label": "Match control rounding" } ] },
+    { "type": "text", "id": "consent_before", "label": "Consent text", "default": "By joining, you agree to get LEXE drop emails. See our" },
+    { "type": "text", "id": "consent_link", "label": "Privacy link text", "default": "Privacy policy", "info": "Links to the store's privacy policy." },
+    { "type": "text", "id": "consent_after", "label": "Consent text (after link)", "default": ". Unsubscribe anytime." },
+    { "type": "text", "id": "invalid_text", "label": "Invalid email message", "default": "That email doesn't look right. Check it and try again." },
+    { "type": "text", "id": "success_note", "label": "Email card note after joining", "default": "You're on the list." },
+    { "type": "header", "content": "Ticket card" },
+    { "type": "text", "id": "ticket_title_1", "label": "Title line 1", "default": "Next" },
+    { "type": "text", "id": "ticket_title_2", "label": "Title line 2 (muted)", "default": "drop." },
+    { "type": "textarea", "id": "ticket_date", "label": "Drop date / time", "info": "Optional. Only add a real, confirmed date." },
+    { "type": "textarea", "id": "ticket_line", "label": "Ticket line", "default": "Members hear first." },
+    { "type": "text", "id": "ticket_stub_label", "label": "Stub label", "default": "LEXE · Members" },
+    { "type": "text", "id": "ticket_cta", "label": "Button", "default": "Join in" },
+    { "type": "text", "id": "success_heading", "label": "Success: heading (ticket flips)", "default": "You're in." },
+    { "type": "text", "id": "success_text", "label": "Success: text", "default": "Watch your inbox for the next drop." },
+    { "type": "header", "content": "New in card" },
+    { "type": "collection", "id": "new_in_collection", "label": "Collection", "info": "Opens sorted newest first." },
+    { "type": "text", "id": "newin_heading", "label": "Heading", "default": "New in" },
+    { "type": "text", "id": "newin_sub", "label": "Subheading", "info": "Blank = collection title." },
+    { "type": "text", "id": "newin_cta", "label": "Link text", "default": "Explore" },
+    { "type": "header", "content": "Footer" },
+    { "type": "text", "id": "password_link_text", "label": "Password link (password page only)", "default": "Have the store password? Enter it here." },
+    { "type": "text", "id": "footer_text", "label": "Footer text", "default": "© Devici Studios" },
+    { "type": "checkbox", "id": "hide_default_footer", "label": "Hide default password footer", "default": true },
+    { "type": "header", "content": "Colours" },
+    { "type": "color", "id": "accent", "label": "Accent", "default": "#9966CC" },
+    { "type": "color", "id": "text_color", "label": "Text on glass", "default": "#FFFFFF" },
+    { "type": "color", "id": "glass_tint", "label": "Glass tint", "default": "#FFFFFF" },
+    { "type": "range", "id": "glass_opacity", "label": "Glass opacity", "min": 0, "max": 60, "step": 2, "unit": "%", "default": 12 },
+    { "type": "range", "id": "glass_blur", "label": "Glass blur", "min": 0, "max": 40, "step": 2, "unit": "px", "default": 20 },
+    { "type": "color", "id": "ticket_bg", "label": "Ticket background", "default": "#FFFFFF" },
+    { "type": "color", "id": "ticket_text", "label": "Ticket text", "default": "#000000" },
+    { "type": "color", "id": "newin_bg", "label": "New in card", "default": "#000000" },
+    { "type": "header", "content": "Shape & type" },
+    { "type": "range", "id": "card_radius", "label": "Card rounding", "min": 0, "max": 32, "step": 2, "unit": "px", "default": 8 },
+    { "type": "range", "id": "control_radius", "label": "Input / pill rounding", "min": 0, "max": 32, "step": 2, "unit": "px", "default": 8 },
+    { "type": "font_picker", "id": "heading_font", "label": "Headline font", "default": "geist_n7" },
+    { "type": "range", "id": "max_width", "label": "Max width (desktop)", "min": 480, "max": 1200, "step": 20, "unit": "px", "default": 920 }
+  ],
+  "presets": [ { "name": "Link-in-Bio Page" } ]
+}
+{% endschema %}
