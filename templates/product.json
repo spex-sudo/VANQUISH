@@ -318,60 +318,6 @@
         "padding-block-end": 0
       }
     },
-    "vanquish_bundle_pdp": {
-      "type": "vanquish-bundle",
-      "disabled": true,
-      "name": "Cross-sell bundle",
-      "settings": {
-        "kicker": "Complete the look",
-        "title": "Bundle & save",
-        "subtitle": "Pair this piece with suggested add-ons.",
-        "summary_label": "Your bundle",
-        "cta_text": "Add bundle to bag",
-        "note": "Uses complementary products from Search & Discovery when available.",
-        "max_items": 3,
-        "bundle_discount_pct": 0,
-        "fallback_collection": "Specs",
-        "product_1": "lexe-pyramid-optics-exclusive",
-        "product_2": "",
-        "product_3": "",
-        "bg_color": "#ffffff",
-        "text_color": "#111111",
-        "accent_color": "#1a1a1a",
-        "heading_font": "barlow_condensed_n9",
-        "body_font": "barlow_n4",
-        "title_size": 32,
-        "max_w": 1280,
-        "section_padding": 40,
-        "card_ratio": "2,3",
-        "card_radius": 5,
-        "btn_radius": 10
-      }
-    },
-    "luxury_relatedproductbar_Lek7wd": {
-      "type": "luxury-relatedproductbar",
-      "disabled": true,
-      "name": "Atelier Related",
-      "settings": {
-        "title": "You May Also Like",
-        "btn_text": "View",
-        "fallback_collection": "",
-        "card_count": 9,
-        "show_vendor": false,
-        "show_swatches": true,
-        "bg_color": "#ffffff",
-        "text_color": "#1e1e1e",
-        "heading_font": "barlow_condensed_n9",
-        "body_font": "barlow_n3",
-        "title_size": 20,
-        "card_name_size": 12,
-        "card_width": 240,
-        "card_ratio": "2/3",
-        "btn_radius": 2,
-        "card_gap": 16,
-        "section_padding": 32
-      }
-    },
     "luxury_relatedgrid_88rbjE": {
       "type": "luxury-relatedgrid",
       "blocks": {
@@ -427,8 +373,6 @@
     "product_information_FLKeri",
     "vanquish_transittimer_4G4aRN",
     "177726641206da3e13",
-    "vanquish_bundle_pdp",
-    "luxury_relatedproductbar_Lek7wd",
     "luxury_relatedgrid_88rbjE"
   ]
 }
