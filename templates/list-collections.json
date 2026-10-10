@@ -174,9 +174,9 @@
       "settings": {
         "show_opener": true,
         "meta_1": "",
-        "show_count": true,
+        "show_count": false,
         "count_label": "collections",
-        "title": "Top",
+        "title": "",
         "accent_last": false,
         "sub": "LEXE by Devici Studios. Every collection, one place.",
         "wordmark": "LEXE",
