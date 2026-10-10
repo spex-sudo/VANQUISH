@@ -267,15 +267,6 @@
             "title": "Men"
           }
         },
-        "rail_shoes": {
-          "type": "rail_collection",
-          "settings": {
-            "collection": "shoes",
-            "product": "multi-buckle-platform-knee-high-boots",
-            "use_collection_image": false,
-            "title": "Shoes"
-          }
-        },
         "editorial_1": {
           "type": "editorial",
           "settings": {
@@ -339,7 +330,6 @@
         "rail_lexespecs",
         "rail_women",
         "rail_men",
-        "rail_shoes",
         "editorial_1",
         "editorial_2",
         "editorial_3",
