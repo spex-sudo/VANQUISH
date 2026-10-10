@@ -83,7 +83,7 @@
       "password-footer": {
         "type": "password-footer",
         "settings": {
-          "color_scheme": ""
+          "color_scheme": "scheme-6"
         }
       },
       "luxury-transition": {
