@@ -167,7 +167,7 @@
         "atc_radius": 10,
         "ajax_cart": true,
         "show_brand_overlay": true,
-        "script_font": "tomorrow_n6",
+        "script_font": "sofia_sans_extra_condensed_n8",
         "brand_name_override": "LEXE.STUDIO",
         "brand_logo": "shopify://shop_images/9684808B-7809-4973-B826-1D9D2D037983.png",
         "brand_text_color": "#f3f0f0",
