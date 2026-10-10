@@ -83,64 +83,6 @@
     },
     "luxury_hero_EFGqQq": {
       "type": "luxury-hero",
-      "blocks": {
-        "social_link_QpPtyr": {
-          "type": "social_link",
-          "settings": {
-            "platform": "pinterest",
-            "url": "",
-            "btn_size": 36,
-            "pill_radius": 12,
-            "show_label": false
-          }
-        },
-        "social_link_cMjbkD": {
-          "type": "social_link",
-          "settings": {
-            "platform": "tiktok",
-            "url": "",
-            "btn_size": 36,
-            "pill_radius": 12,
-            "show_label": false
-          }
-        },
-        "social_link_eY3MTE": {
-          "type": "social_link",
-          "settings": {
-            "platform": "instagram",
-            "url": "",
-            "btn_size": 36,
-            "pill_radius": 12,
-            "show_label": false
-          }
-        },
-        "text_overlay_93YNGQ": {
-          "type": "text_overlay",
-          "settings": {
-            "overlay_text": "THIS SEASON!",
-            "font_family": "Bebas Neue",
-            "font_size": 54,
-            "font_weight": "300",
-            "overlay_text_color": "#ffffff",
-            "text_opacity": 90,
-            "letter_spacing": 2,
-            "line_height": 11,
-            "uppercase": true,
-            "pos_x": 5,
-            "pos_y": 77,
-            "anchor_x": 0,
-            "anchor_y": 8,
-            "rotation": -10,
-            "max_width": 200
-          }
-        }
-      },
-      "block_order": [
-        "social_link_QpPtyr",
-        "social_link_cMjbkD",
-        "social_link_eY3MTE",
-        "text_overlay_93YNGQ"
-      ],
       "name": "Ultimate Hero V11 + Signature Wall",
       "settings": {
         "image": "shopify://shop_images/IMG-0326.jpg",
