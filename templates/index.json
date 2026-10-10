@@ -463,7 +463,7 @@
         "card_gap": 8,
         "show_names": false,
         "name_font": "system_ui_n4",
-        "heading_font": "tomorrow_n4",
+        "heading_font": "source_sans_pro_n7",
         "name_size": 14,
         "title_size": 20,
         "name_tracking": 2,
