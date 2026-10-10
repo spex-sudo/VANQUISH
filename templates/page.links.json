@@ -59,7 +59,8 @@
         "card_radius": 8,
         "control_radius": 8,
         "footer_text": "© Devici Studios",
-        "hide_default_footer": true
+        "hide_default_footer": true,
+        "page_top_pad": 124
       }
     }
   },
