@@ -20,6 +20,9 @@
       "type": "search-results",
       "name": "Vanquish search results",
       "settings": {
+        "hot_title": "Hot",
+        "hot_collection": "",
+        "discovery_keywords": "new, sale, black, leather, rings, wallet",
         "per_page": 24,
         "pc_cols": 4,
         "max_w": 1280
