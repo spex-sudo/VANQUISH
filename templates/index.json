@@ -615,16 +615,10 @@
     "vanquish_transittimer_hmmnrA": {
       "type": "vanquish-transittimer",
       "blocks": {
-        "message_jg8KUx": {
+        "message_AqpJt4": {
           "type": "message",
           "settings": {
-            "text": "Secure checkout"
-          }
-        },
-        "message_BwbQHN": {
-          "type": "message",
-          "settings": {
-            "text": "Double-check your shipping address when ordering"
+            "text": "Protected By Capcha"
           }
         },
         "message_DJNPdF": {
@@ -635,8 +629,7 @@
         }
       },
       "block_order": [
-        "message_jg8KUx",
-        "message_BwbQHN",
+        "message_AqpJt4",
         "message_DJNPdF"
       ],
       "name": "Trust Banner",
