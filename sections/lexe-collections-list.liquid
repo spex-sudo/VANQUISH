@@ -201,8 +201,8 @@
     <div class="lxl-wrap lxl-open-grid">
       <div>
         <div class="lxl-meta">
-          {%- if section.settings.meta_1 != blank -%}<span>[ {{ section.settings.meta_1 | escape }} ]</span>{%- endif -%}
-          {%- if section.settings.show_count -%}<span>[ <b>{{ shown_count }}</b> {{ section.settings.count_label | escape }} ]</span>{%- endif -%}
+          {%- if section.settings.meta_1 != blank -%}<span>{{ section.settings.meta_1 | escape }}</span>{%- endif -%}
+          {%- if section.settings.show_count -%}<span><b>{{ shown_count }}</b> {{ section.settings.count_label | escape }}</span>{%- endif -%}
         </div>
         {%- liquid
           assign words = section.settings.title | split: ' '
@@ -240,7 +240,7 @@
         {%- for b in tile_blocks -%}{%- if b.settings.size == want -%}{%- unless b.settings.collection != blank and drop_list contains b.settings.collection.handle -%}{%- assign any = true -%}{%- endunless -%}{%- endif -%}{%- endfor -%}
         {%- if any -%}
           {%- if size == 2 and section.settings.sec_title != blank -%}
-            <div class="lxl-head" style="margin-top: 34px"><div><span class="lxl-meta">[ {{ section.settings.sec_meta | escape }} ]</span><h2 class="lxl-h">{{ section.settings.sec_title | escape }}</h2></div></div>
+            <div class="lxl-head" style="margin-top: 34px"><div><span class="lxl-meta">{{ section.settings.sec_meta | escape }}</span><h2 class="lxl-h">{{ section.settings.sec_title | escape }}</h2></div></div>
           {%- endif -%}
           <div class="lxl-tiles{% if size == 2 %} is-sec{% endif %}">
           {%- for b in tile_blocks -%}
@@ -281,7 +281,7 @@
                   sizes="{% if size == 2 %}(max-width: 768px) 40vw, {{ 100 | divided_by: section.settings.sec_cols }}vw{% else %}(max-width: 768px) 48vw, {{ 100 | divided_by: section.settings.tiles_cols }}vw{% endif %}"
                   width="{{ img.width }}" height="{{ img.height }}" alt="" loading="{% if size == 1 and forloop.index <= section.settings.eager_tiles %}eager{% else %}lazy{% endif %}" decoding="async">
               {%- endif -%}
-              <span class="lxl-tile-top"><span>[ {{ idx }} ]</span>{%- if section.settings.show_tile_count and c != blank -%}<span>{{ n }} {% if n == 1 %}{{ section.settings.count_one | escape }}{% else %}{{ section.settings.count_many | escape }}{% endif %}</span>{%- endif -%}</span>
+              <span class="lxl-tile-top"><span>{{ idx }}</span>{%- if section.settings.show_tile_count and c != blank -%}<span>{{ n }} {% if n == 1 %}{{ section.settings.count_one | escape }}{% else %}{{ section.settings.count_many | escape }}{% endif %}</span>{%- endif -%}</span>
               <span class="lxl-tile-bot">
                 <span class="lxl-tile-name">{{ name | escape }}</span>
                 {%- if b.settings.label != blank and size == 1 -%}<span class="lxl-tile-label">{{ b.settings.label | escape }}</span>{%- endif -%}
@@ -300,7 +300,7 @@
           {%- assign img = nil -%}{%- for p in c.products limit: 1 -%}{%- assign img = p.featured_image -%}{%- endfor -%}
           <a class="lxl-tile" href="{{ c.url }}" data-lxl-evt="collection_tile_click" data-lxl-name="{{ c.handle }}">
             {%- if img -%}<img src="{{ img | image_url: width: 600 }}" width="{{ img.width }}" height="{{ img.height }}" alt="" loading="lazy" decoding="async">{%- endif -%}
-            <span class="lxl-tile-top"><span>[ {{ forloop.index }} ]</span><span>{{ c.products_count }} {{ section.settings.count_many | escape }}</span></span>
+            <span class="lxl-tile-top"><span>{{ forloop.index }}</span><span>{{ c.products_count }} {{ section.settings.count_many | escape }}</span></span>
             <span class="lxl-tile-bot"><span class="lxl-tile-name">{{ c.title | escape }}</span>{%- if tile_cta != blank -%}<span class="lxl-tile-cta">{{ tile_cta }}</span>{%- endif -%}</span>
           </a>
         {%- endfor -%}
@@ -321,7 +321,7 @@
     {%- assign lc = section.settings.latest_collection -%}
     <section class="lxl-sec lxl-wrap" aria-labelledby="lxl-latest-{{ sid }}">
       <div class="lxl-head">
-        <div><span class="lxl-meta">[ {{ section.settings.latest_meta | escape }} ]</span><h2 class="lxl-h" id="lxl-latest-{{ sid }}">{{ section.settings.latest_title | escape }}</h2></div>
+        <div><span class="lxl-meta">{{ section.settings.latest_meta | escape }}</span><h2 class="lxl-h" id="lxl-latest-{{ sid }}">{{ section.settings.latest_title | escape }}</h2></div>
         {%- if section.settings.latest_link_label != blank -%}<a class="lxl-more" href="{{ lc.url }}?sort_by=created-descending">{{ section.settings.latest_link_label | escape }}</a>{%- endif -%}
       </div>
       <div class="lxl-row">
@@ -346,7 +346,7 @@
   {%- if section.settings.show_looks and look_blocks.size > 0 -%}
     <section class="lxl-sec lxl-wrap" aria-label="{{ section.settings.looks_aria | escape }}">
       {%- if section.settings.looks_title != blank -%}
-        <div class="lxl-head"><div><span class="lxl-meta">[ {{ section.settings.looks_meta | escape }} ]</span><h2 class="lxl-h">{{ section.settings.looks_title | escape }}</h2></div></div>
+        <div class="lxl-head"><div><span class="lxl-meta">{{ section.settings.looks_meta | escape }}</span><h2 class="lxl-h">{{ section.settings.looks_title | escape }}</h2></div></div>
       {%- endif -%}
       <div class="lxl-looks">
         {%- for b in look_blocks limit: 2 -%}
@@ -381,7 +381,7 @@
   {%- if section.settings.show_picks -%}
     <section class="lxl-sec lxl-wrap" aria-labelledby="lxl-picks-{{ sid }}">
       <div class="lxl-head">
-        <div><span class="lxl-meta">[ {{ section.settings.picks_meta | escape }} ]</span><h2 class="lxl-h" id="lxl-picks-{{ sid }}">{{ section.settings.picks_title | escape }}</h2></div>
+        <div><span class="lxl-meta">{{ section.settings.picks_meta | escape }}</span><h2 class="lxl-h" id="lxl-picks-{{ sid }}">{{ section.settings.picks_title | escape }}</h2></div>
         {%- if section.settings.picks_link_label != blank and section.settings.picks_collection != blank -%}<a class="lxl-more" href="{{ section.settings.picks_collection.url }}">{{ section.settings.picks_link_label | escape }}</a>{%- endif -%}
       </div>
       <div class="lxl-row">
@@ -408,7 +408,7 @@
       {%- if section.settings.wordmark != blank -%}<span class="lxl-wm" aria-hidden="true">{{ section.settings.wordmark | escape }}</span>{%- endif -%}
       <div class="lxl-wrap lxl-sign-in">
         <div>
-          {%- if section.settings.sign_meta != blank -%}<span class="lxl-meta">[ {{ section.settings.sign_meta | escape }} ]</span>{%- endif -%}
+          {%- if section.settings.sign_meta != blank -%}<span class="lxl-meta">{{ section.settings.sign_meta | escape }}</span>{%- endif -%}
           <h2 class="lxl-h" id="lxl-sign-{{ sid }}">{{ section.settings.sign_title | escape }}</h2>
           {%- if section.settings.sign_sub != blank -%}<p class="lxl-sign-sub">{{ section.settings.sign_sub | escape }}</p>{%- endif -%}
         </div>
@@ -627,3 +627,4 @@
   "presets": [ { "name": "LEXE collections index" } ]
 }
 {% endschema %}
+
