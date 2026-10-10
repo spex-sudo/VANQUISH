@@ -17,6 +17,18 @@
   else
     assign new_url = routes.all_products_collection_url | append: '?sort_by=created-descending'
   endif
+  assign ni_product = nil
+  if s.newin_mode == 'product' and s.newin_product != blank
+    assign ni_product = s.newin_product
+  elsif new_col != blank
+    paginate new_col.products by 250
+      assign ni_sorted = new_col.products | sort: 'created_at'
+      assign ni_product = ni_sorted | last
+    endpaginate
+  endif
+  if ni_product != blank and s.newin_link_to == 'product'
+    assign new_url = ni_product.url
+  endif
   assign privacy_url = shop.privacy_policy.url | default: '/policies/privacy-policy'
   assign glass_a = s.glass_opacity | divided_by: 100.0
   assign glass_bg = s.glass_tint | color_modify: 'alpha', glass_a
@@ -123,9 +135,9 @@
   #lb-{{ sid }} .lb-tline{ margin: 0; font-size: 14px; line-height: 1.35; }
   #lb-{{ sid }} .lb-orb{ width: 76px; height: 76px; border-radius: 50%; background: var(--lb-accent); align-self: flex-end; display: grid; place-items: center; }
   #lb-{{ sid }} .lb-orb img{ width: 58%; height: auto; display: block; }
-  #lb-{{ sid }} .lb-join{ display: inline-flex; align-items: center; gap: 0; border: 0; padding: 0; background: none; cursor: pointer; color: inherit; font: inherit; }
-  #lb-{{ sid }} .lb-join b{ font-weight: 500; font-size: 13px; background: var(--lb-ticket-text); color: var(--lb-ticket-bg); padding: 10px 16px; border-radius: var(--lb-rc); }
-  #lb-{{ sid }} .lb-join i{ width: 36px; height: 36px; margin-left: -4px; border-radius: 50%; background: var(--lb-ticket-text); color: var(--lb-ticket-bg); display: grid; place-items: center; font-style: normal; }
+  #lb-{{ sid }} .lb-join{ display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; cursor: pointer; font: inherit; font-size: 13px; font-weight: 500;
+    background: transparent; color: var(--lb-ticket-text); border: 1.5px solid var(--lb-ticket-text); border-radius: var(--lb-rc); transition: background .2s, color .2s; }
+  #lb-{{ sid }} .lb-join:hover{ background: var(--lb-ticket-text); color: var(--lb-ticket-bg); }
   #lb-{{ sid }} .lb-back-h{ font-family: var(--lb-head); font-weight: {{ s.heading_font.weight | default: 700 }}; text-transform: uppercase; font-size: 44px; line-height: .9; margin: 0; }
   #lb-{{ sid }} .lb-back-p{ margin: 0; font-size: 15px; line-height: 1.4; max-width: 26ch; }
 
@@ -136,6 +148,12 @@
   #lb-{{ sid }} .lb-newin p{ margin: 6px 0 0; color: rgba(255,255,255,.55); font-size: 15px; }
   #lb-{{ sid }} .lb-newin .lb-cta{ align-self: flex-end; font-size: 16px; display: inline-flex; align-items: center; gap: 8px; }
   #lb-{{ sid }} .lb-newin .lb-cta::after{ content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--lb-accent); }
+  #lb-{{ sid }} .lb-newin.has-img{ flex-direction: row; align-items: stretch; gap: 14px; }
+  #lb-{{ sid }} .lb-ni-text{ flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; gap: 18px; }
+  #lb-{{ sid }} .lb-ni-text p{ overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  #lb-{{ sid }} .lb-newin.has-img .lb-cta{ align-self: flex-start; }
+  #lb-{{ sid }} .lb-ni-img{ flex: 0 0 auto; width: 118px; aspect-ratio: 4 / 5; border-radius: calc(var(--lb-r) - 2px); overflow: hidden; background: #111; align-self: center; }
+  #lb-{{ sid }} .lb-ni-img img{ width: 100%; height: 100%; object-fit: cover; display: block; }
 
   /* LINKS */
   #lb-{{ sid }} .lb-links{ grid-area: links; display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 0; list-style: none; }
@@ -174,14 +192,13 @@
   @media (prefers-reduced-motion: reduce){
     #lb-{{ sid }} .lb-flip, #lb-{{ sid }} .lb-newin{ transition: none; }
   }
-  {%- unless is_pw -%}
+  {%- if is_pw == false and s.page_top_pad > 0 -%}
     #lb-{{ sid }} .lb-wrap{ padding-top: {{ s.page_top_pad }}px; }
-    #lb-{{ sid }}{ min-height: auto; }
-  {%- endunless -%}
+  {%- endif -%}
   {%- if s.hide_widgets -%}
     #ads-agent-host, shopify-chat, #shopify-chat{ display: none !important; }
   {%- endif -%}
-  {%- if is_pw and s.hide_default_footer -%}
+  {%- if s.hide_default_footer -%}
     .password-footer{ display: none !important; }
   {%- endif -%}
   {%- if is_pw -%}
@@ -272,7 +289,7 @@
             <p class="lb-tline">{{ s.ticket_line | escape | newline_to_br }}</p>
             <span class="lb-orb" aria-hidden="true">{%- if s.logo != blank -%}{{ s.logo | image_url: width: 160 | image_tag: alt: '', loading: 'lazy' }}{%- endif -%}</span>
             <button type="button" class="lb-join" data-lb-jump-btn aria-controls="lb-email-input-{{ sid }}">
-              <b>{{ s.ticket_cta | escape }}</b><i aria-hidden="true">&rsaquo;</i>
+              {{ s.ticket_cta | escape }}
             </button>
           </div>
         </div>
@@ -287,24 +304,51 @@
     </div>
 
     {%- comment -%} NEW IN {%- endcomment -%}
-    <a class="lb-card lb-newin" href="{{ new_url }}">
-      <div>
-        <h3>{{ s.newin_heading | escape }}</h3>
-        <p>{{ s.newin_sub | default: new_col.title | escape }}</p>
+    {%- liquid
+      assign ni_img = nil
+      if ni_product != blank and s.newin_show_image
+        assign ni_img = ni_product.featured_image
+      endif
+      if ni_product != blank
+        assign ni_sub = s.newin_sub | default: ni_product.title
+      else
+        assign ni_sub = s.newin_sub | default: new_col.title
+      endif
+    -%}
+    <a class="lb-card lb-newin{% if ni_img != blank %} has-img{% endif %}" href="{{ new_url }}">
+      <div class="lb-ni-text">
+        <div>
+          <h3>{{ s.newin_heading | escape }}</h3>
+          {%- if ni_sub != blank -%}<p>{{ ni_sub | escape }}</p>{%- endif -%}
+        </div>
+        <span class="lb-cta">{{ s.newin_cta | escape }}</span>
       </div>
-      <span class="lb-cta">{{ s.newin_cta | escape }}</span>
+      {%- if ni_img != blank -%}
+        <div class="lb-ni-img">{{ ni_img | image_url: width: 400 | image_tag: alt: ni_product.title, loading: 'lazy', widths: '200, 300, 400', sizes: '118px' }}</div>
+      {%- endif -%}
     </a>
 
     {%- comment -%} LINK PILLS {%- endcomment -%}
     {%- if section.blocks.size > 0 -%}
       <ul class="lb-links" role="list">
         {%- for block in section.blocks -%}
+          {%- liquid
+            assign b_icon = block.settings.icon
+            assign b_note = block.settings.note
+            if block.type == 'instagram'
+              assign b_icon = 'instagram'
+              if block.settings.handle != blank
+                assign b_h = block.settings.handle | remove: '@'
+                assign b_note = '@' | append: b_h
+              endif
+            endif
+          -%}
           {%- if block.settings.url != blank -%}
             <li {{ block.shopify_attributes }}>
               <a class="lb-pill{% if block.settings.style == 'solid' %} lb-pill--solid{% endif %}" href="{{ block.settings.url }}"
                 {% if block.settings.new_tab %}target="_blank" rel="noopener"{% endif %}>
                 <span>
-                  {%- case block.settings.icon -%}
+                  {%- case b_icon -%}
                     {%- when 'tiktok' -%}<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.6 5.82A4.28 4.28 0 0 1 15.5 3h-3.1v12.4a2.59 2.59 0 0 1-2.59 2.5 2.6 2.6 0 0 1-2.6-2.6 2.6 2.6 0 0 1 3.37-2.48V9.66A5.7 5.7 0 0 0 4.1 15.3a5.7 5.7 0 0 0 5.7 5.7 5.7 5.7 0 0 0 5.7-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3a4.3 4.3 0 0 1-3.2-1.48z"/></svg>
                     {%- when 'instagram' -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
                     {%- when 'whatsapp' -%}<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.15l-.3-.18-3 .78.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.25-.12-1.47-.72-1.7-.8-.23-.09-.4-.13-.56.12-.17.25-.64.8-.79.97-.14.17-.29.19-.54.06a6.7 6.7 0 0 1-3.32-2.9c-.25-.43.25-.4.71-1.33.08-.16.04-.31-.02-.43l-.76-1.83c-.2-.48-.4-.42-.56-.42h-.48a.92.92 0 0 0-.66.31 2.78 2.78 0 0 0-.87 2.07 4.83 4.83 0 0 0 1 2.56 11 11 0 0 0 4.24 3.74c1.58.68 2.2.74 2.99.62.48-.07 1.47-.6 1.68-1.18.2-.58.2-1.08.15-1.18-.06-.11-.23-.17-.48-.29z"/></svg>
@@ -313,7 +357,7 @@
                   {%- endcase -%}
                   {{ block.settings.label | escape }}
                 </span>
-                {%- if block.settings.note != blank -%}<em>{{ block.settings.note | escape }}</em>{%- else -%}<em aria-hidden="true">&#8599;</em>{%- endif -%}
+                {%- if b_note != blank -%}<em>{{ b_note | escape }}</em>{%- else -%}<em aria-hidden="true">&#8599;</em>{%- endif -%}
               </a>
             </li>
           {%- endif -%}
@@ -393,15 +437,28 @@
       "type": "link",
       "name": "Link pill",
       "settings": [
-        { "type": "text", "id": "label", "label": "Label", "default": "Shop LEXE" },
+        { "type": "text", "id": "label", "label": "Label", "default": "Explore LEXE" },
         { "type": "url", "id": "url", "label": "Link" },
         { "type": "text", "id": "note", "label": "Right-side note", "info": "e.g. @lexe.studio. Blank shows an arrow." },
         { "type": "select", "id": "icon", "label": "Icon", "default": "none", "options": [
-          { "value": "none", "label": "None" }, { "value": "shop", "label": "Shop bag" }, { "value": "tiktok", "label": "TikTok" },
+          { "value": "none", "label": "None" }, { "value": "shop", "label": "Bag" }, { "value": "tiktok", "label": "TikTok" },
           { "value": "instagram", "label": "Instagram" }, { "value": "whatsapp", "label": "WhatsApp" } ] },
         { "type": "select", "id": "style", "label": "Style", "default": "glass", "options": [
           { "value": "glass", "label": "Glass" }, { "value": "solid", "label": "Solid white" } ] },
         { "type": "checkbox", "id": "new_tab", "label": "Open in new tab", "default": false }
+      ]
+    },
+    {
+      "type": "instagram",
+      "name": "Instagram pill",
+      "limit": 1,
+      "settings": [
+        { "type": "text", "id": "label", "label": "Label", "default": "Instagram" },
+        { "type": "url", "id": "url", "label": "Instagram profile link", "info": "Pill is hidden until a link is added." },
+        { "type": "text", "id": "handle", "label": "Handle (without @)" },
+        { "type": "select", "id": "style", "label": "Style", "default": "glass", "options": [
+          { "value": "glass", "label": "Glass" }, { "value": "solid", "label": "Solid white" } ] },
+        { "type": "checkbox", "id": "new_tab", "label": "Open in new tab", "default": true }
       ]
     }
   ],
@@ -416,9 +473,9 @@
     { "type": "image_picker", "id": "logo", "label": "Logo / monogram (light)" },
     { "type": "range", "id": "logo_height", "label": "Logo height", "min": 20, "max": 64, "step": 2, "unit": "px", "default": 34 },
     { "type": "text", "id": "nav_join_label", "label": "Nav pill 1 (jumps to signup)", "default": "Members" },
-    { "type": "text", "id": "nav_shop_label", "label": "Nav pill 2 (shop link)", "default": "Shop" },
-    { "type": "url", "id": "shop_url", "label": "Shop link", "info": "Blank = home page." },
-    { "type": "text", "id": "status_text", "label": "Status line (password page only)", "default": "Private preview" },
+    { "type": "text", "id": "nav_shop_label", "label": "Nav pill 2 (store link)", "default": "Store" },
+    { "type": "url", "id": "shop_url", "label": "Store link", "info": "Blank = home page." },
+    { "type": "text", "id": "status_text", "label": "Status line (password page only)", "default": "Members access" },
     { "type": "text", "id": "eyebrow", "label": "Eyebrow (other pages)", "default": "Members access" },
     { "type": "text", "id": "headline", "label": "Headline", "default": "LEXE" },
     { "type": "range", "id": "headline_size", "label": "Headline size (desktop)", "min": 64, "max": 200, "step": 4, "unit": "px", "default": 148 },
@@ -441,13 +498,19 @@
     { "type": "textarea", "id": "ticket_date", "label": "Drop date / time", "info": "Optional. Only add a real, confirmed date." },
     { "type": "textarea", "id": "ticket_line", "label": "Ticket line", "default": "Members hear first." },
     { "type": "text", "id": "ticket_stub_label", "label": "Stub label", "default": "LEXE · Members" },
-    { "type": "text", "id": "ticket_cta", "label": "Button", "default": "Join in" },
+    { "type": "text", "id": "ticket_cta", "label": "Button (focuses the email field)", "default": "Get first look" },
     { "type": "text", "id": "success_heading", "label": "Success: heading (ticket flips)", "default": "You're in." },
     { "type": "text", "id": "success_text", "label": "Success: text", "default": "Watch your inbox for the next drop." },
     { "type": "header", "content": "New in card" },
     { "type": "collection", "id": "new_in_collection", "label": "Collection", "info": "Opens sorted newest first." },
     { "type": "text", "id": "newin_heading", "label": "Heading", "default": "New in" },
-    { "type": "text", "id": "newin_sub", "label": "Subheading", "info": "Blank = collection title." },
+    { "type": "select", "id": "newin_mode", "label": "Featured item", "default": "auto", "options": [
+      { "value": "auto", "label": "Auto: newest product in the collection" }, { "value": "product", "label": "Picked product" } ] },
+    { "type": "product", "id": "newin_product", "label": "Picked product" },
+    { "type": "checkbox", "id": "newin_show_image", "label": "Show product image", "default": true, "info": "Hidden automatically if the product has no image." },
+    { "type": "select", "id": "newin_link_to", "label": "Explore link goes to", "default": "product", "options": [
+      { "value": "product", "label": "The product" }, { "value": "collection", "label": "The collection (newest first)" } ] },
+    { "type": "text", "id": "newin_sub", "label": "Subheading override", "info": "Blank = the product's exact title (or the collection title)." },
     { "type": "text", "id": "newin_cta", "label": "Link text", "default": "Explore" },
     { "type": "header", "content": "Footer" },
     { "type": "text", "id": "password_link_text", "label": "Password link (password page only)", "default": "Have the store password? Enter it here." },
