@@ -50,7 +50,7 @@
   #lb-{{ sid }} .lb-bg::after{ content: ""; position: absolute; inset: 0;
     background: linear-gradient(180deg, rgba(0,0,0,{{ s.bg_overlay | divided_by: 100.0 }}) 0%, rgba(0,0,0,{{ s.bg_overlay | plus: 15 | at_most: 100 | divided_by: 100.0 }}) 100%); }
   #lb-{{ sid }} .lb-wrap{ position: relative; z-index: 1; width: 100%; max-width: {{ s.max_width }}px; margin: 0 auto;
-    padding: max(16px, env(safe-area-inset-top)) 14px max(20px, env(safe-area-inset-bottom));
+    padding: max(16px, env(safe-area-inset-top)) 14px max(76px, env(safe-area-inset-bottom));
     display: grid; gap: 10px; grid-template-columns: 1fr;
     grid-template-areas: "hero" "email" "ticket" "newin" "links" "foot"; }
   #lb-{{ sid }} .lb-card{ border-radius: var(--lb-r); padding: 18px; position: relative; min-width: 0; }
