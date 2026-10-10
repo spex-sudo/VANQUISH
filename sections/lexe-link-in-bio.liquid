@@ -238,7 +238,7 @@
             {{ s.consent_before | escape }} <a href="{{ privacy_url }}" target="_blank" rel="noopener">{{ s.consent_link | escape }}</a>{{ s.consent_after | escape }}
           </p>
         </div>
-        <p class="lb-done-note">{{ s.success_note | escape }}</p>
+        <p class="lb-done-note" role="status">{{ s.success_note | escape }}</p>
         <p class="lb-msg{% if form.errors %} is-error{% endif %}" id="lb-msg-{{ sid }}" role="status" aria-live="polite" data-lb-msg>
           {%- if form.errors -%}{{ form.errors.translated_fields.email | default: 'Email' }} {{ form.errors.messages.email | default: 'needs another look.' }}{%- endif -%}
         </p>
@@ -336,11 +336,16 @@
     var faces = root.querySelectorAll('.lb-face');
     if (faces[0]) faces[0].setAttribute('aria-hidden','true');
     if (faces[1]) faces[1].setAttribute('aria-hidden','false');
-    if (msg){ msg.className = 'lb-msg'; msg.textContent = {{ s.success_heading | append: ' ' | append: s.success_text | json }}; }
+    if (msg){ msg.className = 'lb-msg'; msg.textContent = ''; }
   }
-  if (root.querySelector('[data-lb-posted]') || /customer_posted=true/.test(location.search)) joined();
+  if (root.querySelector('[data-lb-posted]') || /customer_posted=true/.test(location.search)) {
+    root.classList.add('is-posted');
+    var tk = root.querySelector('.lb-ticket');
+    if (tk && tk.scrollIntoView) tk.scrollIntoView({ block: 'center' });
+    setTimeout(joined, 450); /* let the ticket be seen flipping */
+  }
   /* desktop-only autofocus (mobile keyboard would cover the page) */
-  if (input && !root.classList.contains('is-joined') && window.matchMedia('(min-width: 750px) and (pointer: fine)').matches && !location.hash) {
+  if (input && !root.classList.contains('is-posted') && window.matchMedia('(min-width: 750px) and (pointer: fine)').matches && !location.hash) {
     try { input.focus({ preventScroll: true }); } catch(e){}
   }
   function toEmail(e){ if(e) e.preventDefault(); var c = root.querySelector('#lb-email-{{ sid }}');
@@ -351,20 +356,9 @@
   if (form) form.addEventListener('submit', function(e){
     var v = (input.value || '').trim();
     if (!valid(v)) { e.preventDefault(); msg.className = 'lb-msg is-error'; msg.textContent = {{ s.invalid_text | json }}; input.focus(); return; }
-    if (!window.fetch || !window.FormData) return; /* native post fallback */
-    e.preventDefault();
-    go.setAttribute('aria-busy','true'); go.disabled = true; msg.className='lb-msg'; msg.textContent = '';
-    fetch(form.action, { method: 'POST', body: new FormData(form), credentials: 'same-origin', headers: { 'Accept': 'text/html' } })
-      .then(function(r){
-        if (/\/challenge/.test(r.url)) { form.submit(); return; }           /* Shopify bot check: hand over to native submit */
-        if (/customer_posted=true/.test(r.url)) { joined(); return; }
-        return r.text().then(function(html){
-          if (/customer_posted=true|posted_successfully/.test(html)) { joined(); return; }
-          form.submit();                                                     /* let Shopify render its own error */
-        });
-      })
-      .catch(function(){ form.submit(); })
-      .finally(function(){ go.removeAttribute('aria-busy'); go.disabled = false; });
+    /* Native post so Shopify's own spam check (hCaptcha) runs; Shopify redirects back with customer_posted=true */
+    go.setAttribute('aria-busy','true'); msg.className='lb-msg'; msg.textContent='';
+    setTimeout(function(){ go.removeAttribute('aria-busy'); }, 8000);
   });
   /* store password: open the theme's own storefront_password dialog */
   var pw = root.querySelector('[data-lb-pw]');
