@@ -18,9 +18,10 @@
             "collection": "lexe",
             "size": "primary",
             "style": "image",
-            "label": "Statement outerwear, after-dark pieces",
             "product": "cross-black-fur-collar-with-cotton-leather-jacket-for-women",
-            "title": "LEXE"
+            "title": "LEXE",
+            "label": "Statement outerwear, after-dark pieces",
+            "link": ""
           }
         },
         "t_specs": {
@@ -29,9 +30,10 @@
             "collection": "lexespecs",
             "size": "primary",
             "style": "image",
-            "label": "Frames and shades with an edge",
             "product": "elliptical-small-frame-sunglasses-new-fashion-trend-high-end-sunglasses",
-            "title": "Specs"
+            "title": "Specs",
+            "label": "Frames and shades with an edge",
+            "link": ""
           }
         },
         "t_women": {
@@ -40,9 +42,10 @@
             "collection": "women",
             "size": "primary",
             "style": "image",
-            "label": "Dresses, layers and fitted cuts",
             "product": "black-strap-blue-diamond-inlaid-mid-size-dress",
-            "title": "Women"
+            "title": "Women",
+            "label": "Dresses, layers and fitted cuts",
+            "link": ""
           }
         },
         "t_men": {
@@ -51,9 +54,10 @@
             "collection": "men",
             "size": "primary",
             "style": "image",
-            "label": "Jackets and everyday layers",
             "product": "pu-leather-black-leather-jacket-for-men-and-women",
-            "title": "Men"
+            "title": "Men",
+            "label": "Jackets and everyday layers",
+            "link": ""
           }
         },
         "t_shoes": {
@@ -62,9 +66,10 @@
             "collection": "shoes",
             "size": "primary",
             "style": "image",
-            "label": "Heavy soles and statement boots",
             "product": "multi-buckle-platform-knee-high-boots",
-            "title": "Shoes"
+            "title": "Shoes",
+            "label": "Heavy soles and statement boots",
+            "link": ""
           }
         },
         "s_faux": {
@@ -73,9 +78,10 @@
             "collection": "faux-leather-jackets",
             "size": "primary",
             "style": "image",
-            "label": "Every cut, in faux leather",
             "product": "short-leather-jacket-black-loose-jacket-top",
-            "title": "Faux leather jackets"
+            "title": "Faux leather jackets",
+            "label": "Every cut, in faux leather",
+            "link": ""
           }
         },
         "s_amelia": {
@@ -84,9 +90,10 @@
             "collection": "amelia",
             "size": "secondary",
             "style": "image",
-            "label": "",
             "product": "side-tied-long-sleeve-shirt",
-            "title": "Amelia"
+            "title": "Amelia",
+            "label": "",
+            "link": ""
           }
         },
         "s_vanquish": {
@@ -95,9 +102,10 @@
             "collection": "apparell",
             "size": "secondary",
             "style": "image",
-            "label": "",
             "product": "mock-neck-long-sleeve-zipper-detail-maxi-dress",
-            "title": "Vanquish"
+            "title": "Vanquish",
+            "label": "",
+            "link": ""
           }
         },
         "s_iphone": {
@@ -106,9 +114,10 @@
             "collection": "iphone-cases",
             "size": "secondary",
             "style": "image",
-            "label": "",
             "product": "applicable-to-ins-apple-11pro-phone-case-14-small-monster-iphone13-transparent-phone-case",
-            "title": "iPhone cases"
+            "title": "iPhone cases",
+            "label": "",
+            "link": ""
           }
         },
         "s_maze": {
@@ -117,9 +126,10 @@
             "collection": "maze",
             "size": "secondary",
             "style": "image",
-            "label": "",
             "product": "tiger-pattern-apple-16-phone-protective-case-2-in-1-film-case-phone-case-apple-15pm-hard-case-13",
-            "title": "Maze"
+            "title": "Maze",
+            "label": "",
+            "link": ""
           }
         },
         "look_1": {
@@ -130,7 +140,8 @@
             "eyebrow": "LEXE · Outerwear",
             "headline": "The long line.",
             "sub": "A long, loose blazer with a suit collar. In black or off-white.",
-            "cta": "See the look"
+            "cta": "See the look",
+            "link": ""
           }
         },
         "look_2": {
@@ -141,7 +152,8 @@
             "eyebrow": "LEXE · Dresses",
             "headline": "Cut close. Kept dark.",
             "sub": "A short, fitted black dress with chain straps.",
-            "cta": "See the look"
+            "cta": "See the look",
+            "link": ""
           }
         }
       },
@@ -160,9 +172,57 @@
         "look_2"
       ],
       "settings": {
+        "show_opener": true,
+        "meta_1": "",
+        "show_count": false,
+        "count_label": "collections",
+        "title": "The LEXE edit.",
+        "accent_last": true,
+        "sub": "LEXE by Devici Studios. Every collection, one place.",
+        "wordmark": "LEXE",
+        "wm_opacity": 10,
+        "show_hero": true,
         "hero_product": "mens-zip-up-long-sleeve-denim-jacket",
+        "hero_w": 220,
         "hero_caption": "",
+        "hero_mobile": false,
+        "open_pad_top": 96,
+        "open_pad_top_mobile": 104,
+        "headline_font": "syne_n7",
+        "accent": "#E2C6FF",
+        "exclude_handles": "all,frontpage,vanquish-collection,specs-offer-eligible,lexespecs-gift",
+        "drop_handles": "iphone-cases,maze",
+        "tiles_aria": "Collections",
+        "tile_ratio_desktop": "3 / 4",
+        "tile_ratio": "4 / 5",
+        "tiles_cols": 3,
+        "sec_cols": 4,
+        "tile_shade": 70,
+        "tile_mono": false,
+        "tile_cta": "Explore",
+        "show_tile_count": false,
+        "count_one": "piece",
+        "count_many": "pieces",
+        "sec_meta": "",
+        "sec_title": "More collections",
+        "eager_tiles": 3,
+        "tiles_gap": 22,
+        "row_limit": 8,
+        "row_cols": 4,
+        "show_wish": true,
+        "show_qa": true,
+        "show_sw": true,
+        "show_compare": true,
+        "new_days": 30,
+        "show_latest": true,
         "latest_collection": "lexe",
+        "latest_meta": "Just in",
+        "latest_title": "Latest arrivals",
+        "latest_link_label": "View all",
+        "row_exclude": "explosive-pattern-leather-jacket-cotton-jacket-pilots-leather-jacket,coat-with-fur-collar-hood-and-fleece-leather-jacket",
+        "latest_skip_picks": true,
+        "show_picks": true,
+        "picks_mode": "bestselling",
         "picks": [
           "womens-embroidered-flame-patchwork-biker-jacket-leather-coat-with-lining",
           "splicing-leather-effect-jacket",
@@ -174,17 +234,27 @@
           "short-leather-jacket-black-loose-jacket-top"
         ],
         "picks_collection": "lexe",
-        "picks_mode": "picks",
-        "row_exclude": "explosive-pattern-leather-jacket-cotton-jacket-pilots-leather-jacket,coat-with-fur-collar-hood-and-fleece-leather-jacket",
-        "title": "The LEXE edit.",
-        "sub": "LEXE by Devici Studios. Every collection, one place.",
+        "picks_meta": "",
+        "picks_title": "Editor's picks",
+        "picks_link_label": "View all",
+        "show_looks": true,
+        "looks_meta": "Looks",
         "looks_title": "Start with a look.",
+        "looks_aria": "Looks",
+        "show_signup": true,
+        "sign_meta": "",
+        "sign_title": "First to know.",
+        "sign_sub": "Get an email when a new LEXE drop lands. Nothing else, and you can unsubscribe anytime.",
+        "sign_email_label": "Email address",
+        "sign_button": "Get drop alerts",
+        "sign_consent": "I agree to receive LEXE drop emails.",
         "sign_note": "By signing up, you agree to receive LEXE drop emails. See our <a href=\"/policies/privacy-policy\">Privacy policy</a>. Unsubscribe anytime.",
         "sign_success": "You're on the list. We'll email you when the next drop lands.",
-        "show_compare": false,
-        "drop_handles": "iphone-cases,maze",
+        "sign_tag": "",
+        "pad_x": 32,
+        "sec_gap": 56,
         "hide_footer_signup": true,
-        "sec_cols": 4
+        "hide_floaters": true
       }
     }
   },
