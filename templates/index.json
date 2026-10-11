@@ -836,12 +836,12 @@
         "show_thumb_mobile": false,
         "thumb_product": "minimalist-soft-leather-short-jacket",
         "image_a": "shopify://shop_images/b2bdaa3a7be84b4096a537dd2007fa8a-Max-Origin.webp",
-        "image_a_position": "50% 12%",
+        "image_a_position": "50% 4%",
         "image_a_alt": "Model in the LEXE Lake Denim Jacket in washed black, wearing silver wraparound sunglasses",
         "image_a_label": "Men",
         "image_a_link": "/collections/men",
         "image_b": "shopify://shop_images/af3d6febed584ecbbe1fb96ef87112bc-Max-Origin.webp",
-        "image_b_position": "50% 34%",
+        "image_b_position": "50% 30%",
         "image_b_alt": "Close-up of a model wearing LEXE Metro Sunglasses in black",
         "image_b_label": "Specs",
         "image_b_link": "/collections/lexespecs",
@@ -876,9 +876,11 @@
         "radius_mobile": 20,
         "video_mobile": true,
         "hide_floaters": true,
-        "image_a_video_controls": false,
-        "image_b_video_controls": false,
-        "product_video_controls": false
+        "image_a_video_controls": true,
+        "image_b_video_controls": true,
+        "product_video_controls": false,
+        "image_a_video": "shopify://files/videos/Subject 2.mp4",
+        "image_b_video_url": "https://cdn.shopify.com/videos/c/vp/dc5e4149c2564c629557d5294d972c4d/dc5e4149c2564c629557d5294d972c4d.HD-720p-4.5Mbps-96081146.mp4"
       }
     }
   },

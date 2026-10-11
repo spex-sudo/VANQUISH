@@ -257,7 +257,7 @@
     {%- endif %}
     #lxb-{{ sid }} .lxb__content { padding: 16px 14px 14px; }
     #lxb-{{ sid }} .lxb__eyebrow { font-size: 9.5px; letter-spacing: .07em; margin-bottom: 8px; }
-    #lxb-{{ sid }} .lxb__title { font-size: clamp(22px, 14.5cqw, 34px); line-height: 1.04; letter-spacing: -.03em; }
+    #lxb-{{ sid }} .lxb__title { font-size: clamp(22px, 16.5cqw, 34px); line-height: 1.04; letter-spacing: -.03em; }
     #lxb-{{ sid }} .lxb__row { padding-top: 12px; padding-right: calc(var(--lxb-cx) + 2px); }
     #lxb-{{ sid }} .lxb__ctas { flex-direction: column; align-items: flex-start; gap: 6px; }
     #lxb-{{ sid }} .lxb__btn { min-height: 40px; padding: 0 14px; font-size: 13px; }
@@ -313,7 +313,7 @@
 
     <div class="lxb__p lxb__img lxb__img--a">
       {%- if img_a != blank or st.image_a_video != blank or st.image_a_video_url != blank -%}
-        {%- render 'lexe-bento-media', img: img_a, video: st.image_a_video, video_url: st.image_a_video_url, poster: st.image_a_poster, pos: pos_a, eager: eager_a, widths: '360, 480, 640, 800, 960, 1120, 1350, 1600', sizes: '(min-width: 1240px) 660px, (min-width: 750px) 50vw, 52vw', alt: st.image_a_alt, img_width: 1920, controls: st.image_a_video_controls, label: st.image_a_label -%}
+        {%- render 'lexe-bento-media', img: img_a, video: st.image_a_video, video_url: st.image_a_video_url, poster: st.image_a_poster, pos: pos_a, eager: eager_a, widths: '360, 480, 640, 800, 960, 1120, 1350, 1600', sizes: '(min-width: 1240px) 660px, (min-width: 750px) 56vw, 50vw', alt: st.image_a_alt, img_width: 1920, controls: st.image_a_video_controls, label: st.image_a_label -%}
       {%- else -%}<div class="lxb__ph">Add an image</div>{%- endif -%}
       {%- if st.image_a_link != blank -%}<a class="lxb__link" href="{{ st.image_a_link }}" aria-label="{{ st.image_a_label | default: st.image_a_alt | escape }}" data-lxb-cta="image_a"></a>{%- endif -%}
       {%- if st.image_a_label != blank -%}<span class="lxb__chip">{{ st.image_a_label }}</span>{%- endif -%}
@@ -321,7 +321,7 @@
 
     {%- if img_b != blank or st.image_b_video != blank or st.image_b_video_url != blank -%}
     <div class="lxb__p lxb__img lxb__img--b">
-      {%- render 'lexe-bento-media', img: img_b, video: st.image_b_video, video_url: st.image_b_video_url, poster: st.image_b_poster, pos: pos_b, eager: false, widths: '360, 480, 640, 800, 960, 1120, 1350, 1600', sizes: '(min-width: 1240px) 660px, (min-width: 750px) 50vw, 56vw', alt: st.image_b_alt, img_width: 1920, controls: st.image_b_video_controls, label: st.image_b_label -%}
+      {%- render 'lexe-bento-media', img: img_b, video: st.image_b_video, video_url: st.image_b_video_url, poster: st.image_b_poster, pos: pos_b, eager: false, widths: '360, 480, 640, 800, 960, 1120, 1350, 1600', sizes: '(min-width: 1240px) 660px, (min-width: 750px) 56vw, 56vw', alt: st.image_b_alt, img_width: 1920, controls: st.image_b_video_controls, label: st.image_b_label -%}
       {%- if st.image_b_link != blank -%}<a class="lxb__link" href="{{ st.image_b_link }}" aria-label="{{ st.image_b_label | default: st.image_b_alt | escape }}" data-lxb-cta="image_b"></a>{%- endif -%}
       {%- if st.image_b_label != blank -%}<span class="lxb__chip">{{ st.image_b_label }}</span>{%- endif -%}
     </div>
