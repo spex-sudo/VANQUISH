@@ -819,7 +819,7 @@
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   #lxp-{{ sid }} .lxp-count { flex: 0 0 auto; font-size: 13px; font-weight: 500; letter-spacing: .01em; color: rgba(255,255,255,.7); font-variant-numeric: tabular-nums; }
-  #lxp-{{ sid }} .lxp-sub { margin: 8px 0 0; font-size: 15px; line-height: 1.4; color: rgba(255,255,255,.75); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #lxp-{{ sid }} .lxp-sub { margin: 8px 0 0; max-width: 54ch; font-size: 15px; line-height: 1.4; color: rgba(255,255,255,.75); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
   /* glass chips */
   #lxp-{{ sid }} .lxp-chip {
     display: inline-flex; align-items: center; gap: 8px; min-height: 30px; padding: 0 12px 0 12px; border-radius: 999px; text-decoration: none;
@@ -851,6 +851,9 @@
     #lxp-{{ sid }} .lxp-count { font-size: 12px; }
     #lxp-{{ sid }} .lxp-sub { margin-top: 5px; font-size: 13px; line-height: 1.38; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
     #lxp-{{ sid }} .lxp-resume { top: 54px; right: 10px; max-width: 56%; }
+    #lxp-{{ sid }} .lxp-chip { font-size: 11px; min-height: 28px; }
+    #lxp-{{ sid }} .lxp-resume-img { width: 20px; height: 20px; }
+    #lxp-{{ sid }} .lxp-resume-txt small { font-size: 9px; }
   }
   @media (prefers-reduced-motion: reduce) { #lxp-{{ sid }} .lxp-chip { transition: none; } }
   {%- endif -%}
