@@ -2528,7 +2528,7 @@ body.ap-glassbar #MainContent{padding-bottom:var(--ap-glass-reserve,0px)}
       bar.querySelectorAll('[data-opt]').forEach(function(g){
         var oi=+g.getAttribute('data-opt');if(!oi)return;
         g.querySelectorAll('.ap-vsw'+S).forEach(function(b){
-          if(getComputedStyle(b).backgroundColor!=='rgba(0, 0, 0, 0)')return;
+          if(b.style.backgroundColor||b.style.backgroundImage)return; /* inline colour was valid CSS */
           var val=b.getAttribute('data-val'),img=null;
           VARS.forEach(function(v){if(!img&&v['option'+oi]===val&&v.featured_image&&v.featured_image.src)img=v.featured_image.src;});
           if(img){b.style.backgroundImage='url("'+img.replace(/"/g,'')+(img.indexOf('?')>-1?'&':'?')+'width=80")';b.style.backgroundSize='cover';b.style.backgroundPosition='center';}
