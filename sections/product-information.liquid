@@ -799,14 +799,18 @@
   font-family:var(--g-sys);color:#111;
   transition:transform .42s cubic-bezier(.32,.72,0,1),opacity .3s ease;
 }
+/* snippets/sticky-lock forces backdrop-filter:none on the bar itself (iOS fixed-position fix), so the frost lives on a pseudo layer */
+.ap-bar{{ sid }}.ap-bar--glass::before{content:'';position:absolute;inset:0;z-index:-1;border-radius:inherit;pointer-events:none;background:inherit}
 @supports ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
-  .ap-bar{{ sid }}.ap-bar--glass{
+  .ap-bar{{ sid }}.ap-bar--glass{background:transparent}
+  .ap-bar{{ sid }}.ap-bar--glass::before{
     background:rgba(255,255,255,{{ gb_op }});
     backdrop-filter:blur({{ section.settings.glass_bar_blur | default: 22 }}px) saturate(180%);
     -webkit-backdrop-filter:blur({{ section.settings.glass_bar_blur | default: 22 }}px) saturate(180%);
   }
+  .ap-bar--glass > .ap-bar-inner{{ sid }}{-webkit-backdrop-filter:none !important;backdrop-filter:none !important}
 }
-.ap-bar{{ sid }}.ap-bar--glass.hide{transform:translate3d(0,calc(100% + var(--g-in) + 40px),0)}
+.ap-bar{{ sid }}.ap-bar--glass.hide{transform:translate3d(0,calc(100% + var(--g-in) + 40px),0) !important;-webkit-transform:translate3d(0,calc(100% + var(--g-in) + 40px),0) !important}
 .ap-bar--atc-amethyst.ap-bar{{ sid }}{--g-atc:#9966CC}
 .ap-bar--glass .ap-bar-inner{{ sid }}{gap:8px}
 .ap-bar--glass .ap-trust{{ sid }}{font-family:var(--g-sys);letter-spacing:.06em;font-size:10px;color:#6e6e73;padding:0 0 2px}
