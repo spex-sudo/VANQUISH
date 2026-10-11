@@ -2521,6 +2521,22 @@ body.ap-glassbar #MainContent{padding-bottom:var(--ap-glass-reserve,0px)}
   /* Initial state for unavailable marking */
   markUnavailable();
 
+  /* Glass bar: colour names that are not CSS colours ("Bright black gray flakes") render as empty swatches.
+     Fill those with that colour's own variant photo (real data only); real CSS colours are left alone. */
+  if(bar&&bar.classList.contains('ap-bar--glass')){
+    try{
+      bar.querySelectorAll('[data-opt]').forEach(function(g){
+        var oi=+g.getAttribute('data-opt');if(!oi)return;
+        g.querySelectorAll('.ap-vsw'+S).forEach(function(b){
+          if(getComputedStyle(b).backgroundColor!=='rgba(0, 0, 0, 0)')return;
+          var val=b.getAttribute('data-val'),img=null;
+          VARS.forEach(function(v){if(!img&&v['option'+oi]===val&&v.featured_image&&v.featured_image.src)img=v.featured_image.src;});
+          if(img){b.style.backgroundImage='url("'+img.replace(/"/g,'')+(img.indexOf('?')>-1?'&':'?')+'width=80")';b.style.backgroundSize='cover';b.style.backgroundPosition='center';}
+        });
+      });
+    }catch(e){}
+  }
+
   /* Initial vault entry on view (low priority, fire after a tick) */
   setTimeout(function(){
     var v=findVariant();if(!v)return;
