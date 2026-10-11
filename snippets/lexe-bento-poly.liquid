@@ -1,0 +1,45 @@
+{%- comment -%}
+  LEXE Bento Hero helper: prints a clip-path polygon() with every corner filleted.
+  vs: array of "anchorX,offX,anchorY,offY,toPrevX,toPrevY,toNextX,toNextY,kind".
+  anchor 0 = left/top edge of the panel, 1 = right/bottom edge; offsets are px.
+  kind: r = 90deg, o = 180-θ, p = 90+θ, a = 90-θ. The fillet radius is r for all of them;
+  kO/kP/kA turn it into the tangent length for that corner angle.
+  Each corner is drawn as a quadratic Bezier (control point on the vertex) sampled 9 times.
+{%- endcomment -%}
+{%- capture pts -%}
+{%- for v in vs -%}
+  {%- assign p = v | split: ',' -%}
+  {%- assign ax = p[0] -%}
+  {%- assign vx = p[1] | plus: 0 -%}
+  {%- assign ay = p[2] -%}
+  {%- assign vy = p[3] | plus: 0 -%}
+  {%- assign ux = p[4] | plus: 0 -%}
+  {%- assign uy = p[5] | plus: 0 -%}
+  {%- assign wx = p[6] | plus: 0 -%}
+  {%- assign wy = p[7] | plus: 0 -%}
+  {%- case p[8] -%}
+    {%- when 'o' -%}{%- assign d = r | times: kO -%}
+    {%- when 'p' -%}{%- assign d = r | times: kP -%}
+    {%- when 'a' -%}{%- assign d = r | times: kA -%}
+    {%- else -%}{%- assign d = r | times: 1.0 -%}
+  {%- endcase -%}
+  {%- for i in (0..8) -%}
+    {%- assign ba = bez_a[i] | plus: 0 -%}
+    {%- assign bb = bez_b[i] | plus: 0 -%}
+    {%- assign px = ux | times: ba | times: d -%}
+    {%- assign px2 = wx | times: bb | times: d -%}
+    {%- assign px = px | plus: px2 | plus: vx | round: 2 -%}
+    {%- assign py = uy | times: ba | times: d -%}
+    {%- assign py2 = wy | times: bb | times: d -%}
+    {%- assign py = py | plus: py2 | plus: vy | round: 2 -%}
+    {%- if ax == '1' -%}
+      {%- if px < 0 -%}{%- assign apx = px | abs -%}{%- capture sx -%}calc(100% - {{ apx }}px){%- endcapture -%}{%- else -%}{%- capture sx -%}calc(100% + {{ px }}px){%- endcapture -%}{%- endif -%}
+    {%- else -%}{%- capture sx -%}{{ px }}px{%- endcapture -%}{%- endif -%}
+    {%- if ay == '1' -%}
+      {%- if py < 0 -%}{%- assign apy = py | abs -%}{%- capture sy -%}calc(100% - {{ apy }}px){%- endcapture -%}{%- else -%}{%- capture sy -%}calc(100% + {{ py }}px){%- endcapture -%}{%- endif -%}
+    {%- else -%}{%- capture sy -%}{{ py }}px{%- endcapture -%}{%- endif -%}
+    {{- sx }} {{ sy -}}{%- unless forloop.last and forloop.parentloop.last -%},{%- endunless -%}
+  {%- endfor -%}
+{%- endfor -%}
+{%- endcapture -%}
+polygon({{ pts | strip_newlines }})
