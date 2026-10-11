@@ -592,6 +592,43 @@
   backdrop-filter: none;
 }
 
+/* ═══════════════ GLASS PILLS (LEXE 2026-10-11) ═══════════════
+   Light frosted glass + hairline + soft shadow so the logo pill, Back Home and the right capsule read over dark photos and white pages alike.
+   No z-index changes (mobile menu z-index fix untouched). Off = previous look. */
+{%- if section.settings.glass_pills -%}
+{%- assign gp_op = section.settings.glass_pill_opacity | default: 72 | divided_by: 100.0 -%}
+:root{
+  --apex-glass-bg: rgba(255,255,255,{{ gp_op }});
+  --apex-glass-solid: rgba(250,250,250,.96);
+  --apex-glass-edge: 0 0 0 .5px rgba(0,0,0,.10), inset 0 1px 0 rgba(255,255,255,.85), 0 6px 18px -6px rgba(0,0,0,.18), 0 1px 3px rgba(0,0,0,.06);
+}
+#ApexRoot .apex-notif-pill,
+#ApexRoot.apex-at-top .apex-right,
+#ApexRoot.apex-notif-flash .apex-right,
+.apex-back-home{
+  background: var(--apex-glass-solid);
+  border: 0;
+  box-shadow: var(--apex-glass-edge);
+  color: var(--apex-pill-text);
+}
+#ApexRoot:not(.apex-at-top):not(.apex-notif-flash) .apex-bar{ background: var(--apex-glass-solid); box-shadow: var(--apex-glass-edge); }
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))){
+  #ApexRoot .apex-notif-pill,
+  #ApexRoot.apex-at-top .apex-right,
+  #ApexRoot.apex-notif-flash .apex-right,
+  .apex-back-home,
+  #ApexRoot:not(.apex-at-top):not(.apex-notif-flash) .apex-bar{
+    background: var(--apex-glass-bg);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+  }
+}
+/* JS paints the flash notification inline; keep its colours */
+#ApexRoot.apex-notif-flash .apex-notif-pill{ -webkit-backdrop-filter: none; backdrop-filter: none; }
+#ApexRoot .apex-notif-pill-track{ background: rgba(0,0,0,.10); }
+.apex-back-home:hover{ box-shadow: 0 0 0 .5px rgba(0,0,0,.14), inset 0 1px 0 rgba(255,255,255,.85), 0 10px 22px -8px rgba(0,0,0,.24); }
+{%- endif -%}
+
 </style>
 
 <div id="ApexRoot" class="apex-at-top">
@@ -1235,6 +1272,8 @@
     { "type": "range",    "id": "padding_side",         "label": "Inner Side Padding (px)",    "min": 12, "max": 60, "step": 2, "default": 24 },
     { "type": "range",    "id": "pill_margin",          "label": "Outer Margin (px)",          "min": 0, "max": 32, "step": 2, "default": 14 },
     { "type": "range",    "id": "pill_radius",          "label": "Outer Corner Radius (px)",   "min": 0, "max": 100, "step": 2, "default": 100 },
+    { "type": "checkbox", "id": "glass_pills", "label": "Glass pills (logo pill, Back Home, right capsule)", "default": true, "info": "Light frosted glass with a hairline and soft shadow so the pills read over photos and white pages. Off = previous look." },
+    { "type": "range", "id": "glass_pill_opacity", "label": "Glass pill opacity", "min": 50, "max": 95, "step": 1, "unit": "%", "default": 72 },
     { "type": "range",    "id": "frosted_blur",         "label": "Frosted Blur Strength (px)", "min": 0, "max": 30, "step": 1, "default": 18 },
     { "type": "range",    "id": "drawer_radius",        "label": "Drawer Corner Radius (px)",  "min": 0, "max": 60, "step": 2, "default": 24 },
     { "type": "range",    "id": "drawer_width",         "label": "Drawer Width (% of screen)", "min": 30, "max": 80, "step": 5, "default": 50 },
@@ -1334,4 +1373,5 @@
   "presets": [{ "name": "Apex Header V19" }]
 }
 {% endschema %}
+
 
