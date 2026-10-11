@@ -1,0 +1,71 @@
+{%- comment -%}
+  LEXE Bento Hero helper (lexe-bento-shape): prints a clip-path polygon() for one bento panel, every corner filleted.
+  params: panel ('content' | 'a' | 'b' | 'p'), r (radius px), g (gutter px), hc (angled cut height px),
+          T S C (tan, sin, cos of the slant angle), kO kP kA (tangent factors for 180-θ, 90+θ, 90-θ corners).
+  Vertex = anchorX,offX,anchorY,offY,toPrevX,toPrevY,toNextX,toNextY,kind (anchor 0 = left/top, 1 = right/bottom).
+  Each corner is a quadratic Bezier (control point on the vertex) sampled 9 times.
+{%- endcomment -%}
+{%- liquid
+  assign hb = g | times: kO | times: -1 | plus: hc
+  if hb < 0
+    assign hb = 0
+  endif
+  assign ox = hb | times: T | round: 2
+  assign cx = hc | times: T | round: 2
+  assign nhc = hc | times: -1
+  assign nhb = hb | times: -1
+  assign nox = ox | times: -1
+  assign ncx = cx | times: -1
+  assign nS = S | times: -1
+  assign nC = C | times: -1
+  case panel
+    when 'content'
+      assign v = '0,0,0,0,0,1,1,0,r|1,0,0,0,-1,0,0,1,r|1,0,1,' | append: nhc | append: ',0,-1,' | append: nS | append: ',' | append: C | append: ',o|1,' | append: ncx | append: ',1,0,' | append: S | append: ',' | append: nC | append: ',-1,0,p|0,0,1,0,1,0,0,-1,r'
+    when 'a'
+      assign v = '0,' | append: ox | append: ',0,0,0,1,1,0,r|1,0,0,0,-1,0,0,1,r|1,0,1,0,0,-1,-1,0,r|0,0,1,0,1,0,' | append: S | append: ',' | append: nC | append: ',a|0,' | append: ox | append: ',1,' | append: nhb | append: ',' | append: nS | append: ',' | append: C | append: ',0,-1,o'
+    when 'b'
+      assign v = '0,0,0,0,0,1,1,0,r|1,0,0,0,-1,0,' | append: nS | append: ',' | append: C | append: ',a|1,' | append: nox | append: ',0,' | append: hb | append: ',' | append: S | append: ',' | append: nC | append: ',0,1,o|1,' | append: nox | append: ',1,0,0,-1,-1,0,r|0,0,1,0,1,0,0,-1,r'
+    else
+      assign v = '0,' | append: cx | append: ',0,0,' | append: nS | append: ',' | append: C | append: ',1,0,p|1,0,0,0,-1,0,0,1,r|1,0,1,0,0,-1,-1,0,r|0,0,1,0,1,0,0,-1,r|0,0,0,' | append: hc | append: ',0,1,' | append: S | append: ',' | append: nC | append: ',o'
+  endcase
+  assign vs = v | split: '|'
+  assign bez_a = '1,0.765625,0.5625,0.390625,0.25,0.140625,0.0625,0.015625,0' | split: ','
+  assign bez_b = '0,0.015625,0.0625,0.140625,0.25,0.390625,0.5625,0.765625,1' | split: ','
+-%}
+{%- capture pts -%}
+{%- for vv in vs -%}
+  {%- assign p = vv | split: ',' -%}
+  {%- assign ax = p[0] -%}
+  {%- assign vx = p[1] | plus: 0 -%}
+  {%- assign ay = p[2] -%}
+  {%- assign vy = p[3] | plus: 0 -%}
+  {%- assign ux = p[4] | plus: 0 -%}
+  {%- assign uy = p[5] | plus: 0 -%}
+  {%- assign wx = p[6] | plus: 0 -%}
+  {%- assign wy = p[7] | plus: 0 -%}
+  {%- case p[8] -%}
+    {%- when 'o' -%}{%- assign d = r | times: kO -%}
+    {%- when 'p' -%}{%- assign d = r | times: kP -%}
+    {%- when 'a' -%}{%- assign d = r | times: kA -%}
+    {%- else -%}{%- assign d = r | times: 1.0 -%}
+  {%- endcase -%}
+  {%- for i in (0..8) -%}
+    {%- assign ba = bez_a[i] | plus: 0 -%}
+    {%- assign bb = bez_b[i] | plus: 0 -%}
+    {%- assign px = ux | times: ba | times: d -%}
+    {%- assign px2 = wx | times: bb | times: d -%}
+    {%- assign px = px | plus: px2 | plus: vx | round: 2 -%}
+    {%- assign py = uy | times: ba | times: d -%}
+    {%- assign py2 = wy | times: bb | times: d -%}
+    {%- assign py = py | plus: py2 | plus: vy | round: 2 -%}
+    {%- if ax == '1' -%}
+      {%- if px < 0 -%}{%- assign apx = px | abs -%}{%- capture sx -%}calc(100% - {{ apx }}px){%- endcapture -%}{%- else -%}{%- capture sx -%}calc(100% + {{ px }}px){%- endcapture -%}{%- endif -%}
+    {%- else -%}{%- capture sx -%}{{ px }}px{%- endcapture -%}{%- endif -%}
+    {%- if ay == '1' -%}
+      {%- if py < 0 -%}{%- assign apy = py | abs -%}{%- capture sy -%}calc(100% - {{ apy }}px){%- endcapture -%}{%- else -%}{%- capture sy -%}calc(100% + {{ py }}px){%- endcapture -%}{%- endif -%}
+    {%- else -%}{%- capture sy -%}{{ py }}px{%- endcapture -%}{%- endif -%}
+    {{- sx }} {{ sy -}}{%- unless forloop.last and forloop.parentloop.last -%},{%- endunless -%}
+  {%- endfor -%}
+{%- endfor -%}
+{%- endcapture -%}
+polygon({{ pts | strip_newlines }})

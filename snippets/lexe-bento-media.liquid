@@ -1,0 +1,82 @@
+{%- comment -%}
+  LEXE Bento Hero helper: one panel's media. The image is always rendered (LCP / fallback);
+  an optional muted, looping video sits on top and only loads and plays while on screen (see section JS).
+  params: img, video (Shopify video from Files), video_url (external MP4), poster (image), pos (object-position),
+          eager (bool), widths, sizes, alt, img_width (max width to request), controls (bool), label (for the control).
+{%- endcomment -%}
+{%- liquid
+  assign base = img
+  if base == blank
+    assign base = poster
+  endif
+  if base == blank and video != blank
+    assign base = video.preview_image
+  endif
+  assign style = ''
+  if pos != blank
+    assign style = 'object-position: ' | append: pos
+  endif
+  assign w = img_width | default: 1920
+-%}
+{%- if base != blank -%}
+  {%- if eager -%}
+    {{ base | image_url: width: w | image_tag: loading: 'eager', fetchpriority: 'high', preload: true, widths: widths, sizes: sizes, alt: alt, style: style }}
+  {%- else -%}
+    {{ base | image_url: width: w | image_tag: loading: 'lazy', widths: widths, sizes: sizes, alt: alt, style: style }}
+  {%- endif -%}
+{%- endif -%}
+{%- liquid
+  assign src_hi = ''
+  assign src_lo = ''
+  if video != blank
+    assign best_hi = 0
+    assign best_lo = 0
+    assign max_w = 0
+    assign max_url = ''
+    for s in video.sources
+      if s.format == 'mp4' or s.mime_type == 'video/mp4'
+        if s.width > max_w
+          assign max_w = s.width
+          assign max_url = s.url
+        endif
+        if s.width >= 1080
+          if best_hi == 0 or s.width < best_hi
+            assign best_hi = s.width
+            assign src_hi = s.url
+          endif
+        endif
+        if s.width >= 640
+          if best_lo == 0 or s.width < best_lo
+            assign best_lo = s.width
+            assign src_lo = s.url
+          endif
+        endif
+      endif
+    endfor
+    if src_hi == ''
+      assign src_hi = max_url
+    endif
+    if src_lo == ''
+      assign src_lo = max_url
+    endif
+  elsif video_url != blank
+    assign src_hi = video_url
+    assign src_lo = video_url
+  endif
+  assign poster_img = poster
+  if poster_img == blank
+    assign poster_img = base
+  endif
+-%}
+{%- if src_hi != '' -%}
+  <video class="lxb__vid" autoplay muted loop playsinline preload="metadata" disablepictureinpicture disableremoteplayback aria-hidden="true" tabindex="-1"
+    {% if poster_img != blank %}poster="{{ poster_img | image_url: width: 1200 }}"{% endif %}
+    {% if style != '' %}style="{{ style }}"{% endif %}
+    data-lxb-video data-src-hi="{{ src_hi }}" data-src-lo="{{ src_lo }}"></video>
+  {%- if controls -%}
+    <button class="lxb__vbtn" type="button" data-lxb-vbtn aria-label="Pause {{ label | default: 'video' | escape }}" data-label="{{ label | default: 'video' | escape }}" hidden>
+      <svg class="lxb__vbtn-pause" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><rect x="3" y="2.5" width="2.6" height="9" rx="1" fill="currentColor"/><rect x="8.4" y="2.5" width="2.6" height="9" rx="1" fill="currentColor"/></svg>
+      <svg class="lxb__vbtn-play" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M4 2.6v8.8a.6.6 0 0 0 .9.5l7-4.4a.6.6 0 0 0 0-1L4.9 2.1a.6.6 0 0 0-.9.5Z" fill="currentColor"/></svg>
+    </button>
+  {%- endif -%}
+{%- endif -%}
