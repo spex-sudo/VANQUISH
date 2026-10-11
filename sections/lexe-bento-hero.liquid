@@ -1,0 +1,444 @@
+{%- comment -%}
+  LEXE Bento Hero (2026-10-11)
+  Four-panel bento with angled gutters, built from Jay's wireframe.
+  Desktop (>=750px): panels are absolutely placed and cut with clip-path polygons.
+  Every corner, including the angled ones, is filleted with the same radius, and the
+  angled gutters keep the same perpendicular width as the straight ones.
+  Mobile (<750px): one column with straight edges: headline card, photo swipe, product card.
+{%- endcomment -%}
+{%- liquid
+  assign sid = section.id
+  assign r = section.settings.radius | default: 28
+  assign g = section.settings.gutter | default: 12
+  assign hc = section.settings.slant_height | default: 120
+  assign ang = section.settings.slant_angle | default: '30'
+  case ang
+    when '15'
+      assign T = 0.26795
+      assign S = 0.25882
+      assign C = 0.96593
+      assign kO = 0.13165
+      assign kP = 0.76733
+      assign kA = 1.30323
+    when '20'
+      assign T = 0.36397
+      assign S = 0.34202
+      assign C = 0.93969
+      assign kO = 0.17633
+      assign kP = 0.70021
+      assign kA = 1.42815
+    when '25'
+      assign T = 0.46631
+      assign S = 0.42262
+      assign C = 0.90631
+      assign kO = 0.22169
+      assign kP = 0.63707
+      assign kA = 1.56969
+    when '35'
+      assign T = 0.70021
+      assign S = 0.57358
+      assign C = 0.81915
+      assign kO = 0.3153
+      assign kP = 0.52057
+      assign kA = 1.92098
+    when '40'
+      assign T = 0.8391
+      assign S = 0.64279
+      assign C = 0.76604
+      assign kO = 0.36397
+      assign kP = 0.46631
+      assign kA = 2.14451
+    else
+      assign T = 0.57735
+      assign S = 0.5
+      assign C = 0.86603
+      assign kO = 0.26795
+      assign kP = 0.57735
+      assign kA = 1.73205
+  endcase
+  assign slanted = section.settings.slanted
+  unless slanted
+    assign hc = 0
+  endunless
+  comment
+    hb: slant height of the protruding panels, offset so the angled gutter is exactly g wide.
+  endcomment
+  assign hb = g | times: kO | times: -1 | plus: hc
+  if hb < 0
+    assign hb = 0
+  endif
+  assign ox = hb | times: T | round: 2
+  assign cx = hc | times: T | round: 2
+  assign nhc = hc | times: -1
+  assign nhb = hb | times: -1
+  assign nox = ox | times: -1
+  assign ncx = cx | times: -1
+  assign nS = S | times: -1
+  assign nC = C | times: -1
+
+  comment
+    vertex = anchorX,offX,anchorY,offY,toPrevX,toPrevY,toNextX,toNextY,cornerKind
+  endcomment
+  capture v_content
+    echo '0,0,0,0,0,1,1,0,r|1,0,0,0,-1,0,0,1,r|1,0,1,' | append: nhc | append: ',0,-1,' | append: nS | append: ',' | append: C | append: ',o|1,' | append: ncx | append: ',1,0,' | append: S | append: ',' | append: nC | append: ',-1,0,p|0,0,1,0,1,0,0,-1,r'
+  endcapture
+  capture v_a
+    echo '0,' | append: ox | append: ',0,0,0,1,1,0,r|1,0,0,0,-1,0,0,1,r|1,0,1,0,0,-1,-1,0,r|0,0,1,0,1,0,' | append: S | append: ',' | append: nC | append: ',a|0,' | append: ox | append: ',1,' | append: nhb | append: ',' | append: nS | append: ',' | append: C | append: ',0,-1,o'
+  endcapture
+  capture v_b
+    echo '0,0,0,0,0,1,1,0,r|1,0,0,0,-1,0,' | append: nS | append: ',' | append: C | append: ',a|1,' | append: nox | append: ',0,' | append: hb | append: ',' | append: S | append: ',' | append: nC | append: ',0,1,o|1,' | append: nox | append: ',1,0,0,-1,-1,0,r|0,0,1,0,1,0,0,-1,r'
+  endcapture
+  capture v_p
+    echo '0,' | append: cx | append: ',0,0,' | append: nS | append: ',' | append: C | append: ',1,0,p|1,0,0,0,-1,0,0,1,r|1,0,1,0,0,-1,-1,0,r|0,0,1,0,1,0,0,-1,r|0,0,0,' | append: hc | append: ',0,1,' | append: S | append: ',' | append: nC | append: ',o'
+  endcapture
+
+  assign bez_a = '1,0.5625,0.25,0.0625,0' | split: ','
+  assign bez_b = '0,0.0625,0.25,0.5625,1' | split: ','
+-%}
+{%- capture poly_content -%}{%- assign vs = v_content | strip | split: '|' -%}{%- render 'lexe-bento-poly', vs: vs, r: r, kO: kO, kP: kP, kA: kA, bez_a: bez_a, bez_b: bez_b -%}{%- endcapture -%}
+{%- capture poly_a -%}{%- assign vs = v_a | strip | split: '|' -%}{%- render 'lexe-bento-poly', vs: vs, r: r, kO: kO, kP: kP, kA: kA, bez_a: bez_a, bez_b: bez_b -%}{%- endcapture -%}
+{%- capture poly_b -%}{%- assign vs = v_b | strip | split: '|' -%}{%- render 'lexe-bento-poly', vs: vs, r: r, kO: kO, kP: kP, kA: kA, bez_a: bez_a, bez_b: bez_b -%}{%- endcapture -%}
+{%- capture poly_p -%}{%- assign vs = v_p | strip | split: '|' -%}{%- render 'lexe-bento-poly', vs: vs, r: r, kO: kO, kP: kP, kA: kA, bez_a: bez_a, bez_b: bez_b -%}{%- endcapture -%}
+{%- liquid
+  assign st = section.settings
+  assign img_a = st.image_a
+  assign img_b = st.image_b
+  assign thumb_p = st.thumb_product
+  assign prod = st.product
+  assign pos_a = st.image_a_position | strip
+  if pos_a == blank and img_a != blank
+    assign pos_a = img_a.presentation.focal_point
+  endif
+  assign pos_b = st.image_b_position | strip
+  if pos_b == blank and img_b != blank
+    assign pos_b = img_b.presentation.focal_point
+  endif
+  assign prod_img = nil
+  if prod != blank
+    if prod.tags contains 'needs-clean-image'
+      assign prod = nil
+    endif
+  endif
+  if prod != blank
+    assign prod_img = prod.featured_media.preview_image
+    assign pi = st.product_image_position | minus: 1
+    if pi >= 0 and prod.media.size > pi
+      assign prod_img = prod.media[pi].preview_image
+    endif
+  endif
+  if thumb_p != blank and thumb_p.tags contains 'needs-clean-image'
+    assign thumb_p = nil
+  endif
+  assign style_a = ''
+  if pos_a != blank
+    assign style_a = 'object-position: ' | append: pos_a
+  endif
+  assign style_b = ''
+  if pos_b != blank
+    assign style_b = 'object-position: ' | append: pos_b
+  endif
+  assign eager_a = false
+  if section.index <= 3
+    assign eager_a = true
+  endif
+-%}
+<style>
+  #lxb-{{ sid }} {
+    --lxb-accent: {{ st.accent | default: '#9966CC' }};
+    --lxb-base: {{ st.base | default: '#0b0b0d' }};
+    --lxb-r: {{ r }}px;
+    --lxb-g: {{ g }}px;
+    --lxb-ox: {{ ox }}px;
+    --lxb-cx: {{ cx }}px;
+    --lxb-x1: {{ st.split_top }}%;
+    --lxb-x2: {{ st.split_bottom }}%;
+    --lxb-y: {{ st.split_rows }}%;
+    --lxb-h: {{ st.height_desktop }}px;
+    position: relative;
+    background: var(--lxb-base);
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'SF Pro', Inter, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding: {{ st.pad_top_mobile }}px 16px {{ st.pad_bottom_mobile }}px;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  #lxb-{{ sid }} *, #lxb-{{ sid }} *::before, #lxb-{{ sid }} *::after { box-sizing: border-box; }
+  #lxb-{{ sid }}::before {
+    content: ""; position: absolute; z-index: -1; pointer-events: none;
+    left: -10%; top: -20%; width: 70%; height: 90%;
+    background: radial-gradient(closest-side, color-mix(in srgb, var(--lxb-accent) 30%, transparent), transparent 72%);
+    opacity: .55;
+  }
+  #lxb-{{ sid }} .lxb__grid { position: relative; max-width: {{ st.max_width }}px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+  #lxb-{{ sid }} .lxb__p { position: relative; overflow: hidden; border-radius: 24px; }
+
+  /* Headline card: the only blurred glass surface */
+  #lxb-{{ sid }} .lxb__content {
+    padding: 22px 20px 20px;
+    background: linear-gradient(160deg, rgba(255,255,255,.09), rgba(255,255,255,.035) 55%, rgba(255,255,255,.02));
+    -webkit-backdrop-filter: blur(24px) saturate(140%);
+    backdrop-filter: blur(24px) saturate(140%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.10);
+    container-type: inline-size;
+    display: flex; flex-direction: column;
+  }
+  #lxb-{{ sid }} .lxb__eyebrow { margin: 0 0 10px; font-size: 12px; line-height: 1.3; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; color: rgba(255,255,255,.62); }
+  #lxb-{{ sid }} .lxb__eyebrow span { color: var(--lxb-accent); }
+  #lxb-{{ sid }} .lxb__title { margin: 0; font-size: clamp(34px, 11cqw, 66px); line-height: 1.02; letter-spacing: -.035em; font-weight: 700; color: #fff; text-wrap: balance; }
+  #lxb-{{ sid }} .lxb__row { display: flex; gap: 16px; align-items: flex-end; margin-top: auto; padding-top: 18px; }
+  #lxb-{{ sid }} .lxb__thumb { flex: 0 0 auto; width: 84px; height: 84px; border-radius: 18px; overflow: hidden; background: #fff; display: block; }
+  #lxb-{{ sid }} .lxb__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  #lxb-{{ sid }} .lxb__side { min-width: 0; flex: 1 1 auto; }
+  #lxb-{{ sid }} .lxb__sub { margin: 0 0 14px; font-size: 15px; line-height: 1.4; color: rgba(255,255,255,.72); }
+  #lxb-{{ sid }} .lxb__ctas { display: flex; flex-wrap: wrap; gap: 8px; }
+  #lxb-{{ sid }} .lxb__btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 46px; padding: 0 20px; border-radius: 999px;
+    font-family: inherit; font-size: 15px; line-height: 1; font-weight: 600; letter-spacing: -.01em; text-decoration: none; white-space: nowrap;
+    transition: transform .18s cubic-bezier(.2,.8,.2,1), box-shadow .18s ease, background-color .18s ease, border-color .18s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #lxb-{{ sid }} .lxb__btn:active { transform: scale(.97); }
+  #lxb-{{ sid }} .lxb__btn--primary {
+    background: var(--lxb-accent); color: #0b0b0d;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.35), inset 0 -2px 6px rgba(0,0,0,.18), 0 8px 22px -10px color-mix(in srgb, var(--lxb-accent) 80%, transparent);
+  }
+  #lxb-{{ sid }} .lxb__btn--ghost { color: #fff; border: 1px solid rgba(255,255,255,.30); background: transparent; }
+  #lxb-{{ sid }} .lxb__btn:focus-visible, #lxb-{{ sid }} .lxb__link:focus-visible, #lxb-{{ sid }} .lxb__thumb:focus-visible { outline: 2px solid var(--lxb-accent); outline-offset: 3px; }
+
+  /* Photo panels */
+  #lxb-{{ sid }} .lxb__track { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; scroll-padding: 0 16px; overscroll-behavior-x: contain; }
+  #lxb-{{ sid }} .lxb__track::-webkit-scrollbar { display: none; }
+  #lxb-{{ sid }} .lxb__img { flex: 0 0 {% if img_b != blank and st.show_b_mobile %}88%{% else %}100%{% endif %}; aspect-ratio: {{ st.mobile_photo_ratio | default: '1 / 1' }}; scroll-snap-align: start; background: #17171a; }
+  #lxb-{{ sid }} .lxb__img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  #lxb-{{ sid }} .lxb__img::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(0,0,0,.34)); }
+  #lxb-{{ sid }} .lxb__link { position: absolute; inset: 0; z-index: 2; }
+  #lxb-{{ sid }} .lxb__chip {
+    position: absolute; z-index: 3; pointer-events: none;
+    bottom: 14px; left: 14px;
+    padding: 7px 12px; border-radius: 999px;
+    background: rgba(12,12,14,.70); color: #fff;
+    font-size: 13px; line-height: 1; font-weight: 600; letter-spacing: -.005em;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.14);
+  }
+  #lxb-{{ sid }} .lxb__ph { position: absolute; inset: 0; display: grid; place-items: center; color: rgba(255,255,255,.4); font-size: 13px; }
+
+  /* Product card: solid dark clay, no blur */
+  #lxb-{{ sid }} .lxb__prod {
+    display: flex; gap: 14px; align-items: stretch; padding: 12px; text-decoration: none; color: #fff;
+    background: linear-gradient(160deg, #1c1c20, #121215 70%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.07);
+  }
+  #lxb-{{ sid }} .lxb__prod-info { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: 6px 4px 4px 6px; }
+  #lxb-{{ sid }} .lxb__prod-k { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; color: rgba(255,255,255,.55); margin: 0 0 6px; }
+  #lxb-{{ sid }} .lxb__prod-t { font-size: 17px; line-height: 1.25; font-weight: 600; letter-spacing: -.015em; margin: 0; }
+  #lxb-{{ sid }} .lxb__prod-pr { font-size: 15px; color: rgba(255,255,255,.72); margin: 4px 0 12px; font-variant-numeric: tabular-nums; }
+  #lxb-{{ sid }} .lxb__pill {
+    align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 18px; border-radius: 999px;
+    background: rgba(255,255,255,.08); box-shadow: inset 0 0 0 1px rgba(255,255,255,.18), inset 0 1px 0 rgba(255,255,255,.12);
+    font-size: 14px; font-weight: 600; transition: background-color .18s ease, transform .18s cubic-bezier(.2,.8,.2,1);
+  }
+  #lxb-{{ sid }} .lxb__prod:active .lxb__pill { transform: scale(.97); }
+  #lxb-{{ sid }} .lxb__prod-img { flex: 0 0 auto; position: relative; width: 104px; aspect-ratio: 3 / 4; border-radius: 16px; overflow: hidden; background: #f2f2f2; }
+  #lxb-{{ sid }} .lxb__prod-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  #lxb-{{ sid }} .lxb__dots { display: flex; justify-content: center; gap: 6px; margin-top: -2px; }
+  #lxb-{{ sid }} .lxb__dots i { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.28); transition: background-color .2s ease, width .2s ease; }
+  #lxb-{{ sid }} .lxb__dots i.is-on { background: #fff; width: 16px; border-radius: 3px; }
+
+  @media (max-width: 749px) {
+    {%- unless st.show_thumb_mobile %}
+    #lxb-{{ sid }} .lxb__thumb { display: none; }
+    {%- endunless %}
+    {%- unless st.show_sub_mobile %}
+    #lxb-{{ sid }} .lxb__sub { display: none; }
+    #lxb-{{ sid }} .lxb__row { padding-top: 20px; }
+    {%- endunless %}
+    #lxb-{{ sid }} .lxb__ctas .lxb__btn { flex: 1 1 0; padding: 0 14px; }
+  }
+
+  @media (min-width: 750px) {
+    #lxb-{{ sid }} { padding: {{ st.pad_top_desktop }}px 20px {{ st.pad_bottom_desktop }}px; }
+    #lxb-{{ sid }} .lxb__grid { display: block; height: var(--lxb-h); }
+    #lxb-{{ sid }} .lxb__track { display: contents; }
+    #lxb-{{ sid }} .lxb__dots { display: none; }
+    #lxb-{{ sid }} .lxb__p { position: absolute; border-radius: {% if slanted %}0{% else %}var(--lxb-r){% endif %}; aspect-ratio: auto; margin: 0; }
+    #lxb-{{ sid }} .lxb__content { left: 0; top: 0; width: calc(var(--lxb-x1) - var(--lxb-g) / 2); height: calc(var(--lxb-y) - var(--lxb-g) / 2); padding: 34px 36px 32px; {% if slanted %}clip-path: {{ poly_content | strip }};{% endif %} }
+    #lxb-{{ sid }} .lxb__img--a { left: calc(var(--lxb-x1) + var(--lxb-g) / 2 - var(--lxb-ox)); right: 0; top: 0; height: calc(var(--lxb-y) - var(--lxb-g) / 2); {% if slanted %}clip-path: {{ poly_a | strip }};{% endif %} }
+    #lxb-{{ sid }} .lxb__img--b { left: 0; bottom: 0; top: calc(var(--lxb-y) + var(--lxb-g) / 2); width: calc(var(--lxb-x2) - var(--lxb-g) / 2 + var(--lxb-ox)); {% if slanted %}clip-path: {{ poly_b | strip }};{% endif %} }
+    #lxb-{{ sid }} .lxb__prod { left: calc(var(--lxb-x2) + var(--lxb-g) / 2); right: 0; bottom: 0; top: calc(var(--lxb-y) + var(--lxb-g) / 2); padding: 16px; gap: 16px; {% if slanted %}clip-path: {{ poly_p | strip }};{% endif %} }
+    #lxb-{{ sid }} .lxb__img--a .lxb__chip { left: auto; right: 18px; bottom: 18px; }
+    #lxb-{{ sid }} .lxb__img--b .lxb__chip { left: 18px; bottom: 18px; }
+    #lxb-{{ sid }} .lxb__prod-info { padding: 10px 4px 6px 10px; }
+    #lxb-{{ sid }} .lxb__prod-t { font-size: 20px; }
+    #lxb-{{ sid }} .lxb__prod-img { width: auto; height: 100%; }
+    #lxb-{{ sid }} .lxb__img img { transition: transform .9s cubic-bezier(.2,.8,.2,1); }
+    #lxb-{{ sid }} .lxb__img:hover img { transform: scale(1.025); }
+    #lxb-{{ sid }} .lxb__btn--primary:hover { box-shadow: inset 0 1px 0 rgba(255,255,255,.4), inset 0 -2px 6px rgba(0,0,0,.18), 0 12px 28px -10px color-mix(in srgb, var(--lxb-accent) 90%, transparent); }
+    #lxb-{{ sid }} .lxb__btn--ghost:hover { border-color: rgba(255,255,255,.55); background: rgba(255,255,255,.05); }
+    #lxb-{{ sid }} .lxb__prod:hover .lxb__pill { background: rgba(255,255,255,.14); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #lxb-{{ sid }} * { transition: none !important; }
+  }
+</style>
+
+<section id="lxb-{{ sid }}" class="lxb" aria-label="{{ st.title | strip_html | escape }}" data-section-id="{{ sid }}">
+  <div class="lxb__grid">
+    <div class="lxb__p lxb__content">
+      {%- if st.eyebrow != blank -%}<p class="lxb__eyebrow">{{ st.eyebrow }}</p>{%- endif -%}
+      <h1 class="lxb__title">{{ st.title }}</h1>
+      <div class="lxb__row">
+        {%- if st.show_thumb and thumb_p != blank and thumb_p.featured_media != blank -%}
+          <a class="lxb__thumb" href="{{ thumb_p.url }}" aria-label="{{ thumb_p.title | escape }}" data-lxb-cta="thumb">
+            {{ thumb_p.featured_media.preview_image | image_url: width: 240 | image_tag: loading: 'lazy', widths: '120, 180, 240', sizes: '84px', alt: thumb_p.title, width: 84, height: 84 }}
+          </a>
+        {%- endif -%}
+        <div class="lxb__side">
+          {%- if st.subline != blank -%}<p class="lxb__sub">{{ st.subline }}</p>{%- endif -%}
+          <div class="lxb__ctas">
+            {%- if st.btn1_label != blank -%}<a class="lxb__btn lxb__btn--primary" href="{{ st.btn1_link | default: '/collections/lexe' }}" data-lxb-cta="primary">{{ st.btn1_label }}</a>{%- endif -%}
+            {%- if st.btn2_label != blank -%}<a class="lxb__btn lxb__btn--ghost" href="{{ st.btn2_link | default: '/collections' }}" data-lxb-cta="secondary">{{ st.btn2_label }}</a>{%- endif -%}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="lxb__track" data-lxb-track>
+      <div class="lxb__p lxb__img lxb__img--a">
+        {%- if img_a != blank -%}
+          {%- if eager_a -%}
+            {{ img_a | image_url: width: 1920 | image_tag: loading: 'eager', fetchpriority: 'high', preload: true, widths: '480, 720, 960, 1200, 1440, 1680, 1920', sizes: '(min-width: 1320px) 790px, (min-width: 750px) 60vw, 88vw', alt: st.image_a_alt, style: style_a }}
+          {%- else -%}
+            {{ img_a | image_url: width: 1920 | image_tag: loading: 'lazy', widths: '480, 720, 960, 1200, 1440, 1680, 1920', sizes: '(min-width: 1320px) 790px, (min-width: 750px) 60vw, 88vw', alt: st.image_a_alt, style: style_a }}
+          {%- endif -%}
+        {%- else -%}<div class="lxb__ph">Add an image</div>{%- endif -%}
+        {%- if st.image_a_link != blank -%}<a class="lxb__link" href="{{ st.image_a_link }}" aria-label="{{ st.image_a_label | default: st.image_a_alt | escape }}" data-lxb-cta="image_a"></a>{%- endif -%}
+        {%- if st.image_a_label != blank -%}<span class="lxb__chip">{{ st.image_a_label }}</span>{%- endif -%}
+      </div>
+      {%- if img_b != blank -%}
+      <div class="lxb__p lxb__img lxb__img--b{% unless st.show_b_mobile %} lxb--desk-only{% endunless %}">
+        {{ img_b | image_url: width: 1920 | image_tag: loading: 'lazy', widths: '480, 720, 960, 1200, 1440, 1680, 1920', sizes: '(min-width: 1320px) 790px, (min-width: 750px) 60vw, 88vw', alt: st.image_b_alt, style: style_b }}
+        {%- if st.image_b_link != blank -%}<a class="lxb__link" href="{{ st.image_b_link }}" aria-label="{{ st.image_b_label | default: st.image_b_alt | escape }}" data-lxb-cta="image_b"></a>{%- endif -%}
+        {%- if st.image_b_label != blank -%}<span class="lxb__chip">{{ st.image_b_label }}</span>{%- endif -%}
+      </div>
+      {%- endif -%}
+    </div>
+    {%- if img_b != blank and st.show_b_mobile -%}<div class="lxb__dots" aria-hidden="true"><i class="is-on"></i><i></i></div>{%- endif -%}
+
+    {%- if prod != blank -%}
+      <a class="lxb__p lxb__prod" href="{{ prod.url }}" data-lxb-cta="product" data-lxb-product="{{ prod.handle }}">
+        <div class="lxb__prod-info">
+          {%- if st.product_kicker != blank -%}<p class="lxb__prod-k">{{ st.product_kicker }}</p>{%- endif -%}
+          <p class="lxb__prod-t">{{ prod.title }}</p>
+          <p class="lxb__prod-pr">{% if prod.price_varies %}From {% endif %}{{ prod.price | money }}</p>
+          <span class="lxb__pill">{{ st.product_cta | default: 'Explore' }}<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 2.5 9.5 7 5 11.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </div>
+        {%- if prod_img != blank -%}
+          <div class="lxb__prod-img">
+            {{ prod_img | image_url: width: 720 | image_tag: loading: 'lazy', widths: '240, 360, 480, 600, 720', sizes: '(min-width: 750px) 240px, 104px', alt: prod.title }}
+          </div>
+        {%- endif -%}
+      </a>
+    {%- endif -%}
+  </div>
+</section>
+{%- unless st.show_b_mobile -%}<style>@media (max-width: 749px){ #lxb-{{ sid }} .lxb--desk-only{ display:none; } }</style>{%- endunless -%}
+
+<script>
+(function () {
+  var ROOT = document.getElementById('lxb-{{ sid }}');
+  if (!ROOT || ROOT.__lxb) return; ROOT.__lxb = 1;
+  function track(name, detail) {
+    detail = detail || {}; detail.section_id = '{{ sid }}'; detail.section = 'lexe-bento-hero';
+    try { window.dataLayer = window.dataLayer || []; var o = { event: name }; for (var k in detail) o[k] = detail[k]; window.dataLayer.push(o); } catch (e) {}
+    try { if (window.Shopify && window.Shopify.analytics && typeof window.Shopify.analytics.publish === 'function') window.Shopify.analytics.publish(name, detail); } catch (e) {}
+  }
+  window.lexeTrack = window.lexeTrack || track;
+  ROOT.addEventListener('click', function (e) {
+    var a = e.target.closest('[data-lxb-cta]');
+    if (!a || !ROOT.contains(a)) return;
+    track('home_hero_click', { cta: a.getAttribute('data-lxb-cta'), href: a.getAttribute('href'), label: (a.textContent || a.getAttribute('aria-label') || '').trim().slice(0, 60), product: a.getAttribute('data-lxb-product') || undefined });
+  });
+  var tr = ROOT.querySelector('[data-lxb-track]'), dots = ROOT.querySelectorAll('.lxb__dots i');
+  if (tr && dots.length) {
+    var raf = 0;
+    tr.addEventListener('scroll', function () {
+      if (raf) return;
+      raf = requestAnimationFrame(function () {
+        raf = 0;
+        var i = tr.scrollLeft > (tr.scrollWidth - tr.clientWidth) / 2 ? 1 : 0;
+        for (var d = 0; d < dots.length; d++) dots[d].classList.toggle('is-on', d === i);
+      });
+    }, { passive: true });
+  }
+})();
+</script>
+
+{% schema %}
+{
+  "name": "LEXE Bento Hero",
+  "tag": "div",
+  "class": "lexe-bento-hero-section",
+  "settings": [
+    { "type": "header", "content": "Headline card" },
+    { "type": "text", "id": "eyebrow", "label": "Label", "default": "LEXE by Devici Studios" },
+    { "type": "text", "id": "title", "label": "Headline", "default": "Made to be noticed." },
+    { "type": "text", "id": "subline", "label": "Line under headline", "default": "Outerwear, dresses and Specs, cut sharp." },
+    { "type": "checkbox", "id": "show_sub_mobile", "label": "Show line under headline on mobile", "default": false },
+    { "type": "text", "id": "btn1_label", "label": "Primary button", "default": "Explore LEXE" },
+    { "type": "url", "id": "btn1_link", "label": "Primary button link", "default": "/collections/all" },
+    { "type": "text", "id": "btn2_label", "label": "Secondary button", "default": "Get first look" },
+    { "type": "url", "id": "btn2_link", "label": "Secondary button link", "default": "/collections/all" },
+    { "type": "checkbox", "id": "show_thumb", "label": "Show thumbnail", "default": true },
+    { "type": "checkbox", "id": "show_thumb_mobile", "label": "Show thumbnail on mobile", "default": false },
+    { "type": "product", "id": "thumb_product", "label": "Thumbnail product", "info": "Use your newest product with a clean photo. Products tagged needs-clean-image are skipped." },
+
+    { "type": "header", "content": "Main photo (top right)" },
+    { "type": "image_picker", "id": "image_a", "label": "Image", "info": "Real LEXE photo, at least 1700px wide. Loads first." },
+    { "type": "text", "id": "image_a_position", "label": "Crop position", "info": "Optional, e.g. 50% 15%. Leave blank to use the image's focal point." },
+    { "type": "text", "id": "image_a_alt", "label": "Alt text" },
+    { "type": "text", "id": "image_a_label", "label": "Label chip" },
+    { "type": "url", "id": "image_a_link", "label": "Link" },
+
+    { "type": "header", "content": "Second photo (bottom left)" },
+    { "type": "image_picker", "id": "image_b", "label": "Image", "info": "Real LEXE photo, at least 1900px wide, graded like the main photo." },
+    { "type": "text", "id": "image_b_position", "label": "Crop position", "info": "Optional, e.g. 50% 20%." },
+    { "type": "text", "id": "image_b_alt", "label": "Alt text" },
+    { "type": "text", "id": "image_b_label", "label": "Label chip" },
+    { "type": "url", "id": "image_b_link", "label": "Link" },
+    { "type": "checkbox", "id": "show_b_mobile", "label": "On mobile, swipe between both photos", "info": "Off: the second photo is hidden on mobile.", "default": true },
+    { "type": "select", "id": "mobile_photo_ratio", "label": "Mobile photo shape", "default": "1 / 1", "options": [
+      { "value": "1 / 1", "label": "Square" }, { "value": "4 / 5", "label": "Portrait 4:5" }, { "value": "5 / 4", "label": "Landscape 5:4" } ] },
+
+    { "type": "header", "content": "Product card (bottom right)" },
+    { "type": "product", "id": "product", "label": "Product", "info": "Shows its real name and live price. Products tagged needs-clean-image are skipped." },
+    { "type": "range", "id": "product_image_position", "label": "Product photo (0 = featured)", "min": 0, "max": 12, "step": 1, "default": 0 },
+    { "type": "text", "id": "product_kicker", "label": "Small label above name" },
+    { "type": "text", "id": "product_cta", "label": "Pill text", "default": "Explore" },
+
+    { "type": "header", "content": "Shape" },
+    { "type": "checkbox", "id": "slanted", "label": "Angled gutters (desktop)", "info": "Mobile always uses straight edges.", "default": true },
+    { "type": "select", "id": "slant_angle", "label": "Angle", "default": "30", "options": [
+      { "value": "15", "label": "15°" }, { "value": "20", "label": "20°" }, { "value": "25", "label": "25°" },
+      { "value": "30", "label": "30°" }, { "value": "35", "label": "35°" }, { "value": "40", "label": "40°" } ] },
+    { "type": "range", "id": "slant_height", "label": "Angled cut height", "min": 60, "max": 200, "step": 4, "unit": "px", "default": 120 },
+    { "type": "range", "id": "gutter", "label": "Gutter", "min": 6, "max": 24, "step": 1, "unit": "px", "default": 12 },
+    { "type": "range", "id": "radius", "label": "Corner radius", "min": 12, "max": 40, "step": 2, "unit": "px", "default": 28 },
+    { "type": "range", "id": "split_top", "label": "Top row split", "min": 34, "max": 56, "step": 1, "unit": "%", "default": 45 },
+    { "type": "range", "id": "split_bottom", "label": "Bottom row split", "min": 44, "max": 74, "step": 1, "unit": "%", "default": 55 },
+    { "type": "range", "id": "split_rows", "label": "Row split", "min": 40, "max": 60, "step": 1, "unit": "%", "default": 50 },
+    { "type": "range", "id": "height_desktop", "label": "Desktop height", "min": 520, "max": 820, "step": 10, "unit": "px", "default": 680 },
+    { "type": "range", "id": "max_width", "label": "Max width", "min": 1000, "max": 1600, "step": 20, "unit": "px", "default": 1320 },
+
+    { "type": "header", "content": "Colour and spacing" },
+    { "type": "color", "id": "base", "label": "Background", "default": "#0b0b0d" },
+    { "type": "color", "id": "accent", "label": "Accent", "default": "#9966CC" },
+    { "type": "range", "id": "pad_top_desktop", "label": "Top padding (desktop, clears header)", "min": 0, "max": 140, "step": 2, "unit": "px", "default": 84 },
+    { "type": "range", "id": "pad_bottom_desktop", "label": "Bottom padding (desktop)", "min": 0, "max": 80, "step": 2, "unit": "px", "default": 24 },
+    { "type": "range", "id": "pad_top_mobile", "label": "Top padding (mobile, clears header)", "min": 0, "max": 140, "step": 2, "unit": "px", "default": 80 },
+    { "type": "range", "id": "pad_bottom_mobile", "label": "Bottom padding (mobile)", "min": 0, "max": 60, "step": 2, "unit": "px", "default": 16 }
+  ],
+  "presets": [ { "name": "LEXE Bento Hero" } ]
+}
+{% endschema %}
