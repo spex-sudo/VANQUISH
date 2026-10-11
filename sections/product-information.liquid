@@ -776,6 +776,161 @@
   .ap-name{{ sid }}{font-size:{{ section.settings.name_size | times: 0.82 | round }}px}
 }
 
+
+/* ══════════════════════════════════════
+   STICKY BAR — GLASS (LEXE 2026-10-11). Classic rules above stay untouched; everything here is scoped to .ap-bar--glass.
+══════════════════════════════════════ */
+.ap-atc-ok{{ sid }}{display:none}
+{%- if section.settings.sticky_style != 'classic' -%}
+{%- liquid
+  assign gb_op = section.settings.glass_bar_opacity | default: 72 | divided_by: 100.0
+  assign gb_in = section.settings.glass_bar_inset | default: 10
+-%}
+.ap-bar{{ sid }}.ap-bar--glass{
+  --g-in:{{ gb_in }}px;
+  --g-rad:{{ section.settings.glass_bar_radius | default: 26 }}px;
+  --g-sys:-apple-system,BlinkMacSystemFont,'SF Pro Text',Inter,system-ui,'Segoe UI',Roboto,sans-serif;
+  --g-atc:#111;--g-atc-ink:#fff;
+  left:var(--g-in) !important;right:var(--g-in) !important;
+  bottom:calc(var(--g-in) + env(safe-area-inset-bottom,0px)) !important;
+  gap:8px;padding:10px;border:0;border-radius:var(--g-rad);
+  background:rgba(255,255,255,.94);
+  box-shadow:0 0 0 .5px rgba(0,0,0,.10),inset 0 1px 0 rgba(255,255,255,.9),0 18px 40px -18px rgba(25,10,45,.38),0 4px 12px -6px rgba(0,0,0,.12);
+  font-family:var(--g-sys);color:#111;
+  transition:transform .42s cubic-bezier(.32,.72,0,1),opacity .3s ease;
+}
+@supports ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .ap-bar{{ sid }}.ap-bar--glass{
+    background:rgba(255,255,255,{{ gb_op }});
+    backdrop-filter:blur({{ section.settings.glass_bar_blur | default: 22 }}px) saturate(180%);
+    -webkit-backdrop-filter:blur({{ section.settings.glass_bar_blur | default: 22 }}px) saturate(180%);
+  }
+}
+.ap-bar{{ sid }}.ap-bar--glass.hide{transform:translate3d(0,calc(100% + var(--g-in) + 40px),0)}
+.ap-bar--atc-amethyst.ap-bar{{ sid }}{--g-atc:#9966CC}
+.ap-bar--glass .ap-bar-inner{{ sid }}{gap:8px}
+.ap-bar--glass .ap-trust{{ sid }}{font-family:var(--g-sys);letter-spacing:.06em;font-size:10px;color:#6e6e73;padding:0 0 2px}
+
+/* Bundle options: clay segmented control */
+.ap-bar--glass .ap-pills{{ sid }}{
+  margin:0;padding:3px;gap:3px;overflow:visible;scroll-snap-type:none;
+  background:rgba(118,118,128,.10);border-radius:calc(var(--g-rad) - 8px);
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.06),inset 0 -1px 0 rgba(255,255,255,.6);
+}
+.ap-bar--glass .ap-pill{{ sid }}{
+  flex:1 1 0;min-width:0;width:auto;min-height:44px;padding:5px 8px;gap:1px;
+  flex-direction:column;justify-content:center;align-items:center;text-align:center;
+  background:transparent;color:#3a3a3c;border:0;border-radius:calc(var(--g-rad) - 11px);
+  box-shadow:{% if section.settings.pill_outline_idle != blank %}inset 0 0 0 1px var(--pill-outline-idle){% else %}none{% endif %};
+  font-family:var(--g-sys);
+  transition:background .25s ease,box-shadow .25s ease,color .2s ease,transform .45s cubic-bezier(.34,1.56,.64,1);
+}
+.ap-bar--glass .ap-pill{{ sid }}:hover{border-color:transparent;color:#111}
+.ap-bar--glass .ap-pill{{ sid }}.on{
+  background:#fff;color:#111;
+  box-shadow:inset 0 0 0 1.5px var(--pill-outline),0 1px 1px rgba(0,0,0,.04),0 6px 14px -6px rgba(40,20,70,.28),inset 0 1px 0 #fff;
+}
+.ap-bar--glass .ap-pill{{ sid }}:active{transform:scale(.96);transition-duration:.12s}
+.ap-bar--glass .ap-pill-info{{ sid }},.ap-bar--glass .ap-pill-price{{ sid }}{flex:0 0 auto;align-items:center;max-width:100%}
+.ap-bar--glass .ap-pill-label{{ sid }}{font-family:var(--g-sys);font-size:11px;font-weight:600;letter-spacing:.06em;max-width:100%}
+.ap-bar--glass .ap-pill-now{{ sid }}{font-family:var(--g-sys);font-size:13px;font-weight:600;letter-spacing:-.01em;min-width:0;text-align:center;font-variant-numeric:tabular-nums}
+.ap-bar--glass .ap-pill-was{{ sid }}{display:none !important}
+.ap-bar--lean .ap-pill-img{{ sid }},.ap-bar--lean .ap-pill-sub{{ sid }}{display:none}
+.ap-bar--glass .ap-pill-ribbon{{ sid }}{display:none}
+.ap-bar--ribbon .ap-pill-ribbon{{ sid }}{display:block;top:-7px;right:50%;transform:translateX(50%);font-size:7.5px;padding:2px 6px;letter-spacing:.1em}
+.ap-bar--glass:not(.ap-bar--lean) .ap-pill{{ sid }}{flex-direction:row;gap:8px;text-align:left}
+.ap-bar--glass:not(.ap-bar--lean) .ap-pill-info{{ sid }}{align-items:flex-start;flex:1;min-width:0}
+.ap-bar--glass:not(.ap-bar--lean) .ap-pill-img{{ sid }}{width:30px;height:30px;border-radius:9px}
+
+/* Bundle details sheet: glass, floating above the tray */
+.ap-bar--glass .ap-bundle{{ sid }}{
+  bottom:calc(100% + 8px);border:0;border-radius:var(--g-rad);padding:14px;
+  background:rgba(255,255,255,.96);
+  box-shadow:0 0 0 .5px rgba(0,0,0,.10),0 24px 48px -20px rgba(25,10,45,.40);
+}
+@supports ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .ap-bar--glass .ap-bundle{{ sid }}{background:rgba(255,255,255,.86);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%)}
+}
+.ap-bar--glass .ap-bundle-ttl{{ sid }} strong{font-family:var(--g-sys);font-size:15px;font-weight:600;letter-spacing:-.01em;text-transform:none}
+.ap-bar--glass .ap-brow{{ sid }}{border-color:rgba(0,0,0,.07);background:rgba(255,255,255,.7);border-radius:16px}
+.ap-bar--glass .ap-swap{{ sid }}{border-radius:999px}
+
+/* Variant row */
+.ap-bar--glass .ap-vrow{{ sid }}{margin:0;padding:1px 2px;gap:10px;
+  -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 18px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 18px),transparent)}
+.ap-bar--glass .ap-vgroup{{ sid }}+.ap-vgroup{{ sid }}{border-left:1px solid rgba(0,0,0,.08)}
+.ap-bar--glass .ap-vlabel{{ sid }}{font-family:var(--g-sys);font-size:10px;font-weight:500;letter-spacing:.08em;color:#8e8e93}
+.ap-bar--glass .ap-vsize{{ sid }}{
+  height:30px;padding:0 12px;min-width:36px;border-radius:999px;font-family:var(--g-sys);font-size:12.5px;font-weight:500;line-height:30px;
+  background:rgba(255,255,255,.75);border:0;color:#1d1d1f;
+  box-shadow:inset 0 0 0 .5px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.05),inset 0 1px 0 #fff;
+  transition:background .2s,color .2s,box-shadow .2s,transform .45s cubic-bezier(.34,1.56,.64,1);
+}
+.ap-bar--glass .ap-vsize{{ sid }}:hover{box-shadow:inset 0 0 0 1px rgba(0,0,0,.35)}
+.ap-bar--glass .ap-vsize{{ sid }}.on{background:#111;color:#fff;box-shadow:0 4px 10px -4px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.15)}
+.ap-bar--glass .ap-vsize{{ sid }}:active{transform:scale(.94);transition-duration:.12s}
+.ap-bar--glass .ap-vsw{{ sid }}{width:24px;height:24px;border:0;box-shadow:inset 0 0 0 .5px rgba(0,0,0,.25),0 1px 2px rgba(0,0,0,.12)}
+.ap-bar--glass .ap-vsw{{ sid }}.on::after{border-color:var(--pill-outline)}
+
+/* Qty + Add */
+.ap-bar--glass .ap-arow{{ sid }}{gap:8px;align-items:center}
+.ap-bar--glass .ap-qty{{ sid }}{height:48px;border:0;border-radius:999px;background:rgba(118,118,128,.10);
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.06),inset 0 -1px 0 rgba(255,255,255,.6)}
+.ap-bar--glass .ap-qty{{ sid }} button{width:34px;font-family:var(--g-sys);font-size:18px;color:#1d1d1f;border-radius:999px}
+.ap-bar--glass .ap-qty{{ sid }} button:active{background:rgba(0,0,0,.06)}
+.ap-bar--glass .ap-qty{{ sid }} span{min-width:20px;font-family:var(--g-sys);font-size:14px;font-weight:600;color:#111;font-variant-numeric:tabular-nums}
+.ap-bar--glass .ap-atc{{ sid }}{
+  min-height:48px;padding:0 20px;border:0;border-radius:999px;
+  background:var(--g-atc);color:var(--g-atc-ink);
+  font-family:var(--g-sys);font-size:15px;font-weight:600;letter-spacing:-.01em;gap:8px;
+  box-shadow:0 10px 22px -10px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.18),inset 0 -2px 0 rgba(0,0,0,.28);
+  transition:transform .5s cubic-bezier(.34,1.56,.64,1),background .3s ease,box-shadow .3s ease,opacity .2s;
+}
+.ap-bar--atc-amethyst .ap-atc{{ sid }}{box-shadow:0 10px 22px -10px rgba(102,51,153,.65),inset 0 1px 0 rgba(255,255,255,.25),inset 0 -2px 0 rgba(60,20,100,.3)}
+.ap-bar--glass .ap-atc{{ sid }}:hover{box-shadow:0 14px 26px -10px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.18),inset 0 -2px 0 rgba(0,0,0,.28)}
+.ap-bar--glass .ap-atc{{ sid }}:active{transform:scale(.95);transition-duration:.12s}
+.ap-bar--glass .ap-atc{{ sid }}:focus-visible{outline:2px solid var(--pill-outline);outline-offset:3px}
+.ap-bar--glass .ap-atc{{ sid }}:disabled{background:rgba(118,118,128,.16);color:#8e8e93;box-shadow:inset 0 1px 2px rgba(0,0,0,.06)}
+.ap-bar--glass .ap-atc-bag{{ sid }}{width:16px;height:16px}
+.ap-bar--glass .ap-atc-sep{{ sid }}{opacity:.45}
+.ap-bar--glass .ap-atc-price{{ sid }}{font-weight:600;opacity:1;font-variant-numeric:tabular-nums}
+/* success: real cart response -> check draws in, then the label reads View Bag */
+.ap-bar--glass .ap-atc{{ sid }}.added{background:var(--g-atc);color:var(--g-atc-ink);border:0;box-shadow:0 10px 22px -12px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.18)}
+.ap-bar--glass .ap-atc{{ sid }}.added .ap-atc-ok{{ sid }}{display:block;width:18px;height:18px;order:-1;fill:none;stroke:#fff;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:24;stroke-dashoffset:24;animation:_gok{{ sid }} .5s .05s cubic-bezier(.65,0,.35,1) forwards}
+.ap-bar--glass .ap-atc{{ sid }}.added #ap-atc-lbl{{ sid }}{animation:_glb{{ sid }} .35s ease both}
+@keyframes _gok{{ sid }}{to{stroke-dashoffset:0}}
+@keyframes _glb{{ sid }}{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+
+@media (max-width:960px){
+  .ap-bar--glass .ap-pills{{ sid }}{max-width:none}
+}
+@media (min-width:961px){
+  .ap-bar{{ sid }}.ap-bar--glass{
+    left:max(var(--g-in),calc(50% - {{ section.settings.glass_bar_max_w | default: 1180 | divided_by: 2 }}px)) !important;
+    right:max(var(--g-in),calc(50% - {{ section.settings.glass_bar_max_w | default: 1180 | divided_by: 2 }}px)) !important;
+    bottom:calc(var(--g-in) + 2px + env(safe-area-inset-bottom,0px)) !important;padding:10px 10px 10px 12px;
+  }
+  .ap-bar--glass .ap-bar-inner{{ sid }}{flex-wrap:nowrap;gap:14px;max-width:none}
+  .ap-bar--glass .ap-trust{{ sid }}{display:none}
+  .ap-bar--glass .ap-pills{{ sid }}{flex:0 1 420px;max-width:420px;min-width:300px;padding:3px}
+  .ap-bar--glass .ap-vrow{{ sid }}{flex:1 1 auto;min-width:0}
+  .ap-bar--glass .ap-arow{{ sid }}{flex:0 0 auto;min-width:0;margin-left:auto}
+  .ap-bar--glass .ap-atc{{ sid }}{min-width:230px}
+}
+@media (max-width:640px){
+  .ap-bar--glass .ap-pill{{ sid }}{min-width:0;width:auto}
+  .ap-bar--glass .ap-trust{{ sid }}{font-size:9px}
+  .ap-bar--glass .ap-atc{{ sid }}{padding:0 16px}
+}
+@media (prefers-reduced-motion:reduce){
+  .ap-bar--glass .ap-pill{{ sid }},.ap-bar--glass .ap-atc{{ sid }},.ap-bar--glass .ap-vsize{{ sid }}{transition:none}
+  .ap-bar--glass .ap-atc{{ sid }}.added .ap-atc-ok{{ sid }}{animation:none;stroke-dashoffset:0}
+}
+/* page reserve: content before the footer can always scroll clear of the floating tray */
+body.ap-glassbar #MainContent{padding-bottom:var(--ap-glass-reserve,0px)}
+{%- endif -%}
+
 /* Theme editor: when section is inactive (deselected), don't take over screen */
 .shopify-section--apex-product{contain:layout style}
 </style>
@@ -1375,7 +1530,8 @@
 </div>
 
 <!-- STICKY BAR — portal'd to <body> on init -->
-<div class="ap-bar{{ sid }}" id="ap-bar{{ sid }}" data-section="{{ sid }}" role="region" aria-label="Add to cart">
+{%- assign bar_glass = false -%}{%- if section.settings.sticky_style != 'classic' -%}{%- assign bar_glass = true -%}{%- endif -%}
+<div class="ap-bar{{ sid }}{% if bar_glass %} ap-bar--glass ap-bar--atc-{{ section.settings.glass_atc_color | default: 'black' }}{% unless section.settings.glass_bundle_detail %} ap-bar--lean{% endunless %}{% if section.settings.glass_show_ribbon %} ap-bar--ribbon{% endif %}{% endif %}" id="ap-bar{{ sid }}" data-section="{{ sid }}" data-glass="{{ bar_glass }}" role="region" aria-label="Add to cart">
   {%- if show_pill -%}
   <div class="ap-bundle{{ sid }}" id="ap-bundle{{ sid }}" role="region" aria-label="Your bundle" hidden>
     <div class="ap-bundle-inner{{ sid }}">
@@ -1526,6 +1682,7 @@
         <svg class="_sp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
         </svg>
+        <svg class="ap-atc-ok{{ sid }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg>
       </button>
     </div>
 
@@ -2333,6 +2490,14 @@
       syncRAF=null;
       if(!bar)return;
       var h=bar.offsetHeight;
+      if(h>20&&bar.classList.contains('ap-bar--glass')){
+        /* floating tray: reserve its height plus the gap below it */
+        var gap=Math.max(0,Math.round(window.innerHeight-bar.getBoundingClientRect().bottom));
+        if(bar.classList.contains('hide'))gap=parseInt(getComputedStyle(bar).bottom,10)||0;
+        h=h+gap+8;
+        document.body.classList.add('ap-glassbar');
+        document.documentElement.style.setProperty('--ap-glass-reserve',h+'px');
+      }
       if(h>20){
         root.style.setProperty('--bar-h',h+'px');
         bar.style.setProperty('--bar-h',h+'px');
@@ -2794,6 +2959,106 @@
       "max": 25,
       "step": 1,
       "default": 5
+    },
+    {
+      "type": "header",
+      "content": "Sticky bar style"
+    },
+    {
+      "type": "select",
+      "id": "sticky_style",
+      "label": "Sticky bar style",
+      "options": [
+        {
+          "value": "glass",
+          "label": "Glass (new)"
+        },
+        {
+          "value": "classic",
+          "label": "Classic"
+        }
+      ],
+      "default": "glass",
+      "info": "Glass = floating frosted tray with clay segmented bundle options (Oct 2026). Classic = the previous full-width bar; all settings below still apply to both."
+    },
+    {
+      "type": "select",
+      "id": "glass_atc_color",
+      "label": "Glass: Add to cart colour",
+      "options": [
+        {
+          "value": "black",
+          "label": "Black"
+        },
+        {
+          "value": "amethyst",
+          "label": "Amethyst #9966CC"
+        }
+      ],
+      "default": "black"
+    },
+    {
+      "type": "range",
+      "id": "glass_bar_opacity",
+      "label": "Glass: tray opacity",
+      "min": 40,
+      "max": 95,
+      "step": 1,
+      "unit": "%",
+      "default": 72
+    },
+    {
+      "type": "range",
+      "id": "glass_bar_blur",
+      "label": "Glass: tray blur",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 22
+    },
+    {
+      "type": "range",
+      "id": "glass_bar_inset",
+      "label": "Glass: gap from screen edges",
+      "min": 6,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 10
+    },
+    {
+      "type": "range",
+      "id": "glass_bar_radius",
+      "label": "Glass: tray corner radius",
+      "min": 12,
+      "max": 36,
+      "step": 1,
+      "unit": "px",
+      "default": 26
+    },
+    {
+      "type": "range",
+      "id": "glass_bar_max_w",
+      "label": "Glass: tray max width (desktop)",
+      "min": 720,
+      "max": 1400,
+      "step": 20,
+      "unit": "px",
+      "default": 1180
+    },
+    {
+      "type": "checkbox",
+      "id": "glass_bundle_detail",
+      "label": "Glass: show thumbnails and sub-lines in bundle options",
+      "info": "Off keeps the segmented control to label + price. Tapping Duo/Trio still opens the full bundle details.",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "glass_show_ribbon",
+      "label": "Glass: show bundle ribbons",
+      "default": false
     },
     {
       "type": "header",
@@ -4449,4 +4714,5 @@
   }
 }
 {% endschema %}
+
 
