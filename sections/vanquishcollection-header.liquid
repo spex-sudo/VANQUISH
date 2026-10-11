@@ -828,7 +828,7 @@
   @media (hover: hover) { #lxp-{{ sid }} .lxp-chip:hover { background: rgba(0,0,0,.45); } }
   #lxp-{{ sid }} .lxp-chip:focus-visible { outline: 2px solid var(--p-acc); outline-offset: 2px; }
   #lxp-{{ sid }} .lxp-members { margin-top: 14px; }
-  #lxp-{{ sid }} .lxp-resume { position: absolute; top: 18px; right: 18px; max-width: min(46%, 300px); padding-left: 4px; }
+  #lxp-{{ sid }} .lxp-resume { position: absolute; top: 64px; right: 20px; max-width: min(46%, 300px); padding-left: 4px; }
   #lxp-{{ sid }} .lxp-resume[hidden] { display: none; }
   #lxp-{{ sid }} .lxp-resume-img { flex: 0 0 auto; width: 24px; height: 24px; border-radius: 50%; background: #222 center / cover no-repeat; box-shadow: 0 0 0 1px rgba(255,255,255,.25); }
   #lxp-{{ sid }} .lxp-resume-txt { display: flex; flex-direction: column; min-width: 0; line-height: 1.15; padding: 3px 0; }
@@ -844,7 +844,7 @@
     #lxp-{{ sid }} .lxp-h { font-size: {{ section.settings.glass_title_size_mobile | default: 30 }}px; letter-spacing: -.03em; }
     #lxp-{{ sid }} .lxp-count { font-size: 12px; }
     #lxp-{{ sid }} .lxp-sub { margin-top: 5px; font-size: 13px; line-height: 1.38; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-    #lxp-{{ sid }} .lxp-resume { top: auto; bottom: calc(100% - 100px); right: 12px; max-width: 58%; }
+    #lxp-{{ sid }} .lxp-resume { top: 54px; right: 10px; max-width: 56%; }
   }
   @media (prefers-reduced-motion: reduce) { #lxp-{{ sid }} .lxp-chip { transition: none; } }
   {%- endif -%}
