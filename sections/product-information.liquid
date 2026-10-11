@@ -584,7 +584,7 @@
 @keyframes _bpsk{{ sid }}{to{background-position:-200% 0}}
 .ap-dots{{ sid }}{font-style:normal;letter-spacing:.1em;opacity:.5}
 .ap-pill-now{{ sid }}{min-width:34px;text-align:right}
-.ap-pill-ribbon{{ sid }}{background:#9966CC;color:#fff;font-weight:600}
+.ap-pill-ribbon{{ sid }}{background:{{ section.settings.ribbon_bg | default: '#9966CC' }};color:{{ section.settings.ribbon_text | default: '#ffffff' }};font-weight:600}
 
 .ap-bundle{{ sid }}{
   position:absolute;left:0;right:0;bottom:100%;
@@ -3167,7 +3167,8 @@ body.ap-glassbar #MainContent{padding-bottom:var(--ap-glass-reserve,0px)}
     {
       "type": "text",
       "id": "duo_ribbon",
-      "label": "Duo — ribbon"
+      "label": "Duo — ribbon text (e.g. COMPLETE THE LOOK)",
+      "info": "Leave blank to hide the ribbon."
     },
     {
       "type": "checkbox",
@@ -3190,7 +3191,20 @@ body.ap-glassbar #MainContent{padding-bottom:var(--ap-glass-reserve,0px)}
     {
       "type": "text",
       "id": "triple_ribbon",
-      "label": "Triple — ribbon"
+      "label": "Trio — ribbon text",
+      "info": "Leave blank to hide the ribbon."
+    },
+    {
+      "type": "color",
+      "id": "ribbon_bg",
+      "label": "Ribbon background colour",
+      "default": "#9966CC"
+    },
+    {
+      "type": "color",
+      "id": "ribbon_text",
+      "label": "Ribbon text colour",
+      "default": "#ffffff"
     },
     {
       "type": "checkbox",
@@ -4736,6 +4750,7 @@ body.ap-glassbar #MainContent{padding-bottom:var(--ap-glass-reserve,0px)}
   }
 }
 {% endschema %}
+
 
 
 
