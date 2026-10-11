@@ -958,7 +958,7 @@
     {%- else -%}
   .apex-story.is-current .apex-story-ring::before { opacity: 0; }
   .apex-story.is-current .apex-story-ring::after { opacity: 1; background: var(--st-act); }
-  .apex-story.is-current .apex-story-ring { padding: var(--st-rw); }
+  .apex-story.is-current .apex-story-ring { padding: calc(var(--st-rw) + 1px); }
   {%- endcase %}
   /* tap / hover feedback */
   .apex-story:active .apex-story-av, .apex-story.is-tapped .apex-story-av { transform: scale(.92); }
@@ -975,6 +975,7 @@
   @media (max-width: 768px) {
     .apex-rail-{{ sid }}.apex-rail--story { --st-sz: {{ section.settings.story_size_mobile | default: 72 }}px; --st-space: {{ section.settings.story_spacing | default: 16 | times: 0.75 | round }}px; }
     .apex-story-name { font-size: 11.5px; }
+    .apex-rail--story .apex-rail-track { padding-left: 20px; padding-right: 20px; scroll-padding-left: 20px; }
   }
   @media (prefers-reduced-motion: reduce) {
     .apex-story-av, .apex-story-photo img, .apex-story-ring::before, .apex-story-ring::after { transition: none; animation: none !important; }
