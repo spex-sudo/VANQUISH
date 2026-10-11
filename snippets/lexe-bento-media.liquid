@@ -68,7 +68,7 @@
     assign poster_img = base
   endif
 -%}
-{%- if src_hi != '' -%}
+{%- if src_hi != '' -%}<!-- lxbdbg {% for s in video.sources %}{{ s.format }}:{{ s.width }}:{{ s.mime_type }};{% endfor %} -->
   <video class="lxb__vid" autoplay muted loop playsinline preload="metadata" disablepictureinpicture disableremoteplayback aria-hidden="true" tabindex="-1"
     {% if poster_img != blank %}poster="{{ poster_img | image_url: width: 1200 }}"{% endif %}
     {% if style != '' %}style="{{ style }}"{% endif %}
