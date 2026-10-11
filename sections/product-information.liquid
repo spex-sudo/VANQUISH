@@ -783,7 +783,7 @@
 .ap-atc-ok{{ sid }}{display:none}
 {%- if section.settings.sticky_style != 'classic' -%}
 {%- liquid
-  assign gb_op = section.settings.glass_bar_opacity | default: 72 | divided_by: 100.0
+  assign gb_op = section.settings.glass_bar_opacity | default: 80 | divided_by: 100.0
   assign gb_in = section.settings.glass_bar_inset | default: 10
 -%}
 .ap-bar{{ sid }}.ap-bar--glass{
