@@ -1,10 +1,11 @@
 {%- comment -%}
   LEXE Bento Hero (2026-10-11)
   Four-panel bento with angled gutters, built from Jay's wireframe.
-  Desktop (>=750px): panels are absolutely placed and cut with clip-path polygons.
+  Desktop (>=990px): panels are absolutely placed and cut with clip-path polygons.
   Every corner, including the angled ones, is filleted with the same radius, and the
   angled gutters keep the same perpendicular width as the straight ones.
   Mobile (<750px): one column with straight edges: headline card, photo swipe, product card.
+  Tablet (750-989px): same stack, both photos side by side. Angled gutters are desktop only.
 {%- endcomment -%}
 {%- liquid
   assign sid = section.id
@@ -251,7 +252,22 @@
     #lxb-{{ sid }} .lxb__ctas .lxb__btn { flex: 1 1 0; padding: 0 14px; }
   }
 
-  @media (min-width: 750px) {
+  @media (min-width: 750px) and (max-width: 989px) {
+    #lxb-{{ sid }} { padding: {{ st.pad_top_desktop }}px 20px {{ st.pad_bottom_desktop }}px; }
+    #lxb-{{ sid }} .lxb__grid { gap: 12px; }
+    #lxb-{{ sid }} .lxb__content { padding: 30px 32px 28px; }
+    #lxb-{{ sid }} .lxb__title { font-size: 56px; }
+    #lxb-{{ sid }} .lxb__track { margin: 0; padding: 0; gap: 12px; overflow: hidden; }
+    #lxb-{{ sid }} .lxb__img { flex: 1 1 0; aspect-ratio: 4 / 5; }
+    #lxb-{{ sid }} .lxb__dots { display: none; }
+    #lxb-{{ sid }} .lxb__prod { padding: 14px; }
+    #lxb-{{ sid }} .lxb__prod-img { width: 132px; }
+    #lxb-{{ sid }} .lxb__prod-t { font-size: 20px; }
+  }
+  @media (min-width: 990px) and (max-width: 1199px) {
+    #lxb-{{ sid }} .lxb__thumb { display: none; }
+  }
+  @media (min-width: 990px) {
     #lxb-{{ sid }} { padding: {{ st.pad_top_desktop }}px 20px {{ st.pad_bottom_desktop }}px; }
     #lxb-{{ sid }} .lxb__grid { display: block; height: var(--lxb-h); }
     #lxb-{{ sid }} .lxb__track { display: contents; }
@@ -265,7 +281,8 @@
     #lxb-{{ sid }} .lxb__img--b .lxb__chip { left: 18px; bottom: 18px; }
     #lxb-{{ sid }} .lxb__prod-info { padding: 10px 4px 6px 10px; }
     #lxb-{{ sid }} .lxb__prod-t { font-size: 20px; }
-    #lxb-{{ sid }} .lxb__prod-img { width: auto; height: 100%; }
+    #lxb-{{ sid }} .lxb__prod-img { width: auto; height: 100%; max-width: 46%; }
+    #lxb-{{ sid }} .lxb__row { padding-right: calc(var(--lxb-cx) * .6); }
     #lxb-{{ sid }} .lxb__img img { transition: transform .9s cubic-bezier(.2,.8,.2,1); }
     #lxb-{{ sid }} .lxb__img:hover img { transform: scale(1.025); }
     #lxb-{{ sid }} .lxb__btn--primary:hover { box-shadow: inset 0 1px 0 rgba(255,255,255,.4), inset 0 -2px 6px rgba(0,0,0,.18), 0 12px 28px -10px color-mix(in srgb, var(--lxb-accent) 90%, transparent); }
@@ -302,9 +319,9 @@
       <div class="lxb__p lxb__img lxb__img--a">
         {%- if img_a != blank -%}
           {%- if eager_a -%}
-            {{ img_a | image_url: width: 1920 | image_tag: loading: 'eager', fetchpriority: 'high', preload: true, widths: '480, 720, 960, 1200, 1440, 1680, 1920', sizes: '(min-width: 1320px) 790px, (min-width: 750px) 60vw, 88vw', alt: st.image_a_alt, style: style_a }}
+            {{ img_a | image_url: width: 1920 | image_tag: loading: 'eager', fetchpriority: 'high', preload: true, widths: '480, 720, 960, 1200, 1440, 1680, 1920', sizes: '(min-width: 1320px) 790px, (min-width: 990px) 60vw, (min-width: 750px) 50vw, 88vw', alt: st.image_a_alt, style: style_a }}
           {%- else -%}
-            {{ img_a | image_url: width: 1920 | image_tag: loading: 'lazy', widths: '480, 720, 960, 1200, 1440, 1680, 1920', sizes: '(min-width: 1320px) 790px, (min-width: 750px) 60vw, 88vw', alt: st.image_a_alt, style: style_a }}
+            {{ img_a | image_url: width: 1920 | image_tag: loading: 'lazy', widths: '480, 720, 960, 1200, 1440, 1680, 1920', sizes: '(min-width: 1320px) 790px, (min-width: 990px) 60vw, (min-width: 750px) 50vw, 88vw', alt: st.image_a_alt, style: style_a }}
           {%- endif -%}
         {%- else -%}<div class="lxb__ph">Add an image</div>{%- endif -%}
         {%- if st.image_a_link != blank -%}<a class="lxb__link" href="{{ st.image_a_link }}" aria-label="{{ st.image_a_label | default: st.image_a_alt | escape }}" data-lxb-cta="image_a"></a>{%- endif -%}
@@ -312,7 +329,7 @@
       </div>
       {%- if img_b != blank -%}
       <div class="lxb__p lxb__img lxb__img--b{% unless st.show_b_mobile %} lxb--desk-only{% endunless %}">
-        {{ img_b | image_url: width: 1920 | image_tag: loading: 'lazy', widths: '480, 720, 960, 1200, 1440, 1680, 1920', sizes: '(min-width: 1320px) 790px, (min-width: 750px) 60vw, 88vw', alt: st.image_b_alt, style: style_b }}
+        {{ img_b | image_url: width: 1920 | image_tag: loading: 'lazy', widths: '480, 720, 960, 1200, 1440, 1680, 1920', sizes: '(min-width: 1320px) 790px, (min-width: 990px) 60vw, (min-width: 750px) 50vw, 88vw', alt: st.image_b_alt, style: style_b }}
         {%- if st.image_b_link != blank -%}<a class="lxb__link" href="{{ st.image_b_link }}" aria-label="{{ st.image_b_label | default: st.image_b_alt | escape }}" data-lxb-cta="image_b"></a>{%- endif -%}
         {%- if st.image_b_label != blank -%}<span class="lxb__chip">{{ st.image_b_label }}</span>{%- endif -%}
       </div>
@@ -330,7 +347,7 @@
         </div>
         {%- if prod_img != blank -%}
           <div class="lxb__prod-img">
-            {{ prod_img | image_url: width: 720 | image_tag: loading: 'lazy', widths: '240, 360, 480, 600, 720', sizes: '(min-width: 750px) 240px, 104px', alt: prod.title }}
+            {{ prod_img | image_url: width: 720 | image_tag: loading: 'lazy', widths: '240, 360, 480, 600, 720', sizes: '(min-width: 990px) 260px, (min-width: 750px) 132px, 104px', alt: prod.title }}
           </div>
         {%- endif -%}
       </a>
@@ -412,7 +429,7 @@
     { "type": "text", "id": "product_cta", "label": "Pill text", "default": "Explore" },
 
     { "type": "header", "content": "Shape" },
-    { "type": "checkbox", "id": "slanted", "label": "Angled gutters (desktop)", "info": "Mobile always uses straight edges.", "default": true },
+    { "type": "checkbox", "id": "slanted", "label": "Angled gutters (desktop)", "info": "Phones and tablets always use straight edges.", "default": true },
     { "type": "select", "id": "slant_angle", "label": "Angle", "default": "30", "options": [
       { "value": "15", "label": "15°" }, { "value": "20", "label": "20°" }, { "value": "25", "label": "25°" },
       { "value": "30", "label": "30°" }, { "value": "35", "label": "35°" }, { "value": "40", "label": "40°" } ] },
