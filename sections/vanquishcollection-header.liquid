@@ -79,7 +79,7 @@
 {%- liquid
   # ── Editorial hero variables (LEXE redesign 2026-10-09) ──
   assign hero_style = section.settings.hero_style | default: 'editorial'
-  assign hero_look = section.settings.hero_look | default: 'glass'
+  assign hero_look = section.settings.hero_look | default: 'photo'
   assign ed_title = ''
   if active_col != nil
     assign ed_title = active_col.title
@@ -753,6 +753,103 @@
 
 
 <style>
+  {%- if hero_style == 'editorial' and hero_look == 'photo' -%}
+  /* ── LEXE photo hero v3 2026-10-11 ── */
+  {%- liquid
+    assign p_dop = section.settings.photo_glass_opacity | default: 35 | divided_by: 100.0
+    assign p_st = section.settings.photo_shade_top | default: 15 | divided_by: 100.0
+    assign p_sb = section.settings.photo_shade_bottom | default: 75 | divided_by: 100.0
+  -%}
+  #lxp-{{ sid }} {
+    --p-maxw: {{ section.settings.glass_max_w | default: 1300 }}px;
+    --p-rad: {{ section.settings.glass_radius | default: 28 }}px;
+    --p-blur: {{ section.settings.glass_blur | default: 20 }}px;
+    --p-acc: {{ section.settings.accent_color | default: '#9966CC' }};
+    position: relative; width: 100%; padding: {{ section.settings.photo_pad_top | default: 8 }}px 0 0; background: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', Inter, system-ui, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  #lxp-{{ sid }} *, #lxp-{{ sid }} *::before, #lxp-{{ sid }} *::after { box-sizing: border-box; }
+  #lxp-{{ sid }} .lxp-panel {
+    position: relative; isolation: isolate; overflow: hidden; margin: 0 auto;
+    width: calc(100% - 40px); max-width: calc(var(--p-maxw) - 40px);
+    height: {{ section.settings.photo_height | default: 440 }}px; border-radius: var(--p-rad);
+    background: #0a0a0a; color: #fff;
+    box-shadow: 0 0 0 0.5px rgba(0,0,0,.08), 0 22px 44px -26px rgba(20,10,40,.45);
+    -webkit-mask-image: -webkit-radial-gradient(white, black); /* Safari: clip children to radius */
+  }
+  #lxp-{{ sid }}.is-mesh .lxp-panel {
+    background:
+      radial-gradient(50% 80% at 18% 20%, rgba(153,102,204,.55), transparent 70%),
+      radial-gradient(45% 70% at 80% 30%, rgba(110,63,163,.45), transparent 70%),
+      radial-gradient(60% 90% at 60% 100%, rgba(153,102,204,.25), transparent 70%), #0a0a0a;
+  }
+  #lxp-{{ sid }} .lxp-media { position: absolute; top: 0; bottom: 0; right: 0; left: 0; z-index: -2; }
+  #lxp-{{ sid }} .lxp-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; display: block; }
+  #lxp-{{ sid }}.lxp--right .lxp-media { left: auto; width: {{ section.settings.photo_width_desktop | default: 62 }}%;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 38%); mask-image: linear-gradient(90deg, transparent 0%, #000 38%); }
+  #lxp-{{ sid }} .lxp-shade {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: -1; pointer-events: none;
+    background: linear-gradient(180deg, rgba(0,0,0,{{ p_st }}) 0%, rgba(0,0,0,{{ p_st | plus: p_sb | divided_by: 2.0 }}) 55%, rgba(0,0,0,{{ p_sb }}) 100%);
+  }
+  #lxp-{{ sid }}.lxp--full .lxp-shade {
+    background: linear-gradient(90deg, rgba(0,0,0,.55) 0%, rgba(0,0,0,0) 55%), linear-gradient(180deg, rgba(0,0,0,{{ p_st }}) 0%, rgba(0,0,0,{{ p_st | plus: p_sb | divided_by: 2.0 }}) 55%, rgba(0,0,0,{{ p_sb }}) 100%);
+  }
+  /* dark frosted glass card */
+  #lxp-{{ sid }} .lxp-card {
+    position: absolute; left: 32px; bottom: 32px; width: fit-content; min-width: 340px; max-width: min(calc(100% - 64px), 600px);
+    padding: 22px 26px; border-radius: calc(var(--p-rad) - 8px);
+    background: rgba(0,0,0,{{ p_dop }});
+    -webkit-backdrop-filter: blur(var(--p-blur)) saturate(160%); backdrop-filter: blur(var(--p-blur)) saturate(160%);
+    border: 1px solid rgba(255,255,255,.12);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 18px 36px -20px rgba(0,0,0,.55);
+  }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    #lxp-{{ sid }} .lxp-card { background: rgba(10,10,10,.78); }
+  }
+  #lxp-{{ sid }} .lxp-row { display: flex; align-items: baseline; justify-content: space-between; gap: 20px; }
+  #lxp-{{ sid }} .lxp-h {
+    margin: 0; min-width: 0; font-family: inherit; font-weight: 700; text-transform: none; color: #fff;
+    font-size: {{ section.settings.glass_title_size | default: 52 }}px; line-height: 1.02; letter-spacing: -.035em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  #lxp-{{ sid }} .lxp-count { flex: 0 0 auto; font-size: 13px; font-weight: 500; letter-spacing: .01em; color: rgba(255,255,255,.7); font-variant-numeric: tabular-nums; }
+  #lxp-{{ sid }} .lxp-sub { margin: 8px 0 0; font-size: 15px; line-height: 1.4; color: rgba(255,255,255,.75); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* glass chips */
+  #lxp-{{ sid }} .lxp-chip {
+    display: inline-flex; align-items: center; gap: 8px; min-height: 30px; padding: 0 12px 0 12px; border-radius: 999px; text-decoration: none;
+    font-size: 12px; font-weight: 500; letter-spacing: .01em; color: #fff;
+    background: rgba(0,0,0,.32); -webkit-backdrop-filter: blur(16px) saturate(160%); backdrop-filter: blur(16px) saturate(160%);
+    border: 1px solid rgba(255,255,255,.14); box-shadow: inset 0 1px 0 rgba(255,255,255,.14);
+    transition: transform .45s cubic-bezier(.34,1.56,.64,1), background .2s ease; -webkit-tap-highlight-color: transparent;
+  }
+  #lxp-{{ sid }} .lxp-chip svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; opacity: .7; flex: 0 0 auto; }
+  #lxp-{{ sid }} .lxp-chip:active { transform: scale(.95); transition-duration: .12s; }
+  @media (hover: hover) { #lxp-{{ sid }} .lxp-chip:hover { background: rgba(0,0,0,.45); } }
+  #lxp-{{ sid }} .lxp-chip:focus-visible { outline: 2px solid var(--p-acc); outline-offset: 2px; }
+  #lxp-{{ sid }} .lxp-members { margin-top: 14px; }
+  #lxp-{{ sid }} .lxp-resume { position: absolute; top: 18px; right: 18px; max-width: min(46%, 300px); padding-left: 4px; }
+  #lxp-{{ sid }} .lxp-resume[hidden] { display: none; }
+  #lxp-{{ sid }} .lxp-resume-img { flex: 0 0 auto; width: 24px; height: 24px; border-radius: 50%; background: #222 center / cover no-repeat; box-shadow: 0 0 0 1px rgba(255,255,255,.25); }
+  #lxp-{{ sid }} .lxp-resume-txt { display: flex; flex-direction: column; min-width: 0; line-height: 1.15; padding: 3px 0; }
+  #lxp-{{ sid }} .lxp-resume-txt small { font-size: 10px; color: rgba(255,255,255,.62); letter-spacing: .02em; }
+  #lxp-{{ sid }} .lxp-resume-txt span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #lxp-{{ sid }} .lxp-pill { margin-top: 14px; }
+  @media (max-width: 768px) {
+    #lxp-{{ sid }} { padding-top: {{ section.settings.photo_pad_top_mobile | default: 8 }}px; }
+    #lxp-{{ sid }} .lxp-panel { width: calc(100% - 24px); height: {{ section.settings.photo_height_mobile | default: 316 }}px; border-radius: calc(var(--p-rad) - 4px); }
+    #lxp-{{ sid }}.lxp--right .lxp-media { left: 0; width: auto; -webkit-mask-image: none; mask-image: none; }
+    #lxp-{{ sid }}.lxp--full .lxp-shade, #lxp-{{ sid }}.lxp--right .lxp-shade { background: linear-gradient(180deg, rgba(0,0,0,{{ p_st | plus: 0.15 }}) 0%, rgba(0,0,0,{{ p_st }}) 30%, rgba(0,0,0,{{ p_st | plus: p_sb | divided_by: 2.0 }}) 62%, rgba(0,0,0,{{ p_sb }}) 100%); }
+    #lxp-{{ sid }} .lxp-card { left: 12px; right: 12px; bottom: 12px; width: auto; min-width: 0; max-width: none; padding: 14px 16px 15px; border-radius: calc(var(--p-rad) - 10px); }
+    #lxp-{{ sid }} .lxp-h { font-size: {{ section.settings.glass_title_size_mobile | default: 30 }}px; letter-spacing: -.03em; }
+    #lxp-{{ sid }} .lxp-count { font-size: 12px; }
+    #lxp-{{ sid }} .lxp-sub { margin-top: 5px; font-size: 13px; line-height: 1.38; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    #lxp-{{ sid }} .lxp-resume { top: auto; bottom: calc(100% - 100px); right: 12px; max-width: 58%; }
+  }
+  @media (prefers-reduced-motion: reduce) { #lxp-{{ sid }} .lxp-chip { transition: none; } }
+  {%- endif -%}
+</style>
+<style>
   {%- if hero_style == 'editorial' and hero_look == 'glass' -%}
   /* ── LEXE glass hero 2026-10-11: matches the v2 story rail (glass 55%, blur 20, radius 28, amethyst haze) ── */
   #lxg-{{ sid }} {
@@ -848,7 +945,101 @@
 <div id="chc-{{ sid }}">
 
   {%- if hero_style == 'editorial' -%}
-  {%- if hero_look == 'glass' -%}
+  {%- if hero_look == 'photo' -%}
+  <!-- ══ PHOTO HERO (LEXE 2026-10-11 v3): real collection photo, black gradient, dark frosted card ══ -->
+  {%- liquid
+    assign p_title = ed_title | strip
+    assign p_low = p_title | downcase
+    if p_low == p_title
+      assign p_title = p_title | capitalize
+    endif
+    assign p_img = nil
+    assign p_focal = ''
+    assign p_handle = ''
+    if active_col != nil
+      assign p_handle = active_col.handle
+    endif
+    assign p_mesh_list = section.settings.photo_mesh_handles | remove: ' ' | split: ','
+    assign p_clean_list = section.settings.photo_clean_handles | remove: ' ' | split: ','
+    assign p_force_mesh = false
+    if p_handle != '' and p_mesh_list contains p_handle
+      assign p_force_mesh = true
+    endif
+    unless p_force_mesh
+      if active_col != nil and active_col.metafields.custom.hero_image != blank
+        assign p_img = active_col.metafields.custom.hero_image.value
+      endif
+      if p_img == nil and section.settings.hero_image != blank
+        assign p_img = section.settings.hero_image
+      endif
+      if p_img == nil and active_col != nil and active_col.featured_image != blank and p_clean_list contains p_handle
+        assign p_img = active_col.featured_image
+      endif
+      if p_img == nil and active_col != nil and section.settings.photo_product_fallback
+        for pp in active_col.products limit: 24
+          if pp.featured_image != blank
+            unless pp.tags contains 'needs-clean-image'
+              assign p_img = pp.featured_image
+              break
+            endunless
+          endif
+        endfor
+      endif
+    endunless
+    if active_col != nil and active_col.metafields.custom.hero_focal != blank
+      assign p_focal = active_col.metafields.custom.hero_focal.value | default: active_col.metafields.custom.hero_focal
+    endif
+    if p_focal == blank and p_img != nil and p_img.presentation.focal_point != blank
+      assign p_focal = p_img.presentation.focal_point
+    endif
+    if p_focal == blank
+      assign p_focal = section.settings.photo_focal | default: '50% 35%'
+    endif
+    assign p_ar = 1
+    if p_img != nil
+      assign p_ar = p_img.aspect_ratio | default: 1
+    endif
+  -%}
+  <div id="lxp-{{ sid }}" class="lxp{% if p_img == nil %} is-mesh{% endif %} lxp--{{ section.settings.photo_layout_desktop | default: 'right' }}" data-lxh data-lxp>
+    <div class="lxp-panel">
+      <div class="lxp-media" aria-hidden="true">
+        {%- if p_img != nil -%}
+          <img class="lxp-img" src="{{ p_img | image_url: width: 1400 }}"
+            srcset="{{ p_img | image_url: width: 600 }} 600w, {{ p_img | image_url: width: 900 }} 900w, {{ p_img | image_url: width: 1400 }} 1400w, {{ p_img | image_url: width: 2000 }} 2000w"
+            sizes="(max-width: 768px) calc(100vw - 24px), 60vw"
+            width="1400" height="{{ 1400 | divided_by: p_ar | round }}" alt="" loading="eager" fetchpriority="high" decoding="async"
+            style="object-position: {{ p_focal | escape }};">
+        {%- endif -%}
+      </div>
+      <div class="lxp-shade" aria-hidden="true"></div>
+      {%- if section.settings.photo_resume -%}
+        <a class="lxp-chip lxp-resume" href="#" hidden data-lxp-resume>
+          <span class="lxp-resume-img"></span><span class="lxp-resume-txt"><small>{{ section.settings.photo_resume_label | default: 'Continue' | escape }}</small><span data-lxp-resume-title></span></span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+        </a>
+      {%- endif -%}
+      <div class="lxp-card">
+        <div class="lxp-row">
+          {%- if template.name == 'collection' -%}<h1 class="lxp-h">{%- else -%}<h2 class="lxp-h">{%- endif -%}{{ p_title | escape }}{%- if template.name == 'collection' -%}</h1>{%- else -%}</h2>{%- endif -%}
+          {%- if section.settings.glass_show_count and ed_count > 0 -%}
+            <span class="lxp-count">{{ ed_count }} {% if ed_count == 1 %}{{ section.settings.count_label_one | default: 'piece' | escape }}{% else %}{{ section.settings.count_label | default: 'pieces' | escape }}{% endif %}</span>
+          {%- endif -%}
+        </div>
+        {%- if section.settings.glass_show_subline and ed_sub != blank -%}
+          <p class="lxp-sub">{{ ed_sub | escape }}</p>
+        {%- endif -%}
+        {%- if section.settings.photo_members_chip -%}
+          <a class="lxp-chip lxp-members" href="{{ section.settings.photo_members_url | default: '/pages/links?src=site' }}" data-lxp-members>{{ section.settings.photo_members_label | default: 'Members get first look' | escape }}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
+        {%- endif -%}
+        {%- if section.settings.glass_cta == 'filter' -%}
+          <button type="button" class="lxg-pill lxp-pill" data-lxg-filter>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M7 12h10M10 17h4"/></svg>{{ section.settings.glass_cta_label | default: 'Filter' | escape }}
+          </button>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+  {%- elsif hero_look == 'glass' -%}
   <!-- ══ GLASS HERO (LEXE 2026-10-11): frosted card over a blurred real-photo backdrop ══ -->
   {%- liquid
     assign g_title = ed_title | strip
@@ -1525,6 +1716,53 @@
 </script>
 
 
+
+<script>
+/* LEXE photo hero v3: continue-where-you-left-off chip (theme's own viewedProducts list) + session sort memory. Real data only. */
+(function () {
+  'use strict';
+  var HERO = document.querySelector('#lxp-{{ sid }}');
+  {%- if section.settings.photo_resume %}
+  (function resume() {
+    if (!HERO) return;
+    var chip = HERO.querySelector('[data-lxp-resume]'); if (!chip) return;
+    var ids = []; try { ids = JSON.parse(localStorage.getItem('viewedProducts') || '[]'); } catch (e) {}
+    if (!ids || !ids.length) return;
+    var id = String(ids[0]); if (!/^\d+$/.test(id)) return;
+    var url = (window.Shopify && Shopify.routes && Shopify.routes.root || '/') + 'search/suggest.json?q=' + encodeURIComponent('id:' + id) + '&resources[type]=product&resources[limit]=1';
+    fetch(url, { credentials: 'same-origin' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+      var p = j && j.resources && j.resources.results && j.resources.results.products && j.resources.results.products[0];
+      if (!p || String(p.id) !== id || !p.url || !p.title) return;
+      var u = p.url.split('?')[0];
+      if (location.pathname.indexOf(u) !== -1) return;
+      chip.href = u;
+      chip.querySelector('[data-lxp-resume-title]').textContent = p.title;
+      chip.setAttribute('aria-label', '{{ section.settings.photo_resume_label | default: 'Continue' | escape }}: ' + p.title);
+      if (p.image) chip.querySelector('.lxp-resume-img').style.backgroundImage = 'url("' + p.image.replace(/"/g, '') + (p.image.indexOf('?') > -1 ? '&' : '?') + 'width=64")';
+      chip.hidden = false;
+      chip.addEventListener('click', function () { if (window.lexeTrack) window.lexeTrack('hero_resume_click', { product_id: id }); });
+    }).catch(function () {});
+  })();
+  {%- endif %}
+  {%- if section.settings.photo_members_chip %}
+  if (HERO) { var mc = HERO.querySelector('[data-lxp-members]'); if (mc) mc.addEventListener('click', function () { if (window.lexeTrack) window.lexeTrack('hero_members_click', {}); }); }
+  {%- endif %}
+  {%- if section.settings.photo_remember_sort and template.name == 'collection' %}
+  (function sortMemory() {
+    var KEY = 'lexe_sort_v1', q = new URLSearchParams(location.search), s = q.get('sort_by');
+    try { if (s) sessionStorage.setItem(KEY, s); else s = sessionStorage.getItem(KEY); } catch (e) { return; }
+    if (!s || !/^[a-z-]+$/.test(s)) return;
+    function apply() {
+      document.querySelectorAll('a[data-lx-sub^="collection:"]').forEach(function (a) {
+        try { var u = new URL(a.getAttribute('href'), location.href); if (!u.searchParams.has('sort_by')) { u.searchParams.set('sort_by', s); a.setAttribute('href', u.pathname + u.search); } } catch (e) {}
+      });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', apply); else apply();
+  })();
+  {%- endif %}
+})();
+</script>
+
 {% schema %}
 {
   "name": "Collection Hero",
@@ -1561,7 +1799,28 @@
         }
       ]
     },
-    {"type": "select", "id": "hero_look", "label": "Editorial look", "info": "Glass = calm frosted card that matches the story rail. Poster = the previous LEXE poster / compact band (all its settings still apply).", "options": [{"value": "glass", "label": "Glass (Oct 2026)"}, {"value": "poster", "label": "Poster (previous)"}], "default": "glass"},
+    {"type": "select", "id": "hero_look", "label": "Editorial look", "info": "Photo = collection photo with dark frosted card (Oct 2026 v3). Glass light = blurred light hero (v2). Poster = the previous LEXE poster / compact band (all its settings still apply).", "options": [{"value": "photo", "label": "Photo + dark glass (v3)"}, {"value": "glass", "label": "Glass light (v2)"}, {"value": "poster", "label": "Poster (previous)"}], "default": "photo"},
+    {"type": "header", "content": "━━ Photo look (v3)", "info": "Image order: collection metafield custom.hero_image, then Hero image setting, then the collection image only if its handle is listed as clean, then the first product without needs-clean-image, then an amethyst gradient. Focal point: metafield custom.hero_focal (e.g. 50% 30%), then the image focal point, then the default below."},
+    {"type": "text", "id": "photo_clean_handles", "label": "Collections whose own image is clean", "info": "Comma-separated handles. Leave out any collection whose image has lettering, supplier marks or watermarks.", "default": "faux-leather-jackets"},
+    {"type": "text", "id": "photo_mesh_handles", "label": "Collections that use the gradient only", "info": "For collections with no clean photo at all.", "default": "exodus"},
+    {"type": "checkbox", "id": "photo_product_fallback", "label": "Fall back to first clean product photo", "default": true},
+    {"type": "text", "id": "photo_focal", "label": "Default focal point", "default": "50% 35%"},
+    {"type": "select", "id": "photo_layout_desktop", "label": "Desktop photo layout", "options": [{"value": "right", "label": "Photo on the right, fading into black"}, {"value": "full", "label": "Full width"}], "default": "right"},
+    {"type": "range", "id": "photo_width_desktop", "label": "Desktop photo width", "min": 40, "max": 100, "step": 2, "unit": "%", "default": 62},
+    {"type": "range", "id": "photo_height", "label": "Panel height — desktop", "min": 320, "max": 640, "step": 10, "unit": "px", "default": 440},
+    {"type": "range", "id": "photo_height_mobile", "label": "Panel height — mobile", "min": 240, "max": 420, "step": 4, "unit": "px", "default": 316},
+    {"type": "range", "id": "photo_pad_top", "label": "Space above panel — desktop", "min": 0, "max": 120, "step": 2, "unit": "px", "default": 8},
+    {"type": "range", "id": "photo_pad_top_mobile", "label": "Space above panel — mobile", "min": 0, "max": 120, "step": 2, "unit": "px", "default": 8},
+    {"type": "range", "id": "photo_shade_top", "label": "Black overlay — top", "min": 0, "max": 60, "step": 5, "unit": "%", "default": 15},
+    {"type": "range", "id": "photo_shade_bottom", "label": "Black overlay — bottom", "min": 30, "max": 95, "step": 5, "unit": "%", "default": 75},
+    {"type": "range", "id": "photo_glass_opacity", "label": "Dark glass opacity", "min": 20, "max": 70, "step": 5, "unit": "%", "default": 35},
+    {"type": "header", "content": "━━ Retention touches"},
+    {"type": "checkbox", "id": "photo_resume", "label": "'Continue' chip (last product viewed)", "info": "Uses the theme's own recently-viewed list on this device. Hidden when there is none.", "default": true},
+    {"type": "text", "id": "photo_resume_label", "label": "Continue chip label", "default": "Continue"},
+    {"type": "checkbox", "id": "photo_remember_sort", "label": "Remember sort while browsing collections", "info": "If a shopper sorts, the rail links keep that sort for the rest of the session.", "default": true},
+    {"type": "checkbox", "id": "photo_members_chip", "label": "'Members get first look' chip", "default": false},
+    {"type": "text", "id": "photo_members_label", "label": "Members chip label", "default": "Members get first look"},
+    {"type": "text", "id": "photo_members_url", "label": "Members chip link", "default": "/pages/links?src=site"},
     {"type": "header", "content": "━━ Glass look", "info": "Backdrop uses real product photos from the collection, blurred to colour only. Products tagged needs-clean-image are skipped. With no image it falls back to a soft amethyst mesh."},
     {"type": "select", "id": "glass_backdrop", "label": "Backdrop", "options": [{"value": "products", "label": "Blurred collection products"}, {"value": "collection", "label": "Blurred collection image"}, {"value": "mesh", "label": "Amethyst mesh only"}], "default": "products"},
     {"type": "range", "id": "glass_bd_blur", "label": "Backdrop blur", "min": 24, "max": 80, "step": 4, "unit": "px", "default": 48},
@@ -2444,6 +2703,7 @@
   ]
 }
 {% endschema %}
+
 
 
 
