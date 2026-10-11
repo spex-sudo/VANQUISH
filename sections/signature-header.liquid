@@ -623,6 +623,10 @@
     backdrop-filter: blur(20px) saturate(180%);
   }
 }
+/* the full scrolled bar sits over busy product grids: a touch more opaque so text behind never reads through */
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))){
+  #ApexRoot:not(.apex-at-top):not(.apex-notif-flash) .apex-bar{ background: rgba(255,255,255,.88); }
+}
 /* JS paints the flash notification inline; keep its colours */
 #ApexRoot.apex-notif-flash .apex-notif-pill{ -webkit-backdrop-filter: none; backdrop-filter: none; }
 #ApexRoot .apex-notif-pill-track{ background: rgba(0,0,0,.10); }
