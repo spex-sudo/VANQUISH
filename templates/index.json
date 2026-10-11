@@ -876,11 +876,9 @@
         "radius_mobile": 20,
         "video_mobile": true,
         "hide_floaters": true,
-        "image_a_video_controls": true,
-        "image_b_video_controls": true,
-        "product_video_controls": false,
-        "image_a_video": "shopify://files/videos/Subject 2.mp4",
-        "image_b_video_url": "https://cdn.shopify.com/videos/c/vp/dc5e4149c2564c629557d5294d972c4d/dc5e4149c2564c629557d5294d972c4d.HD-720p-4.5Mbps-96081146.mp4"
+        "image_a_video_controls": false,
+        "image_b_video_controls": false,
+        "product_video_controls": false
       }
     }
   },
