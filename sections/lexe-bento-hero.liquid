@@ -392,7 +392,8 @@
     if (v.dataset.loaded) return;
     var small = window.innerWidth < 750 || (v.getBoundingClientRect().width * (window.devicePixelRatio || 1)) < 900;
     v.muted = true; v.defaultMuted = true; v.setAttribute('muted', '');
-    v.src = (small ? v.dataset.srcLo : v.dataset.srcHi) || v.dataset.srcHi;
+    var hls = v.dataset.srcHls && v.canPlayType('application/vnd.apple.mpegurl') ? v.dataset.srcHls : '';
+    v.src = hls || (small ? v.dataset.srcLo : v.dataset.srcHi) || v.dataset.srcHi;
     v.dataset.loaded = '1';
     v.addEventListener('playing', function () { v.classList.add('is-playing'); var b = btnFor(v); if (b) b.hidden = false; setBtn(v); });
     v.addEventListener('pause', function () { setBtn(v); });

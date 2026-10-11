@@ -1,6 +1,7 @@
 {%- comment -%}
   LEXE Bento Hero helper: one panel's media. The image is always rendered (LCP / fallback);
   an optional muted, looping video sits on top and only loads and plays while on screen (see section JS).
+  Sources come from video.sources (what video_tag uses): MP4 everywhere, adaptive HLS where the browser plays it natively (Safari/iOS).
   params: img, video (Shopify video from Files), video_url (external MP4), poster (image), pos (object-position),
           eager (bool), widths, sizes, alt, img_width (max width to request), controls (bool), label (for the control).
 {%- endcomment -%}
@@ -28,12 +29,16 @@
 {%- liquid
   assign src_hi = ''
   assign src_lo = ''
+  assign src_hls = ''
   if video != blank
     assign best_hi = 0
     assign best_lo = 0
     assign max_w = 0
     assign max_url = ''
     for s in video.sources
+      if s.format == 'm3u8'
+        assign src_hls = s.url
+      endif
       if s.format == 'mp4' or s.mime_type == 'video/mp4'
         if s.width > max_w
           assign max_w = s.width
@@ -68,11 +73,11 @@
     assign poster_img = base
   endif
 -%}
-{%- if src_hi != '' -%}<!-- lxbdbg {% for s in video.sources %}{{ s.format }}:{{ s.width }}:{{ s.mime_type }};{% endfor %} -->
+{%- if src_hi != '' -%}
   <video class="lxb__vid" autoplay muted loop playsinline preload="metadata" disablepictureinpicture disableremoteplayback aria-hidden="true" tabindex="-1"
     {% if poster_img != blank %}poster="{{ poster_img | image_url: width: 1200 }}"{% endif %}
     {% if style != '' %}style="{{ style }}"{% endif %}
-    data-lxb-video data-src-hi="{{ src_hi }}" data-src-lo="{{ src_lo }}"></video>
+    data-lxb-video data-src-hi="{{ src_hi }}" data-src-lo="{{ src_lo }}"{% if src_hls != "" %} data-src-hls="{{ src_hls }}"{% endif %}></video>
   {%- if controls -%}
     <button class="lxb__vbtn" type="button" data-lxb-vbtn aria-label="Pause {{ label | default: 'video' | escape }}" data-label="{{ label | default: 'video' | escape }}" hidden>
       <svg class="lxb__vbtn-pause" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><rect x="3" y="2.5" width="2.6" height="9" rx="1" fill="currentColor"/><rect x="8.4" y="2.5" width="2.6" height="9" rx="1" fill="currentColor"/></svg>
