@@ -912,13 +912,13 @@
     --clay-out-hi: 0 12px 22px -10px rgba(52,30,84,.30), 0 2px 5px rgba(52,30,84,.08);
     --clay-in: inset 1.5px 2px 3px rgba(255,255,255,.95), inset -2px -3px 5px rgba(84,52,128,.11);
     {%- endif %}
-    position: relative; isolation: isolate; margin: 0 0 {{ section.settings.rail_gap }}px;
+    position: relative; isolation: isolate; width: fit-content; max-width: 100%; margin: 6px 0 {{ section.settings.rail_gap }}px;
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', Inter, system-ui, 'Segoe UI', Roboto, sans-serif;
   }
   {%- if section.settings.glass_tint %}
   /* faint amethyst aura behind the tray so the frost has something to read against on a white page */
   .apex-rail--story::before {
-    content: ''; position: absolute; z-index: -1; pointer-events: none; top: 8%; bottom: 8%; left: 0; width: min(100%, 720px);
+    content: ''; position: absolute; z-index: -1; pointer-events: none; top: 14%; bottom: 14%; left: 5%; right: 5%;
     background:
       radial-gradient(40% 70% at 12% 40%, rgba(153,102,204,.16), transparent 70%),
       radial-gradient(35% 80% at 55% 70%, rgba(199,174,235,.22), transparent 70%),
@@ -1028,7 +1028,7 @@
   @keyframes lxStorySweep { from { transform: rotate(-120deg); opacity: .4; } to { transform: rotate(0deg); opacity: 1; } }
   {%- endif %}
   @media (max-width: 768px) {
-    .apex-rail-{{ sid }}.apex-rail--story { --st-sz: {{ section.settings.story_size_mobile | default: 64 }}px; --st-space: {{ section.settings.story_spacing | default: 14 | times: 0.75 | round }}px; margin-left: -8px !important; margin-right: -8px !important; }
+    .apex-rail-{{ sid }}.apex-rail--story { --st-sz: {{ section.settings.story_size_mobile | default: 64 }}px; --st-space: {{ section.settings.story_spacing | default: 14 | times: 0.75 | round }}px; width: auto; max-width: none; margin-left: -8px !important; margin-right: -8px !important; }
     .apex-story-tray { width: auto; }
     .apex-rail--story .apex-rail-track { padding: 12px 14px 8px; scroll-padding-left: 14px; }
     .apex-story-name { font-size: 11px; margin-top: 7px; }
