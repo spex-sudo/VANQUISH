@@ -50,6 +50,32 @@
     assign hero_img = active_col.featured_image
   endif
 
+  # ── Per-collection header image blocks (LEXE 2026-10-11) ──
+  assign hb = nil
+  if active_col != nil
+    for block in section.blocks
+      if block.type == 'header_image' and block.settings.image != blank
+        assign hb_match = false
+        if block.settings.collection != blank and block.settings.collection.handle == active_col.handle
+          assign hb_match = true
+        endif
+        if hb_match == false and block.settings.handles != blank
+          assign hb_list = block.settings.handles | downcase | remove: ' ' | split: ','
+          if hb_list contains active_col.handle
+            assign hb_match = true
+          endif
+        endif
+        if hb_match
+          assign hb = block
+          break
+        endif
+      endif
+    endfor
+  endif
+  if hb != nil
+    assign hero_img = hb.settings.image
+  endif
+
   assign auto_limit = section.settings.auto_limit | default: 12
 
   assign render_blocks = false
@@ -150,6 +176,10 @@
     elsif active_col != nil and active_col.featured_image != blank
       assign ed_bd = active_col.featured_image
     endif
+  endif
+
+  if hb != nil and section.settings.backdrop_source != 'none'
+    assign ed_bd = hb.settings.image
   endif
 
   assign dcount = section.settings.diamond_count | default: 9
@@ -759,6 +789,10 @@
     assign p_dop = section.settings.photo_glass_opacity | default: 35 | divided_by: 100.0
     assign p_st = section.settings.photo_shade_top | default: 15 | divided_by: 100.0
     assign p_sb = section.settings.photo_shade_bottom | default: 75 | divided_by: 100.0
+    if hb != nil and hb.settings.shade_override
+      assign p_st = hb.settings.shade_top | default: 0 | divided_by: 100.0
+      assign p_sb = hb.settings.shade_bottom | default: 75 | divided_by: 100.0
+    endif
   -%}
   #lxp-{{ sid }} {
     --p-maxw: {{ section.settings.glass_max_w | default: 1300 }}px;
@@ -975,7 +1009,15 @@
     if p_handle != '' and p_mesh_list contains p_handle
       assign p_force_mesh = true
     endif
-    unless p_force_mesh
+    assign p_mob = nil
+    if hb != nil
+      assign p_img = hb.settings.image
+      if hb.settings.image_mobile != blank
+        assign p_mob = hb.settings.image_mobile
+      endif
+      assign p_force_mesh = false
+    endif
+    if p_img == nil and p_force_mesh == false
       if active_col != nil and active_col.metafields.custom.hero_image != blank
         assign p_img = active_col.metafields.custom.hero_image.value
       endif
@@ -986,7 +1028,12 @@
         assign p_img = active_col.featured_image
       endif
       if p_img == nil and active_col != nil and section.settings.photo_product_fallback
-        for pp in active_col.products limit: 24
+        # deterministic: read the collection's own default order (collections[handle]), not the shopper's sort/filter
+        assign p_src_col = collections[p_handle]
+        if p_src_col == blank or p_src_col.products.size == 0
+          assign p_src_col = active_col
+        endif
+        for pp in p_src_col.products limit: 24
           if pp.featured_image != blank
             unless pp.tags contains 'needs-clean-image'
               assign p_img = pp.featured_image
@@ -995,8 +1042,23 @@
           endif
         endfor
       endif
-    endunless
-    if active_col != nil and active_col.metafields.custom.hero_focal != blank
+    endif
+    assign p_focal_m = ''
+    if hb != nil
+      if hb.settings.focal != 'auto'
+        assign p_focal = hb.settings.focal
+      elsif p_img.presentation.focal_point != blank
+        assign p_focal = p_img.presentation.focal_point
+      endif
+      if p_mob != nil
+        if hb.settings.focal != 'auto'
+          assign p_focal_m = hb.settings.focal
+        elsif p_mob.presentation.focal_point != blank
+          assign p_focal_m = p_mob.presentation.focal_point
+        endif
+      endif
+    endif
+    if p_focal == blank and active_col != nil and active_col.metafields.custom.hero_focal != blank
       assign p_focal = active_col.metafields.custom.hero_focal.value | default: active_col.metafields.custom.hero_focal
     endif
     if p_focal == blank and p_img != nil and p_img.presentation.focal_point != blank
@@ -1004,6 +1066,9 @@
     endif
     if p_focal == blank
       assign p_focal = section.settings.photo_focal | default: '50% 35%'
+    endif
+    if p_focal_m == blank
+      assign p_focal_m = p_focal
     endif
     assign p_ar = 1
     if p_img != nil
@@ -1015,11 +1080,25 @@
       {%- if p_img != nil -%}<img class="lxp-img-bg" src="{{ p_img | image_url: width: 480 }}" width="480" height="{{ 480 | divided_by: p_ar | round }}" alt="" aria-hidden="true" loading="eager" decoding="async">{%- endif -%}
       <div class="lxp-media" aria-hidden="true">
         {%- if p_img != nil -%}
+          {%- if p_mob != nil -%}
+          {%- assign p_mar = p_mob.aspect_ratio | default: 1 -%}
+          <picture>
+            <source media="(max-width: 768px)"
+              srcset="{{ p_mob | image_url: width: 480 }} 480w, {{ p_mob | image_url: width: 750 }} 750w, {{ p_mob | image_url: width: 1100 }} 1100w"
+              sizes="calc(100vw - 24px)"
+              width="750" height="{{ 750 | divided_by: p_mar | round }}">
+          {%- endif -%}
           <img class="lxp-img" src="{{ p_img | image_url: width: 1400 }}"
             srcset="{{ p_img | image_url: width: 600 }} 600w, {{ p_img | image_url: width: 900 }} 900w, {{ p_img | image_url: width: 1400 }} 1400w, {{ p_img | image_url: width: 2000 }} 2000w"
             sizes="(max-width: 768px) calc(100vw - 24px), 60vw"
             width="1400" height="{{ 1400 | divided_by: p_ar | round }}" alt="" loading="eager" fetchpriority="high" decoding="async"
-            style="object-position: {{ p_focal | escape }};">
+            style="object-position: {{ p_focal | escape }};"{% if hb != nil %} data-lxp-src="block"{% endif %}>
+          {%- if p_mob != nil -%}
+          </picture>
+          {%- endif -%}
+          {%- if p_focal_m != p_focal -%}
+          <style>@media (max-width: 768px) { #lxp-{{ sid }} .lxp-img { object-position: {{ p_focal_m | escape }} !important; } }</style>
+          {%- endif -%}
         {%- endif -%}
       </div>
       <div class="lxp-shade" aria-hidden="true"></div>
@@ -1810,43 +1889,348 @@
         }
       ]
     },
-    {"type": "select", "id": "hero_look", "label": "Editorial look", "info": "Photo = collection photo with dark frosted card (Oct 2026 v3). Glass light = blurred light hero (v2). Poster = the previous LEXE poster / compact band (all its settings still apply).", "options": [{"value": "photo", "label": "Photo + dark glass (v3)"}, {"value": "glass", "label": "Glass light (v2)"}, {"value": "poster", "label": "Poster (previous)"}], "default": "photo"},
-    {"type": "header", "content": "━━ Photo look (v3)", "info": "Image order: collection metafield custom.hero_image, then Hero image setting, then the collection image only if its handle is listed as clean, then the first product without needs-clean-image, then an amethyst gradient. Focal point: metafield custom.hero_focal (e.g. 50% 30%), then the image focal point, then the default below."},
-    {"type": "text", "id": "photo_clean_handles", "label": "Collections whose own image is clean", "info": "Comma-separated handles. Leave out any collection whose image has lettering, supplier marks or watermarks.", "default": "faux-leather-jackets"},
-    {"type": "text", "id": "photo_mesh_handles", "label": "Collections that use the gradient only", "info": "For collections with no clean photo at all.", "default": "exodus"},
-    {"type": "checkbox", "id": "photo_product_fallback", "label": "Fall back to first clean product photo", "default": true},
-    {"type": "text", "id": "photo_focal", "label": "Default focal point", "default": "50% 35%"},
-    {"type": "select", "id": "photo_layout_desktop", "label": "Desktop photo layout", "options": [{"value": "right", "label": "Photo on the right, fading into black"}, {"value": "full", "label": "Full width"}], "default": "right"},
-    {"type": "range", "id": "photo_width_desktop", "label": "Desktop photo width", "min": 40, "max": 100, "step": 2, "unit": "%", "default": 48},
-    {"type": "range", "id": "photo_height", "label": "Panel height — desktop", "min": 320, "max": 640, "step": 10, "unit": "px", "default": 440},
-    {"type": "range", "id": "photo_height_mobile", "label": "Panel height — mobile", "min": 240, "max": 420, "step": 4, "unit": "px", "default": 316},
-    {"type": "range", "id": "photo_pad_top", "label": "Space above panel — desktop", "min": 0, "max": 120, "step": 2, "unit": "px", "default": 8},
-    {"type": "range", "id": "photo_pad_top_mobile", "label": "Space above panel — mobile", "min": 0, "max": 120, "step": 2, "unit": "px", "default": 8},
-    {"type": "range", "id": "photo_shade_top", "label": "Black overlay — top", "min": 0, "max": 60, "step": 5, "unit": "%", "default": 15},
-    {"type": "range", "id": "photo_shade_bottom", "label": "Black overlay — bottom", "min": 30, "max": 95, "step": 5, "unit": "%", "default": 75},
-    {"type": "range", "id": "photo_glass_opacity", "label": "Dark glass opacity", "min": 20, "max": 70, "step": 5, "unit": "%", "default": 35},
-    {"type": "header", "content": "━━ Retention touches"},
-    {"type": "checkbox", "id": "photo_resume", "label": "'Continue' chip (last product viewed)", "info": "Uses the theme's own recently-viewed list on this device. Hidden when there is none.", "default": true},
-    {"type": "text", "id": "photo_resume_label", "label": "Continue chip label", "default": "Continue"},
-    {"type": "checkbox", "id": "photo_remember_sort", "label": "Remember sort while browsing collections", "info": "If a shopper sorts, the rail links keep that sort for the rest of the session.", "default": true},
-    {"type": "checkbox", "id": "photo_members_chip", "label": "'Members get first look' chip", "default": false},
-    {"type": "text", "id": "photo_members_label", "label": "Members chip label", "default": "Members get first look"},
-    {"type": "text", "id": "photo_members_url", "label": "Members chip link", "default": "/pages/links?src=site"},
-    {"type": "header", "content": "━━ Glass look", "info": "Backdrop uses real product photos from the collection, blurred to colour only. Products tagged needs-clean-image are skipped. With no image it falls back to a soft amethyst mesh."},
-    {"type": "select", "id": "glass_backdrop", "label": "Backdrop", "options": [{"value": "products", "label": "Blurred collection products"}, {"value": "collection", "label": "Blurred collection image"}, {"value": "mesh", "label": "Amethyst mesh only"}], "default": "products"},
-    {"type": "range", "id": "glass_bd_blur", "label": "Backdrop blur", "min": 24, "max": 80, "step": 4, "unit": "px", "default": 48},
-    {"type": "range", "id": "glass_opacity", "label": "Glass opacity", "min": 30, "max": 95, "step": 5, "unit": "%", "default": 55},
-    {"type": "range", "id": "glass_blur", "label": "Glass blur", "min": 0, "max": 40, "step": 2, "unit": "px", "default": 20},
-    {"type": "range", "id": "glass_radius", "label": "Card corner radius", "min": 12, "max": 60, "step": 2, "unit": "px", "default": 28},
-    {"type": "range", "id": "glass_title_size", "label": "Title size — desktop", "min": 32, "max": 96, "step": 2, "unit": "px", "default": 52},
-    {"type": "range", "id": "glass_title_size_mobile", "label": "Title size — mobile", "min": 22, "max": 48, "step": 2, "unit": "px", "default": 30},
-    {"type": "checkbox", "id": "glass_show_subline", "label": "Show subline", "info": "Subline setting, else the hero_subline metafield, else the first sentence of the collection description.", "default": true},
-    {"type": "checkbox", "id": "glass_show_count", "label": "Show product count", "info": "Real count from Shopify; hidden when 0.", "default": true},
-    {"type": "select", "id": "glass_cta", "label": "Pill button", "info": "Off by default: the grid already shows All filters and a Filter button.", "options": [{"value": "none", "label": "None"}, {"value": "filter", "label": "Filter (opens filter drawer)"}], "default": "none"},
-    {"type": "text", "id": "glass_cta_label", "label": "Pill label", "default": "Filter"},
-    {"type": "range", "id": "glass_pad_top", "label": "Top padding (clears header) — desktop", "min": 60, "max": 200, "step": 2, "unit": "px", "default": 108},
-    {"type": "range", "id": "glass_pad_top_mobile", "label": "Top padding — mobile", "min": 60, "max": 200, "step": 2, "unit": "px", "default": 100},
-    {"type": "range", "id": "glass_max_w", "label": "Content width (match grid)", "min": 900, "max": 1600, "step": 20, "unit": "px", "default": 1300},
+    {
+      "type": "select",
+      "id": "hero_look",
+      "label": "Editorial look",
+      "info": "Photo = collection photo with dark frosted card (Oct 2026 v3). Glass light = blurred light hero (v2). Poster = the previous LEXE poster / compact band (all its settings still apply).",
+      "options": [
+        {
+          "value": "photo",
+          "label": "Photo + dark glass (v3)"
+        },
+        {
+          "value": "glass",
+          "label": "Glass light (v2)"
+        },
+        {
+          "value": "poster",
+          "label": "Poster (previous)"
+        }
+      ],
+      "default": "photo"
+    },
+    {
+      "type": "header",
+      "content": "━━ Photo look (v3)",
+      "info": "Image order: a matching 'Collection header image' block, then collection metafield custom.hero_image, then Hero image setting, then the collection image (only if its handle is listed as clean), then the first product photo in the collection's own order without needs-clean-image, then an amethyst gradient."
+    },
+    {
+      "type": "text",
+      "id": "photo_clean_handles",
+      "label": "Collections whose own image is clean",
+      "info": "Comma-separated handles. Leave out any collection whose image has lettering, supplier marks or watermarks.",
+      "default": "faux-leather-jackets"
+    },
+    {
+      "type": "text",
+      "id": "photo_mesh_handles",
+      "label": "Collections that use the gradient only",
+      "info": "For collections with no clean photo at all.",
+      "default": "exodus"
+    },
+    {
+      "type": "checkbox",
+      "id": "photo_product_fallback",
+      "label": "Fall back to first clean product photo",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "photo_focal",
+      "label": "Default focal point",
+      "default": "50% 35%"
+    },
+    {
+      "type": "select",
+      "id": "photo_layout_desktop",
+      "label": "Desktop photo layout",
+      "options": [
+        {
+          "value": "right",
+          "label": "Photo on the right, fading into black"
+        },
+        {
+          "value": "full",
+          "label": "Full width"
+        }
+      ],
+      "default": "right"
+    },
+    {
+      "type": "range",
+      "id": "photo_width_desktop",
+      "label": "Desktop photo width",
+      "min": 40,
+      "max": 100,
+      "step": 2,
+      "unit": "%",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "photo_height",
+      "label": "Panel height — desktop",
+      "min": 320,
+      "max": 640,
+      "step": 10,
+      "unit": "px",
+      "default": 440
+    },
+    {
+      "type": "range",
+      "id": "photo_height_mobile",
+      "label": "Panel height — mobile",
+      "min": 240,
+      "max": 420,
+      "step": 4,
+      "unit": "px",
+      "default": 316
+    },
+    {
+      "type": "range",
+      "id": "photo_pad_top",
+      "label": "Space above panel — desktop",
+      "min": 0,
+      "max": 120,
+      "step": 2,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "photo_pad_top_mobile",
+      "label": "Space above panel — mobile",
+      "min": 0,
+      "max": 120,
+      "step": 2,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "photo_shade_top",
+      "label": "Black overlay — top",
+      "min": 0,
+      "max": 60,
+      "step": 5,
+      "unit": "%",
+      "default": 15
+    },
+    {
+      "type": "range",
+      "id": "photo_shade_bottom",
+      "label": "Black overlay — bottom",
+      "min": 30,
+      "max": 95,
+      "step": 5,
+      "unit": "%",
+      "default": 75
+    },
+    {
+      "type": "range",
+      "id": "photo_glass_opacity",
+      "label": "Dark glass opacity",
+      "min": 20,
+      "max": 70,
+      "step": 5,
+      "unit": "%",
+      "default": 35
+    },
+    {
+      "type": "header",
+      "content": "━━ Retention touches"
+    },
+    {
+      "type": "checkbox",
+      "id": "photo_resume",
+      "label": "'Continue' chip (last product viewed)",
+      "info": "Uses the theme's own recently-viewed list on this device. Hidden when there is none.",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "photo_resume_label",
+      "label": "Continue chip label",
+      "default": "Continue"
+    },
+    {
+      "type": "checkbox",
+      "id": "photo_remember_sort",
+      "label": "Remember sort while browsing collections",
+      "info": "If a shopper sorts, the rail links keep that sort for the rest of the session.",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "photo_members_chip",
+      "label": "'Members get first look' chip",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "photo_members_label",
+      "label": "Members chip label",
+      "default": "Members get first look"
+    },
+    {
+      "type": "text",
+      "id": "photo_members_url",
+      "label": "Members chip link",
+      "default": "/pages/links?src=site"
+    },
+    {
+      "type": "header",
+      "content": "━━ Glass look",
+      "info": "Backdrop uses real product photos from the collection, blurred to colour only. Products tagged needs-clean-image are skipped. With no image it falls back to a soft amethyst mesh."
+    },
+    {
+      "type": "select",
+      "id": "glass_backdrop",
+      "label": "Backdrop",
+      "options": [
+        {
+          "value": "products",
+          "label": "Blurred collection products"
+        },
+        {
+          "value": "collection",
+          "label": "Blurred collection image"
+        },
+        {
+          "value": "mesh",
+          "label": "Amethyst mesh only"
+        }
+      ],
+      "default": "products"
+    },
+    {
+      "type": "range",
+      "id": "glass_bd_blur",
+      "label": "Backdrop blur",
+      "min": 24,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "glass_opacity",
+      "label": "Glass opacity",
+      "min": 30,
+      "max": 95,
+      "step": 5,
+      "unit": "%",
+      "default": 55
+    },
+    {
+      "type": "range",
+      "id": "glass_blur",
+      "label": "Glass blur",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "glass_radius",
+      "label": "Card corner radius",
+      "min": 12,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "default": 28
+    },
+    {
+      "type": "range",
+      "id": "glass_title_size",
+      "label": "Title size — desktop",
+      "min": 32,
+      "max": 96,
+      "step": 2,
+      "unit": "px",
+      "default": 52
+    },
+    {
+      "type": "range",
+      "id": "glass_title_size_mobile",
+      "label": "Title size — mobile",
+      "min": 22,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "default": 30
+    },
+    {
+      "type": "checkbox",
+      "id": "glass_show_subline",
+      "label": "Show subline",
+      "info": "Subline setting, else the hero_subline metafield, else the first sentence of the collection description.",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "glass_show_count",
+      "label": "Show product count",
+      "info": "Real count from Shopify; hidden when 0.",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "glass_cta",
+      "label": "Pill button",
+      "info": "Off by default: the grid already shows All filters and a Filter button.",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "filter",
+          "label": "Filter (opens filter drawer)"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "text",
+      "id": "glass_cta_label",
+      "label": "Pill label",
+      "default": "Filter"
+    },
+    {
+      "type": "range",
+      "id": "glass_pad_top",
+      "label": "Top padding (clears header) — desktop",
+      "min": 60,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "default": 108
+    },
+    {
+      "type": "range",
+      "id": "glass_pad_top_mobile",
+      "label": "Top padding — mobile",
+      "min": 60,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "default": 100
+    },
+    {
+      "type": "range",
+      "id": "glass_max_w",
+      "label": "Content width (match grid)",
+      "min": 900,
+      "max": 1600,
+      "step": 20,
+      "unit": "px",
+      "default": 1300
+    },
     {
       "type": "range",
       "id": "ed_height",
@@ -2657,9 +3041,105 @@
           "label": "Custom Link"
         }
       ]
+    },
+    {
+      "type": "header_image",
+      "name": "Collection header image",
+      "limit": 30,
+      "settings": [
+        {
+          "type": "paragraph",
+          "content": "Pick a specific header photo for one collection. Collections without a block keep the automatic photo."
+        },
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "Collection"
+        },
+        {
+          "type": "text",
+          "id": "handles",
+          "label": "Or collection handles",
+          "info": "Optional. Comma-separated, e.g. all, apparell. Use this for /collections/all or to reuse one photo on several collections."
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Desktop image",
+          "info": "Landscape works best (at least 2000px wide). Use the focal point tool on the image to choose what stays in frame."
+        },
+        {
+          "type": "image_picker",
+          "id": "image_mobile",
+          "label": "Mobile image (optional)",
+          "info": "Shown on phones (768px and below). Leave empty to use the desktop image."
+        },
+        {
+          "type": "select",
+          "id": "focal",
+          "label": "Focus",
+          "options": [
+            {
+              "value": "auto",
+              "label": "Image focal point (set in the image picker)"
+            },
+            {
+              "value": "50% 50%",
+              "label": "Center"
+            },
+            {
+              "value": "50% 0%",
+              "label": "Top"
+            },
+            {
+              "value": "50% 25%",
+              "label": "Upper middle"
+            },
+            {
+              "value": "50% 100%",
+              "label": "Bottom"
+            },
+            {
+              "value": "0% 50%",
+              "label": "Left"
+            },
+            {
+              "value": "100% 50%",
+              "label": "Right"
+            }
+          ],
+          "default": "auto"
+        },
+        {
+          "type": "checkbox",
+          "id": "shade_override",
+          "label": "Custom black overlay for this collection",
+          "default": false
+        },
+        {
+          "type": "range",
+          "id": "shade_top",
+          "label": "Black overlay — top",
+          "min": 0,
+          "max": 60,
+          "step": 5,
+          "unit": "%",
+          "default": 15
+        },
+        {
+          "type": "range",
+          "id": "shade_bottom",
+          "label": "Black overlay — bottom",
+          "min": 30,
+          "max": 95,
+          "step": 5,
+          "unit": "%",
+          "default": 75
+        }
+      ]
     }
   ],
-  "max_blocks": 20,
+  "max_blocks": 50,
   "presets": [
     {
       "name": "Collection Hero",
@@ -2714,6 +3194,7 @@
   ]
 }
 {% endschema %}
+
 
 
 
