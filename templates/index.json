@@ -61,8 +61,8 @@
           "type": "image",
           "settings": {
             "image": "shopify://shop_images/887261B7-BB9F-455F-AB53-2664C7CAA097.png",
-            "fit": "default",
-            "custom_w": 60,
+            "fit": "custom",
+            "custom_w": 35,
             "bg": ""
           }
         }
