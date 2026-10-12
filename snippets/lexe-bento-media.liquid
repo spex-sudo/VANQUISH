@@ -1,6 +1,7 @@
 {%- comment -%}
   LEXE Bento Hero helper: one panel's media. The image is always rendered (LCP / fallback);
-  an optional muted, looping video sits on top and only loads and plays while on screen (see section JS).
+  an optional muted, looping video sits on top, hidden until it is actually playing; if autoplay is blocked
+  (in-app browsers, Low Power Mode), errors or stalls, the section JS removes it and the image stays (see section JS).
   Sources come from video.sources (what video_tag uses): MP4 everywhere, adaptive HLS where the browser plays it natively (Safari/iOS).
   params: img, video (Shopify video from Files), video_url (external MP4), poster (image), pos (object-position),
           eager (bool), widths, sizes, alt, img_width (max width to request), controls (bool), label (for the control).
@@ -78,7 +79,7 @@
   endif
 -%}
 {%- if src_hi != '' -%}
-  <video class="lxb__vid" autoplay muted loop playsinline preload="metadata" disablepictureinpicture disableremoteplayback aria-hidden="true" tabindex="-1"
+  <video class="lxb__vid" autoplay muted loop playsinline webkit-playsinline x5-playsinline preload="metadata" disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" aria-hidden="true" tabindex="-1"
     {% if poster_img != blank %}poster="{{ poster_img | image_url: width: 1200 }}"{% endif %}
     {% if style != '' %}style="{{ style }}"{% endif %}
     data-lxb-video data-src-hi="{{ src_hi }}" data-src-lo="{{ src_lo }}"{% if src_hls != "" %} data-src-hls="{{ src_hls }}"{% endif %}></video>
@@ -89,3 +90,4 @@
     </button>
   {%- endif -%}
 {%- endif -%}
+

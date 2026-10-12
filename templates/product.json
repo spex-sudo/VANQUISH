@@ -141,7 +141,7 @@
         "trust_1": "Free shipping over $77",
         "trust_2": "30-day returns",
         "trust_3": "Authentic",
-        "show_pill": false,
+        "show_pill": true,
         "pill_outline": "#E6DFFF",
         "pill_outline_idle": "",
         "main_show_price": false,

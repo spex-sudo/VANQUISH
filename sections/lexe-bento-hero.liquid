@@ -1,108 +1,62 @@
 {%- comment -%}
-  LEXE Bento Hero (2026-10-11, v2)
-  Four-panel bento with angled gutters, from Jay's wireframe. Same layout on every screen size
-  (Jay: "it should look the exact same as on pc"); phones get their own proportions, gutter, radius and cut.
-  Panels are absolutely placed and cut with clip-path polygons (snippet lexe-bento-shape). Every corner,
-  angled ones included, is filleted with the same radius; angled gutters keep the straight gutters' width.
-  Optional video per panel (snippet lexe-bento-media): image first, video loads and plays only on screen.
-  Mobile layout setting:
-    "Exact desktop replica (scaled)" (default): the desktop composition at its design width (Max width x Desktop height)
-      scaled uniformly to the container. Every length is a multiple of --lxb-u = min(1px, 100cqw / max width),
-      measured on the section (container-type: inline-size), so text stays crisp and the clip-paths scale too.
-    "Same as desktop (adaptive)": same 4 panels with phone proportions, gutter, radius and cut under 750px.
-    "Stacked": a straight-edged single column under 750px.
+  LEXE Bento Hero (2026-10-11, v3: full-bleed editorial)
+  Edge-to-edge hero under the floating header: one large photo on the left carrying the headline and CTAs,
+  two photos on the right (the lower one carries the product as a frosted glass card). Panels meet on thin
+  angled seams (Gutter setting). Height fills the first screen on desktop and never gets taller than
+  "Max height" % of the width, so tablets and phones get the same landscape composition scaled down.
+  Text sizes follow the width with legible minimums.
+  Optional video per panel (snippet lexe-bento-media): the image is always the base layer; the video stays
+  hidden until it really plays, and is removed if autoplay is blocked, errors, stalls or has not started
+  after 2.5s, in in-app browsers (Instagram, Facebook, TikTok) and with reduced motion.
+  Mobile layout "Stacked" gives a straight-edged column under 750px instead.
 {%- endcomment -%}
 {%- liquid
   assign sid = section.id
   assign st = section.settings
-  case st.slant_angle
-    when '15'
-      assign T = 0.26795
-      assign S = 0.25882
-      assign C = 0.96593
-      assign kO = 0.13165
-      assign kP = 0.76733
-      assign kA = 1.30323
-    when '20'
-      assign T = 0.36397
-      assign S = 0.34202
-      assign C = 0.93969
-      assign kO = 0.17633
-      assign kP = 0.70021
-      assign kA = 1.42815
-    when '25'
-      assign T = 0.46631
-      assign S = 0.42262
-      assign C = 0.90631
-      assign kO = 0.22169
-      assign kP = 0.63707
-      assign kA = 1.56969
-    when '35'
-      assign T = 0.70021
-      assign S = 0.57358
-      assign C = 0.81915
-      assign kO = 0.3153
-      assign kP = 0.52057
-      assign kA = 1.92098
-    when '40'
-      assign T = 0.8391
-      assign S = 0.64279
-      assign C = 0.76604
-      assign kO = 0.36397
-      assign kP = 0.46631
-      assign kA = 2.14451
-    else
-      assign T = 0.57735
-      assign S = 0.5
-      assign C = 0.86603
-      assign kO = 0.26795
-      assign kP = 0.57735
-      assign kA = 1.73205
-  endcase
-  assign slanted = st.slanted
   assign stacked = false
-  assign replica = false
   if st.mobile_layout == 'stacked'
     assign stacked = true
-  elsif st.mobile_layout == 'replica' or st.mobile_layout == blank
-    assign replica = true
   endif
-  assign mw = st.max_width | default: 1200
 
-  assign r = st.radius | default: 28
-  assign g = st.gutter | default: 12
-  assign hc = st.slant_height | default: 120
-  assign rm = st.radius_mobile | default: 20
-  assign gm = st.gutter_mobile | default: 8
-  assign hcm = st.slant_height_mobile | default: 64
-  unless slanted
-    assign hc = 0
-    assign hcm = 0
-  endunless
-  assign hb = g | times: kO | times: -1 | plus: hc
-  if hb < 0
-    assign hb = 0
-  endif
-  assign ox = hb | times: T | round: 2
-  assign cx = hc | times: T | round: 2
-  assign hbm = gm | times: kO | times: -1 | plus: hcm
-  if hbm < 0
-    assign hbm = 0
-  endif
-  assign oxm = hbm | times: T | round: 2
-  assign cxm = hcm | times: T | round: 2
   comment
-    Replica headline size = the desktop rule clamp(34px, 11cqw, 66px) evaluated at the design width of the headline card.
+    Seam geometry, all in % of the hero. Vertical seam from (xt, 0) to (xb, 100); right column split from
+    (seam, yl) to (100, yr).
   endcomment
-  assign g_half = g | divided_by: 2.0
-  assign content_w = st.split_top | times: mw | divided_by: 100.0 | minus: g_half
-  assign title_px = content_w | times: 0.11
-  if title_px > 66
-    assign title_px = 66
-  elsif title_px < 34
-    assign title_px = 34
+  assign xt = st.split_top | default: 58 | times: 1.0
+  assign xb = st.split_bottom | default: 50 | times: 1.0
+  assign yl = st.split_rows | default: 50 | times: 1.0
+  assign yr = yl | minus: st.row_tilt
+  unless st.slanted
+    assign xt = xt | plus: xb | divided_by: 2.0
+    assign xb = xt
+    assign yr = yl
+  endunless
+  if xt < xb
+    assign xm = xt
+    assign xM = xb
+  else
+    assign xm = xb
+    assign xM = xt
   endif
-  assign title_px = title_px | round: 2
+  assign main_a = xt | times: 100 | divided_by: xM | round: 3
+  assign main_b = xb | times: 100 | divided_by: xM | round: 3
+  assign rw = 100 | minus: xm
+  assign xs_l = xb | minus: xt | times: yl | divided_by: 100 | plus: xt
+  assign r_top = xt | minus: xm | times: 100 | divided_by: rw | round: 3
+  assign r_mid = xs_l | minus: xm | times: 100 | divided_by: rw | round: 3
+  assign r_bot = xb | minus: xm | times: 100 | divided_by: rw | round: 3
+  if yl > yr
+    assign yhi = yl
+    assign ylo = yr
+  else
+    assign yhi = yr
+    assign ylo = yl
+  endif
+  assign t_yl = yl | times: 100 | divided_by: yhi | round: 3
+  assign t_yr = yr | times: 100 | divided_by: yhi | round: 3
+  assign bh = 100 | minus: ylo
+  assign b_yl = yl | minus: ylo | times: 100 | divided_by: bh | round: 3
+  assign b_yr = yr | minus: ylo | times: 100 | divided_by: bh | round: 3
 
   assign img_a = st.image_a
   assign img_b = st.image_b
@@ -130,203 +84,141 @@
   if pos_b == blank and img_b != blank
     assign pos_b = img_b.presentation.focal_point
   endif
-  if replica
-    assign sizes_a = '(min-width: 1240px) 680px, 52vw'
-    assign sizes_b = '(min-width: 1240px) 680px, 52vw'
-    assign sizes_p = '(min-width: 1240px) 250px, 19vw'
-  else
-    assign sizes_a = '(min-width: 1240px) 660px, (min-width: 750px) 56vw, 50vw'
-    assign sizes_b = '(min-width: 1240px) 660px, (min-width: 750px) 56vw, 56vw'
-    assign sizes_p = '(min-width: 750px) 260px, 46vw'
-  endif
+  assign pos_p = st.product_image_crop | strip
   assign eager_a = false
   if section.index <= 3
     assign eager_a = true
   endif
+  assign scrim = st.overlay_opacity | default: 70 | divided_by: 100.0
+  assign scrim2 = scrim | times: 0.45 | round: 3
+  assign r = st.radius | default: 28
+  assign mainsz = xM | append: 'vw'
+  assign rightsz = rw | append: 'vw'
 -%}
-{%- if slanted -%}
-  {%- capture poly_c -%}{%- render 'lexe-bento-shape', panel: 'content', r: r, g: g, hc: hc, T: T, S: S, C: C, kO: kO, kP: kP, kA: kA, unit: true -%}{%- endcapture -%}
-  {%- capture poly_a -%}{%- render 'lexe-bento-shape', panel: 'a', r: r, g: g, hc: hc, T: T, S: S, C: C, kO: kO, kP: kP, kA: kA, unit: true -%}{%- endcapture -%}
-  {%- capture poly_b -%}{%- render 'lexe-bento-shape', panel: 'b', r: r, g: g, hc: hc, T: T, S: S, C: C, kO: kO, kP: kP, kA: kA, unit: true -%}{%- endcapture -%}
-  {%- capture poly_p -%}{%- render 'lexe-bento-shape', panel: 'p', r: r, g: g, hc: hc, T: T, S: S, C: C, kO: kO, kP: kP, kA: kA, unit: true -%}{%- endcapture -%}
-  {%- capture polym_c -%}{%- render 'lexe-bento-shape', panel: 'content', r: rm, g: gm, hc: hcm, T: T, S: S, C: C, kO: kO, kP: kP, kA: kA -%}{%- endcapture -%}
-  {%- capture polym_a -%}{%- render 'lexe-bento-shape', panel: 'a', r: rm, g: gm, hc: hcm, T: T, S: S, C: C, kO: kO, kP: kP, kA: kA -%}{%- endcapture -%}
-  {%- capture polym_b -%}{%- render 'lexe-bento-shape', panel: 'b', r: rm, g: gm, hc: hcm, T: T, S: S, C: C, kO: kO, kP: kP, kA: kA -%}{%- endcapture -%}
-  {%- capture polym_p -%}{%- render 'lexe-bento-shape', panel: 'p', r: rm, g: gm, hc: hcm, T: T, S: S, C: C, kO: kO, kP: kP, kA: kA -%}{%- endcapture -%}
-{%- endif -%}
 <style>
-  @property --lxb-u { syntax: '<length>'; inherits: true; initial-value: 1px; }
   {%- if st.hide_floaters and template.name == 'index' %}
   /* Homepage only: hide floating extras over the hero (same selectors as the collection pages) */
   aside[id^="apex-notch-"], .vqsc-tag, #ads-agent-host, .apex-qn { display: none !important; visibility: hidden !important; }
   {%- endif %}
   #lxb-{{ sid }} {
     --lxb-accent: {{ st.accent | default: '#9966CC' }};
-    --lxb-base: {{ st.base | default: '#0b0b0d' }};
-{%- if replica %}
-    container-type: inline-size;
-{%- endif %}
+    --lxb-g: {{ st.gutter }}px;
+    --lxb-pad: {{ st.edge_pad }}px;
+    --lxb-top: {{ st.pad_top_desktop }}px;
     position: relative; isolation: isolate; overflow: hidden;
-    background: var(--lxb-base); color: #fff;
+    background: {{ st.base | default: '#0b0b0d' }}; color: #fff;
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'SF Pro', Inter, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
-    padding: {{ st.pad_top_desktop }}px 20px {{ st.pad_bottom_desktop }}px;
+    padding: var(--lxb-top) var(--lxb-pad) var(--lxb-pad);
   }
   #lxb-{{ sid }} *, #lxb-{{ sid }} *::before, #lxb-{{ sid }} *::after { box-sizing: border-box; }
   #lxb-{{ sid }} .lxb__grid {
-    --lxb-u: {% if replica %}min(1px, 100cqw / {{ mw }}){% else %}1px{% endif %};
-    --lxb-g: calc(var(--lxb-u) * {{ g }}); --lxb-ox: calc(var(--lxb-u) * {{ ox }}); --lxb-cx: calc(var(--lxb-u) * {{ cx }}); --lxb-r: calc(var(--lxb-u) * {{ r }});
-    --lxb-x1: {{ st.split_top }}%; --lxb-x2: {{ st.split_bottom }}%; --lxb-y: {{ st.split_rows }}%;
-    --lxb-h: calc(var(--lxb-u) * {{ st.height_desktop }});
-    position: relative; max-width: {{ mw }}px; margin: 0 auto; height: var(--lxb-h);
+    position: relative;
+    /* Fill the first screen under the header, but never taller than Max height % of the width (keeps the landscape shape) */
+    height: min(calc(100vh * {{ st.height_vh }} / 100 - var(--lxb-top) - var(--lxb-pad)), calc((100vw - var(--lxb-pad) * 2) * {{ st.max_ratio }} / 100));
+    height: min(calc(100svh * {{ st.height_vh }} / 100 - var(--lxb-top) - var(--lxb-pad)), calc((100vw - var(--lxb-pad) * 2) * {{ st.max_ratio }} / 100));
+    min-height: 200px;
+    {%- if st.edge_pad > 0 %} border-radius: {{ r }}px; overflow: hidden;{% endif %}
   }
-  #lxb-{{ sid }} .lxb__p { position: absolute; overflow: hidden; border-radius: {% if slanted %}0{% else %}var(--lxb-r){% endif %}; }
-  #lxb-{{ sid }} .lxb__content { left: 0; top: 0; width: calc(var(--lxb-x1) - var(--lxb-g) / 2); height: calc(var(--lxb-y) - var(--lxb-g) / 2); {% if slanted %}clip-path: {{ poly_c | strip }};{% endif %} }
-  #lxb-{{ sid }} .lxb__img--a { left: calc(var(--lxb-x1) + var(--lxb-g) / 2 - var(--lxb-ox)); right: 0; top: 0; height: calc(var(--lxb-y) - var(--lxb-g) / 2); {% if slanted %}clip-path: {{ poly_a | strip }};{% endif %} }
-  #lxb-{{ sid }} .lxb__img--b { left: 0; bottom: 0; top: calc(var(--lxb-y) + var(--lxb-g) / 2); width: calc(var(--lxb-x2) - var(--lxb-g) / 2 + var(--lxb-ox)); {% if slanted %}clip-path: {{ poly_b | strip }};{% endif %} }
-  #lxb-{{ sid }} .lxb__prod { left: calc(var(--lxb-x2) + var(--lxb-g) / 2); right: 0; bottom: 0; top: calc(var(--lxb-y) + var(--lxb-g) / 2); {% if slanted %}clip-path: {{ poly_p | strip }};{% endif %} }
+  #lxb-{{ sid }} .lxb__p { position: absolute; overflow: hidden; background: #141417; }
+  #lxb-{{ sid }} .lxb__main { left: 0; top: 0; bottom: 0; width: {{ xM }}%;
+    clip-path: polygon(0 0, calc({{ main_a }}% - var(--lxb-g) / 2) 0, calc({{ main_b }}% - var(--lxb-g) / 2) 100%, 0 100%); }
+  #lxb-{{ sid }} .lxb__img--b { left: {{ xm }}%; right: 0; top: 0; height: {{ yhi }}%;
+    clip-path: polygon(calc({{ r_top }}% + var(--lxb-g) / 2) 0, 100% 0, 100% calc({{ t_yr }}% - var(--lxb-g) / 2), calc({{ r_mid }}% + var(--lxb-g) / 2) calc({{ t_yl }}% - var(--lxb-g) / 2)); }
+  #lxb-{{ sid }} .lxb__prod { left: {{ xm }}%; right: 0; bottom: 0; height: {{ bh }}%;
+    clip-path: polygon(calc({{ r_mid }}% + var(--lxb-g) / 2) calc({{ b_yl }}% + var(--lxb-g) / 2), 100% calc({{ b_yr }}% + var(--lxb-g) / 2), 100% 100%, calc({{ r_bot }}% + var(--lxb-g) / 2) 100%); }
 
-  /* Headline card: frosted dark glass (tinted fill; a backdrop blur over the flat base only added an edge halo) */
-  #lxb-{{ sid }} .lxb__content {
-    padding: calc(var(--lxb-u) * 34) calc(var(--lxb-u) * 36) calc(var(--lxb-u) * 32); {% unless replica %}container-type: inline-size; {% endunless %}display: flex; flex-direction: column;
-    background:
-      radial-gradient(120% 90% at 18% 0%, color-mix(in srgb, var(--lxb-accent) 22%, transparent), transparent 62%),
-      linear-gradient(160deg, rgba(255,255,255,.085), rgba(255,255,255,.035) 55%, rgba(255,255,255,.025)),
-      rgba(20,20,24,.55);
-  }
-  #lxb-{{ sid }} .lxb__eyebrow { margin: 0 0 calc(var(--lxb-u) * 10); font-size: calc(var(--lxb-u) * 12); line-height: 1.3; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; color: rgba(255,255,255,.62); }
-  #lxb-{{ sid }} .lxb__title { margin: 0; font-size: {% if replica %}calc(var(--lxb-u) * {{ title_px }}){% else %}clamp(34px, 11cqw, 66px){% endif %}; line-height: 1.02; letter-spacing: -.035em; font-weight: 700; color: #fff; text-wrap: balance; }
-  #lxb-{{ sid }} .lxb__row { display: flex; gap: calc(var(--lxb-u) * 16); align-items: flex-end; margin-top: auto; padding-top: calc(var(--lxb-u) * 18); padding-right: calc(var(--lxb-cx) * .6); }
-  #lxb-{{ sid }} .lxb__thumb { position: relative; flex: 0 0 auto; width: calc(var(--lxb-u) * 84); height: calc(var(--lxb-u) * 84); border-radius: calc(var(--lxb-u) * 18); overflow: hidden; background: #fff; display: block; }
-  #lxb-{{ sid }} .lxb__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  #lxb-{{ sid }} .lxb__side { min-width: 0; flex: 1 1 auto; }
-  #lxb-{{ sid }} .lxb__sub { margin: 0 0 calc(var(--lxb-u) * 14); font-size: calc(var(--lxb-u) * 15); line-height: 1.4; color: rgba(255,255,255,.72); }
-  #lxb-{{ sid }} .lxb__ctas { display: flex; flex-wrap: wrap; gap: calc(var(--lxb-u) * 8); }
+  /* Media layers: image (base, always there) < video (hidden until playing) < scrim < link < text */
+  #lxb-{{ sid }} .lxb__p img, #lxb-{{ sid }} .lxb__vid { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  #lxb-{{ sid }} .lxb__vid { z-index: 1; opacity: 0; transition: opacity .6s ease; pointer-events: none; background: transparent; }
+  #lxb-{{ sid }} .lxb__vid.is-playing { opacity: 1; }
+  #lxb-{{ sid }} .lxb__vid[hidden] { display: none !important; }
+  #lxb-{{ sid }} .lxb__vid::-webkit-media-controls, #lxb-{{ sid }} .lxb__vid::-webkit-media-controls-start-playback-button, #lxb-{{ sid }} .lxb__vid::-webkit-media-controls-overlay-play-button { display: none !important; -webkit-appearance: none; }
+  #lxb-{{ sid }} .lxb__main::after { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
+    background: linear-gradient(0deg, rgba(0,0,0,{{ scrim }}) 0%, rgba(0,0,0,{{ scrim2 }}) 34%, rgba(0,0,0,0) 62%), linear-gradient(90deg, rgba(0,0,0,{{ scrim2 }}) 0%, rgba(0,0,0,0) 55%); }
+  #lxb-{{ sid }} .lxb__img--b::after { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none; background: linear-gradient(180deg, rgba(0,0,0,0) 60%, rgba(0,0,0,.28)); }
+  #lxb-{{ sid }} .lxb__link { position: absolute; inset: 0; z-index: 3; }
+  #lxb-{{ sid }} .lxb__ph { position: absolute; inset: 0; display: grid; place-items: center; color: rgba(255,255,255,.4); font-size: 13px; }
+
+  /* Headline, on the main photo */
+  #lxb-{{ sid }} .lxb__copy { position: absolute; z-index: 4; left: 0; bottom: 0; pointer-events: none;
+    width: calc({{ main_b }}% - var(--lxb-g)); padding: 0 clamp(14px, 3.4vw, 64px) clamp(14px, 3.2vw, 60px); }
+  #lxb-{{ sid }} .lxb__copy a { pointer-events: auto; }
+  #lxb-{{ sid }} .lxb__eyebrow { margin: 0 0 clamp(4px, .7vw, 14px); font-size: clamp(9px, .9vw, 13px); line-height: 1.3; letter-spacing: .14em; text-transform: uppercase; font-weight: 600; color: rgba(255,255,255,.8); }
+  #lxb-{{ sid }} .lxb__title { margin: 0; font-size: clamp(26px, 6.4vw, 116px); line-height: .94; letter-spacing: -.045em; font-weight: 700; color: #fff; text-wrap: balance; }
+  #lxb-{{ sid }} .lxb__sub { margin: clamp(6px, 1.1vw, 20px) 0 0; max-width: 34em; font-size: clamp(11px, 1.2vw, 19px); line-height: 1.4; color: rgba(255,255,255,.82); }
+  #lxb-{{ sid }} .lxb__row { display: flex; align-items: center; flex-wrap: wrap; gap: clamp(6px, 1vw, 18px) clamp(10px, 1.4vw, 24px); margin-top: clamp(10px, 1.8vw, 32px); }
+  #lxb-{{ sid }} .lxb__thumb { position: relative; flex: 0 0 auto; width: clamp(34px, 3.6vw, 60px); aspect-ratio: 1; border-radius: clamp(8px, .9vw, 14px); overflow: hidden; background: #fff; display: block; }
+  #lxb-{{ sid }} .lxb__thumb img, #lxb-{{ sid }} .lxb__thumb .lxb__vid { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   #lxb-{{ sid }} .lxb__btn {
-    display: inline-flex; align-items: center; justify-content: center; gap: calc(var(--lxb-u) * 8);
-    min-height: calc(var(--lxb-u) * 46); padding: 0 calc(var(--lxb-u) * 20); border-radius: calc(var(--lxb-u) * 999);
-    font-family: inherit; font-size: calc(var(--lxb-u) * 15); line-height: 1; font-weight: 600; letter-spacing: -.01em; text-decoration: none; white-space: nowrap;
-    transition: transform .18s cubic-bezier(.2,.8,.2,1), box-shadow .18s ease, background-color .18s ease, border-color .18s ease;
+    display: inline-flex; align-items: center; justify-content: center; gap: .45em;
+    min-height: clamp(32px, 3.4vw, 54px); border-radius: 999px; text-decoration: none; white-space: nowrap;
+    font-family: inherit; font-size: clamp(12px, 1.1vw, 17px); line-height: 1; font-weight: 600; letter-spacing: -.01em;
+    transition: transform .18s cubic-bezier(.2,.8,.2,1), background-color .18s ease, opacity .18s ease;
     -webkit-tap-highlight-color: transparent;
   }
   #lxb-{{ sid }} .lxb__btn:active { transform: scale(.97); }
-  #lxb-{{ sid }} .lxb__btn--primary { background: var(--lxb-accent); color: #0b0b0d; box-shadow: inset 0 1px 0 rgba(255,255,255,.35), inset 0 -2px 6px rgba(0,0,0,.18), 0 calc(var(--lxb-u) * 8) calc(var(--lxb-u) * 22) calc(var(--lxb-u) * -10) color-mix(in srgb, var(--lxb-accent) 80%, transparent); }
-  #lxb-{{ sid }} .lxb__btn--ghost { color: #fff; border: 1px solid rgba(255,255,255,.30); background: transparent; }
-  #lxb-{{ sid }} .lxb__btn:focus-visible, #lxb-{{ sid }} .lxb__link:focus-visible, #lxb-{{ sid }} .lxb__thumb:focus-visible, #lxb-{{ sid }} .lxb__vbtn:focus-visible { outline: 2px solid var(--lxb-accent); outline-offset: -3px; }
+  #lxb-{{ sid }} .lxb__btn--primary { padding: 0 clamp(14px, 1.7vw, 30px); background: var(--lxb-accent); color: #0b0b0d; }
+  #lxb-{{ sid }} .lxb__btn--text { padding: 0 2px; color: #fff; }
+  #lxb-{{ sid }} .lxb__btn--text svg { width: .9em; height: .9em; transition: transform .18s ease; }
+  #lxb-{{ sid }} .lxb__btn:focus-visible, #lxb-{{ sid }} .lxb__link:focus-visible, #lxb-{{ sid }} .lxb__thumb:focus-visible, #lxb-{{ sid }} .lxb__vbtn:focus-visible { outline: 2px solid var(--lxb-accent); outline-offset: 2px; }
+  #lxb-{{ sid }} .lxb__link:focus-visible { outline-offset: -4px; }
 
-  /* Media */
-  #lxb-{{ sid }} .lxb__img { background: #17171a; }
-  #lxb-{{ sid }} .lxb__img img, #lxb-{{ sid }} .lxb__vid { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
-  #lxb-{{ sid }} .lxb__vid { opacity: 0; transition: opacity .5s ease; pointer-events: none; background: transparent; }
-  #lxb-{{ sid }} .lxb__vid.is-playing { opacity: 1; }
-  #lxb-{{ sid }} .lxb__img::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(0,0,0,.30)); }
-  #lxb-{{ sid }} .lxb__link { position: absolute; inset: 0; z-index: 2; }
-  #lxb-{{ sid }} .lxb__chip {
-    position: absolute; z-index: 3; pointer-events: none; bottom: calc(var(--lxb-u) * 18); left: calc(var(--lxb-u) * 18);
-    padding: calc(var(--lxb-u) * 7) calc(var(--lxb-u) * 12); border-radius: calc(var(--lxb-u) * 999); background: rgba(12,12,14,.70); color: #fff;
-    font-size: calc(var(--lxb-u) * 13); line-height: 1; font-weight: 600; letter-spacing: -.005em; box-shadow: inset 0 0 0 1px rgba(255,255,255,.14);
-  }
-  #lxb-{{ sid }} .lxb__img--a .lxb__chip { left: auto; right: calc(var(--lxb-u) * 18); }
+  /* Chips: solid semi-opaque fill, no blur over the big photos */
+  #lxb-{{ sid }} .lxb__chip { position: absolute; z-index: 4; pointer-events: none; right: clamp(8px, 1.6vw, 28px); bottom: clamp(8px, 1.6vw, 28px);
+    padding: .6em .95em; border-radius: 999px; background: rgba(12,12,14,.62); color: #fff; font-size: clamp(9px, .85vw, 13px); line-height: 1; font-weight: 600; }
+  #lxb-{{ sid }} .lxb__main .lxb__chip { top: clamp(8px, 1.6vw, 28px); bottom: auto; left: clamp(14px, 3.4vw, 64px); right: auto; }
+
+  /* Product: a frosted glass card on its own photo */
+  #lxb-{{ sid }} .lxb__card { position: absolute; z-index: 4; pointer-events: none; right: clamp(8px, 1.6vw, 28px); bottom: clamp(8px, 1.6vw, 28px);
+    max-width: calc(100% - clamp(8px, 1.6vw, 28px) * 2); padding: clamp(8px, 1.1vw, 18px) clamp(10px, 1.4vw, 22px);
+    border-radius: clamp(10px, 1.3vw, {{ r }}px); background: rgba(18,18,22,.46);
+    -webkit-backdrop-filter: blur(18px) saturate(140%); backdrop-filter: blur(18px) saturate(140%);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.14); }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { #lxb-{{ sid }} .lxb__card { background: rgba(18,18,22,.78); } }
+  #lxb-{{ sid }} .lxb__prod-k { font-size: clamp(8px, .75vw, 11px); letter-spacing: .12em; text-transform: uppercase; font-weight: 600; color: rgba(255,255,255,.65); margin: 0 0 .5em; }
+  #lxb-{{ sid }} .lxb__prod-t { font-size: clamp(11px, 1.2vw, 19px); line-height: 1.2; font-weight: 600; letter-spacing: -.015em; margin: 0; }
+  #lxb-{{ sid }} .lxb__prod-pr { font-size: clamp(10px, 1vw, 15px); color: rgba(255,255,255,.8); margin: .3em 0 0; font-variant-numeric: tabular-nums; }
+  #lxb-{{ sid }} .lxb__pill { display: inline-flex; align-items: center; gap: .3em; margin-top: .55em; font-size: clamp(10px, .95vw, 14px); font-weight: 600; color: #fff; }
+  #lxb-{{ sid }} .lxb__pill svg { width: .95em; height: .95em; transition: transform .18s ease; }
+
   #lxb-{{ sid }} .lxb__vbtn {
-    position: absolute; z-index: 4; top: calc(var(--lxb-u) * 14); right: calc(var(--lxb-u) * 14); width: calc(var(--lxb-u) * 40); height: calc(var(--lxb-u) * 40); border-radius: 50%; border: 0; padding: 0; cursor: pointer;
-    display: grid; place-items: center; color: #fff; background: rgba(12,12,14,.66); box-shadow: inset 0 0 0 1px rgba(255,255,255,.16), inset 0 1px 0 rgba(255,255,255,.12);
-    -webkit-tap-highlight-color: transparent; transition: transform .18s cubic-bezier(.2,.8,.2,1), background-color .18s ease;
+    position: absolute; z-index: 5; top: clamp(8px, 1.2vw, 18px); right: clamp(8px, 1.2vw, 18px); width: 36px; height: 36px; border-radius: 50%; border: 0; padding: 0; cursor: pointer;
+    display: grid; place-items: center; color: #fff; background: rgba(12,12,14,.6); -webkit-tap-highlight-color: transparent;
   }
   #lxb-{{ sid }} .lxb__vbtn[hidden] { display: none; }
-  #lxb-{{ sid }} .lxb__vbtn:active { transform: scale(.94); }
   #lxb-{{ sid }} .lxb__vbtn .lxb__vbtn-play { display: none; }
   #lxb-{{ sid }} .lxb__vbtn.is-paused .lxb__vbtn-play { display: block; }
   #lxb-{{ sid }} .lxb__vbtn.is-paused .lxb__vbtn-pause { display: none; }
-  #lxb-{{ sid }} .lxb__img--b .lxb__vbtn { right: auto; left: calc(var(--lxb-u) * 14); }
-  #lxb-{{ sid }} .lxb__ph { position: absolute; inset: 0; display: grid; place-items: center; color: rgba(255,255,255,.4); font-size: calc(var(--lxb-u) * 13); }
-
-  /* Product card: solid dark clay, no blur */
-  #lxb-{{ sid }} .lxb__prod { display: flex; gap: calc(var(--lxb-u) * 16); align-items: stretch; padding: calc(var(--lxb-u) * 16); color: #fff; background: linear-gradient(160deg, #1c1c20, #121215 70%); }
-  #lxb-{{ sid }} .lxb__prod-info { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: calc(var(--lxb-u) * 10) calc(var(--lxb-u) * 4) calc(var(--lxb-u) * 6) calc(var(--lxb-u) * 10); }
-  #lxb-{{ sid }} .lxb__prod-k { font-size: calc(var(--lxb-u) * 12); letter-spacing: .08em; text-transform: uppercase; font-weight: 600; color: rgba(255,255,255,.55); margin: 0 0 calc(var(--lxb-u) * 6); }
-  #lxb-{{ sid }} .lxb__prod-t { font-size: calc(var(--lxb-u) * 20); line-height: 1.25; font-weight: 600; letter-spacing: -.015em; margin: 0; }
-  #lxb-{{ sid }} .lxb__prod-pr { font-size: calc(var(--lxb-u) * 15); color: rgba(255,255,255,.72); margin: calc(var(--lxb-u) * 4) 0 calc(var(--lxb-u) * 12); font-variant-numeric: tabular-nums; }
-  #lxb-{{ sid }} .lxb__pill { align-self: flex-start; display: inline-flex; align-items: center; gap: calc(var(--lxb-u) * 6); min-height: calc(var(--lxb-u) * 44); padding: 0 calc(var(--lxb-u) * 18); border-radius: calc(var(--lxb-u) * 999); background: rgba(255,255,255,.08); box-shadow: inset 0 0 0 1px rgba(255,255,255,.18), inset 0 1px 0 rgba(255,255,255,.12); font-size: calc(var(--lxb-u) * 14); font-weight: 600; transition: background-color .18s ease; }
-  #lxb-{{ sid }} .lxb__prod-img { flex: 0 0 auto; position: relative; height: 100%; aspect-ratio: 3 / 4; max-width: 46%; border-radius: calc(var(--lxb-u) * 16); overflow: hidden; background: #f2f2f2; }
-  #lxb-{{ sid }} .lxb__prod-img img, #lxb-{{ sid }} .lxb__prod-img .lxb__vid, #lxb-{{ sid }} .lxb__thumb .lxb__vid { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
-  #lxb-{{ sid }} .lxb__pill svg, #lxb-{{ sid }} .lxb__vbtn svg { width: calc(var(--lxb-u) * 14); height: calc(var(--lxb-u) * 14); flex: 0 0 auto; }
-  #lxb-{{ sid }} .lxb__prod .lxb__vbtn { top: calc(var(--lxb-u) * 26); right: calc(var(--lxb-u) * 26); }
 
   @media (hover: hover) {
-    #lxb-{{ sid }} .lxb__img img { transition: transform .9s cubic-bezier(.2,.8,.2,1); }
-    #lxb-{{ sid }} .lxb__img:hover img { transform: scale(1.025); }
-    #lxb-{{ sid }} .lxb__btn--primary:hover { box-shadow: inset 0 1px 0 rgba(255,255,255,.4), inset 0 -2px 6px rgba(0,0,0,.18), 0 calc(var(--lxb-u) * 12) calc(var(--lxb-u) * 28) calc(var(--lxb-u) * -10) color-mix(in srgb, var(--lxb-accent) 90%, transparent); }
-    #lxb-{{ sid }} .lxb__btn--ghost:hover { border-color: rgba(255,255,255,.55); background: rgba(255,255,255,.05); }
-    #lxb-{{ sid }} .lxb__prod:hover .lxb__pill { background: rgba(255,255,255,.14); }
+    #lxb-{{ sid }} .lxb__p > img { transition: transform 1.1s cubic-bezier(.2,.8,.2,1); }
+    #lxb-{{ sid }} .lxb__p:hover > img { transform: scale(1.02); }
+    #lxb-{{ sid }} .lxb__btn--primary:hover { opacity: .92; }
+    #lxb-{{ sid }} .lxb__btn--text:hover svg, #lxb-{{ sid }} .lxb__prod:hover .lxb__pill svg { transform: translateX(3px); }
   }
-  {%- unless replica %}
-  @media (max-width: 1199px) { #lxb-{{ sid }} .lxb__thumb { display: none; } }
-  @media (max-width: 989px) {
-    #lxb-{{ sid }} .lxb__grid { --lxb-h: clamp(560px, 80vw, {{ st.height_desktop }}px); }
-    #lxb-{{ sid }} .lxb__sub { display: none; }
-    #lxb-{{ sid }} .lxb__content { padding: 28px 28px 26px; }
-    #lxb-{{ sid }} .lxb__prod-t { font-size: 18px; }
-  }
-  {%- endunless %}
-
   @media (max-width: 749px) {
-    #lxb-{{ sid }} { padding: {{ st.pad_top_mobile }}px 16px {{ st.pad_bottom_mobile }}px; }
-    {%- if replica %}
-    /* Replica: nothing changes here; the whole composition scales through --lxb-u. */
-    {%- elsif stacked %}
-    #lxb-{{ sid }} .lxb__grid { height: auto; display: flex; flex-direction: column; gap: 10px; }
-    #lxb-{{ sid }} .lxb__p { position: relative; inset: auto !important; width: auto !important; height: auto !important; clip-path: none !important; border-radius: 22px; }
-    #lxb-{{ sid }} .lxb__img { aspect-ratio: {{ st.mobile_photo_ratio | default: '1 / 1' }}; }
-    {%- unless st.show_b_mobile %}
-    #lxb-{{ sid }} .lxb__img--b { display: none; }
-    {%- endunless %}
-    #lxb-{{ sid }} .lxb__content { padding: 22px 20px 20px; }
-    #lxb-{{ sid }} .lxb__title { font-size: clamp(30px, 10cqw, 40px); }
-    #lxb-{{ sid }} .lxb__row { padding-right: 0; }
-    #lxb-{{ sid }} .lxb__ctas .lxb__btn { flex: 1 1 0; padding: 0 14px; }
-    #lxb-{{ sid }} .lxb__prod { padding: 12px; }
-    #lxb-{{ sid }} .lxb__prod-img { width: 104px; height: auto; }
-    {%- else %}
-    #lxb-{{ sid }} .lxb__grid {
-      --lxb-g: {{ gm }}px; --lxb-ox: {{ oxm }}px; --lxb-cx: {{ cxm }}px; --lxb-r: {{ rm }}px;
-      --lxb-x1: {{ st.split_top_mobile }}%; --lxb-x2: {{ st.split_bottom_mobile }}%; --lxb-h: {{ st.height_mobile }}px;
-    }
-    {%- if slanted %}
-    #lxb-{{ sid }} .lxb__content { clip-path: {{ polym_c | strip }}; }
-    #lxb-{{ sid }} .lxb__img--a { clip-path: {{ polym_a | strip }}; }
-    #lxb-{{ sid }} .lxb__img--b { clip-path: {{ polym_b | strip }}; }
-    #lxb-{{ sid }} .lxb__prod { clip-path: {{ polym_p | strip }}; }
-    {%- endif %}
-    #lxb-{{ sid }} .lxb__content { padding: 16px 14px 14px; }
-    #lxb-{{ sid }} .lxb__eyebrow { font-size: 9.5px; letter-spacing: .07em; margin-bottom: 8px; }
-    #lxb-{{ sid }} .lxb__title { font-size: clamp(22px, 16.5cqw, 34px); line-height: 1.04; letter-spacing: -.03em; }
-    #lxb-{{ sid }} .lxb__row { padding-top: 12px; padding-right: calc(var(--lxb-cx) + 2px); }
-    #lxb-{{ sid }} .lxb__ctas { flex-direction: column; align-items: flex-start; gap: 6px; }
-    #lxb-{{ sid }} .lxb__btn { min-height: 40px; padding: 0 14px; font-size: 13px; }
-    #lxb-{{ sid }} .lxb__chip { bottom: 10px; left: 10px; padding: 6px 9px; font-size: 11px; }
-    #lxb-{{ sid }} .lxb__img--a .lxb__chip { right: 10px; }
-    #lxb-{{ sid }} .lxb__vbtn { top: 8px; right: 8px; }
-    #lxb-{{ sid }} .lxb__img--b .lxb__vbtn { left: 8px; }
-    #lxb-{{ sid }} .lxb__prod { flex-direction: column; gap: 0; padding: 0; }
-    #lxb-{{ sid }} .lxb__prod-img { order: -1; flex: 1 1 auto; height: auto; max-width: none; width: 100%; aspect-ratio: auto; border-radius: 0; }
-    #lxb-{{ sid }} .lxb__prod-info { flex: 0 0 auto; padding: 10px 12px 12px; }
-    #lxb-{{ sid }} .lxb__prod-k { display: none; }
-    #lxb-{{ sid }} .lxb__prod-t { font-size: 13px; line-height: 1.25; }
-    #lxb-{{ sid }} .lxb__prod-pr { font-size: 12.5px; margin: 2px 0 0; }
-    #lxb-{{ sid }} .lxb__pill { display: none; }
-    #lxb-{{ sid }} .lxb__prod .lxb__vbtn { top: auto; bottom: 64px; right: 8px; }
-    {%- endif %}
-    {%- unless replica %}
+    #lxb-{{ sid }} { --lxb-g: {{ st.gutter_mobile }}px; --lxb-top: {{ st.pad_top_mobile }}px; }
     {%- unless st.show_thumb_mobile %}
     #lxb-{{ sid }} .lxb__thumb { display: none; }
     {%- endunless %}
     {%- unless st.show_sub_mobile %}
     #lxb-{{ sid }} .lxb__sub { display: none; }
     {%- endunless %}
-    {%- endunless %}
     {%- unless st.video_mobile %}
     #lxb-{{ sid }} .lxb__vid, #lxb-{{ sid }} .lxb__vbtn { display: none !important; }
     {%- endunless %}
+    {%- if stacked %}
+    #lxb-{{ sid }} .lxb__grid { height: auto; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: var(--lxb-g); }
+    #lxb-{{ sid }} .lxb__p { position: relative; inset: auto !important; width: auto !important; height: auto !important; clip-path: none !important; aspect-ratio: {{ st.mobile_photo_ratio | default: '1 / 1' }}; }
+    #lxb-{{ sid }} .lxb__main { grid-column: 1 / -1; aspect-ratio: 4 / 5; }
+    #lxb-{{ sid }} .lxb__copy { width: 100%; }
+    #lxb-{{ sid }} .lxb__title { font-size: clamp(34px, 11vw, 52px); }
+    {%- unless st.show_b_mobile %}
+    #lxb-{{ sid }} .lxb__img--b { display: none; }
+    #lxb-{{ sid }} .lxb__prod { grid-column: 1 / -1; }
+    {%- endunless %}
+    {%- endif %}
   }
   @media (prefers-reduced-motion: reduce) {
     #lxb-{{ sid }} * { transition: none !important; }
@@ -336,63 +228,50 @@
 
 <section id="lxb-{{ sid }}" class="lxb" aria-label="{{ st.title | strip_html | escape }}" data-video-mobile="{% if st.video_mobile %}1{% else %}0{% endif %}">
   <div class="lxb__grid">
-    <div class="lxb__p lxb__content">
-      {%- if st.eyebrow != blank -%}<p class="lxb__eyebrow">{{ st.eyebrow }}</p>{%- endif -%}
-      <h1 class="lxb__title">{{ st.title }}</h1>
-      <div class="lxb__row">
-        {%- if st.show_thumb and thumb_p != blank and thumb_p.featured_media != blank -%}
-          <a class="lxb__thumb" href="{{ thumb_p.url }}" aria-label="{{ thumb_p.title | escape }}" data-lxb-cta="thumb">
-            {%- render 'lexe-bento-media', img: thumb_p.featured_media.preview_image, video: st.thumb_video, video_url: st.thumb_video_url, poster: nil, pos: '', eager: false, widths: '120, 180, 240', sizes: '84px', alt: thumb_p.title, img_width: 240, controls: false, label: thumb_p.title -%}
-          </a>
-        {%- endif -%}
-        <div class="lxb__side">
-          {%- if st.subline != blank -%}<p class="lxb__sub">{{ st.subline }}</p>{%- endif -%}
-          <div class="lxb__ctas">
-            {%- if st.btn1_label != blank -%}<a class="lxb__btn lxb__btn--primary" href="{{ st.btn1_link | default: '/collections/lexe' }}" data-lxb-cta="primary">{{ st.btn1_label }}</a>{%- endif -%}
-            {%- if st.btn2_label != blank -%}<a class="lxb__btn lxb__btn--ghost" href="{{ st.btn2_link | default: '/collections' }}" data-lxb-cta="secondary">{{ st.btn2_label }}</a>{%- endif -%}
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="lxb__p lxb__img lxb__img--a">
+    <div class="lxb__p lxb__main">
       {%- if img_a != blank or st.image_a_video != blank or st.image_a_video_url != blank -%}
-        {%- render 'lexe-bento-media', img: img_a, video: st.image_a_video, video_url: st.image_a_video_url, poster: st.image_a_poster, pos: pos_a, eager: eager_a, widths: '360, 480, 640, 800, 960, 1120, 1350, 1600', sizes: sizes_a, alt: st.image_a_alt, img_width: 1920, controls: st.image_a_video_controls, label: st.image_a_label -%}
+        {%- render 'lexe-bento-media', img: img_a, video: st.image_a_video, video_url: st.image_a_video_url, poster: st.image_a_poster, pos: pos_a, eager: eager_a, widths: '480, 640, 800, 960, 1120, 1350, 1600, 1920', sizes: mainsz, alt: st.image_a_alt, img_width: 1920, controls: st.image_a_video_controls, label: st.image_a_label -%}
       {%- else -%}<div class="lxb__ph">Add an image</div>{%- endif -%}
       {%- if st.image_a_link != blank -%}<a class="lxb__link" href="{{ st.image_a_link }}" aria-label="{{ st.image_a_label | default: st.image_a_alt | escape }}" data-lxb-cta="image_a"></a>{%- endif -%}
       {%- if st.image_a_label != blank -%}<span class="lxb__chip">{{ st.image_a_label }}</span>{%- endif -%}
+      <div class="lxb__copy">
+        {%- if st.eyebrow != blank -%}<p class="lxb__eyebrow">{{ st.eyebrow }}</p>{%- endif -%}
+        <h1 class="lxb__title">{{ st.title }}</h1>
+        {%- if st.subline != blank -%}<p class="lxb__sub">{{ st.subline }}</p>{%- endif -%}
+        <div class="lxb__row">
+          {%- if st.show_thumb and thumb_p != blank and thumb_p.featured_media != blank -%}
+            <a class="lxb__thumb" href="{{ thumb_p.url }}" aria-label="{{ thumb_p.title | escape }}" data-lxb-cta="thumb">
+              {%- render 'lexe-bento-media', img: thumb_p.featured_media.preview_image, video: st.thumb_video, video_url: st.thumb_video_url, poster: nil, pos: '', eager: false, widths: '120, 180', sizes: '60px', alt: thumb_p.title, img_width: 240, controls: false, label: thumb_p.title -%}
+            </a>
+          {%- endif -%}
+          {%- if st.btn1_label != blank -%}<a class="lxb__btn lxb__btn--primary" href="{{ st.btn1_link | default: '/collections/lexe' }}" data-lxb-cta="primary">{{ st.btn1_label }}</a>{%- endif -%}
+          {%- if st.btn2_label != blank -%}<a class="lxb__btn lxb__btn--text" href="{{ st.btn2_link | default: '/collections' }}" data-lxb-cta="secondary">{{ st.btn2_label }}<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M5 2.5 9.5 7 5 11.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>{%- endif -%}
+        </div>
+      </div>
     </div>
 
-    {%- if img_b != blank or st.image_b_video != blank or st.image_b_video_url != blank -%}
-    <div class="lxb__p lxb__img lxb__img--b">
-      {%- render 'lexe-bento-media', img: img_b, video: st.image_b_video, video_url: st.image_b_video_url, poster: st.image_b_poster, pos: pos_b, eager: false, widths: '360, 480, 640, 800, 960, 1120, 1350, 1600', sizes: sizes_b, alt: st.image_b_alt, img_width: 1920, controls: st.image_b_video_controls, label: st.image_b_label -%}
+    <div class="lxb__p lxb__img--b">
+      {%- if img_b != blank or st.image_b_video != blank or st.image_b_video_url != blank -%}
+        {%- render 'lexe-bento-media', img: img_b, video: st.image_b_video, video_url: st.image_b_video_url, poster: st.image_b_poster, pos: pos_b, eager: false, widths: '360, 480, 640, 800, 960, 1120, 1350', sizes: rightsz, alt: st.image_b_alt, img_width: 1920, controls: st.image_b_video_controls, label: st.image_b_label -%}
+      {%- else -%}<div class="lxb__ph">Add an image</div>{%- endif -%}
       {%- if st.image_b_link != blank -%}<a class="lxb__link" href="{{ st.image_b_link }}" aria-label="{{ st.image_b_label | default: st.image_b_alt | escape }}" data-lxb-cta="image_b"></a>{%- endif -%}
       {%- if st.image_b_label != blank -%}<span class="lxb__chip">{{ st.image_b_label }}</span>{%- endif -%}
     </div>
-    {%- endif -%}
 
-    {%- if prod != blank -%}
-      <div class="lxb__p lxb__prod">
-        <div class="lxb__prod-info">
+    <div class="lxb__p lxb__prod">
+      {%- if prod != blank -%}
+        {%- if prod_img != blank or st.product_video != blank or st.product_video_url != blank -%}
+          {%- render 'lexe-bento-media', img: prod_img, video: st.product_video, video_url: st.product_video_url, poster: st.product_poster, pos: pos_p, eager: false, widths: '360, 480, 640, 800, 960, 1120, 1350', sizes: rightsz, alt: prod.title, img_width: 1920, controls: st.product_video_controls, label: prod.title -%}
+        {%- endif -%}
+        <a class="lxb__link" href="{{ prod.url }}" aria-label="{{ st.product_cta | default: 'Explore' | escape }} {{ prod.title | escape }}, {{ prod.price | money | strip_html | escape }}" data-lxb-cta="product" data-lxb-product="{{ prod.handle }}"></a>
+        <div class="lxb__card" aria-hidden="true">
           {%- if st.product_kicker != blank -%}<p class="lxb__prod-k">{{ st.product_kicker }}</p>{%- endif -%}
           <p class="lxb__prod-t">{{ prod.title }}</p>
           <p class="lxb__prod-pr">{% if prod.price_varies %}From {% endif %}{{ prod.price | money }}</p>
-          <span class="lxb__pill" aria-hidden="true">{{ st.product_cta | default: 'Explore' }}<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 2.5 9.5 7 5 11.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span class="lxb__pill">{{ st.product_cta | default: 'Explore' }}<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M5 2.5 9.5 7 5 11.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         </div>
-        {%- if prod_img != blank or st.product_video != blank or st.product_video_url != blank -%}
-          <div class="lxb__prod-img">
-            {%- render 'lexe-bento-media', img: prod_img, video: st.product_video, video_url: st.product_video_url, poster: st.product_poster, pos: '', eager: false, widths: '240, 360, 480, 600, 720', sizes: sizes_p, alt: prod.title, img_width: 720, controls: false, label: prod.title -%}
-          </div>
-        {%- endif -%}
-        <a class="lxb__link" href="{{ prod.url }}" aria-label="{{ st.product_cta | default: 'Explore' | escape }} {{ prod.title | escape }}, {{ prod.price | money | strip_html | escape }}" data-lxb-cta="product" data-lxb-product="{{ prod.handle }}"></a>
-        {%- if st.product_video_controls and st.product_video != blank or st.product_video_controls and st.product_video_url != blank -%}
-          <button class="lxb__vbtn" type="button" data-lxb-vbtn data-for="prod" aria-label="Pause {{ prod.title | escape }} video" data-label="{{ prod.title | escape }} video" hidden>
-            <svg class="lxb__vbtn-pause" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><rect x="3" y="2.5" width="2.6" height="9" rx="1" fill="currentColor"/><rect x="8.4" y="2.5" width="2.6" height="9" rx="1" fill="currentColor"/></svg>
-            <svg class="lxb__vbtn-play" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M4 2.6v8.8a.6.6 0 0 0 .9.5l7-4.4a.6.6 0 0 0 0-1L4.9 2.1a.6.6 0 0 0-.9.5Z" fill="currentColor"/></svg>
-          </button>
-        {%- endif -%}
-      </div>
-    {%- endif -%}
+      {%- else -%}<div class="lxb__ph">Pick a product</div>{%- endif -%}
+    </div>
   </div>
 </section>
 
@@ -412,54 +291,97 @@
     track('home_hero_click', { cta: a.getAttribute('data-lxb-cta'), href: a.getAttribute('href'), label: (a.textContent || a.getAttribute('aria-label') || '').trim().slice(0, 80), product: a.getAttribute('data-lxb-product') || undefined });
   });
 
-  /* Videos: load and play only while on screen; never with reduced motion; optional on phones. */
+  /* Videos: the image is always underneath. A video is shown only once it is really playing; if autoplay is
+     blocked (in-app browsers, Low Power Mode), errors, stalls, or nothing plays within 2.5s, it is removed. */
   var vids = ROOT.querySelectorAll('video[data-lxb-video]');
   if (!vids.length) return;
+  var UA = navigator.userAgent || '';
+  var inApp = /Instagram|FBAN|FBAV|FB_IAB|TikTok|musical_ly|Bytedance/i.test(UA);
   var rm = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
   var mobileOff = ROOT.getAttribute('data-video-mobile') === '0';
-  function allowed() {
-    if (rm && rm.matches) return false;
-    if (mobileOff && window.innerWidth < 750) return false;
-    return true;
-  }
-  function btnFor(v) {
-    var host = v.closest('.lxb__p');
-    return host ? host.querySelector('[data-lxb-vbtn]') : null;
-  }
+  var WAIT = 2500;
+  function btnFor(v) { var host = v.closest('.lxb__p'); return host ? host.querySelector('[data-lxb-vbtn]') : null; }
   function setBtn(v) {
     var b = btnFor(v); if (!b) return;
     var paused = v.paused || v.dataset.userPaused === '1';
     b.classList.toggle('is-paused', paused);
     b.setAttribute('aria-label', (paused ? 'Play ' : 'Pause ') + (b.getAttribute('data-label') || 'video'));
   }
+  function drop(v, why) {
+    if (v.dataset.dropped) return;
+    v.dataset.dropped = why || '1';
+    clearTimeout(v.__lxbT);
+    v.classList.remove('is-playing');
+    try { v.pause(); } catch (e) {}
+    v.removeAttribute('src'); v.removeAttribute('autoplay');
+    try { v.load(); } catch (e) {}
+    v.hidden = true;
+    var b = btnFor(v); if (b) b.hidden = true;
+    ROOT.setAttribute('data-video-fallback', why || '1');
+  }
+  function allowed() {
+    if (inApp) return false;
+    if (rm && rm.matches) return false;
+    if (mobileOff && window.innerWidth < 750) return false;
+    return true;
+  }
+  function arm(v) {
+    clearTimeout(v.__lxbT);
+    v.__lxbT = setTimeout(function () {
+      if (v.dataset.played || v.dataset.dropped) return;
+      if (v.dataset.visible === '1') drop(v, 'timeout'); else v.dataset.rearm = '1';
+    }, WAIT);
+  }
   function load(v) {
     if (v.dataset.loaded) return;
-    var small = window.innerWidth < 750 || (v.getBoundingClientRect().width * (window.devicePixelRatio || 1)) < 900;
-    v.muted = true; v.defaultMuted = true; v.setAttribute('muted', '');
-    var hls = v.dataset.srcHls && v.canPlayType('application/vnd.apple.mpegurl') ? v.dataset.srcHls : '';
-    v.src = hls || (small ? v.dataset.srcLo : v.dataset.srcHi) || v.dataset.srcHi;
     v.dataset.loaded = '1';
-    v.addEventListener('playing', function () { v.classList.add('is-playing'); var b = btnFor(v); if (b) b.hidden = false; setBtn(v); });
+    v.muted = true; v.defaultMuted = true; v.setAttribute('muted', ''); v.playsInline = true;
+    v.setAttribute('playsinline', ''); v.setAttribute('webkit-playsinline', ''); v.controls = false;
+    var small = window.innerWidth < 750 || (v.getBoundingClientRect().width * (window.devicePixelRatio || 1)) < 900;
+    var hls = v.dataset.srcHls && v.canPlayType('application/vnd.apple.mpegurl') ? v.dataset.srcHls : '';
+    v.addEventListener('playing', function () {
+      if (v.dataset.dropped) return;
+      v.dataset.played = '1'; clearTimeout(v.__lxbT);
+      v.classList.add('is-playing'); var b = btnFor(v); if (b) b.hidden = false; setBtn(v);
+    });
     v.addEventListener('pause', function () { setBtn(v); });
-    v.addEventListener('error', function () { v.classList.remove('is-playing'); var b = btnFor(v); if (b) b.hidden = true; });
+    v.addEventListener('error', function () { drop(v, 'error'); });
+    v.addEventListener('stalled', function () { if (!v.dataset.played) drop(v, 'stalled'); });
+    v.src = hls || (small ? v.dataset.srcLo : v.dataset.srcHi) || v.dataset.srcHi;
+    arm(v);
   }
   function play(v) {
-    if (!allowed() || v.dataset.userPaused === '1') return;
+    if (v.dataset.dropped) return;
+    if (!allowed()) { drop(v, inApp ? 'in-app' : 'off'); return; }
+    if (v.dataset.userPaused === '1') return;
     load(v);
-    var p = v.play(); if (p && p.catch) p.catch(function () {});
+    if (v.dataset.rearm) { v.dataset.rearm = ''; arm(v); }
+    var p;
+    try { p = v.play(); } catch (e) { drop(v, 'blocked'); return; }
+    if (p && p.catch) p.catch(function (err) {
+      if (v.dataset.played) return;
+      if (err && err.name === 'AbortError') return; /* paused by us before it started; the timer still guards */
+      drop(v, 'blocked');
+    });
   }
   function pause(v) { if (!v.paused) v.pause(); }
 
+  if (!allowed()) { for (var d = 0; d < vids.length; d++) drop(vids[d], inApp ? 'in-app' : 'off'); return; }
   if ('IntersectionObserver' in window) {
     var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (en) { if (en.isIntersecting) play(en.target); else pause(en.target); });
+      entries.forEach(function (en) {
+        en.target.dataset.visible = en.isIntersecting ? '1' : '0';
+        if (en.isIntersecting) play(en.target); else pause(en.target);
+      });
     }, { rootMargin: '120px 0px', threshold: 0.15 });
     for (var i = 0; i < vids.length; i++) io.observe(vids[i]);
   } else {
-    for (var j = 0; j < vids.length; j++) play(vids[j]);
+    for (var j = 0; j < vids.length; j++) { vids[j].dataset.visible = '1'; play(vids[j]); }
   }
-  if (rm && rm.addEventListener) rm.addEventListener('change', function () { for (var k = 0; k < vids.length; k++) { if (!allowed()) pause(vids[k]); } });
-  document.addEventListener('visibilitychange', function () { if (document.hidden) for (var k = 0; k < vids.length; k++) pause(vids[k]); });
+  if (rm && rm.addEventListener) rm.addEventListener('change', function () { if (rm.matches) for (var k = 0; k < vids.length; k++) drop(vids[k], 'reduced-motion'); });
+  document.addEventListener('visibilitychange', function () {
+    for (var k = 0; k < vids.length; k++) { if (document.hidden) pause(vids[k]); else if (vids[k].dataset.visible === '1') play(vids[k]); }
+  });
 
   ROOT.addEventListener('click', function (e) {
     var b = e.target.closest('[data-lxb-vbtn]');
@@ -480,34 +402,35 @@
   "tag": "div",
   "class": "lexe-bento-hero-section",
   "settings": [
-    { "type": "header", "content": "Headline card" },
+    { "type": "header", "content": "Headline (on the main photo)" },
     { "type": "text", "id": "eyebrow", "label": "Label", "default": "LEXE by Devici Studios" },
     { "type": "text", "id": "title", "label": "Headline", "default": "Made to be noticed." },
     { "type": "text", "id": "subline", "label": "Line under headline", "default": "Outerwear, dresses and Specs, cut sharp." },
-    { "type": "checkbox", "id": "show_sub_mobile", "label": "Show line under headline on mobile", "default": false },
+    { "type": "checkbox", "id": "show_sub_mobile", "label": "Show line under headline on phones", "default": false },
     { "type": "text", "id": "btn1_label", "label": "Primary button", "default": "Explore LEXE" },
     { "type": "url", "id": "btn1_link", "label": "Primary button link", "default": "/collections/all" },
-    { "type": "text", "id": "btn2_label", "label": "Secondary button", "default": "Get first look" },
-    { "type": "url", "id": "btn2_link", "label": "Secondary button link", "default": "/collections/all" },
-    { "type": "checkbox", "id": "show_thumb", "label": "Show thumbnail", "info": "Adaptive and stacked layouts show it on screens 1200px and wider; the replica layout always shows it.", "default": true },
-    { "type": "checkbox", "id": "show_thumb_mobile", "label": "Show thumbnail on mobile", "default": false },
+    { "type": "text", "id": "btn2_label", "label": "Secondary link", "default": "Get first look" },
+    { "type": "url", "id": "btn2_link", "label": "Secondary link URL", "default": "/collections/all" },
+    { "type": "range", "id": "overlay_opacity", "label": "Shade behind headline", "min": 0, "max": 90, "step": 5, "unit": "%", "default": 70 },
+    { "type": "checkbox", "id": "show_thumb", "label": "Show thumbnail", "default": true },
+    { "type": "checkbox", "id": "show_thumb_mobile", "label": "Show thumbnail on phones", "default": false },
     { "type": "product", "id": "thumb_product", "label": "Thumbnail product", "info": "Use your newest product with a clean photo. Products tagged needs-clean-image are skipped." },
     { "type": "video", "id": "thumb_video", "label": "Thumbnail video (optional)" },
     { "type": "url", "id": "thumb_video_url", "label": "Thumbnail video URL (MP4, optional)" },
 
-    { "type": "header", "content": "Main photo (top right)" },
-    { "type": "image_picker", "id": "image_a", "label": "Image", "info": "Real LEXE photo, at least twice the panel width (about 1350px). Loads first. Also the video fallback." },
+    { "type": "header", "content": "Main photo (left, behind the headline)" },
+    { "type": "image_picker", "id": "image_a", "label": "Image", "info": "Real LEXE photo, at least 1600px wide. Loads first. Also the video fallback." },
     { "type": "text", "id": "image_a_position", "label": "Crop position", "info": "Optional, e.g. 50% 15%. Leave blank to use the image's focal point. Also used for the video." },
     { "type": "text", "id": "image_a_alt", "label": "Alt text" },
     { "type": "text", "id": "image_a_label", "label": "Label chip" },
     { "type": "url", "id": "image_a_link", "label": "Link" },
-    { "type": "video", "id": "image_a_video", "label": "Video (optional)", "info": "Plays muted and looping while on screen. The image shows until it plays, and for people who prefer reduced motion." },
+    { "type": "video", "id": "image_a_video", "label": "Video (optional)", "info": "Autoplays muted and looping while on screen. The image shows until it plays, and stays if autoplay is blocked (in-app browsers, Low Power Mode) or with reduced motion." },
     { "type": "url", "id": "image_a_video_url", "label": "Video URL (MP4, optional)", "info": "Used when no video is picked above." },
     { "type": "image_picker", "id": "image_a_poster", "label": "Video poster", "info": "Optional. Falls back to the image." },
     { "type": "checkbox", "id": "image_a_video_controls", "label": "Show play/pause control", "default": false },
 
-    { "type": "header", "content": "Second photo (bottom left)" },
-    { "type": "image_picker", "id": "image_b", "label": "Image", "info": "Real LEXE photo, at least twice the panel width, graded like the main photo." },
+    { "type": "header", "content": "Second photo (top right)" },
+    { "type": "image_picker", "id": "image_b", "label": "Image", "info": "Real LEXE photo, at least 1300px wide, graded like the main photo." },
     { "type": "text", "id": "image_b_position", "label": "Crop position", "info": "Optional, e.g. 50% 20%." },
     { "type": "text", "id": "image_b_alt", "label": "Alt text" },
     { "type": "text", "id": "image_b_label", "label": "Label chip" },
@@ -517,53 +440,45 @@
     { "type": "image_picker", "id": "image_b_poster", "label": "Video poster", "info": "Optional. Falls back to the image." },
     { "type": "checkbox", "id": "image_b_video_controls", "label": "Show play/pause control", "default": false },
 
-    { "type": "header", "content": "Product card (bottom right)" },
+    { "type": "header", "content": "Product (bottom right, glass card on its photo)" },
     { "type": "product", "id": "product", "label": "Product", "info": "Shows its real name and live price. Products tagged needs-clean-image are skipped." },
     { "type": "range", "id": "product_image_position", "label": "Product photo (0 = featured)", "min": 0, "max": 12, "step": 1, "default": 0 },
+    { "type": "text", "id": "product_image_crop", "label": "Product photo crop position", "info": "Optional, e.g. 50% 30%." },
     { "type": "text", "id": "product_kicker", "label": "Small label above name" },
-    { "type": "text", "id": "product_cta", "label": "Pill text", "default": "Explore" },
+    { "type": "text", "id": "product_cta", "label": "Link text", "default": "Explore" },
     { "type": "video", "id": "product_video", "label": "Video (optional)" },
     { "type": "url", "id": "product_video_url", "label": "Video URL (MP4, optional)" },
     { "type": "image_picker", "id": "product_poster", "label": "Video poster", "info": "Optional. Falls back to the product photo." },
     { "type": "checkbox", "id": "product_video_controls", "label": "Show play/pause control", "default": false },
 
     { "type": "header", "content": "Video" },
-    { "type": "checkbox", "id": "video_mobile", "label": "Use video on mobile", "info": "Off: phones show the images only.", "default": true },
+    { "type": "checkbox", "id": "video_mobile", "label": "Use video on phones", "info": "Off: phones show the images only.", "default": true },
 
-    { "type": "header", "content": "Shape" },
-    { "type": "checkbox", "id": "slanted", "label": "Angled gutters", "default": true },
-    { "type": "select", "id": "slant_angle", "label": "Angle", "default": "30", "options": [
-      { "value": "15", "label": "15°" }, { "value": "20", "label": "20°" }, { "value": "25", "label": "25°" },
-      { "value": "30", "label": "30°" }, { "value": "35", "label": "35°" }, { "value": "40", "label": "40°" } ] },
-    { "type": "range", "id": "slant_height", "label": "Angled cut height", "min": 60, "max": 200, "step": 4, "unit": "px", "default": 120 },
-    { "type": "range", "id": "gutter", "label": "Gutter", "min": 6, "max": 24, "step": 1, "unit": "px", "default": 12 },
-    { "type": "range", "id": "radius", "label": "Corner radius", "min": 12, "max": 40, "step": 2, "unit": "px", "default": 28 },
-    { "type": "range", "id": "split_top", "label": "Top row split", "min": 34, "max": 66, "step": 1, "unit": "%", "default": 50 },
-    { "type": "range", "id": "split_bottom", "label": "Bottom row split", "min": 34, "max": 74, "step": 1, "unit": "%", "default": 50 },
-    { "type": "range", "id": "split_rows", "label": "Row split", "min": 40, "max": 60, "step": 1, "unit": "%", "default": 50 },
-    { "type": "range", "id": "height_desktop", "label": "Desktop height", "min": 520, "max": 820, "step": 10, "unit": "px", "default": 720 },
-    { "type": "range", "id": "max_width", "label": "Max width", "min": 1000, "max": 1600, "step": 20, "unit": "px", "default": 1200 },
+    { "type": "header", "content": "Layout" },
+    { "type": "range", "id": "edge_pad", "label": "Edge padding", "info": "0 = edge to edge. Above 0 the hero gets rounded outer corners.", "min": 0, "max": 40, "step": 2, "unit": "px", "default": 0 },
+    { "type": "range", "id": "gutter", "label": "Gutter (seam width)", "min": 0, "max": 16, "step": 1, "unit": "px", "default": 6 },
+    { "type": "range", "id": "gutter_mobile", "label": "Gutter on phones", "min": 0, "max": 12, "step": 1, "unit": "px", "default": 4 },
+    { "type": "checkbox", "id": "slanted", "label": "Angled seams", "default": true },
+    { "type": "range", "id": "split_top", "label": "Main photo width at the top", "min": 34, "max": 74, "step": 1, "unit": "%", "default": 58 },
+    { "type": "range", "id": "split_bottom", "label": "Main photo width at the bottom", "min": 34, "max": 74, "step": 1, "unit": "%", "default": 50 },
+    { "type": "range", "id": "split_rows", "label": "Right column split", "min": 30, "max": 70, "step": 1, "unit": "%", "default": 50 },
+    { "type": "range", "id": "row_tilt", "label": "Right column seam tilt", "min": 0, "max": 20, "step": 1, "unit": "%", "default": 8 },
+    { "type": "range", "id": "height_vh", "label": "Height (share of the screen)", "min": 60, "max": 100, "step": 5, "unit": "%", "default": 100 },
+    { "type": "range", "id": "max_ratio", "label": "Max height (% of width)", "info": "Keeps the landscape shape on tablets and phones. 64 = about 16:10.", "min": 40, "max": 100, "step": 2, "unit": "%", "default": 64 },
+    { "type": "range", "id": "radius", "label": "Corner radius (glass card, and outer corners when edge padding is on)", "min": 12, "max": 40, "step": 2, "unit": "px", "default": 28 },
 
-    { "type": "header", "content": "Mobile" },
-    { "type": "select", "id": "mobile_layout", "label": "Mobile layout", "default": "replica", "info": "Exact replica: the desktop hero scaled down as one piece (text gets small on phones). Same as desktop (adaptive): same four panels with phone proportions. Stacked: one column on phones.", "options": [
-      { "value": "replica", "label": "Exact desktop replica (scaled)" }, { "value": "bento", "label": "Same as desktop (adaptive)" }, { "value": "stacked", "label": "Stacked" } ] },
-    { "type": "range", "id": "height_mobile", "label": "Height (adaptive layout)", "min": 480, "max": 760, "step": 10, "unit": "px", "default": 580 },
-    { "type": "range", "id": "split_top_mobile", "label": "Top row split", "min": 40, "max": 70, "step": 1, "unit": "%", "default": 56 },
-    { "type": "range", "id": "split_bottom_mobile", "label": "Bottom row split", "min": 34, "max": 66, "step": 1, "unit": "%", "default": 50 },
-    { "type": "range", "id": "slant_height_mobile", "label": "Angled cut height", "min": 40, "max": 120, "step": 2, "unit": "px", "default": 64 },
-    { "type": "range", "id": "gutter_mobile", "label": "Gutter", "min": 4, "max": 16, "step": 1, "unit": "px", "default": 8 },
-    { "type": "range", "id": "radius_mobile", "label": "Corner radius", "min": 10, "max": 30, "step": 1, "unit": "px", "default": 20 },
+    { "type": "header", "content": "Phones" },
+    { "type": "select", "id": "mobile_layout", "label": "Phone layout", "default": "replica", "options": [
+      { "value": "replica", "label": "Same as desktop (scaled)" }, { "value": "stacked", "label": "Stacked" } ] },
     { "type": "checkbox", "id": "show_b_mobile", "label": "Stacked layout: show second photo", "default": true },
     { "type": "select", "id": "mobile_photo_ratio", "label": "Stacked layout: photo shape", "default": "1 / 1", "options": [
       { "value": "1 / 1", "label": "Square" }, { "value": "4 / 5", "label": "Portrait 4:5" }, { "value": "5 / 4", "label": "Landscape 5:4" } ] },
 
-    { "type": "header", "content": "Colour, spacing, page" },
+    { "type": "header", "content": "Colour, page" },
     { "type": "color", "id": "base", "label": "Background", "default": "#0b0b0d" },
     { "type": "color", "id": "accent", "label": "Accent", "default": "#9966CC" },
-    { "type": "range", "id": "pad_top_desktop", "label": "Top padding (desktop, clears header)", "min": 0, "max": 140, "step": 2, "unit": "px", "default": 84 },
-    { "type": "range", "id": "pad_bottom_desktop", "label": "Bottom padding (desktop)", "min": 0, "max": 80, "step": 2, "unit": "px", "default": 24 },
-    { "type": "range", "id": "pad_top_mobile", "label": "Top padding (mobile, clears header)", "min": 0, "max": 140, "step": 2, "unit": "px", "default": 80 },
-    { "type": "range", "id": "pad_bottom_mobile", "label": "Bottom padding (mobile)", "min": 0, "max": 60, "step": 2, "unit": "px", "default": 16 },
+    { "type": "range", "id": "pad_top_desktop", "label": "Space for the header (desktop)", "min": 0, "max": 140, "step": 2, "unit": "px", "default": 60 },
+    { "type": "range", "id": "pad_top_mobile", "label": "Space for the header (phones)", "min": 0, "max": 140, "step": 2, "unit": "px", "default": 60 },
     { "type": "checkbox", "id": "hide_floaters", "label": "Homepage: hide floating extras", "info": "Hides the PULL HERE tab and the floating heart and arrow buttons on the homepage only.", "default": true }
   ],
   "presets": [ { "name": "LEXE Bento Hero" } ]
