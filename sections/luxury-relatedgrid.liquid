@@ -99,6 +99,8 @@
       <div class="apex-grid-{{ sid }}" id="ApexGrid-{{ sid }}">
         {%- for product in collections[rel_handle].products -%}
           {%- if product.id == current_id -%}{%- continue -%}{%- endif -%}
+          {%- comment -%} Skip products whose photos still need cleaning (supplier marks etc.). {%- endcomment -%}
+          {%- if product.tags contains 'needs-clean-image' -%}{%- continue -%}{%- endif -%}
           {%- liquid
             assign is_eager = false
             if forloop.index0 < section.settings.pc_cols
@@ -157,6 +159,19 @@
         .catch(function () { sentinel.classList.remove('is-loading'); });
     }
     io.observe(sentinel);
+    /* Skipped products (needs-clean-image, the current product) can leave the first page short:
+       pull the next page(s) straight away until the first screenful is full. */
+    var TARGET = {{ section.settings.page_limit }};
+    var fillTries = 0;
+    function fill() {
+      if (grid.children.length >= TARGET || fillTries > 4 || !document.body.contains(sentinel) || !sentinel.getAttribute('data-next-url')) return;
+      if (sentinel.textContent === 'All products loaded') return;
+      if (sentinel.classList.contains('is-loading')) { setTimeout(fill, 300); return; }
+      fillTries++;
+      loadNext();
+      setTimeout(fill, 600);
+    }
+    fill();
   }
   if (ascend) {
     window.addEventListener('scroll', function () {
@@ -212,3 +227,4 @@
   "presets": [{ "name": "Atelier Related Grid", "blocks": [{ "type": "swatches" }, { "type": "title" }, { "type": "rating" }, { "type": "price" }] }]
 }
 {% endschema %}
+

@@ -102,8 +102,8 @@
 -%}
 <style>
   {%- if st.hide_floaters and template.name == 'index' %}
-  /* Homepage only: hide floating extras over the hero (same selectors as the collection pages) */
-  aside[id^="apex-notch-"], .vqsc-tag, #ads-agent-host, .apex-qn { display: none !important; visibility: hidden !important; }
+  /* Homepage only: hide floating extras over the hero. The apex notch and PULL HERE tab stay visible (Jay, 2026-10-11). */
+  #ads-agent-host, .apex-qn { display: none !important; visibility: hidden !important; }
   {%- endif %}
   #lxb-{{ sid }} {
     --lxb-accent: {{ st.accent | default: '#9966CC' }};
@@ -487,9 +487,10 @@
     { "type": "color", "id": "accent", "label": "Accent", "default": "#9966CC" },
     { "type": "range", "id": "pad_top_desktop", "label": "Space for the header (desktop)", "min": 0, "max": 140, "step": 2, "unit": "px", "default": 60 },
     { "type": "range", "id": "pad_top_mobile", "label": "Space for the header (phones)", "min": 0, "max": 140, "step": 2, "unit": "px", "default": 60 },
-    { "type": "checkbox", "id": "hide_floaters", "label": "Homepage: hide floating extras", "info": "Hides the PULL HERE tab and the floating heart and arrow buttons on the homepage only.", "default": true }
+    { "type": "checkbox", "id": "hide_floaters", "label": "Homepage: hide floating extras", "info": "Hides the floating sparkle button and quick-nav strip on the homepage only. The heart/arrow notch and the PULL HERE tab always show.", "default": true }
   ],
   "presets": [ { "name": "LEXE Bento Hero" } ]
 }
 {% endschema %}
+
 

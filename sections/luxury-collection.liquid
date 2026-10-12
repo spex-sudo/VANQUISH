@@ -870,7 +870,7 @@
 
   /* ── CD fix 2026-10-09: collection-page floaters, mobile card chrome, sink tagged ── */
   {%- if template.name == 'collection' and section.settings.hide_floaters -%}
-  aside[id^="apex-notch-"], .vqsc-tag, #ads-agent-host, #ApexAscend-{{ sid }}, .apex-qn { display: none !important; visibility: hidden !important; }
+  #ads-agent-host, #ApexAscend-{{ sid }}, .apex-qn { display: none !important; visibility: hidden !important; }
   {%- endif -%}
   @media (max-width: 768px) {
     #ApexZenith-{{ sid }} .apex-counter { display: none !important; }
@@ -3569,6 +3569,7 @@
   ]
 }
 {% endschema %}
+
 
 
 
