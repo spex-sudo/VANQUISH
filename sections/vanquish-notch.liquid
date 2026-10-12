@@ -1308,7 +1308,7 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
       else b.removeAttribute('tabindex');
     });
     if (on) setExpanded(false);
-    try { localStorage.setItem(SK_PEEK, on ? '1' : '0'); } catch (e) {}
+    try { sessionStorage.setItem(SK_PEEK, on ? '1' : '0'); } catch (e) {}
   }
 
   function startHold(x, y) {
@@ -1351,8 +1351,59 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
     if (notch.classList.contains('is-peeking')) { setPeek(false); e.stopPropagation(); }
   });
 
-  /* Restore across pages */
-  try { if (localStorage.getItem(SK_PEEK) === '1') setPeek(true); } catch (e) {}
+  /* Restore within this visit only (sessionStorage). It used to persist forever in localStorage, so one
+     accidental long-press while scrolling hid the notch on every page from then on. Clear that old flag. */
+  try { localStorage.removeItem(SK_PEEK); } catch (e) {}
+  try { if (sessionStorage.getItem(SK_PEEK) === '1') setPeek(true); } catch (e) {}
+
+  /* ── Keep clear of bottom trays (glass sticky add-to-cart bar on product pages) ──
+     The tray sits at z-index 99999 at the bottom of the screen; on short or landscape phones it covered the
+     notch. Lift the notch so its full (expanded) height ends above the tray; it never goes under the header. */
+  var TRAY_SEL = '[id^="ap-bar"], [data-notch-avoid]';
+  var avoidRaf = 0;
+  function fullHeight() {
+    var h = 0;
+    notch.querySelectorAll('.notch-lobe--primary, .notch-lobe--arrow, .notch-lobe--secondary').forEach(function (el) {
+      h += Math.max(el.offsetHeight, parseFloat(getComputedStyle(el).width) || 0);
+    });
+    return Math.max(h, notch.offsetHeight);
+  }
+  function avoidTrays() {
+    avoidRaf = 0;
+    var vh = window.innerHeight;
+    var limit = vh;
+    document.querySelectorAll(TRAY_SEL).forEach(function (t) {
+      var cs = getComputedStyle(t);
+      if (cs.position !== 'fixed' || cs.display === 'none' || cs.visibility === 'hidden' || parseFloat(cs.opacity) === 0) return;
+      var r = t.getBoundingClientRect();
+      if (r.height < 20 || r.bottom < vh * 0.5 || r.width < 120) return;
+      if (r.top < limit) limit = r.top;
+    });
+    var h = isExpanded ? notch.offsetHeight : fullHeight();
+    var wanted = vh * {{ vertical_pos }} / 100;
+    var maxCenter = limit - 12 - h / 2;
+    var minCenter = 72 + h / 2;
+    if (limit < vh && wanted > maxCenter) {
+      notch.style.top = Math.max(minCenter, maxCenter) + 'px';
+      notch.setAttribute('data-avoiding', '1');
+    } else if (notch.hasAttribute('data-avoiding')) {
+      notch.style.top = ''; notch.removeAttribute('data-avoiding');
+    }
+  }
+  function queueAvoid() { if (!avoidRaf) avoidRaf = requestAnimationFrame(avoidTrays); }
+  window.addEventListener('resize', queueAvoid, { passive: true });
+  window.addEventListener('orientationchange', queueAvoid);
+  window.addEventListener('load', queueAvoid);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', queueAvoid);
+  if (typeof MutationObserver === 'function') {
+    new MutationObserver(queueAvoid).observe(notch, { attributes: true, attributeFilter: ['class'] });
+  }
+  if (typeof ResizeObserver === 'function') {
+    var ro = new ResizeObserver(queueAvoid);
+    var watchTrays = function () { document.querySelectorAll(TRAY_SEL).forEach(function (t) { ro.observe(t); }); queueAvoid(); };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watchTrays); else watchTrays();
+  }
+  setTimeout(queueAvoid, 1200);
 
   /* Cart sync */
   var cartBtn   = notch.querySelector('[data-notch-cart]');
@@ -2571,5 +2622,6 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
   ]
 }
 {% endschema %}
+
 
 
