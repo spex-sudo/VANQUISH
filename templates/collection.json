@@ -208,7 +208,7 @@
         "header_image_test2": {
           "type": "header_image",
           "settings": {
-            "handles": "apparell, amelia",
+            "handles": "all, iphone-cases, apparell",
             "image": "shopify://shop_images/lexe-hero-maze-2.jpg",
             "focal": "auto",
             "shade_override": false,
