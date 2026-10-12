@@ -105,6 +105,12 @@
   /* Homepage only: hide floating extras over the hero. The apex notch and PULL HERE tab stay visible (Jay, 2026-10-11). */
   #ads-agent-host, .apex-qn { display: none !important; visibility: hidden !important; }
   {%- endif %}
+  {%- if template.name == 'index' %}
+  /* Phones: start the PULL HERE tab (vanquish-scratch) just below the hero so it doesn't sit on the headline links. */
+  @media (max-width: 749px) {
+    body .vqsc .vqsc-tag { top: max(var(--vqsc-tag-offset, 50vh), calc({{ st.pad_top_mobile }}px + {{ st.max_ratio | default: 64 }}vw + 62px)); }
+  }
+  {%- endif %}
   #lxb-{{ sid }} {
     --lxb-accent: {{ st.accent | default: '#9966CC' }};
     --lxb-g: {{ st.gutter }}px;
