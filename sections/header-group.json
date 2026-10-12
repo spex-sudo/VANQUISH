@@ -17,7 +17,7 @@
         "flash_notif_3qEzrh": {
           "type": "flash_notif",
           "settings": {
-            "text": "Command The Room",
+            "text": "Your group chat isn't ready for this.",
             "url": "",
             "bg_color": "#111111",
             "text_color": "#ffffff"
@@ -26,27 +26,81 @@
         "flash_notif_CRL8Pq": {
           "type": "flash_notif",
           "settings": {
-            "text": "Dominate",
+            "text": "Dress like the plan worked.",
             "url": "",
-            "bg_color": "#530000",
+            "bg_color": "#111111",
             "text_color": "#ffffff"
           }
         },
         "flash_notif_GP4nBT": {
           "type": "flash_notif",
           "settings": {
-            "text": "Runway Fashion",
+            "text": "Warning: compliments may follow.",
             "url": "",
-            "bg_color": "#111111",
+            "bg_color": "#530000",
             "text_color": "#ffffff"
           }
         },
         "flash_notif_7gJABh": {
           "type": "flash_notif",
           "settings": {
-            "text": "Love Yourself",
+            "text": "Plans change. The fit doesn't.",
             "url": "",
-            "bg_color": "#020202",
+            "bg_color": "#111111",
+            "text_color": "#ffffff"
+          }
+        },
+        "flash_notif_LCEm8c": {
+          "type": "flash_notif",
+          "settings": {
+            "text": "Screenshot it. Decide later.",
+            "url": "",
+            "bg_color": "#111111",
+            "text_color": "#ffffff"
+          }
+        },
+        "flash_notif_DT4QLe": {
+          "type": "flash_notif",
+          "settings": {
+            "text": "Drops land quietly. Get told first.",
+            "url": "/pages/links?src=bar",
+            "bg_color": "#530000",
+            "text_color": "#ffffff"
+          }
+        },
+        "flash_notif_REmTPj": {
+          "type": "flash_notif",
+          "settings": {
+            "text": "Fit check: passed.",
+            "url": "",
+            "bg_color": "#111111",
+            "text_color": "#ffffff"
+          }
+        },
+        "flash_notif_Lx8gQc": {
+          "type": "flash_notif",
+          "settings": {
+            "text": "You looked. Now look good.",
+            "url": "",
+            "bg_color": "#111111",
+            "text_color": "#ffffff"
+          }
+        },
+        "flash_notif_Lx4fTk": {
+          "type": "flash_notif",
+          "settings": {
+            "text": "Can't find it? The search bar can.",
+            "url": "",
+            "bg_color": "#111111",
+            "text_color": "#ffffff"
+          }
+        },
+        "flash_notif_Lx9rWp": {
+          "type": "flash_notif",
+          "settings": {
+            "text": "Command the room.",
+            "url": "",
+            "bg_color": "#111111",
             "text_color": "#ffffff"
           }
         },
@@ -93,33 +147,6 @@
             "product": ""
           }
         },
-        "flash_notif_LCEm8c": {
-          "type": "flash_notif",
-          "settings": {
-            "text": "Try Clicking The Search Button Over There.",
-            "url": "",
-            "bg_color": "#050505",
-            "text_color": "#efefef"
-          }
-        },
-        "flash_notif_DT4QLe": {
-          "type": "flash_notif",
-          "settings": {
-            "text": "First Time?",
-            "url": "",
-            "bg_color": "#111111",
-            "text_color": "#ffffff"
-          }
-        },
-        "flash_notif_REmTPj": {
-          "type": "flash_notif",
-          "settings": {
-            "text": "LIMITED EDITON",
-            "url": "",
-            "bg_color": "#cdb4ff",
-            "text_color": "#ffffff"
-          }
-        },
         "collection_kTm6jJ": {
           "type": "collection",
           "settings": {
@@ -133,14 +160,17 @@
         "flash_notif_CRL8Pq",
         "flash_notif_GP4nBT",
         "flash_notif_7gJABh",
+        "flash_notif_LCEm8c",
+        "flash_notif_DT4QLe",
+        "flash_notif_REmTPj",
+        "flash_notif_Lx8gQc",
+        "flash_notif_Lx4fTk",
+        "flash_notif_Lx9rWp",
         "quick_link_zAzjAV",
         "quick_link_cpRJLp",
         "collection_ienDgX",
         "collection_JXPMLw",
         "collection_4XRPEG",
-        "flash_notif_LCEm8c",
-        "flash_notif_DT4QLe",
-        "flash_notif_REmTPj",
         "collection_kTm6jJ"
       ],
       "name": "Apex Header V19",
