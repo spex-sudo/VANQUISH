@@ -120,8 +120,8 @@
         "slanted": true,
         "gutter": 6,
         "radius": 28,
-        "split_top": 58,
-        "split_bottom": 50,
+        "split_top": 50,
+        "split_bottom": 58,
         "split_rows": 50,
         "mobile_layout": "replica",
         "gutter_mobile": 4,
@@ -131,7 +131,12 @@
         "accent": "#9966cc",
         "pad_top_desktop": 60,
         "pad_top_mobile": 60,
-        "hide_floaters": true
+        "hide_floaters": true,
+        "row_tilt": 8,
+        "edge_pad": 0,
+        "height_vh": 100,
+        "max_ratio": 64,
+        "overlay_opacity": 70
       }
     },
     "luxury_hero_EFGqQq": {
@@ -205,9 +210,9 @@
         "addname_privacy_label": "Privacy Policy",
         "addname_privacy_url": "shopify://pages/contact",
         "addname_submit_label": "Add Me to the Wall",
-        "addname_submit_loading": "Sending…",
+        "addname_submit_loading": "Sending\u2026",
         "addname_success_title": "You're on the list!",
-        "addname_success_body": "Thanks for joining. Your name will appear on the wall after a quick review — usually within 24 hours."
+        "addname_success_body": "Thanks for joining. Your name will appear on the wall after a quick review \u2014 usually within 24 hours."
       }
     },
     "luxury_collectiongrid_jpK7Cz": {
@@ -357,7 +362,7 @@
         "countdown_second_label": "sec",
         "sr_showing_label": "Showing",
         "sr_of_label": "of",
-        "committed_badge": "YOU’RE ON THE LIST",
+        "committed_badge": "YOU\u2019RE ON THE LIST",
         "modal_bg": "#ffffff",
         "modal_fg": "#000000",
         "modal_accent": "#ece6fd",
@@ -398,7 +403,7 @@
         "collection": "",
         "card_count": 12,
         "show_header": true,
-        "title": "MVP’S",
+        "title": "MVP\u2019S",
         "show_arrows": false,
         "card_shape": "squircle",
         "landscape_ratio": "4 / 3",
@@ -826,7 +831,7 @@
     },
     "vanquish_scratch_MJQr7J": {
       "type": "vanquish-scratch",
-      "name": "Scratch Funnel — Tag",
+      "name": "Scratch Funnel \u2014 Tag",
       "settings": {
         "enabled": true,
         "display_mode": "tag",
@@ -850,12 +855,12 @@
         "prize_sub": "",
         "claim_label": "CLAIM GIFT",
         "claimed_label": "CLAIMED!",
-        "email_prompt": "We’ll send your prize code to your email.",
+        "email_prompt": "We\u2019ll send your prize code to your email.",
         "email_placeholder": "Your email address",
         "submit_label": "CLAIM",
         "trust_text": "No spam. Unsubscribe any time.",
         "success_headline": "You're in.",
-        "success_message": "Your code is ready — use it at checkout.",
+        "success_message": "Your code is ready \u2014 use it at checkout.",
         "success_cta": "Start shopping",
         "success_url": "",
         "offer_code": "",

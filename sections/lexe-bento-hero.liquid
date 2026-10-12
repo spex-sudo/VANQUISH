@@ -40,6 +40,11 @@
   endif
   assign main_a = xt | times: 100 | divided_by: xM | round: 3
   assign main_b = xb | times: 100 | divided_by: xM | round: 3
+  if main_a < main_b
+    assign main_min = main_a
+  else
+    assign main_min = main_b
+  endif
   assign rw = 100 | minus: xm
   assign xs_l = xb | minus: xt | times: yl | divided_by: 100 | plus: xt
   assign r_top = xt | minus: xm | times: 100 | divided_by: rw | round: 3
@@ -142,7 +147,7 @@
 
   /* Headline, on the main photo */
   #lxb-{{ sid }} .lxb__copy { position: absolute; z-index: 4; left: 0; bottom: 0; pointer-events: none;
-    width: calc({{ main_b }}% - var(--lxb-g)); padding: 0 clamp(14px, 3.4vw, 64px) clamp(14px, 3.2vw, 60px); }
+    width: calc({{ main_min }}% - var(--lxb-g)); padding: 0 clamp(14px, 3.4vw, 64px) clamp(14px, 3.2vw, 60px); }
   #lxb-{{ sid }} .lxb__copy a { pointer-events: auto; }
   #lxb-{{ sid }} .lxb__eyebrow { margin: 0 0 clamp(4px, .7vw, 14px); font-size: clamp(9px, .9vw, 13px); line-height: 1.3; letter-spacing: .14em; text-transform: uppercase; font-weight: 600; color: rgba(255,255,255,.8); }
   #lxb-{{ sid }} .lxb__title { margin: 0; font-size: clamp(26px, 6.4vw, 116px); line-height: .94; letter-spacing: -.045em; font-weight: 700; color: #fff; text-wrap: balance; }
@@ -167,6 +172,7 @@
   /* Chips: solid semi-opaque fill, no blur over the big photos */
   #lxb-{{ sid }} .lxb__chip { position: absolute; z-index: 4; pointer-events: none; right: clamp(8px, 1.6vw, 28px); bottom: clamp(8px, 1.6vw, 28px);
     padding: .6em .95em; border-radius: 999px; background: rgba(12,12,14,.62); color: #fff; font-size: clamp(9px, .85vw, 13px); line-height: 1; font-weight: 600; }
+  #lxb-{{ sid }} .lxb__img--b .lxb__chip { top: clamp(8px, 1.6vw, 28px); bottom: auto; }
   #lxb-{{ sid }} .lxb__main .lxb__chip { top: clamp(8px, 1.6vw, 28px); bottom: auto; left: clamp(14px, 3.4vw, 64px); right: auto; }
 
   /* Product: a frosted glass card on its own photo */

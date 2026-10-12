@@ -7,6 +7,7 @@
     1. it has a cost on file (product metafield custom.cost_usd = highest variant unit cost)
     2. it sits in a collection on the GET side of the discount (shop metafield custom.gift_guard.get_handles), because
        otherwise Shopify would charge for it at checkout
+  3. it is not tagged needs-clean-image (third-party or supplier mark found in the 2026-10-11 sweep)
   Both metafields are written by /workspace/lexe-offer/guard.sh --sync.
 {%- endcomment -%}
 {%- liquid
@@ -32,6 +33,9 @@
       endfor
     endif
   endif
+  if product.tags contains 'needs-clean-image'
+    assign g_ok = false
+  endif
   if g_ok == false
     echo -1
   else
@@ -46,3 +50,4 @@
     echo g_t | times: 100
   endif
 -%}
+
