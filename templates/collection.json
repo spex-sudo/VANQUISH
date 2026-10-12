@@ -37,7 +37,7 @@
         "checkout_label": "Checkout",
         "cart_empty_text": "Your bag is empty.",
         "cart_empty_cta": "Continue shopping",
-        "cart_empty_href": "/collections/all",
+        "cart_empty_href": "\/collections\/all",
         "show_shipping_bar": false,
         "shipping_threshold": 10000,
         "shipping_before_text": "Spend {amount} more for free shipping",
@@ -48,9 +48,9 @@
         "favorites_drawer_title": "Saved for later",
         "favorites_empty_text": "No favorites yet — tap any heart on a product to save it here.  Directors note: theres a 10% chance ill give you something for FREE from your wish list (:",
         "bulk_label": "Add all to cart",
-        "favorites_url": "/pages/favorites",
+        "favorites_url": "\/pages\/favorites",
         "show_audio": true,
-        "audio_url": "https://youtu.be/3P0fAXMu2Fc?si=k4ztcU8Ah4OKDyyK",
+        "audio_url": "https:\/\/youtu.be\/3P0fAXMu2Fc?si=k4ztcU8Ah4OKDyyK",
         "audio_label": "Music",
         "audio_loop": false,
         "audio_volume": 80,
@@ -60,7 +60,7 @@
         "share_text": "Take a look at LEXE by Devici Studios.",
         "cart_share_text": "Here is my LEXE bag.",
         "share_mail_subject": "LEXE by Devici Studios",
-        "qr_url": "https://vanquish7.studio",
+        "qr_url": "https:\/\/vanquish7.studio",
         "primary_button": "favorites",
         "expand_behavior": "hover"
       }
@@ -89,7 +89,7 @@
         "photo_remember_sort": true,
         "photo_members_chip": true,
         "photo_members_label": "Members get first look",
-        "photo_members_url": "/pages/links?src=site",
+        "photo_members_url": "\/pages\/links?src=site",
         "glass_backdrop": "products",
         "glass_bd_blur": 48,
         "glass_opacity": 55,
@@ -172,7 +172,7 @@
         "hero_layout": "grid",
         "split_pct": 50,
         "promo_bg": "#0a0a0a",
-        "promo_bg_image": "shopify://shop_images/IMG_0729.png",
+        "promo_bg_image": "shopify:\/\/shop_images\/IMG_0729.png",
         "promo_fg": "#ffffff",
         "promo_eyebrow": "New collection",
         "promo_headline": "Up To 50% Off",
@@ -190,37 +190,7 @@
         "show_dots": true,
         "dot_color": "#d4b6ff",
         "show_card_label": false
-      },
-      "blocks": {
-        "header_image_test1": {
-          "type": "header_image",
-          "settings": {
-            "collection": "lexe",
-            "handles": "",
-            "image": "shopify://shop_images/lexe-hero-women.jpg",
-            "image_mobile": "shopify://shop_images/lexe-hero-men.webp",
-            "focal": "50% 25%",
-            "shade_override": true,
-            "shade_top": 0,
-            "shade_bottom": 50
-          }
-        },
-        "header_image_test2": {
-          "type": "header_image",
-          "settings": {
-            "handles": "all, iphone-cases, apparell",
-            "image": "shopify://shop_images/lexe-hero-maze-2.jpg",
-            "focal": "auto",
-            "shade_override": false,
-            "shade_top": 15,
-            "shade_bottom": 75
-          }
-        }
-      },
-      "block_order": [
-        "header_image_test1",
-        "header_image_test2"
-      ]
+      }
     },
     "lexe_strip": {
       "type": "lexe-collection-strip",
@@ -463,7 +433,7 @@
         "gap": 16,
         "p_v": 10,
         "rd": 4,
-        "ratio": "1/1",
+        "ratio": "1\/1",
         "ac": "#111111",
         "sale_color": "#c8102e",
         "show_quick_add": true,
@@ -521,7 +491,7 @@
         "ed_row_mobile": 4,
         "ed_every_rows_desktop": 4,
         "ed_every_rows_mobile": 8,
-        "ed_ratio_mobile": "4/5",
+        "ed_ratio_mobile": "4\/5",
         "lx_accent": "#9b6bd1",
         "lx_accent_2": "#6e3fa3",
         "fc_video_enable": true,
@@ -536,7 +506,7 @@
     "lexe_intro": {
       "type": "custom-liquid",
       "settings": {
-        "custom_liquid": "{% if collection.description != blank %}<div class=\"lexe-coll-intro\" style=\"max-width:760px;margin:0 auto;padding:28px 20px 40px;font-size:15px;line-height:1.65;\">{{ collection.description }}</div><style>.lexe-coll-intro a{text-decoration:underline;text-underline-offset:2px;color:inherit}.lexe-coll-intro p{margin:0 0 12px}</style>{% endif %}",
+        "custom_liquid": "{% if collection.description != blank %}<div class=\"lexe-coll-intro\" style=\"max-width:760px;margin:0 auto;padding:28px 20px 40px;font-size:15px;line-height:1.65;\">{{ collection.description }}<\/div><style>.lexe-coll-intro a{text-decoration:underline;text-underline-offset:2px;color:inherit}.lexe-coll-intro p{margin:0 0 12px}<\/style>{% endif %}",
         "color_scheme": "",
         "section_width": "page-width",
         "padding-block-start": 0,
@@ -589,8 +559,8 @@
         "foil_color_b": "#c9a227",
         "card_radius": 18,
         "btn_radius": 40,
-        "image_tr": "shopify://shop_images/IMG-0591.jpg",
-        "image_bl": "shopify://shop_images/lexe-by-devici-studios-logo.png"
+        "image_tr": "shopify:\/\/shop_images\/IMG-0591.jpg",
+        "image_bl": "shopify:\/\/shop_images\/lexe-by-devici-studios-logo.png"
       }
     }
   },
