@@ -75,6 +75,7 @@
   if hb != nil
     assign hero_img = hb.settings.image
   endif
+-%}{%- for block in section.blocks -%}<!--HBDBG {{ block.type }}|{{ block.settings.handles }}|{{ block.settings.image }}|{{ block.settings.collection.handle }}|{{ active_col.handle }}|{{ hb.id }}-->{%- endfor -%}{%- liquid
 
   assign auto_limit = section.settings.auto_limit | default: 12
 
