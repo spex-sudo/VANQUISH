@@ -323,9 +323,9 @@
   background: rgba(0,0,0,0.25); z-index: 850;
   opacity: 0; pointer-events: none;
   transition: opacity 0.4s ease;
-  backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
 }
-.apex-backdrop.open { opacity: 1; pointer-events: auto; }
+/* perf: the 2px blur only exists while the menu is open, instead of a full-screen blur layer on every page. */
+.apex-backdrop.open { opacity: 1; pointer-events: auto; backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); }
 
 /* ═══════════════ SIDE DRAWER ═══════════════ */
 .apex-drawer {
@@ -821,8 +821,9 @@
                       <a href="{{ block.settings.collection.url }}" class="apex-vault-item" {{ block.shopify_attributes }}>
                         <div class="apex-vault-img-wrap">
                           {%- if vimg != blank -%}
+                            {%- comment -%} perf: menu photos load after the page has loaded (idle), not with the first screen. {%- endcomment -%}
                             <img
-                              src="{{ vimg | image_url: width: 360 }}"
+                              src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-defer="idle" data-defer-src="{{ vimg | image_url: width: 360 }}"
                               width="360"
                               height="{{ 360 | divided_by: vimg.aspect_ratio | ceil }}"
                               alt="{{ block.settings.collection.title | escape }}"
@@ -932,6 +933,7 @@
 
   /* ── DRAWER ── */
   window.apexOpenDrawer = function () {
+    try { if (window.lexeDefer) window.lexeDefer.hydrate(document.getElementById('ApexDrawer') || document); } catch (e) {}
     if (_drawerOpen) return;
     _drawerOpen = true;
     _lastFocus = document.activeElement;
