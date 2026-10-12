@@ -95,7 +95,7 @@
     assign eager_a = true
   endif
   assign scrim = st.overlay_opacity | default: 70 | divided_by: 100.0
-  assign scrim2 = scrim | times: 0.45 | round: 3
+  assign scrim2 = scrim | times: 0.6 | round: 3
   assign r = st.radius | default: 28
   assign mainsz = xM | append: 'vw'
   assign rightsz = rw | append: 'vw'
@@ -140,14 +140,14 @@
   #lxb-{{ sid }} .lxb__vid[hidden] { display: none !important; }
   #lxb-{{ sid }} .lxb__vid::-webkit-media-controls, #lxb-{{ sid }} .lxb__vid::-webkit-media-controls-start-playback-button, #lxb-{{ sid }} .lxb__vid::-webkit-media-controls-overlay-play-button { display: none !important; -webkit-appearance: none; }
   #lxb-{{ sid }} .lxb__main::after { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
-    background: linear-gradient(0deg, rgba(0,0,0,{{ scrim }}) 0%, rgba(0,0,0,{{ scrim2 }}) 34%, rgba(0,0,0,0) 62%), linear-gradient(90deg, rgba(0,0,0,{{ scrim2 }}) 0%, rgba(0,0,0,0) 55%); }
+    background: linear-gradient(0deg, rgba(0,0,0,{{ scrim }}) 0%, rgba(0,0,0,{{ scrim2 }}) 38%, rgba(0,0,0,0) 68%), linear-gradient(90deg, rgba(0,0,0,{{ scrim2 }}) 0%, rgba(0,0,0,0) 62%); }
   #lxb-{{ sid }} .lxb__img--b::after { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none; background: linear-gradient(180deg, rgba(0,0,0,0) 60%, rgba(0,0,0,.28)); }
   #lxb-{{ sid }} .lxb__link { position: absolute; inset: 0; z-index: 3; }
   #lxb-{{ sid }} .lxb__ph { position: absolute; inset: 0; display: grid; place-items: center; color: rgba(255,255,255,.4); font-size: 13px; }
 
   /* Headline, on the main photo */
   #lxb-{{ sid }} .lxb__copy { position: absolute; z-index: 4; left: 0; bottom: 0; pointer-events: none;
-    width: calc({{ main_min }}% - var(--lxb-g)); padding: 0 clamp(14px, 3.4vw, 64px) clamp(14px, 3.2vw, 60px); }
+    width: calc({{ main_min }}% - var(--lxb-g)); text-shadow: 0 1px 14px rgba(0,0,0,.35); padding: 0 clamp(14px, 3.4vw, 64px) clamp(14px, 3.2vw, 60px); }
   #lxb-{{ sid }} .lxb__copy a { pointer-events: auto; }
   #lxb-{{ sid }} .lxb__eyebrow { margin: 0 0 clamp(4px, .7vw, 14px); font-size: clamp(9px, .9vw, 13px); line-height: 1.3; letter-spacing: .14em; text-transform: uppercase; font-weight: 600; color: rgba(255,255,255,.8); }
   #lxb-{{ sid }} .lxb__title { margin: 0; font-size: clamp(26px, 6.4vw, 116px); line-height: .94; letter-spacing: -.045em; font-weight: 700; color: #fff; text-wrap: balance; }
