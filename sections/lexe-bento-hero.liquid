@@ -6,8 +6,8 @@
   "Max height" % of the width, so tablets and phones get the same landscape composition scaled down.
   Text sizes follow the width with legible minimums.
   Optional video per panel (snippet lexe-bento-media): the image is always the base layer; the video stays
-  hidden until it really plays, and is removed if autoplay is blocked, errors, stalls or has not started
-  after 2.5s, in in-app browsers (Instagram, Facebook, TikTok) and with reduced motion.
+  transparent until it really plays (engine ported from the Ultimate Hero section). Blocked autoplay keeps the
+  image and starts on the first tap; in-app browsers (Instagram, Facebook, TikTok...) and errors show the image.
   Mobile layout "Stacked" gives a straight-edged column under 750px instead.
 {%- endcomment -%}
 {%- liquid
@@ -228,11 +228,13 @@
   }
   @media (prefers-reduced-motion: reduce) {
     #lxb-{{ sid }} * { transition: none !important; }
+    {%- if st.video_reduced_motion %}
     #lxb-{{ sid }} .lxb__vid, #lxb-{{ sid }} .lxb__vbtn { display: none !important; }
+    {%- endif %}
   }
 </style>
 
-<section id="lxb-{{ sid }}" class="lxb" aria-label="{{ st.title | strip_html | escape }}" data-video-mobile="{% if st.video_mobile %}1{% else %}0{% endif %}">
+<section id="lxb-{{ sid }}" class="lxb" aria-label="{{ st.title | strip_html | escape }}" data-video-mobile="{% if st.video_mobile %}1{% else %}0{% endif %}" data-video-rm="{% if st.video_reduced_motion %}1{% else %}0{% endif %}">
   <div class="lxb__grid">
     <div class="lxb__p lxb__main">
       {%- if img_a != blank or st.image_a_video != blank or st.image_a_video_url != blank -%}
@@ -297,15 +299,17 @@
     track('home_hero_click', { cta: a.getAttribute('data-lxb-cta'), href: a.getAttribute('href'), label: (a.textContent || a.getAttribute('aria-label') || '').trim().slice(0, 80), product: a.getAttribute('data-lxb-product') || undefined });
   });
 
-  /* Videos: the image is always underneath. A video is shown only once it is really playing; if autoplay is
-     blocked (in-app browsers, Low Power Mode), errors, stalls, or nothing plays within 2.5s, it is removed. */
+  /* Videos, ported from the Ultimate Hero engine that plays on iOS: src is in the HTML, muted/autoplay are set
+     again in JS, play() is called as soon as the hero is near the screen and again on canplaythrough and after
+     2.5s. The image underneath stays visible until the video really plays (opacity only, nothing is removed);
+     if autoplay is refused (Low Power Mode) the next tap anywhere starts it. In-app browsers and errors hide it. */
   var vids = ROOT.querySelectorAll('video[data-lxb-video]');
   if (!vids.length) return;
   var UA = navigator.userAgent || '';
-  var inApp = /Instagram|FBAN|FBAV|FB_IAB|TikTok|musical_ly|Bytedance/i.test(UA);
-  var rm = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
-  var mobileOff = ROOT.getAttribute('data-video-mobile') === '0';
-  var WAIT = 2500;
+  var restricted = /musical_ly|tiktok|bytedance|Instagram|FBAN|FBAV|FB_IAB|FBIOS|FBSS|Snapchat|TwitterAndroid|TwitteriPhone|LinkedInApp|MicroMessenger/i.test(UA);
+  var respectRM = ROOT.getAttribute('data-video-rm') === '1';
+  var rmOn = respectRM && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var mobileOff = ROOT.getAttribute('data-video-mobile') === '0' && window.innerWidth < 750;
   function btnFor(v) { var host = v.closest('.lxb__p'); return host ? host.querySelector('[data-lxb-vbtn]') : null; }
   function setBtn(v) {
     var b = btnFor(v); if (!b) return;
@@ -313,80 +317,77 @@
     b.classList.toggle('is-paused', paused);
     b.setAttribute('aria-label', (paused ? 'Play ' : 'Pause ') + (b.getAttribute('data-label') || 'video'));
   }
-  function drop(v, why) {
-    if (v.dataset.dropped) return;
-    v.dataset.dropped = why || '1';
-    clearTimeout(v.__lxbT);
-    v.classList.remove('is-playing');
+  function hide(v, why) {
+    v.dataset.fallback = why;
     try { v.pause(); } catch (e) {}
-    v.removeAttribute('src'); v.removeAttribute('autoplay');
-    try { v.load(); } catch (e) {}
-    v.hidden = true;
+    v.removeAttribute('autoplay'); v.preload = 'none';
+    v.classList.remove('is-playing'); v.hidden = true;
     var b = btnFor(v); if (b) b.hidden = true;
-    ROOT.setAttribute('data-video-fallback', why || '1');
+    ROOT.setAttribute('data-video-fallback', why);
   }
-  function allowed() {
-    if (inApp) return false;
-    if (rm && rm.matches) return false;
-    if (mobileOff && window.innerWidth < 750) return false;
-    return true;
+  if (restricted || rmOn || mobileOff) {
+    for (var d = 0; d < vids.length; d++) hide(vids[d], restricted ? 'in-app' : (rmOn ? 'reduced-motion' : 'mobile-off'));
+    return;
   }
-  function arm(v) {
-    clearTimeout(v.__lxbT);
-    v.__lxbT = setTimeout(function () {
-      if (v.dataset.played || v.dataset.dropped) return;
-      if (v.dataset.visible === '1') drop(v, 'timeout'); else v.dataset.rearm = '1';
-    }, WAIT);
+  function show(v) {
+    if (v.dataset.shown || v.hidden) return;
+    v.dataset.shown = '1';
+    v.classList.add('is-playing');
+    var b = btnFor(v); if (b) b.hidden = false;
+    setBtn(v);
   }
-  function load(v) {
-    if (v.dataset.loaded) return;
-    v.dataset.loaded = '1';
-    v.muted = true; v.defaultMuted = true; v.setAttribute('muted', ''); v.playsInline = true;
-    v.setAttribute('playsinline', ''); v.setAttribute('webkit-playsinline', ''); v.controls = false;
-    var small = window.innerWidth < 750 || (v.getBoundingClientRect().width * (window.devicePixelRatio || 1)) < 900;
-    var hls = v.dataset.srcHls && v.canPlayType('application/vnd.apple.mpegurl') ? v.dataset.srcHls : '';
-    v.addEventListener('playing', function () {
-      if (v.dataset.dropped) return;
-      v.dataset.played = '1'; clearTimeout(v.__lxbT);
-      v.classList.add('is-playing'); var b = btnFor(v); if (b) b.hidden = false; setBtn(v);
-    });
-    v.addEventListener('pause', function () { setBtn(v); });
-    v.addEventListener('error', function () { drop(v, 'error'); });
-    v.addEventListener('stalled', function () { if (!v.dataset.played) drop(v, 'stalled'); });
-    v.src = hls || (small ? v.dataset.srcLo : v.dataset.srcHi) || v.dataset.srcHi;
-    arm(v);
-  }
-  function play(v) {
-    if (v.dataset.dropped) return;
-    if (!allowed()) { drop(v, inApp ? 'in-app' : 'off'); return; }
-    if (v.dataset.userPaused === '1') return;
-    load(v);
-    if (v.dataset.rearm) { v.dataset.rearm = ''; arm(v); }
+  function tryPlay(v) {
+    if (v.hidden || v.dataset.userPaused === '1') return;
+    v.muted = true; v.defaultMuted = true;
     var p;
-    try { p = v.play(); } catch (e) { drop(v, 'blocked'); return; }
-    if (p && p.catch) p.catch(function (err) {
-      if (v.dataset.played) return;
-      if (err && err.name === 'AbortError') return; /* paused by us before it started; the timer still guards */
-      drop(v, 'blocked');
-    });
+    try { p = v.play(); } catch (e) { p = null; }
+    if (p && typeof p.then === 'function') {
+      p.then(function () { if (!v.paused) show(v); }).catch(function () {
+        /* Autoplay refused: keep the image; start on the first touch or click, like the Ultimate Hero. */
+        if (v.dataset.retry) return; v.dataset.retry = '1';
+        var retry = function () { v.dataset.retry = ''; tryPlay(v); };
+        document.addEventListener('touchstart', retry, { once: true, passive: true });
+        document.addEventListener('click', retry, { once: true });
+      });
+    }
   }
-  function pause(v) { if (!v.paused) v.pause(); }
-
-  if (!allowed()) { for (var d = 0; d < vids.length; d++) drop(vids[d], inApp ? 'in-app' : 'off'); return; }
+  function prep(v) {
+    v.muted = true; v.defaultMuted = true; v.autoplay = true; v.playsInline = true; v.controls = false;
+    v.setAttribute('muted', ''); v.setAttribute('playsinline', ''); v.setAttribute('webkit-playsinline', '');
+    v.addEventListener('playing', function () { show(v); });
+    v.addEventListener('timeupdate', function () { if (v.currentTime > 0 && !v.paused) show(v); });
+    v.addEventListener('pause', function () { setBtn(v); });
+    v.addEventListener('error', function () { if (!v.dataset.shown) hide(v, 'error'); });
+  }
+  function start(v) {
+    if (v.dataset.started) { tryPlay(v); return; }
+    v.dataset.started = '1';
+    v.preload = 'auto';
+    if (v.readyState >= 3) { tryPlay(v); return; }
+    v.addEventListener('canplaythrough', function onCPT() { v.removeEventListener('canplaythrough', onCPT); tryPlay(v); });
+    v.load();
+    tryPlay(v);
+    setTimeout(function () { if (!v.dataset.shown) tryPlay(v); }, 2500);
+  }
+  for (var i = 0; i < vids.length; i++) prep(vids[i]);
   if ('IntersectionObserver' in window) {
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) {
-        en.target.dataset.visible = en.isIntersecting ? '1' : '0';
-        if (en.isIntersecting) play(en.target); else pause(en.target);
+        var v = en.target;
+        if (en.isIntersecting) start(v);
+        else if (v.dataset.started && !v.paused) v.pause();
       });
-    }, { rootMargin: '120px 0px', threshold: 0.15 });
-    for (var i = 0; i < vids.length; i++) io.observe(vids[i]);
+    }, { rootMargin: '200px 0px' });
+    for (var j = 0; j < vids.length; j++) io.observe(vids[j]);
   } else {
-    for (var j = 0; j < vids.length; j++) { vids[j].dataset.visible = '1'; play(vids[j]); }
+    for (var k = 0; k < vids.length; k++) start(vids[k]);
   }
-  if (rm && rm.addEventListener) rm.addEventListener('change', function () { if (rm.matches) for (var k = 0; k < vids.length; k++) drop(vids[k], 'reduced-motion'); });
   document.addEventListener('visibilitychange', function () {
-    for (var k = 0; k < vids.length; k++) { if (document.hidden) pause(vids[k]); else if (vids[k].dataset.visible === '1') play(vids[k]); }
+    for (var n = 0; n < vids.length; n++) {
+      var v = vids[n];
+      if (document.hidden) v.pause();
+      else if (v.dataset.started && v.paused) tryPlay(v);
+    }
   });
 
   ROOT.addEventListener('click', function (e) {
@@ -395,7 +396,7 @@
     e.preventDefault(); e.stopPropagation();
     var host = b.closest('.lxb__p'); var v = host && host.querySelector('video[data-lxb-video]');
     if (!v) return;
-    if (v.paused) { v.dataset.userPaused = '0'; play(v); } else { v.dataset.userPaused = '1'; v.pause(); }
+    if (v.paused) { v.dataset.userPaused = '0'; tryPlay(v); } else { v.dataset.userPaused = '1'; v.pause(); }
     setBtn(v);
     track('home_hero_video_toggle', { state: v.dataset.userPaused === '1' ? 'pause' : 'play' });
   });
@@ -459,6 +460,7 @@
 
     { "type": "header", "content": "Video" },
     { "type": "checkbox", "id": "video_mobile", "label": "Use video on phones", "info": "Off: phones show the images only.", "default": true },
+    { "type": "checkbox", "id": "video_reduced_motion", "label": "Show images instead of video when Reduce Motion is on", "info": "Off (default): videos play even when the phone has Reduce Motion on, like the Ultimate Hero. In-app browsers always show the images.", "default": false },
 
     { "type": "header", "content": "Layout" },
     { "type": "range", "id": "edge_pad", "label": "Edge padding", "info": "0 = edge to edge. Above 0 the hero gets rounded outer corners.", "min": 0, "max": 40, "step": 2, "unit": "px", "default": 0 },
@@ -490,3 +492,4 @@
   "presets": [ { "name": "LEXE Bento Hero" } ]
 }
 {% endschema %}
+
