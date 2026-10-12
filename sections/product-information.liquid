@@ -172,8 +172,9 @@
   the small Latin part. Same font, same name; it does not block rendering. Other fonts are unchanged. {%- endcomment -%}
 {%- liquid
   assign bf_gf = false
-  assign cjk_families = 'Shippori Antique,Shippori Antique B1,Shippori Mincho,Shippori Mincho B1,Zen Kaku Gothic New,Zen Kaku Gothic Antique,Zen Maru Gothic,Zen Old Mincho,Zen Antique,Kosugi,Kosugi Maru,Sawarabi Gothic,Sawarabi Mincho,M PLUS 1p,M PLUS Rounded 1c,Noto Sans JP,Noto Serif JP,Kaisei Decol,Kaisei Opti,Kaisei Tokumin,BIZ UDPGothic,BIZ UDPMincho,Murecho,Yuji Syuku,Klee One,Dela Gothic One,Hina Mincho,Potta One,Yusei Magic' | split: ','
-  if cjk_families contains bf.family
+  assign cjk_families = ',Shippori Antique,Shippori Antique B1,Shippori Mincho,Shippori Mincho B1,Zen Kaku Gothic New,Zen Kaku Gothic Antique,Zen Maru Gothic,Zen Old Mincho,Zen Antique,Kosugi,Kosugi Maru,Sawarabi Gothic,Sawarabi Mincho,M PLUS 1p,M PLUS Rounded 1c,Noto Sans JP,Noto Serif JP,Kaisei Decol,Kaisei Opti,Kaisei Tokumin,BIZ UDPGothic,BIZ UDPMincho,Murecho,Yuji Syuku,Klee One,Dela Gothic One,Hina Mincho,Potta One,Yusei Magic,'
+  assign bf_key = bf.family | prepend: ',' | append: ','
+  if cjk_families contains bf_key
     assign bf_gf = true
   endif
 -%}
