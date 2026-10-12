@@ -1379,15 +1379,17 @@ body.apex-cart-open-{{ sid }} { overflow: hidden; }
       if (r.height < 20 || r.bottom < vh * 0.5 || r.width < 120) return;
       if (r.top < limit) limit = r.top;
     });
-    var h = isExpanded ? notch.offsetHeight : fullHeight();
+    var h = Math.max(fullHeight(), notch.offsetHeight);
     var wanted = vh * {{ vertical_pos }} / 100;
     var maxCenter = limit - 12 - h / 2;
     var minCenter = 72 + h / 2;
     if (limit < vh && wanted > maxCenter) {
       notch.style.top = Math.max(minCenter, maxCenter) + 'px';
       notch.setAttribute('data-avoiding', '1');
+      /* No room above the tray (landscape phones): stay visible on top of it rather than disappear under it. */
+      notch.style.zIndex = maxCenter < minCenter ? '100000' : '';
     } else if (notch.hasAttribute('data-avoiding')) {
-      notch.style.top = ''; notch.removeAttribute('data-avoiding');
+      notch.style.top = ''; notch.style.zIndex = ''; notch.removeAttribute('data-avoiding');
     }
   }
   function queueAvoid() { if (!avoidRaf) avoidRaf = requestAnimationFrame(avoidTrays); }
