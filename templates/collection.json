@@ -71,7 +71,7 @@
         "font": "syne_n8",
         "hero_style": "editorial",
         "hero_look": "photo",
-        "photo_clean_handles": "faux-leather-jackets",
+        "photo_clean_handles": "faux-leather-jackets,LEXE",
         "photo_mesh_handles": "exodus",
         "photo_product_fallback": true,
         "photo_focal": "50% 35%",
@@ -190,7 +190,37 @@
         "show_dots": true,
         "dot_color": "#d4b6ff",
         "show_card_label": false
-      }
+      },
+      "blocks": {
+        "header_image_test1": {
+          "type": "header_image",
+          "settings": {
+            "collection": "lexe",
+            "handles": "",
+            "image": "shopify://shop_images/lexe-hero-women.jpg",
+            "image_mobile": "shopify://shop_images/lexe-hero-men.webp",
+            "focal": "50% 25%",
+            "shade_override": true,
+            "shade_top": 0,
+            "shade_bottom": 50
+          }
+        },
+        "header_image_test2": {
+          "type": "header_image",
+          "settings": {
+            "handles": "apparell, amelia",
+            "image": "shopify://shop_images/lexe-hero-maze-2.jpg",
+            "focal": "auto",
+            "shade_override": false,
+            "shade_top": 15,
+            "shade_bottom": 75
+          }
+        }
+      },
+      "block_order": [
+        "header_image_test1",
+        "header_image_test2"
+      ]
     },
     "lexe_strip": {
       "type": "lexe-collection-strip",
