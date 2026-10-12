@@ -242,11 +242,11 @@
   }
 </style>
 
-<section id="lxb-{{ sid }}" class="lxb" aria-label="{{ st.title | strip_html | escape }}" data-video-mobile="{% if st.video_mobile %}1{% else %}0{% endif %}" data-video-rm="{% if st.video_reduced_motion %}1{% else %}0{% endif %}">
+<section id="lxb-{{ sid }}" class="lxb" aria-label="{{ st.title | strip_html | escape }}" data-video-mobile="{% if st.video_mobile %}1{% else %}0{% endif %}" data-video-rm="{% if st.video_reduced_motion %}1{% else %}0{% endif %}" data-video-defer="{% if st.video_defer %}1{% else %}0{% endif %}">
   <div class="lxb__grid">
     <div class="lxb__p lxb__main">
       {%- if img_a != blank or st.image_a_video != blank or st.image_a_video_url != blank -%}
-        {%- render 'lexe-bento-media', img: img_a, video: st.image_a_video, video_url: st.image_a_video_url, poster: st.image_a_poster, pos: pos_a, eager: eager_a, widths: '480, 640, 800, 960, 1120, 1350, 1600, 1920', sizes: mainsz, alt: st.image_a_alt, img_width: 1920, controls: st.image_a_video_controls, label: st.image_a_label -%}
+        {%- render 'lexe-bento-media', defer: st.video_defer, img: img_a, video: st.image_a_video, video_url: st.image_a_video_url, poster: st.image_a_poster, pos: pos_a, eager: eager_a, widths: '480, 640, 800, 960, 1120, 1350, 1600, 1920', sizes: mainsz, alt: st.image_a_alt, img_width: 1920, controls: st.image_a_video_controls, label: st.image_a_label -%}
       {%- else -%}<div class="lxb__ph">Add an image</div>{%- endif -%}
       {%- if st.image_a_link != blank -%}<a class="lxb__link" href="{{ st.image_a_link }}" aria-label="{{ st.image_a_label | default: st.image_a_alt | escape }}" data-lxb-cta="image_a"></a>{%- endif -%}
       {%- if st.image_a_label != blank -%}<span class="lxb__chip">{{ st.image_a_label }}</span>{%- endif -%}
@@ -257,7 +257,7 @@
         <div class="lxb__row">
           {%- if st.show_thumb and thumb_p != blank and thumb_p.featured_media != blank -%}
             <a class="lxb__thumb" href="{{ thumb_p.url }}" aria-label="{{ thumb_p.title | escape }}" data-lxb-cta="thumb">
-              {%- render 'lexe-bento-media', img: thumb_p.featured_media.preview_image, video: st.thumb_video, video_url: st.thumb_video_url, poster: nil, pos: '', eager: false, widths: '120, 180', sizes: '60px', alt: thumb_p.title, img_width: 240, controls: false, label: thumb_p.title -%}
+              {%- render 'lexe-bento-media', defer: st.video_defer, img: thumb_p.featured_media.preview_image, video: st.thumb_video, video_url: st.thumb_video_url, poster: nil, pos: '', eager: false, widths: '120, 180', sizes: '60px', alt: thumb_p.title, img_width: 240, controls: false, label: thumb_p.title -%}
             </a>
           {%- endif -%}
           {%- if st.btn1_label != blank -%}<a class="lxb__btn lxb__btn--primary" href="{{ st.btn1_link | default: '/collections/lexe' }}" data-lxb-cta="primary">{{ st.btn1_label }}</a>{%- endif -%}
@@ -268,7 +268,7 @@
 
     <div class="lxb__p lxb__img--b">
       {%- if img_b != blank or st.image_b_video != blank or st.image_b_video_url != blank -%}
-        {%- render 'lexe-bento-media', img: img_b, video: st.image_b_video, video_url: st.image_b_video_url, poster: st.image_b_poster, pos: pos_b, eager: false, widths: '360, 480, 640, 800, 960, 1120, 1350', sizes: rightsz, alt: st.image_b_alt, img_width: 1920, controls: st.image_b_video_controls, label: st.image_b_label -%}
+        {%- render 'lexe-bento-media', defer: st.video_defer, img: img_b, video: st.image_b_video, video_url: st.image_b_video_url, poster: st.image_b_poster, pos: pos_b, eager: false, widths: '360, 480, 640, 800, 960, 1120, 1350', sizes: rightsz, alt: st.image_b_alt, img_width: 1920, controls: st.image_b_video_controls, label: st.image_b_label -%}
       {%- else -%}<div class="lxb__ph">Add an image</div>{%- endif -%}
       {%- if st.image_b_link != blank -%}<a class="lxb__link" href="{{ st.image_b_link }}" aria-label="{{ st.image_b_label | default: st.image_b_alt | escape }}" data-lxb-cta="image_b"></a>{%- endif -%}
       {%- if st.image_b_label != blank -%}<span class="lxb__chip">{{ st.image_b_label }}</span>{%- endif -%}
@@ -277,7 +277,7 @@
     <div class="lxb__p lxb__prod">
       {%- if prod != blank -%}
         {%- if prod_img != blank or st.product_video != blank or st.product_video_url != blank -%}
-          {%- render 'lexe-bento-media', img: prod_img, video: st.product_video, video_url: st.product_video_url, poster: st.product_poster, pos: pos_p, eager: false, widths: '360, 480, 640, 800, 960, 1120, 1350', sizes: rightsz, alt: prod.title, img_width: 1920, controls: st.product_video_controls, label: prod.title -%}
+          {%- render 'lexe-bento-media', defer: st.video_defer, img: prod_img, video: st.product_video, video_url: st.product_video_url, poster: st.product_poster, pos: pos_p, eager: false, widths: '360, 480, 640, 800, 960, 1120, 1350', sizes: rightsz, alt: prod.title, img_width: 1920, controls: st.product_video_controls, label: prod.title -%}
         {%- endif -%}
         <a class="lxb__link" href="{{ prod.url }}" aria-label="{{ st.product_cta | default: 'Explore' | escape }} {{ prod.title | escape }}, {{ prod.price | money | strip_html | escape }}" data-lxb-cta="product" data-lxb-product="{{ prod.handle }}"></a>
         <div class="lxb__card" aria-hidden="true">
@@ -368,6 +368,7 @@
     v.addEventListener('error', function () { if (!v.dataset.shown) hide(v, 'error'); });
   }
   function start(v) {
+    if (v.dataset.src && !v.getAttribute('src')) v.setAttribute('src', v.dataset.src);
     if (v.dataset.started) { tryPlay(v); return; }
     v.dataset.started = '1';
     v.preload = 'auto';
@@ -378,6 +379,8 @@
     setTimeout(function () { if (!v.dataset.shown) tryPlay(v); }, 2500);
   }
   for (var i = 0; i < vids.length; i++) prep(vids[i]);
+  /* perf: with 'Load videos after the page' on, the observers below start once the page (and its photos) has loaded. */
+  function boot() {
   if ('IntersectionObserver' in window) {
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) {
@@ -389,6 +392,15 @@
     for (var j = 0; j < vids.length; j++) io.observe(vids[j]);
   } else {
     for (var k = 0; k < vids.length; k++) start(vids[k]);
+  }
+  }
+  if (ROOT.getAttribute('data-video-defer') === '1' && document.readyState !== 'complete') {
+    var booted = false;
+    var go = function () { if (booted) return; booted = true; boot(); };
+    window.addEventListener('load', function () { setTimeout(go, 100); }, { once: true });
+    setTimeout(go, 6000); /* never wait longer than 6s for slow third-party scripts */
+  } else {
+    boot();
   }
   document.addEventListener('visibilitychange', function () {
     for (var n = 0; n < vids.length; n++) {
@@ -468,6 +480,7 @@
 
     { "type": "header", "content": "Video" },
     { "type": "checkbox", "id": "video_mobile", "label": "Use video on phones", "info": "Off: phones show the images only.", "default": true },
+    { "type": "checkbox", "id": "video_defer", "label": "Load videos after the page", "default": true, "info": "On (default): the photo shows first and the video starts downloading once the page has loaded, so photos appear faster. It still autoplays muted. Turn off to load videos immediately." },
     { "type": "checkbox", "id": "video_reduced_motion", "label": "Show images instead of video when Reduce Motion is on", "info": "Off (default): videos play even when the phone has Reduce Motion on, like the Ultimate Hero. In-app browsers always show the images.", "default": false },
 
     { "type": "header", "content": "Layout" },

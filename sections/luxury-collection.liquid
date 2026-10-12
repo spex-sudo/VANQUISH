@@ -1366,7 +1366,7 @@
           {%- assign lx_vis = lx_vis | plus: 1 -%}
         {%- endif -%}
         <div class="apex-card" style="order: {{ lx_ord }}" data-lx-gi="{{ lx_gi }}" data-pid="{{ product.id }}" data-handle="{{ product.handle }}" data-available="{% if product.available %}true{% else %}false{% endif %}" data-type="{{ product.type | escape }}" data-vendor="{{ product.vendor | escape }}" data-price="{{ product.price }}" data-sale="{% if on_sale %}true{% else %}false{% endif %}">
-          <div class="apex-media">
+          <div class="apex-media" data-defer-scope>
             <a href="{{ product.url }}" class="apex-link" aria-label="{{ product.title | escape }}"></a>
             {%- if lx_gi == 0 and section.settings.fc_video_enable -%}
               {%- liquid
@@ -1445,8 +1445,9 @@
                 <img
                   class="apex-img{% if is_first_img %} is-active{% endif %}"
                   data-img-idx="{{ forloop.index0 }}"
-                  src="{{ img | image_url: width: 600 }}"
-                  srcset="{{ img | image_url: width: 320 }} 320w,
+                  {%- comment -%} perf: extra photos (swipe/arrows) load after the page, when the card is near the screen or touched. {%- endcomment -%}
+                  {% unless is_first_img %}src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-defer="view" data-defer-{% endunless %}src="{{ img | image_url: width: 600 }}"
+                  {% unless is_first_img %}data-defer-{% endunless %}srcset="{{ img | image_url: width: 320 }} 320w,
                           {{ img | image_url: width: 480 }} 480w,
                           {{ img | image_url: width: 600 }} 600w,
                           {{ img | image_url: width: 800 }} 800w,
@@ -1456,7 +1457,7 @@
                   height="{{ img.height }}"
                   alt="{% if is_first_img %}{{ img.alt | default: product.title | escape }}{% endif %}"
                   loading="{% if is_first_img and is_eager %}eager{% else %}lazy{% endif %}"
-                  {% if is_first_img and is_eager %}fetchpriority="high"{% endif %}
+                  {% if is_first_img and is_eager and forloop.parentloop.index0 == 0 %}fetchpriority="high"{% endif %}
                   decoding="async"
                   {% unless is_first_img %}aria-hidden="true"{% endunless %}>
               {%- endfor -%}
@@ -1734,7 +1735,7 @@
         -%}
 
         <div class="apex-card" data-pid="{{ product.id }}" data-handle="{{ product.handle }}" data-available="{% if product.available %}true{% else %}false{% endif %}" data-type="{{ product.type | escape }}" data-vendor="{{ product.vendor | escape }}" data-price="{{ product.price }}" data-sale="{% if on_sale %}true{% else %}false{% endif %}">
-          <div class="apex-media">
+          <div class="apex-media" data-defer-scope>
             <a href="{{ product.url }}" class="apex-link" aria-label="{{ product.title | escape }}"></a>
 
             {%- comment %} Badges (max 2 visible — priority order) {%- endcomment -%}
@@ -1774,8 +1775,9 @@
                 <img
                   class="apex-img{% if is_first_img %} is-active{% endif %}"
                   data-img-idx="{{ forloop.index0 }}"
-                  src="{{ img | image_url: width: 600 }}"
-                  srcset="{{ img | image_url: width: 320 }} 320w,
+                  {%- comment -%} perf: extra photos (swipe/arrows) load after the page, when the card is near the screen or touched. {%- endcomment -%}
+                  {% unless is_first_img %}src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-defer="view" data-defer-{% endunless %}src="{{ img | image_url: width: 600 }}"
+                  {% unless is_first_img %}data-defer-{% endunless %}srcset="{{ img | image_url: width: 320 }} 320w,
                           {{ img | image_url: width: 480 }} 480w,
                           {{ img | image_url: width: 600 }} 600w,
                           {{ img | image_url: width: 800 }} 800w,
@@ -1785,7 +1787,7 @@
                   height="{{ img.height }}"
                   alt="{% if is_first_img %}{{ img.alt | default: product.title | escape }}{% endif %}"
                   loading="{% if is_first_img and is_eager %}eager{% else %}lazy{% endif %}"
-                  {% if is_first_img and is_eager %}fetchpriority="high"{% endif %}
+                  {% if is_first_img and is_eager and forloop.parentloop.index0 == 0 %}fetchpriority="high"{% endif %}
                   decoding="async"
                   {% unless is_first_img %}aria-hidden="true"{% endunless %}>
               {%- endfor -%}

@@ -153,7 +153,7 @@
               src="{{ img_src | image_url: width: 800 }}"
               width="800" height="{{ 800 | divided_by: _ratio | ceil }}"
               srcset="{{ img_src | image_url: width: 400 }} 400w, {{ img_src | image_url: width: 800 }} 800w, {{ img_src | image_url: width: 1200 }} 1200w"
-              sizes="(max-width: 768px) {{ card_width_mob }}vw, {{ card_width_pct }}vw"
+              sizes="(max-width: 768px) calc({{ card_width_mob }}vw * 0.8), {{ card_width_pct }}vw"
               loading="{% if first_rendered %}eager{% else %}lazy{% endif %}"
               decoding="async"
               {% if first_rendered %}fetchpriority="high"{% endif %}

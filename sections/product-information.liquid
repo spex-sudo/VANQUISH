@@ -167,7 +167,24 @@
     fetchpriority="high">
 {%- endif -%}
 
-<style>{{ hf | font_face: font_display: 'swap' }}{{ bf | font_face: font_display: 'swap' }}{%- if section.settings.show_brand_overlay -%}{{ sf | font_face: font_display: 'swap' }}{%- endif -%}</style>
+{%- comment -%} perf 2026-10-11: Japanese families (e.g. Shippori Antique) are one ~2.6 MB file on Shopify's font CDN.
+  Load the same family from Google Fonts instead, which is split by character range so a page in English only downloads
+  the small Latin part. Same font, same name; it does not block rendering. Other fonts are unchanged. {%- endcomment -%}
+{%- liquid
+  assign bf_gf = false
+  assign cjk_families = 'Shippori Antique,Shippori Antique B1,Shippori Mincho,Shippori Mincho B1,Zen Kaku Gothic New,Zen Kaku Gothic Antique,Zen Maru Gothic,Zen Old Mincho,Zen Antique,Kosugi,Kosugi Maru,Sawarabi Gothic,Sawarabi Mincho,M PLUS 1p,M PLUS Rounded 1c,Noto Sans JP,Noto Serif JP,Kaisei Decol,Kaisei Opti,Kaisei Tokumin,BIZ UDPGothic,BIZ UDPMincho,Murecho,Yuji Syuku,Klee One,Dela Gothic One,Hina Mincho,Potta One,Yusei Magic' | split: ','
+  if cjk_families contains bf.family
+    assign bf_gf = true
+  endif
+-%}
+{%- if bf_gf -%}
+  {%- capture bf_gf_url -%}https://fonts.googleapis.com/css2?family={{ bf.family | replace: ' ', '+' }}:wght@{{ bf.weight }}&display=swap{%- endcapture -%}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="{{ bf_gf_url }}" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="{{ bf_gf_url }}"></noscript>
+{%- endif -%}
+<style>{{ hf | font_face: font_display: 'swap' }}{%- unless bf_gf -%}{{ bf | font_face: font_display: 'swap' }}{%- endunless -%}{%- if section.settings.show_brand_overlay -%}{{ sf | font_face: font_display: 'swap' }}{%- endif -%}</style>
 
 <style>
 #ap{{ sid }},#ap{{ sid }} *,#ap{{ sid }} *::before,#ap{{ sid }} *::after{box-sizing:border-box;margin:0;padding:0}

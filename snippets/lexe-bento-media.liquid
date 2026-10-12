@@ -4,7 +4,8 @@
   (Low Power Mode) the image stays and the video starts on the first tap; in in-app browsers or on error it is hidden.
   Sources come from video.sources (what video_tag uses): MP4 everywhere, adaptive HLS where the browser plays it natively (Safari/iOS).
   params: img, video (Shopify video from Files), video_url (external MP4), poster (image), pos (object-position),
-          eager (bool), widths, sizes, alt, img_width (max width to request), controls (bool), label (for the control).
+          eager (bool), widths, sizes, alt, img_width (max width to request), controls (bool), label (for the control),
+          defer (bool: start the video download after page load).
 {%- endcomment -%}
 {%- liquid
   assign base = img
@@ -80,9 +81,11 @@
 -%}
 {%- if src_hi != '' -%}
   {%- comment -%} Same markup as the Ultimate Hero video that plays on iOS: real src in the HTML, every inline/muted attribute present up front. {%- endcomment -%}
-  <video class="lxb__vid" src="{{ src_hi }}" autoplay muted loop playsinline webkit-playsinline x5-playsinline preload="none"
+  {%- comment -%} perf: with defer on, the file only starts downloading after the page has loaded (JS copies data-src to src),
+      so the first-screen photos get the bandwidth. The photo underneath is the poster, so no separate poster download. {%- endcomment -%}
+  <video class="lxb__vid" {% if defer %}data-src{% else %}src{% endif %}="{{ src_hi }}" autoplay muted loop playsinline webkit-playsinline x5-playsinline preload="none"
     disablepictureinpicture disableremoteplayback controlslist="nodownload nofullscreen noremoteplayback" x-webkit-airplay="deny" aria-hidden="true" tabindex="-1"
-    {% if poster_img != blank %}poster="{{ poster_img | image_url: width: 1200 }}"{% endif %}
+    {% if base == blank and poster_img != blank %}poster="{{ poster_img | image_url: width: 1200 }}"{% endif %}
     {% if style != '' %}style="{{ style }}"{% endif %}
     data-lxb-video></video>
   {%- if controls -%}

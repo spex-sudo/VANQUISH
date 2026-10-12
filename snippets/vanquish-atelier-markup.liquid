@@ -45,7 +45,7 @@
             {%- assign alt_text = block.settings.caption | default: img.alt | escape -%}
             <a class="va-card" role="listitem" href="{{ href }}" {{ block.shopify_attributes }}>
               <div class="va-media">
-                {{ img | image_url: width: 900 | image_tag: widths: '320, 480, 640, 800, 900', sizes: '(max-width: 749px) 62vw, 280px', loading: 'lazy', decoding: 'async', alt: alt_text }}
+                {{ img | image_url: width: 900 | image_tag: widths: '320, 480, 640, 800, 900', sizes: '(max-width: 749px) 50vw, 280px', loading: 'lazy', decoding: 'async', alt: alt_text }}
               </div>
               {%- if section.settings.show_names and block.settings.caption != blank -%}
                 <p class="va-name">{{ block.settings.caption | escape }}</p>
@@ -76,7 +76,7 @@
             {%- assign alt_text = item.featured_image.alt | default: item.title | escape -%}
             <a class="va-card" role="listitem" href="{{ item.url }}">
               <div class="va-media">
-                {{ item.featured_image | image_url: width: 900 | image_tag: widths: '320, 480, 640, 800, 900', sizes: '(max-width: 749px) 62vw, 280px', loading: 'lazy', decoding: 'async', alt: alt_text }}
+                {{ item.featured_image | image_url: width: 900 | image_tag: widths: '320, 480, 640, 800, 900', sizes: '(max-width: 749px) 50vw, 280px', loading: 'lazy', decoding: 'async', alt: alt_text }}
               </div>
               {%- if section.settings.show_names -%}
                 <p class="va-name">{{ item.title | escape }}</p>
@@ -95,7 +95,7 @@
               {%- assign alt_text = item.featured_image.alt | default: item.title | escape -%}
               <a class="va-card" role="listitem" href="{{ item.url }}">
                 <div class="va-media">
-                  {{ item.featured_image | image_url: width: 900 | image_tag: widths: '320, 480, 640, 800, 900', sizes: '(max-width: 749px) 62vw, 280px', loading: 'lazy', decoding: 'async', alt: alt_text }}
+                  {{ item.featured_image | image_url: width: 900 | image_tag: widths: '320, 480, 640, 800, 900', sizes: '(max-width: 749px) 50vw, 280px', loading: 'lazy', decoding: 'async', alt: alt_text }}
                 </div>
                 {%- if section.settings.show_names -%}
                   <p class="va-name">{{ item.title | escape }}</p>
@@ -148,6 +148,7 @@
   let half = 0;
   let carry = 0;
   let wrapping = false;
+  let booted = false;
 
   const measure = () => {
     if (looping) half = track.scrollWidth / 2;
@@ -188,7 +189,7 @@
   };
 
   const play = () => {
-    if (!autoplayOn || dragging || offscreen || document.hidden || raf) return;
+    if (!booted || !autoplayOn || dragging || offscreen || document.hidden || raf) return;
     last = 0;
     carry = 0;
     raf = requestAnimationFrame(step);
@@ -278,11 +279,21 @@
     else play();
   });
 
-  measure();
-  if (looping) track.scrollLeft = 1;
-  requestAnimationFrame(measure);
-  window.addEventListener('resize', () => { measure(); wrap(); }, { passive: true });
-  play();
+  /* perf: measure and start the auto-scroll after the page has loaded, so the rail doesn't force a layout
+     while the first screen is still painting. Manual scrolling/arrows work straight away. */
+  const boot = () => {
+    if (booted) return;
+    booted = true;
+    measure();
+    if (looping && track.scrollLeft < 1) track.scrollLeft = 1;
+    requestAnimationFrame(measure);
+    window.addEventListener('resize', () => { measure(); wrap(); }, { passive: true });
+    play();
+  };
+  if (document.readyState === 'complete') setTimeout(boot, 0);
+  else window.addEventListener('load', () => setTimeout(boot, 250), { once: true });
+  track.addEventListener('pointerdown', () => { if (!booted) boot(); }, { passive: true });
+  track.addEventListener('touchstart', () => { if (!booted) boot(); }, { passive: true });
 })();
 </script>
 {%- endif -%}

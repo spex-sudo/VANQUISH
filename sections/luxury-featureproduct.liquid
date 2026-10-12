@@ -1597,20 +1597,20 @@
         -%}
         <div class="apex-gc-{{ sid }}{% if is_hero %} is-hero{% endif %} is-sold-out"
           style="--apex-stagger:{{ stagger_delay }}" data-apex-gcard data-apex-fill="soldout">
-          <div class="apex-gi-{{ sid }}{% if is_hero %} is-hero{% endif %}">
+          <div class="apex-gi-{{ sid }}{% if is_hero %} is-hero{% endif %}" data-defer-scope>
             <a href="{{ p.url }}" class="apex-glink-{{ sid }}" aria-label="{{ p.title | escape }}" tabindex="0">
               {%- if pimg -%}
                 <img class="img-p"
                   src="{{ pimg | image_url: width: 800 }}"
                   srcset="{{ pimg | image_url: width: 400 }} 400w, {{ pimg | image_url: width: 800 }} 800w, {{ pimg | image_url: width: 1200 }} 1200w"
-                  sizes="(min-width: 1024px) calc({{ 100 | divided_by: s.grid_cols_desktop | default: 25 }}vw - 24px), (min-width: 600px) calc({{ 100 | divided_by: s.grid_cols_tablet | default: 50 }}vw - 20px), 48vw"
+                  sizes="(min-width: 1024px) calc({{ 100 | divided_by: s.grid_cols_desktop | default: 25 }}vw - 24px), (min-width: 600px) calc({{ 100 | divided_by: s.grid_cols_tablet | default: 50 }}vw - 20px), {% if is_hero %}48vw{% else %}{{ 100 | divided_by: mobile_cols | at_least: 25 }}vw{% endif %}"
                   alt="{{ pimg.alt | default: p.title | escape }}"
                   loading="lazy" decoding="async"
                   width="{{ pimg.width }}" height="{{ pimg.height }}">
                 {%- if s.grid_second_image and pimg2 != nil -%}
                   <img class="img-s"
-                    src="{{ pimg2 | image_url: width: 800 }}"
-                    srcset="{{ pimg2 | image_url: width: 400 }} 400w, {{ pimg2 | image_url: width: 800 }} 800w"
+                    src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-defer="hover" data-defer-src="{{ pimg2 | image_url: width: 800 }}"
+                    data-defer-srcset="{{ pimg2 | image_url: width: 400 }} 400w, {{ pimg2 | image_url: width: 800 }} 800w"
                     sizes="(min-width: 1024px) calc({{ 100 | divided_by: s.grid_cols_desktop | default: 25 }}vw - 24px), 48vw"
                     alt="{{ pimg2.alt | default: p.title | escape }}"
                     loading="lazy" decoding="async"
@@ -1716,7 +1716,7 @@
             -%}
             <div class="apex-gc-{{ sid }} is-hero{% unless pcv.available %} is-sold-out{% endunless %}"
               style="--apex-stagger:0" data-apex-gcard>
-              <div class="apex-gi-{{ sid }} is-hero">
+              <div class="apex-gi-{{ sid }} is-hero" data-defer-scope>
                 <a href="{{ p.url }}" class="apex-glink-{{ sid }}" aria-label="{{ p.title | escape }}" tabindex="0">
                   {%- if pimg -%}
                     <img class="img-p"
@@ -1728,8 +1728,8 @@
                       width="{{ pimg.width }}" height="{{ pimg.height }}">
                     {%- if s.grid_second_image and pimg2 != nil -%}
                       <img class="img-s"
-                        src="{{ pimg2 | image_url: width: 800 }}"
-                        srcset="{{ pimg2 | image_url: width: 400 }} 400w, {{ pimg2 | image_url: width: 800 }} 800w"
+                        src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-defer="hover" data-defer-src="{{ pimg2 | image_url: width: 800 }}"
+                        data-defer-srcset="{{ pimg2 | image_url: width: 400 }} 400w, {{ pimg2 | image_url: width: 800 }} 800w"
                         sizes="48vw"
                         alt="{{ pimg2.alt | default: p.title | escape }}"
                         loading="lazy" decoding="async"
@@ -1872,20 +1872,20 @@
             -%}
             <div class="apex-gc-{{ sid }}{% if is_hero %} is-hero{% endif %}{% unless pcv.available %} is-sold-out{% endunless %}"
               style="--apex-stagger:{{ stagger_delay }}" data-apex-gcard>
-              <div class="apex-gi-{{ sid }}{% if is_hero %} is-hero{% endif %}">
+              <div class="apex-gi-{{ sid }}{% if is_hero %} is-hero{% endif %}" data-defer-scope>
                 <a href="{{ p.url }}" class="apex-glink-{{ sid }}" aria-label="{{ p.title | escape }}" tabindex="0">
                   {%- if pimg -%}
                     <img class="img-p"
                       src="{{ pimg | image_url: width: 800 }}"
                       srcset="{{ pimg | image_url: width: 400 }} 400w, {{ pimg | image_url: width: 800 }} 800w, {{ pimg | image_url: width: 1200 }} 1200w"
-                      sizes="(min-width: 1024px) calc({{ 100 | divided_by: s.grid_cols_desktop | default: 25 }}vw - 24px), (min-width: 600px) calc({{ 100 | divided_by: s.grid_cols_tablet | default: 50 }}vw - 20px), 48vw"
+                      sizes="(min-width: 1024px) calc({{ 100 | divided_by: s.grid_cols_desktop | default: 25 }}vw - 24px), (min-width: 600px) calc({{ 100 | divided_by: s.grid_cols_tablet | default: 50 }}vw - 20px), {% if is_hero %}48vw{% else %}{{ 100 | divided_by: mobile_cols | at_least: 25 }}vw{% endif %}"
                       alt="{{ pimg.alt | default: p.title | escape }}"
                       loading="lazy" decoding="async"
                       width="{{ pimg.width }}" height="{{ pimg.height }}">
                     {%- if s.grid_second_image and pimg2 != nil -%}
                       <img class="img-s"
-                        src="{{ pimg2 | image_url: width: 800 }}"
-                        srcset="{{ pimg2 | image_url: width: 400 }} 400w, {{ pimg2 | image_url: width: 800 }} 800w"
+                        src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-defer="hover" data-defer-src="{{ pimg2 | image_url: width: 800 }}"
+                        data-defer-srcset="{{ pimg2 | image_url: width: 400 }} 400w, {{ pimg2 | image_url: width: 800 }} 800w"
                         sizes="(min-width: 1024px) calc({{ 100 | divided_by: s.grid_cols_desktop | default: 25 }}vw - 24px), 48vw"
                         alt="{{ pimg2.alt | default: p.title | escape }}"
                         loading="lazy" decoding="async"
@@ -2016,20 +2016,20 @@
               -%}
               <div class="apex-gc-{{ sid }}{% if is_hero %} is-hero{% endif %}{% unless pcv.available %} is-sold-out{% endunless %}"
                 style="--apex-stagger:{{ stagger_delay }}" {{ block.shopify_attributes }} data-apex-gcard>
-                <div class="apex-gi-{{ sid }}{% if is_hero %} is-hero{% endif %}">
+                <div class="apex-gi-{{ sid }}{% if is_hero %} is-hero{% endif %}" data-defer-scope>
                   <a href="{{ p.url }}" class="apex-glink-{{ sid }}" aria-label="{{ p.title | escape }}" tabindex="0">
                     {%- if pimg -%}
                       <img class="img-p"
                         src="{{ pimg | image_url: width: 800 }}"
                         srcset="{{ pimg | image_url: width: 400 }} 400w, {{ pimg | image_url: width: 800 }} 800w, {{ pimg | image_url: width: 1200 }} 1200w"
-                        sizes="(min-width: 1024px) calc({{ 100 | divided_by: s.grid_cols_desktop | default: 25 }}vw - 24px), (min-width: 600px) calc({{ 100 | divided_by: s.grid_cols_tablet | default: 50 }}vw - 20px), 48vw"
+                        sizes="(min-width: 1024px) calc({{ 100 | divided_by: s.grid_cols_desktop | default: 25 }}vw - 24px), (min-width: 600px) calc({{ 100 | divided_by: s.grid_cols_tablet | default: 50 }}vw - 20px), {% if is_hero %}48vw{% else %}{{ 100 | divided_by: mobile_cols | at_least: 25 }}vw{% endif %}"
                         alt="{{ pimg.alt | default: p.title | escape }}"
                         loading="lazy" decoding="async"
                         width="{{ pimg.width }}" height="{{ pimg.height }}">
                       {%- if s.grid_second_image and pimg2 != nil -%}
                         <img class="img-s"
-                          src="{{ pimg2 | image_url: width: 800 }}"
-                          srcset="{{ pimg2 | image_url: width: 400 }} 400w, {{ pimg2 | image_url: width: 800 }} 800w"
+                          src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-defer="hover" data-defer-src="{{ pimg2 | image_url: width: 800 }}"
+                          data-defer-srcset="{{ pimg2 | image_url: width: 400 }} 400w, {{ pimg2 | image_url: width: 800 }} 800w"
                           sizes="48vw"
                           alt="{{ pimg2.alt | default: p.title | escape }}"
                           loading="lazy" decoding="async"

@@ -24,11 +24,12 @@
   assign max_swatches = section.settings.max_swatches | default: 5
 -%}
 <div class="apex-card" data-pid="{{ product.id }}" data-handle="{{ product.handle }}">
-  <div class="apex-media">
+  <div class="apex-media" data-defer-scope>
     <a href="{{ product.url }}" class="apex-link" aria-label="{{ product.title | escape }}"></a>
     {%- if on_sale -%}<div class="apex-badges"><span class="apex-bdg apex-bdg-sale">−{{ discount_pct }}%</span></div>{%- endif -%}
     {%- for img in product.images limit: img_count -%}
-      <img class="apex-img{% if forloop.first %} is-active{% endif %}" src="{{ img | image_url: width: 800 }}" srcset="{{ img | image_url: width: 400 }} 400w, {{ img | image_url: width: 800 }} 800w" sizes="(max-width:768px) 50vw, 25vw" alt="{{ img.alt | default: product.title | escape }}" loading="{% if forloop.first and is_eager %}eager{% else %}lazy{% endif %}" decoding="async" width="800" height="800">
+      {%- comment -%} perf: only the first photo loads up front; the others wait for a hover/touch on the card. {%- endcomment -%}
+      <img class="apex-img{% if forloop.first %} is-active{% endif %}" {% if forloop.first %}src="{{ img | image_url: width: 800 }}" srcset="{{ img | image_url: width: 400 }} 400w, {{ img | image_url: width: 800 }} 800w"{% else %}src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-defer="interact" data-defer-src="{{ img | image_url: width: 800 }}" data-defer-srcset="{{ img | image_url: width: 400 }} 400w, {{ img | image_url: width: 800 }} 800w"{% endif %} sizes="(max-width:768px) 50vw, 25vw" alt="{{ img.alt | default: product.title | escape }}" loading="{% if forloop.first and is_eager %}eager{% else %}lazy{% endif %}" decoding="async" width="800" height="800">
     {%- endfor -%}
     {%- if product.available -%}
       <a class="apex-qa" href="{{ product.url }}" aria-label="View {{ product.title | escape }}">+</a>

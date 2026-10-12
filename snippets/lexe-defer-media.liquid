@@ -1,0 +1,73 @@
+{%- comment -%}
+  LEXE perf (2026-10-11): deferred secondary images.
+  An <img> with data-defer-src / data-defer-srcset gets its real source later, so it never competes with
+  the first-screen images. data-defer modes:
+    view     (default) after window load, when the image is within 300px of the screen
+    idle     after window load, when the browser is idle
+    hover    like view, but only on devices with a real mouse (touch screens never show hover images)
+    interact only when the user hovers, touches or focuses the surrounding [data-defer-scope]
+  Any interaction with a [data-defer-scope] (pointer, touch, focus) hydrates its images straight away.
+  Rendered once from layout/theme.liquid. Remove the render tag to switch it off (images then stay on the placeholder,
+  so restore the sections from backups/perf-20261011 too).
+{%- endcomment -%}
+<script>
+(function () {
+  if (window.lexeDefer) return;
+  var hoverOK = !!(window.matchMedia && matchMedia('(hover: hover) and (pointer: fine)').matches);
+  var ready = false;
+  function hyd(img) {
+    if (!img || !img.hasAttribute('data-defer-src')) return;
+    var ss = img.getAttribute('data-defer-srcset');
+    if (ss) { img.setAttribute('srcset', ss); img.removeAttribute('data-defer-srcset'); }
+    img.setAttribute('src', img.getAttribute('data-defer-src'));
+    img.removeAttribute('data-defer-src');
+  }
+  function hydAll(scope) {
+    var list = (scope || document).querySelectorAll('img[data-defer-src]');
+    for (var i = 0; i < list.length; i++) hyd(list[i]);
+  }
+  var io = ('IntersectionObserver' in window) ? new IntersectionObserver(function (es) {
+    for (var i = 0; i < es.length; i++) if (es[i].isIntersecting) { io.unobserve(es[i].target); hyd(es[i].target); }
+  }, { rootMargin: '300px 300px' }) : null;
+  function consider(img) {
+    var m = img.getAttribute('data-defer') || 'view';
+    if (m === 'interact') return;
+    if (m === 'hover' && !hoverOK) return;
+    if (m === 'idle' || !io) { hyd(img); return; }
+    io.observe(img);
+  }
+  function scan(scope) {
+    var list = (scope || document).querySelectorAll('img[data-defer-src]');
+    for (var i = 0; i < list.length; i++) consider(list[i]);
+  }
+  function start() {
+    var go = function () { ready = true; scan(); };
+    if ('requestIdleCallback' in window) requestIdleCallback(go, { timeout: 2000 }); else setTimeout(go, 200);
+  }
+  if (document.readyState === 'complete') start(); else window.addEventListener('load', start, { once: true });
+  function onInt(e) {
+    var t = e.target;
+    if (!t || !t.closest) return;
+    var s = t.closest('[data-defer-scope]');
+    if (s && s.querySelector('img[data-defer-src]')) hydAll(s);
+  }
+  document.addEventListener('pointerover', onInt, { passive: true });
+  document.addEventListener('touchstart', onInt, { passive: true });
+  document.addEventListener('focusin', onInt);
+  if ('MutationObserver' in window) {
+    new MutationObserver(function (ms) {
+      if (!ready) return;
+      for (var i = 0; i < ms.length; i++) {
+        var add = ms[i].addedNodes;
+        for (var j = 0; j < add.length; j++) {
+          var n = add[j];
+          if (n.nodeType !== 1) continue;
+          if (n.tagName === 'IMG') { if (n.hasAttribute('data-defer-src')) consider(n); }
+          else if (n.querySelector && n.querySelector('img[data-defer-src]')) scan(n);
+        }
+      }
+    }).observe(document.documentElement, { childList: true, subtree: true });
+  }
+  window.lexeDefer = { hydrate: hydAll, scan: scan };
+})();
+</script>
