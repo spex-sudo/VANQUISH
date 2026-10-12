@@ -178,6 +178,7 @@
     assign bf_gf = true
   endif
 -%}
+<!--bfdbg[{{ bf.family }}][{{ bf_key }}][{{ bf_gf }}][{{ cjk_families | size }}]-->
 {%- if bf_gf -%}
   {%- capture bf_gf_url -%}https://fonts.googleapis.com/css2?family={{ bf.family | replace: ' ', '+' }}:wght@{{ bf.weight }}&display=swap{%- endcapture -%}
   <link rel="preconnect" href="https://fonts.googleapis.com">
