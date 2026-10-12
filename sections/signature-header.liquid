@@ -644,7 +644,7 @@
     position: absolute; z-index: 2;
     left: 18px; right: 18px; top: calc(50% - 17px);
     height: 34px; box-sizing: border-box;
-    max-width: none; margin: 0; padding: 0 16px;
+    max-width: none; margin: 0; padding: 8px 16px; /* same vertical padding as the idle pill, so the LEXE.STUDIO pill never animates its height on exit */
     align-items: center; text-align: center;
     font-size: 12px; transform: none;
     opacity: 1; box-shadow: none;
@@ -1402,6 +1402,7 @@
   "presets": [{ "name": "Apex Header V19" }]
 }
 {% endschema %}
+
 
 
 
