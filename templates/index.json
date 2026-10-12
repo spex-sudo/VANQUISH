@@ -80,7 +80,7 @@
         "overlay_style": "glass",
         "bg": "#ffffff",
         "bg_opacity": 75,
-        "blur_amount": 14,
+        "blur_amount": 4,
         "bar_color": "#bebfff",
         "fps": 7,
         "min_ms": 1900,
