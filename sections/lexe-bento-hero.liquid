@@ -5,7 +5,12 @@
   Panels are absolutely placed and cut with clip-path polygons (snippet lexe-bento-shape). Every corner,
   angled ones included, is filleted with the same radius; angled gutters keep the straight gutters' width.
   Optional video per panel (snippet lexe-bento-media): image first, video loads and plays only on screen.
-  Mobile layout setting "Stacked" brings back a straight-edged single column under 750px.
+  Mobile layout setting:
+    "Exact desktop replica (scaled)" (default): the desktop composition at its design width (Max width x Desktop height)
+      scaled uniformly to the container. Every length is a multiple of --lxb-u = min(1px, 100cqw / max width),
+      measured on the section (container-type: inline-size), so text stays crisp and the clip-paths scale too.
+    "Same as desktop (adaptive)": same 4 panels with phone proportions, gutter, radius and cut under 750px.
+    "Stacked": a straight-edged single column under 750px.
 {%- endcomment -%}
 {%- liquid
   assign sid = section.id
@@ -56,9 +61,13 @@
   endcase
   assign slanted = st.slanted
   assign stacked = false
+  assign replica = false
   if st.mobile_layout == 'stacked'
     assign stacked = true
+  elsif st.mobile_layout == 'replica' or st.mobile_layout == blank
+    assign replica = true
   endif
+  assign mw = st.max_width | default: 1200
 
   assign r = st.radius | default: 28
   assign g = st.gutter | default: 12
@@ -82,6 +91,18 @@
   endif
   assign oxm = hbm | times: T | round: 2
   assign cxm = hcm | times: T | round: 2
+  comment
+    Replica headline size = the desktop rule clamp(34px, 11cqw, 66px) evaluated at the design width of the headline card.
+  endcomment
+  assign g_half = g | divided_by: 2.0
+  assign content_w = st.split_top | times: mw | divided_by: 100.0 | minus: g_half
+  assign title_px = content_w | times: 0.11
+  if title_px > 66
+    assign title_px = 66
+  elsif title_px < 34
+    assign title_px = 34
+  endif
+  assign title_px = title_px | round: 2
 
   assign img_a = st.image_a
   assign img_b = st.image_b
@@ -109,22 +130,32 @@
   if pos_b == blank and img_b != blank
     assign pos_b = img_b.presentation.focal_point
   endif
+  if replica
+    assign sizes_a = '(min-width: 1240px) 620px, 50vw'
+    assign sizes_b = '(min-width: 1240px) 620px, 50vw'
+    assign sizes_p = '(min-width: 1240px) 250px, 21vw'
+  else
+    assign sizes_a = '(min-width: 1240px) 660px, (min-width: 750px) 56vw, 50vw'
+    assign sizes_b = '(min-width: 1240px) 660px, (min-width: 750px) 56vw, 56vw'
+    assign sizes_p = '(min-width: 750px) 260px, 46vw'
+  endif
   assign eager_a = false
   if section.index <= 3
     assign eager_a = true
   endif
 -%}
 {%- if slanted -%}
-  {%- capture poly_c -%}{%- render 'lexe-bento-shape', panel: 'content', r: r, g: g, hc: hc, T: T, S: S, C: C, kO: kO, kP: kP, kA: kA -%}{%- endcapture -%}
-  {%- capture poly_a -%}{%- render 'lexe-bento-shape', panel: 'a', r: r, g: g, hc: hc, T: T, S: S, C: C, kO: kO, kP: kP, kA: kA -%}{%- endcapture -%}
-  {%- capture poly_b -%}{%- render 'lexe-bento-shape', panel: 'b', r: r, g: g, hc: hc, T: T, S: S, C: C, kO: kO, kP: kP, kA: kA -%}{%- endcapture -%}
-  {%- capture poly_p -%}{%- render 'lexe-bento-shape', panel: 'p', r: r, g: g, hc: hc, T: T, S: S, C: C, kO: kO, kP: kP, kA: kA -%}{%- endcapture -%}
+  {%- capture poly_c -%}{%- render 'lexe-bento-shape', panel: 'content', r: r, g: g, hc: hc, T: T, S: S, C: C, kO: kO, kP: kP, kA: kA, unit: true -%}{%- endcapture -%}
+  {%- capture poly_a -%}{%- render 'lexe-bento-shape', panel: 'a', r: r, g: g, hc: hc, T: T, S: S, C: C, kO: kO, kP: kP, kA: kA, unit: true -%}{%- endcapture -%}
+  {%- capture poly_b -%}{%- render 'lexe-bento-shape', panel: 'b', r: r, g: g, hc: hc, T: T, S: S, C: C, kO: kO, kP: kP, kA: kA, unit: true -%}{%- endcapture -%}
+  {%- capture poly_p -%}{%- render 'lexe-bento-shape', panel: 'p', r: r, g: g, hc: hc, T: T, S: S, C: C, kO: kO, kP: kP, kA: kA, unit: true -%}{%- endcapture -%}
   {%- capture polym_c -%}{%- render 'lexe-bento-shape', panel: 'content', r: rm, g: gm, hc: hcm, T: T, S: S, C: C, kO: kO, kP: kP, kA: kA -%}{%- endcapture -%}
   {%- capture polym_a -%}{%- render 'lexe-bento-shape', panel: 'a', r: rm, g: gm, hc: hcm, T: T, S: S, C: C, kO: kO, kP: kP, kA: kA -%}{%- endcapture -%}
   {%- capture polym_b -%}{%- render 'lexe-bento-shape', panel: 'b', r: rm, g: gm, hc: hcm, T: T, S: S, C: C, kO: kO, kP: kP, kA: kA -%}{%- endcapture -%}
   {%- capture polym_p -%}{%- render 'lexe-bento-shape', panel: 'p', r: rm, g: gm, hc: hcm, T: T, S: S, C: C, kO: kO, kP: kP, kA: kA -%}{%- endcapture -%}
 {%- endif -%}
 <style>
+  @property --lxb-u { syntax: '<length>'; inherits: true; initial-value: 1px; }
   {%- if st.hide_floaters and template.name == 'index' %}
   /* Homepage only: hide floating extras over the hero (same selectors as the collection pages) */
   aside[id^="apex-notch-"], .vqsc-tag, #ads-agent-host, .apex-qn { display: none !important; visibility: hidden !important; }
@@ -132,9 +163,9 @@
   #lxb-{{ sid }} {
     --lxb-accent: {{ st.accent | default: '#9966CC' }};
     --lxb-base: {{ st.base | default: '#0b0b0d' }};
-    --lxb-g: {{ g }}px; --lxb-ox: {{ ox }}px; --lxb-cx: {{ cx }}px; --lxb-r: {{ r }}px;
-    --lxb-x1: {{ st.split_top }}%; --lxb-x2: {{ st.split_bottom }}%; --lxb-y: {{ st.split_rows }}%;
-    --lxb-h: {{ st.height_desktop }}px;
+{%- if replica %}
+    container-type: inline-size;
+{%- endif %}
     position: relative; isolation: isolate; overflow: hidden;
     background: var(--lxb-base); color: #fff;
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'SF Pro', Inter, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -142,7 +173,13 @@
     padding: {{ st.pad_top_desktop }}px 20px {{ st.pad_bottom_desktop }}px;
   }
   #lxb-{{ sid }} *, #lxb-{{ sid }} *::before, #lxb-{{ sid }} *::after { box-sizing: border-box; }
-  #lxb-{{ sid }} .lxb__grid { position: relative; max-width: {{ st.max_width }}px; margin: 0 auto; height: var(--lxb-h); }
+  #lxb-{{ sid }} .lxb__grid {
+    --lxb-u: {% if replica %}min(1px, 100cqw / {{ mw }}){% else %}1px{% endif %};
+    --lxb-g: calc(var(--lxb-u) * {{ g }}); --lxb-ox: calc(var(--lxb-u) * {{ ox }}); --lxb-cx: calc(var(--lxb-u) * {{ cx }}); --lxb-r: calc(var(--lxb-u) * {{ r }});
+    --lxb-x1: {{ st.split_top }}%; --lxb-x2: {{ st.split_bottom }}%; --lxb-y: {{ st.split_rows }}%;
+    --lxb-h: calc(var(--lxb-u) * {{ st.height_desktop }});
+    position: relative; max-width: {{ mw }}px; margin: 0 auto; height: var(--lxb-h);
+  }
   #lxb-{{ sid }} .lxb__p { position: absolute; overflow: hidden; border-radius: {% if slanted %}0{% else %}var(--lxb-r){% endif %}; }
   #lxb-{{ sid }} .lxb__content { left: 0; top: 0; width: calc(var(--lxb-x1) - var(--lxb-g) / 2); height: calc(var(--lxb-y) - var(--lxb-g) / 2); {% if slanted %}clip-path: {{ poly_c | strip }};{% endif %} }
   #lxb-{{ sid }} .lxb__img--a { left: calc(var(--lxb-x1) + var(--lxb-g) / 2 - var(--lxb-ox)); right: 0; top: 0; height: calc(var(--lxb-y) - var(--lxb-g) / 2); {% if slanted %}clip-path: {{ poly_a | strip }};{% endif %} }
@@ -151,24 +188,24 @@
 
   /* Headline card: frosted dark glass (tinted fill; a backdrop blur over the flat base only added an edge halo) */
   #lxb-{{ sid }} .lxb__content {
-    padding: 34px 36px 32px; container-type: inline-size; display: flex; flex-direction: column;
+    padding: calc(var(--lxb-u) * 34) calc(var(--lxb-u) * 36) calc(var(--lxb-u) * 32); {% unless replica %}container-type: inline-size; {% endunless %}display: flex; flex-direction: column;
     background:
       radial-gradient(120% 90% at 18% 0%, color-mix(in srgb, var(--lxb-accent) 22%, transparent), transparent 62%),
       linear-gradient(160deg, rgba(255,255,255,.085), rgba(255,255,255,.035) 55%, rgba(255,255,255,.025)),
       rgba(20,20,24,.55);
   }
-  #lxb-{{ sid }} .lxb__eyebrow { margin: 0 0 10px; font-size: 12px; line-height: 1.3; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; color: rgba(255,255,255,.62); }
-  #lxb-{{ sid }} .lxb__title { margin: 0; font-size: clamp(34px, 11cqw, 66px); line-height: 1.02; letter-spacing: -.035em; font-weight: 700; color: #fff; text-wrap: balance; }
-  #lxb-{{ sid }} .lxb__row { display: flex; gap: 16px; align-items: flex-end; margin-top: auto; padding-top: 18px; padding-right: calc(var(--lxb-cx) * .6); }
-  #lxb-{{ sid }} .lxb__thumb { position: relative; flex: 0 0 auto; width: 84px; height: 84px; border-radius: 18px; overflow: hidden; background: #fff; display: block; }
+  #lxb-{{ sid }} .lxb__eyebrow { margin: 0 0 calc(var(--lxb-u) * 10); font-size: calc(var(--lxb-u) * 12); line-height: 1.3; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; color: rgba(255,255,255,.62); }
+  #lxb-{{ sid }} .lxb__title { margin: 0; font-size: {% if replica %}calc(var(--lxb-u) * {{ title_px }}){% else %}clamp(34px, 11cqw, 66px){% endif %}; line-height: 1.02; letter-spacing: -.035em; font-weight: 700; color: #fff; text-wrap: balance; }
+  #lxb-{{ sid }} .lxb__row { display: flex; gap: calc(var(--lxb-u) * 16); align-items: flex-end; margin-top: auto; padding-top: calc(var(--lxb-u) * 18); padding-right: calc(var(--lxb-cx) * .6); }
+  #lxb-{{ sid }} .lxb__thumb { position: relative; flex: 0 0 auto; width: calc(var(--lxb-u) * 84); height: calc(var(--lxb-u) * 84); border-radius: calc(var(--lxb-u) * 18); overflow: hidden; background: #fff; display: block; }
   #lxb-{{ sid }} .lxb__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
   #lxb-{{ sid }} .lxb__side { min-width: 0; flex: 1 1 auto; }
-  #lxb-{{ sid }} .lxb__sub { margin: 0 0 14px; font-size: 15px; line-height: 1.4; color: rgba(255,255,255,.72); }
-  #lxb-{{ sid }} .lxb__ctas { display: flex; flex-wrap: wrap; gap: 8px; }
+  #lxb-{{ sid }} .lxb__sub { margin: 0 0 calc(var(--lxb-u) * 14); font-size: calc(var(--lxb-u) * 15); line-height: 1.4; color: rgba(255,255,255,.72); }
+  #lxb-{{ sid }} .lxb__ctas { display: flex; flex-wrap: wrap; gap: calc(var(--lxb-u) * 8); }
   #lxb-{{ sid }} .lxb__btn {
-    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    min-height: 46px; padding: 0 20px; border-radius: 999px;
-    font-family: inherit; font-size: 15px; line-height: 1; font-weight: 600; letter-spacing: -.01em; text-decoration: none; white-space: nowrap;
+    display: inline-flex; align-items: center; justify-content: center; gap: calc(var(--lxb-u) * 8);
+    min-height: calc(var(--lxb-u) * 46); padding: 0 calc(var(--lxb-u) * 20); border-radius: calc(var(--lxb-u) * 999);
+    font-family: inherit; font-size: calc(var(--lxb-u) * 15); line-height: 1; font-weight: 600; letter-spacing: -.01em; text-decoration: none; white-space: nowrap;
     transition: transform .18s cubic-bezier(.2,.8,.2,1), box-shadow .18s ease, background-color .18s ease, border-color .18s ease;
     -webkit-tap-highlight-color: transparent;
   }
@@ -185,13 +222,13 @@
   #lxb-{{ sid }} .lxb__img::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(0,0,0,.30)); }
   #lxb-{{ sid }} .lxb__link { position: absolute; inset: 0; z-index: 2; }
   #lxb-{{ sid }} .lxb__chip {
-    position: absolute; z-index: 3; pointer-events: none; bottom: 18px; left: 18px;
-    padding: 7px 12px; border-radius: 999px; background: rgba(12,12,14,.70); color: #fff;
+    position: absolute; z-index: 3; pointer-events: none; bottom: calc(var(--lxb-u) * 18); left: calc(var(--lxb-u) * 18);
+    padding: calc(var(--lxb-u) * 7) calc(var(--lxb-u) * 12); border-radius: calc(var(--lxb-u) * 999); background: rgba(12,12,14,.70); color: #fff;
     font-size: 13px; line-height: 1; font-weight: 600; letter-spacing: -.005em; box-shadow: inset 0 0 0 1px rgba(255,255,255,.14);
   }
-  #lxb-{{ sid }} .lxb__img--a .lxb__chip { left: auto; right: 18px; }
+  #lxb-{{ sid }} .lxb__img--a .lxb__chip { left: auto; right: calc(var(--lxb-u) * 18); }
   #lxb-{{ sid }} .lxb__vbtn {
-    position: absolute; z-index: 4; top: 14px; right: 14px; width: 40px; height: 40px; border-radius: 50%; border: 0; padding: 0; cursor: pointer;
+    position: absolute; z-index: 4; top: calc(var(--lxb-u) * 14); right: calc(var(--lxb-u) * 14); width: calc(var(--lxb-u) * 40); height: calc(var(--lxb-u) * 40); border-radius: 50%; border: 0; padding: 0; cursor: pointer;
     display: grid; place-items: center; color: #fff; background: rgba(12,12,14,.66); box-shadow: inset 0 0 0 1px rgba(255,255,255,.16), inset 0 1px 0 rgba(255,255,255,.12);
     -webkit-tap-highlight-color: transparent; transition: transform .18s cubic-bezier(.2,.8,.2,1), background-color .18s ease;
   }
@@ -200,19 +237,19 @@
   #lxb-{{ sid }} .lxb__vbtn .lxb__vbtn-play { display: none; }
   #lxb-{{ sid }} .lxb__vbtn.is-paused .lxb__vbtn-play { display: block; }
   #lxb-{{ sid }} .lxb__vbtn.is-paused .lxb__vbtn-pause { display: none; }
-  #lxb-{{ sid }} .lxb__img--b .lxb__vbtn { right: auto; left: 14px; }
-  #lxb-{{ sid }} .lxb__ph { position: absolute; inset: 0; display: grid; place-items: center; color: rgba(255,255,255,.4); font-size: 13px; }
+  #lxb-{{ sid }} .lxb__img--b .lxb__vbtn { right: auto; left: calc(var(--lxb-u) * 14); }
+  #lxb-{{ sid }} .lxb__ph { position: absolute; inset: 0; display: grid; place-items: center; color: rgba(255,255,255,.4); font-size: calc(var(--lxb-u) * 13); }
 
   /* Product card: solid dark clay, no blur */
-  #lxb-{{ sid }} .lxb__prod { display: flex; gap: 16px; align-items: stretch; padding: 16px; color: #fff; background: linear-gradient(160deg, #1c1c20, #121215 70%); }
-  #lxb-{{ sid }} .lxb__prod-info { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: 10px 4px 6px 10px; }
-  #lxb-{{ sid }} .lxb__prod-k { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; color: rgba(255,255,255,.55); margin: 0 0 6px; }
-  #lxb-{{ sid }} .lxb__prod-t { font-size: 20px; line-height: 1.25; font-weight: 600; letter-spacing: -.015em; margin: 0; }
-  #lxb-{{ sid }} .lxb__prod-pr { font-size: 15px; color: rgba(255,255,255,.72); margin: 4px 0 12px; font-variant-numeric: tabular-nums; }
+  #lxb-{{ sid }} .lxb__prod { display: flex; gap: calc(var(--lxb-u) * 16); align-items: stretch; padding: calc(var(--lxb-u) * 16); color: #fff; background: linear-gradient(160deg, #1c1c20, #121215 70%); }
+  #lxb-{{ sid }} .lxb__prod-info { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: calc(var(--lxb-u) * 10) calc(var(--lxb-u) * 4) calc(var(--lxb-u) * 6) calc(var(--lxb-u) * 10); }
+  #lxb-{{ sid }} .lxb__prod-k { font-size: calc(var(--lxb-u) * 12); letter-spacing: .08em; text-transform: uppercase; font-weight: 600; color: rgba(255,255,255,.55); margin: 0 0 calc(var(--lxb-u) * 6); }
+  #lxb-{{ sid }} .lxb__prod-t { font-size: calc(var(--lxb-u) * 20); line-height: 1.25; font-weight: 600; letter-spacing: -.015em; margin: 0; }
+  #lxb-{{ sid }} .lxb__prod-pr { font-size: calc(var(--lxb-u) * 15); color: rgba(255,255,255,.72); margin: calc(var(--lxb-u) * 4) 0 calc(var(--lxb-u) * 12); font-variant-numeric: tabular-nums; }
   #lxb-{{ sid }} .lxb__pill { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 18px; border-radius: 999px; background: rgba(255,255,255,.08); box-shadow: inset 0 0 0 1px rgba(255,255,255,.18), inset 0 1px 0 rgba(255,255,255,.12); font-size: 14px; font-weight: 600; transition: background-color .18s ease; }
-  #lxb-{{ sid }} .lxb__prod-img { flex: 0 0 auto; position: relative; height: 100%; aspect-ratio: 3 / 4; max-width: 46%; border-radius: 16px; overflow: hidden; background: #f2f2f2; }
+  #lxb-{{ sid }} .lxb__prod-img { flex: 0 0 auto; position: relative; height: 100%; aspect-ratio: 3 / 4; max-width: 46%; border-radius: calc(var(--lxb-u) * 16); overflow: hidden; background: #f2f2f2; }
   #lxb-{{ sid }} .lxb__prod-img img, #lxb-{{ sid }} .lxb__prod-img .lxb__vid, #lxb-{{ sid }} .lxb__thumb .lxb__vid { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
-  #lxb-{{ sid }} .lxb__prod .lxb__vbtn { top: 26px; right: 26px; }
+  #lxb-{{ sid }} .lxb__prod .lxb__vbtn { top: calc(var(--lxb-u) * 26); right: calc(var(--lxb-u) * 26); }
 
   @media (hover: hover) {
     #lxb-{{ sid }} .lxb__img img { transition: transform .9s cubic-bezier(.2,.8,.2,1); }
@@ -221,17 +258,21 @@
     #lxb-{{ sid }} .lxb__btn--ghost:hover { border-color: rgba(255,255,255,.55); background: rgba(255,255,255,.05); }
     #lxb-{{ sid }} .lxb__prod:hover .lxb__pill { background: rgba(255,255,255,.14); }
   }
+  {%- unless replica %}
   @media (max-width: 1199px) { #lxb-{{ sid }} .lxb__thumb { display: none; } }
   @media (max-width: 989px) {
-    #lxb-{{ sid }} { --lxb-h: clamp(560px, 80vw, {{ st.height_desktop }}px); }
+    #lxb-{{ sid }} .lxb__grid { --lxb-h: clamp(560px, 80vw, {{ st.height_desktop }}px); }
     #lxb-{{ sid }} .lxb__sub { display: none; }
     #lxb-{{ sid }} .lxb__content { padding: 28px 28px 26px; }
     #lxb-{{ sid }} .lxb__prod-t { font-size: 18px; }
   }
+  {%- endunless %}
 
   @media (max-width: 749px) {
     #lxb-{{ sid }} { padding: {{ st.pad_top_mobile }}px 16px {{ st.pad_bottom_mobile }}px; }
-    {%- if stacked %}
+    {%- if replica %}
+    /* Replica: nothing changes here; the whole composition scales through --lxb-u. */
+    {%- elsif stacked %}
     #lxb-{{ sid }} .lxb__grid { height: auto; display: flex; flex-direction: column; gap: 10px; }
     #lxb-{{ sid }} .lxb__p { position: relative; inset: auto !important; width: auto !important; height: auto !important; clip-path: none !important; border-radius: 22px; }
     #lxb-{{ sid }} .lxb__img { aspect-ratio: {{ st.mobile_photo_ratio | default: '1 / 1' }}; }
@@ -245,7 +286,7 @@
     #lxb-{{ sid }} .lxb__prod { padding: 12px; }
     #lxb-{{ sid }} .lxb__prod-img { width: 104px; height: auto; }
     {%- else %}
-    #lxb-{{ sid }} {
+    #lxb-{{ sid }} .lxb__grid {
       --lxb-g: {{ gm }}px; --lxb-ox: {{ oxm }}px; --lxb-cx: {{ cxm }}px; --lxb-r: {{ rm }}px;
       --lxb-x1: {{ st.split_top_mobile }}%; --lxb-x2: {{ st.split_bottom_mobile }}%; --lxb-h: {{ st.height_mobile }}px;
     }
@@ -274,11 +315,13 @@
     #lxb-{{ sid }} .lxb__pill { display: none; }
     #lxb-{{ sid }} .lxb__prod .lxb__vbtn { top: auto; bottom: 64px; right: 8px; }
     {%- endif %}
+    {%- unless replica %}
     {%- unless st.show_thumb_mobile %}
     #lxb-{{ sid }} .lxb__thumb { display: none; }
     {%- endunless %}
     {%- unless st.show_sub_mobile %}
     #lxb-{{ sid }} .lxb__sub { display: none; }
+    {%- endunless %}
     {%- endunless %}
     {%- unless st.video_mobile %}
     #lxb-{{ sid }} .lxb__vid, #lxb-{{ sid }} .lxb__vbtn { display: none !important; }
@@ -313,7 +356,7 @@
 
     <div class="lxb__p lxb__img lxb__img--a">
       {%- if img_a != blank or st.image_a_video != blank or st.image_a_video_url != blank -%}
-        {%- render 'lexe-bento-media', img: img_a, video: st.image_a_video, video_url: st.image_a_video_url, poster: st.image_a_poster, pos: pos_a, eager: eager_a, widths: '360, 480, 640, 800, 960, 1120, 1350, 1600', sizes: '(min-width: 1240px) 660px, (min-width: 750px) 56vw, 50vw', alt: st.image_a_alt, img_width: 1920, controls: st.image_a_video_controls, label: st.image_a_label -%}
+        {%- render 'lexe-bento-media', img: img_a, video: st.image_a_video, video_url: st.image_a_video_url, poster: st.image_a_poster, pos: pos_a, eager: eager_a, widths: '360, 480, 640, 800, 960, 1120, 1350, 1600', sizes: sizes_a, alt: st.image_a_alt, img_width: 1920, controls: st.image_a_video_controls, label: st.image_a_label -%}
       {%- else -%}<div class="lxb__ph">Add an image</div>{%- endif -%}
       {%- if st.image_a_link != blank -%}<a class="lxb__link" href="{{ st.image_a_link }}" aria-label="{{ st.image_a_label | default: st.image_a_alt | escape }}" data-lxb-cta="image_a"></a>{%- endif -%}
       {%- if st.image_a_label != blank -%}<span class="lxb__chip">{{ st.image_a_label }}</span>{%- endif -%}
@@ -321,7 +364,7 @@
 
     {%- if img_b != blank or st.image_b_video != blank or st.image_b_video_url != blank -%}
     <div class="lxb__p lxb__img lxb__img--b">
-      {%- render 'lexe-bento-media', img: img_b, video: st.image_b_video, video_url: st.image_b_video_url, poster: st.image_b_poster, pos: pos_b, eager: false, widths: '360, 480, 640, 800, 960, 1120, 1350, 1600', sizes: '(min-width: 1240px) 660px, (min-width: 750px) 56vw, 56vw', alt: st.image_b_alt, img_width: 1920, controls: st.image_b_video_controls, label: st.image_b_label -%}
+      {%- render 'lexe-bento-media', img: img_b, video: st.image_b_video, video_url: st.image_b_video_url, poster: st.image_b_poster, pos: pos_b, eager: false, widths: '360, 480, 640, 800, 960, 1120, 1350, 1600', sizes: sizes_b, alt: st.image_b_alt, img_width: 1920, controls: st.image_b_video_controls, label: st.image_b_label -%}
       {%- if st.image_b_link != blank -%}<a class="lxb__link" href="{{ st.image_b_link }}" aria-label="{{ st.image_b_label | default: st.image_b_alt | escape }}" data-lxb-cta="image_b"></a>{%- endif -%}
       {%- if st.image_b_label != blank -%}<span class="lxb__chip">{{ st.image_b_label }}</span>{%- endif -%}
     </div>
@@ -337,7 +380,7 @@
         </div>
         {%- if prod_img != blank or st.product_video != blank or st.product_video_url != blank -%}
           <div class="lxb__prod-img">
-            {%- render 'lexe-bento-media', img: prod_img, video: st.product_video, video_url: st.product_video_url, poster: st.product_poster, pos: '', eager: false, widths: '240, 360, 480, 600, 720', sizes: '(min-width: 750px) 260px, 46vw', alt: prod.title, img_width: 720, controls: false, label: prod.title -%}
+            {%- render 'lexe-bento-media', img: prod_img, video: st.product_video, video_url: st.product_video_url, poster: st.product_poster, pos: '', eager: false, widths: '240, 360, 480, 600, 720', sizes: sizes_p, alt: prod.title, img_width: 720, controls: false, label: prod.title -%}
           </div>
         {%- endif -%}
         <a class="lxb__link" href="{{ prod.url }}" aria-label="{{ st.product_cta | default: 'Explore' | escape }} {{ prod.title | escape }}, {{ prod.price | money | strip_html | escape }}" data-lxb-cta="product" data-lxb-product="{{ prod.handle }}"></a>
@@ -445,7 +488,7 @@
     { "type": "url", "id": "btn1_link", "label": "Primary button link", "default": "/collections/all" },
     { "type": "text", "id": "btn2_label", "label": "Secondary button", "default": "Get first look" },
     { "type": "url", "id": "btn2_link", "label": "Secondary button link", "default": "/collections/all" },
-    { "type": "checkbox", "id": "show_thumb", "label": "Show thumbnail", "info": "Shown on screens 1200px and wider.", "default": true },
+    { "type": "checkbox", "id": "show_thumb", "label": "Show thumbnail", "info": "Adaptive and stacked layouts show it on screens 1200px and wider; the replica layout always shows it.", "default": true },
     { "type": "checkbox", "id": "show_thumb_mobile", "label": "Show thumbnail on mobile", "default": false },
     { "type": "product", "id": "thumb_product", "label": "Thumbnail product", "info": "Use your newest product with a clean photo. Products tagged needs-clean-image are skipped." },
     { "type": "video", "id": "thumb_video", "label": "Thumbnail video (optional)" },
@@ -501,9 +544,9 @@
     { "type": "range", "id": "max_width", "label": "Max width", "min": 1000, "max": 1600, "step": 20, "unit": "px", "default": 1200 },
 
     { "type": "header", "content": "Mobile" },
-    { "type": "select", "id": "mobile_layout", "label": "Mobile layout", "default": "bento", "options": [
-      { "value": "bento", "label": "Same as desktop" }, { "value": "stacked", "label": "Stacked" } ] },
-    { "type": "range", "id": "height_mobile", "label": "Height (same as desktop layout)", "min": 480, "max": 760, "step": 10, "unit": "px", "default": 580 },
+    { "type": "select", "id": "mobile_layout", "label": "Mobile layout", "default": "replica", "info": "Exact replica: the desktop hero scaled down as one piece (text gets small on phones). Same as desktop (adaptive): same four panels with phone proportions. Stacked: one column on phones.", "options": [
+      { "value": "replica", "label": "Exact desktop replica (scaled)" }, { "value": "bento", "label": "Same as desktop (adaptive)" }, { "value": "stacked", "label": "Stacked" } ] },
+    { "type": "range", "id": "height_mobile", "label": "Height (adaptive layout)", "min": 480, "max": 760, "step": 10, "unit": "px", "default": 580 },
     { "type": "range", "id": "split_top_mobile", "label": "Top row split", "min": 40, "max": 70, "step": 1, "unit": "%", "default": 56 },
     { "type": "range", "id": "split_bottom_mobile", "label": "Bottom row split", "min": 34, "max": 66, "step": 1, "unit": "%", "default": 50 },
     { "type": "range", "id": "slant_height_mobile", "label": "Angled cut height", "min": 40, "max": 120, "step": 2, "unit": "px", "default": 64 },

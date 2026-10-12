@@ -1,7 +1,8 @@
 {%- comment -%}
   LEXE Bento Hero helper (lexe-bento-shape): prints a clip-path polygon() for one bento panel, every corner filleted.
   params: panel ('content' | 'a' | 'b' | 'p'), r (radius px), g (gutter px), hc (angled cut height px),
-          T S C (tan, sin, cos of the slant angle), kO kP kA (tangent factors for 180-θ, 90+θ, 90-θ corners).
+          T S C (tan, sin, cos of the slant angle), kO kP kA (tangent factors for 180-θ, 90+θ, 90-θ corners),
+          unit (optional, true = lengths as multiples of var(--lxb-u) so the shape scales with the replica layout).
   Vertex = anchorX,offX,anchorY,offY,toPrevX,toPrevY,toNextX,toNextY,kind (anchor 0 = left/top, 1 = right/bottom).
   Each corner is a quadratic Bezier (control point on the vertex) sampled 9 times.
 {%- endcomment -%}
@@ -58,12 +59,21 @@
     {%- assign py = uy | times: ba | times: d -%}
     {%- assign py2 = wy | times: bb | times: d -%}
     {%- assign py = py | plus: py2 | plus: vy | round: 2 -%}
+    {%- if unit -%}
+      {%- if ax == '1' -%}
+        {%- if px < 0 -%}{%- assign apx = px | abs -%}{%- capture sx -%}calc(100% - var(--lxb-u) * {{ apx }}){%- endcapture -%}{%- else -%}{%- capture sx -%}calc(100% + var(--lxb-u) * {{ px }}){%- endcapture -%}{%- endif -%}
+      {%- else -%}{%- capture sx -%}calc(var(--lxb-u) * {{ px }}){%- endcapture -%}{%- endif -%}
+      {%- if ay == '1' -%}
+        {%- if py < 0 -%}{%- assign apy = py | abs -%}{%- capture sy -%}calc(100% - var(--lxb-u) * {{ apy }}){%- endcapture -%}{%- else -%}{%- capture sy -%}calc(100% + var(--lxb-u) * {{ py }}){%- endcapture -%}{%- endif -%}
+      {%- else -%}{%- capture sy -%}calc(var(--lxb-u) * {{ py }}){%- endcapture -%}{%- endif -%}
+    {%- else -%}
     {%- if ax == '1' -%}
       {%- if px < 0 -%}{%- assign apx = px | abs -%}{%- capture sx -%}calc(100% - {{ apx }}px){%- endcapture -%}{%- else -%}{%- capture sx -%}calc(100% + {{ px }}px){%- endcapture -%}{%- endif -%}
     {%- else -%}{%- capture sx -%}{{ px }}px{%- endcapture -%}{%- endif -%}
     {%- if ay == '1' -%}
       {%- if py < 0 -%}{%- assign apy = py | abs -%}{%- capture sy -%}calc(100% - {{ apy }}px){%- endcapture -%}{%- else -%}{%- capture sy -%}calc(100% + {{ py }}px){%- endcapture -%}{%- endif -%}
     {%- else -%}{%- capture sy -%}{{ py }}px{%- endcapture -%}{%- endif -%}
+    {%- endif -%}
     {{- sx }} {{ sy -}}{%- unless forloop.last and forloop.parentloop.last -%},{%- endunless -%}
   {%- endfor -%}
 {%- endfor -%}
