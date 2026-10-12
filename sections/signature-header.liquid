@@ -633,6 +633,30 @@
 .apex-back-home:hover{ box-shadow: 0 0 0 .5px rgba(0,0,0,.14), inset 0 1px 0 rgba(255,255,255,.85), 0 10px 22px -8px rgba(0,0,0,.24); }
 {%- endif -%}
 
+/* ═══ FLASH PILL FIT (LEXE 2026-10-11) ═══
+   Flash lines never scroll sideways: they sit still and whole on one line.
+   Phones: icons fade out and are fully hidden first, then the flash pill fades in spanning the bar (logo pill edge to icon pill edge), 12px text, centred, solid colour.
+   On exit the pill goes first and the icons come back after. Desktop look unchanged. */
+#ApexRoot.apex-notif-flash .apex-notif-pill-text.apex-marquee{ animation: none; transform: none; }
+@media (max-width: 480px){
+  #ApexRoot.apex-notif-flash .apex-bar{ position: relative; }
+  #ApexRoot.apex-notif-flash .apex-notif-pill{
+    position: absolute; z-index: 2;
+    left: 18px; right: 18px; top: calc(50% - 17px);
+    height: 34px; box-sizing: border-box;
+    max-width: none; margin: 0; padding: 0 16px;
+    align-items: center; text-align: center;
+    font-size: 12px; transform: none;
+    opacity: 1; box-shadow: none;
+    animation: apexFlashPillIn 0.16s ease 0.14s both;
+  }
+  .apex-right{ transition: background 0.45s ease, border-radius 0.45s ease, padding 0.45s ease, box-shadow 0.45s ease, opacity 0.14s ease 0.12s, visibility 0s linear 0.12s; }
+  #ApexRoot.apex-notif-flash .apex-right{
+    opacity: 0; visibility: hidden; pointer-events: none;
+    transition: background 0.45s ease, border-radius 0.45s ease, padding 0.45s ease, box-shadow 0.45s ease, opacity 0.12s ease, visibility 0s linear 0.12s;
+  }
+}
+@keyframes apexFlashPillIn{ from{ opacity: 0; } to{ opacity: 1; } }
 </style>
 
 <div id="ApexRoot" class="apex-at-top">
@@ -1378,6 +1402,7 @@
   "presets": [{ "name": "Apex Header V19" }]
 }
 {% endschema %}
+
 
 
 

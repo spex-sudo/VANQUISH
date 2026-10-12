@@ -21,8 +21,7 @@
             "url": "",
             "bg_color": "#111111",
             "text_color": "#ffffff"
-          },
-          "disabled": true
+          }
         },
         "flash_notif_CRL8Pq": {
           "type": "flash_notif",
@@ -31,18 +30,16 @@
             "url": "",
             "bg_color": "#111111",
             "text_color": "#ffffff"
-          },
-          "disabled": true
+          }
         },
         "flash_notif_GP4nBT": {
           "type": "flash_notif",
           "settings": {
             "text": "Warning: compliments may follow.",
             "url": "",
-            "bg_color": "#530000",
+            "bg_color": "#111111",
             "text_color": "#ffffff"
-          },
-          "disabled": true
+          }
         },
         "flash_notif_7gJABh": {
           "type": "flash_notif",
@@ -51,8 +48,7 @@
             "url": "",
             "bg_color": "#111111",
             "text_color": "#ffffff"
-          },
-          "disabled": true
+          }
         },
         "flash_notif_LCEm8c": {
           "type": "flash_notif",
@@ -61,18 +57,16 @@
             "url": "",
             "bg_color": "#111111",
             "text_color": "#ffffff"
-          },
-          "disabled": true
+          }
         },
         "flash_notif_DT4QLe": {
           "type": "flash_notif",
           "settings": {
             "text": "Drops land quietly. Get told first.",
             "url": "/pages/links?src=bar",
-            "bg_color": "#530000",
-            "text_color": "#ffffff"
-          },
-          "disabled": true
+            "bg_color": "#9966CC",
+            "text_color": "#0b0b0b"
+          }
         },
         "flash_notif_REmTPj": {
           "type": "flash_notif",
@@ -90,8 +84,7 @@
             "url": "",
             "bg_color": "#111111",
             "text_color": "#ffffff"
-          },
-          "disabled": true
+          }
         },
         "flash_notif_Lx4fTk": {
           "type": "flash_notif",
@@ -100,8 +93,7 @@
             "url": "",
             "bg_color": "#111111",
             "text_color": "#ffffff"
-          },
-          "disabled": true
+          }
         },
         "flash_notif_Lx9rWp": {
           "type": "flash_notif",
