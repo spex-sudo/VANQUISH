@@ -64,7 +64,7 @@
           "settings": {
             "text": "Drops land quietly. Get told first.",
             "url": "/pages/links?src=bar",
-            "bg_color": "#9966CC",
+            "bg_color": "#9966cc",
             "text_color": "#0b0b0b"
           }
         },
@@ -102,28 +102,6 @@
             "url": "",
             "bg_color": "#111111",
             "text_color": "#ffffff"
-          }
-        },
-        "quick_link_zAzjAV": {
-          "type": "quick_link",
-          "settings": {
-            "label": "#",
-            "url": "shopify://collections/women",
-            "badge_text": "QUEEN",
-            "badge_bg": "#000000",
-            "badge_text_color": "#ffffff",
-            "pulse_badge": false
-          }
-        },
-        "quick_link_cpRJLp": {
-          "type": "quick_link",
-          "settings": {
-            "label": "#",
-            "url": "shopify://collections/men",
-            "badge_text": "KING",
-            "badge_bg": "#000000",
-            "badge_text_color": "#ffffff",
-            "pulse_badge": false
           }
         },
         "collection_ienDgX": {
@@ -166,8 +144,6 @@
         "flash_notif_Lx8gQc",
         "flash_notif_Lx4fTk",
         "flash_notif_Lx9rWp",
-        "quick_link_zAzjAV",
-        "quick_link_cpRJLp",
         "collection_ienDgX",
         "collection_JXPMLw",
         "collection_4XRPEG",
