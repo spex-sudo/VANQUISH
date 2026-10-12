@@ -43,7 +43,7 @@
           "type": "image",
           "settings": {
             "image": "shopify://shop_images/0D53972F-EB12-4EBE-944E-26E029D39540.png",
-            "fit": "default",
+            "fit": "custom",
             "custom_w": 50,
             "bg": ""
           }
