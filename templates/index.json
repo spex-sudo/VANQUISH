@@ -188,7 +188,7 @@
           "type": "collection",
           "settings": {
             "collection": "maze",
-            "status_text": "In-stock",
+            "status_text": "Limited",
             "status_color": "#efe5ff",
             "cta_label": "Shop",
             "price_from": "",
