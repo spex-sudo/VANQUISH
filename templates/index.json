@@ -104,11 +104,11 @@
     "lexe_bento_hero": {
       "type": "lexe-bento-hero",
       "settings": {
-        "eyebrow": "LEXE by Devici Studios",
-        "title": "Say it without speaking",
+        "eyebrow": "What Defines you?",
+        "title": "Say It Without Words",
         "subline": "Outerwear, dresses and Specs, cut sharp.",
         "show_sub_mobile": false,
-        "btn1_label": "Explore LEXE",
+        "btn1_label": "Explore",
         "btn1_link": "/collections/lexe",
         "btn2_label": "Get first look",
         "btn2_link": "/pages/links?src=home",
@@ -120,7 +120,7 @@
         "image_a": "shopify://shop_images/lexe-blaxk-cat-jacket-back.jpg",
         "image_a_position": "50% 20%",
         "image_a_alt": "Back view of a model in the LEXE Blaxk Cat Jacket, black faux leather",
-        "image_a_label": "Faux leather, cruelty free (vegan)",
+        "image_a_label": "",
         "image_a_link": "/collections/faux-leather-jackets",
         "image_a_video_url": "https://cdn.shopify.com/videos/c/vp/d49ccb7b52704c59a9eb2bb30b0fa62a/d49ccb7b52704c59a9eb2bb30b0fa62a.SD-480p-1.5Mbps-97056295.mp4",
         "image_a_video_controls": false,
@@ -156,7 +156,7 @@
         "show_b_mobile": true,
         "mobile_photo_ratio": "1 / 1",
         "base": "#0b0b0d",
-        "accent": "#bebfff",
+        "accent": "#FFFFFF",
         "pad_top_desktop": 60,
         "pad_top_mobile": 60,
         "hide_floaters": true
@@ -478,7 +478,7 @@
         "autoplay_speed": 8,
         "edge_fade": false,
         "bg_color": "#ffffff",
-        "text_color": "#5D5D5D",
+        "text_color": "#5d5d5d",
         "section_padding": 12,
         "pad_top": 8,
         "pad_bottom": 0
