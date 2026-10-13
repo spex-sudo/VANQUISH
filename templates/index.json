@@ -188,9 +188,9 @@
           "type": "collection",
           "settings": {
             "collection": "maze",
-            "status_text": "ACTIVE",
-            "status_color": "#be8fff",
-            "cta_label": "Enter",
+            "status_text": "In-stock",
+            "status_color": "#EFE5FF",
+            "cta_label": "Shop",
             "price_from": "",
             "badge_text": "",
             "badge_bg": "#000000",
