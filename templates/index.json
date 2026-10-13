@@ -207,7 +207,7 @@
           "type": "collection",
           "settings": {
             "collection": "exodus",
-            "status_text": "ACTIVE",
+            "status_text": "Unlimited",
             "status_color": "#edebff",
             "cta_label": "Shop",
             "price_from": "",
@@ -759,7 +759,7 @@
         "free_condition_text": "with orders of $45+ in",
         "free_link_text": "eligible items",
         "free_link_url": "shopify://collections/specs-offer-eligible",
-        "free_color": "#DAB6FF",
+        "free_color": "#dab6ff",
         "free_button_label": "Add free pair to cart",
         "free_description": "Hand-shaped resin frames with mirrored lenses. Add them to your cart, bring your order to $45+ in eligible items, and use your code from the LEXE list below.",
         "single_btn_text_color": "#ffffff",
