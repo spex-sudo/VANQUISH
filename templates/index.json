@@ -208,8 +208,8 @@
           "settings": {
             "collection": "exodus",
             "status_text": "ACTIVE",
-            "status_color": "#b6abff",
-            "cta_label": "Enter",
+            "status_color": "#EDEBFF",
+            "cta_label": "Shop",
             "price_from": "",
             "badge_text": "",
             "badge_bg": "#000000",
