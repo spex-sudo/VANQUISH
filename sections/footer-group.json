@@ -28,7 +28,7 @@
         "terms": "One use per customer.",
         "bg_color": "#ffffff",
         "text_color": "#2e2e2e",
-        "accent_color": "#3c2366",
+        "accent_color": "#000000",
         "padding_top": 24,
         "padding_bottom": 32
       }
@@ -39,7 +39,7 @@
       "settings": {
         "footer_bg_color": "#ffffff",
         "footer_text_color": "#0a0a0a",
-        "accent_color": "#D2BFFF",
+        "accent_color": "#d2bfff",
         "border_color": "#e6e6e6",
         "pill_bg_color": "#eeeeee",
         "pill_text_color": "#0a0a0a",
