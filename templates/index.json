@@ -169,7 +169,7 @@
           "type": "collection",
           "settings": {
             "collection": "lexespecs",
-            "status_text": "In-stock",
+            "status_text": "Limited",
             "status_color": "#efe5ff",
             "cta_label": "Shop",
             "price_from": "",
