@@ -604,6 +604,7 @@
 .ap-dots{{ sid }}{font-style:normal;letter-spacing:.1em;opacity:.5}
 .ap-pill-now{{ sid }}{min-width:34px;text-align:right}
 .ap-pill-ribbon{{ sid }}{background:{{ section.settings.ribbon_bg | default: '#9966CC' }};color:{{ section.settings.ribbon_text | default: '#ffffff' }};font-weight:600}
+@media (max-width:749px){.ap-pill-ribbon{{ sid }}{right:auto;left:8px;max-width:calc(100% - 16px);letter-spacing:.05em;padding:3px 7px;overflow:visible;text-overflow:clip}}
 
 .ap-bundle{{ sid }}{
   position:absolute;left:0;right:0;bottom:100%;
