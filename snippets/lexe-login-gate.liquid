@@ -59,6 +59,19 @@
       else if(!e.shiftKey&&(document.activeElement===z||!d.contains(document.activeElement))){e.preventDefault();a.focus();}
     });
     window.LexeGate={open:open,close:close};
+    /* Site-wide: any link to a login-only collection (menus, footer, search, lists, breadcrumbs) opens the pop-up. */
+    var H={{ settings.login_required_collections | default: '' | remove: ' ' | downcase | split: ',' | json }};
+    document.addEventListener('click',function(e){
+      if(e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey) return;
+      var a=e.target.closest&&e.target.closest('a[href]'); if(!a||d.contains(a)||a.hasAttribute('data-login-required')) return;
+      var u; try{u=new URL(a.href,location.href);}catch(x){return;}
+      if(u.hostname.replace(/^www\./,'')!==location.hostname.replace(/^www\./,'')) return;
+      var m=u.pathname.toLowerCase().match(/^(?:\/[a-z]{2}(?:-[a-z]{2})?)?\/collections\/([^\/?#]+)\/?$/);
+      if(!m||H.indexOf(decodeURIComponent(m[1]))===-1) return;
+      e.preventDefault(); e.stopImmediatePropagation();
+      var title=a.getAttribute('data-collection-title')||'';
+      open(u.pathname,title,a);
+    },true);
   })();
   </script>
 {%- endif -%}
