@@ -1,0 +1,11 @@
+{%- comment -%} LEXE 2026-10-16: ?src=xx on landing -> saved as cart attribute "src" so it reaches the order (Order > Additional details). Same cleaning as link-in-bio signup tags. {%- endcomment -%}
+<script>
+(function(){
+  try{
+    var s=new URLSearchParams(location.search).get('src'); if(!s) return;
+    s=s.toLowerCase().replace(/[^a-z0-9-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,20).replace(/-+$/,''); if(!s) return;
+    try{ sessionStorage.setItem('lexe_src', s); }catch(e){}
+    fetch('{{ routes.cart_update_url }}.js',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({attributes:{src:s}})}).catch(function(){});
+  }catch(e){}
+})();
+</script>

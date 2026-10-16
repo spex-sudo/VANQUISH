@@ -2296,5 +2296,48 @@
         "info": "Logged-out visitors see a 'You must log in' prompt instead of these collections' products. Orbit Apex cards for them stay looking normal and open a log-in pop-up."
       }
     ]
+  },
+  {
+    "name": "LEXE checkout",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Purchasing"
+      },
+      {
+        "type": "checkbox",
+        "id": "lexe_lock_notify",
+        "label": "Lock purchasing to Notify me",
+        "default": true,
+        "info": "ON: Add to cart, Buy now, sticky buy bar, quick add, Specs claim box and the free-pair promo are hidden and product pages show the Notify me box. Turn OFF only after card checkout is tested and working."
+      },
+      {
+        "type": "header",
+        "content": "Cart page"
+      },
+      {
+        "type": "checkbox",
+        "id": "lexe_cart_terms",
+        "label": "Require 'I agree to the Terms' tick before checkout",
+        "default": false
+      },
+      {
+        "type": "text",
+        "id": "lexe_card_brands",
+        "label": "Accepted card logos",
+        "info": "Comma-separated, only once Scotiabank confirms them. Use: visa, master, american_express, discover, diners_club, jcb. Leave blank to show no logos."
+      },
+      {
+        "type": "text",
+        "id": "lexe_contact_email",
+        "label": "Contact email shown in cart"
+      },
+      {
+        "type": "text",
+        "id": "lexe_currency_note",
+        "label": "Currency / location note",
+        "default": "All prices are in US dollars (USD). LEXE by VANQUISH7 is based in Jamaica."
+      }
+    ]
   }
 ]
