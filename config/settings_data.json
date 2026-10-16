@@ -79,6 +79,10 @@
     "variant_button_border_width": 1,
     "variant_button_radius": 2,
     "variant_button_width": "equal-width-buttons",
+    "lexe_lock_notify": false,
+    "lexe_credit_show": true,
+    "lexe_cart_terms": true,
+    "lexe_card_brands": "visa, master, american_express, discover, diners_club, jcb",
     "sections": {
       "password-footer": {
         "type": "password-footer",
