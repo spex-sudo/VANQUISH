@@ -1,49 +1,98 @@
 {%- comment -%}
-  LEXE login gate (replaces the old Orbit Apex "Request Access" framework).
-  - render 'lexe-login-gate'               -> pop-up, opened by window.LexeGate.open(url, title, triggerEl)
+  LEXE login gate v2 (email capture + Shopify sign-in; store uses new customer accounts = one-time code, no passwords).
+  - render 'lexe-login-gate'                  -> pop-up, window.LexeGate.open(url, title, triggerEl); also intercepts every link to a login-only collection
   - render 'lexe-login-gate', gate_page: true -> full prompt shown instead of a login-only collection's products
-  Login-only collections: Theme settings > "Login-required collections" (handles) + Orbit Apex block "Require login to view".
+  Submit: normal Shopify customer-form POST to /contact (tags gate-attempt,newsletter; consent line visible). Shopify's own hCaptcha
+  runs on it (a script POST without the token is refused with 403, so no fetch). return_to then sends the visitor to sign-in:
+  /customer_authentication/login?return_to=<collection>&login_hint=<email> (login_hint is passed through to Shopify's sign-in).
+  Login-only collections: Theme settings > "Login-required collections" + Orbit Apex block "Require login to view".
 {%- endcomment -%}
-{%- assign llg_login = '/account/login' -%}{%- comment -%} /account/login keeps return_url through Shopify's customer-account redirect (verified 302 -> return_to). {%- endcomment -%}
+{%- if gate_page -%}{%- assign llg_id = 'LlgPage' -%}{%- else -%}{%- assign llg_id = 'Llg' -%}{%- endif -%}
+{%- capture llg_body -%}
+  <span class="llg-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4.5" y="10.5" width="15" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+  <p class="llg-eyebrow" data-llg-name{% unless gate_page %} hidden{% endunless %}>{% if gate_page %}{{ collection.title | escape }}{% endif %}</p>
+  <h2 class="llg-title" id="{{ llg_id }}Title">You must log in to view this collection</h2>
+  <p class="llg-sub" id="{{ llg_id }}Sub">Members get the locked collections and early access to drops.</p>
+  {%- form 'customer', class: 'llg-form', novalidate: 'novalidate', data-llg-form: '' -%}
+    <input type="hidden" name="contact[tags]" value="gate-attempt,newsletter">
+    <input type="hidden" name="contact[accepts_marketing]" value="1">
+    <input type="hidden" name="return_to" value="/" data-llg-return>
+    <label class="llg-label" for="{{ llg_id }}Email">Email</label>
+    <input class="llg-input" type="email" id="{{ llg_id }}Email" name="contact[email]" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false" required aria-describedby="{{ llg_id }}Err {{ llg_id }}Consent">
+    <p class="llg-error" id="{{ llg_id }}Err" role="alert" aria-live="assertive"></p>
+    <p class="llg-consent" id="{{ llg_id }}Consent">We'll use your email to send your access and LEXE updates.</p>
+    <button type="submit" class="llg-btn" data-llg-submit><span>Get access</span></button>
+  {%- endform -%}
+  <p class="llg-member">Already a member? <a href="/account/login" data-llg-signin>Sign in</a></p>
+{%- endcapture -%}
 {%- if gate_page -%}
-  {%- assign llg_return = request.path | url_encode -%}
-  <section class="llg-page" aria-labelledby="LlgPageTitle">
-    <div class="llg-card llg-card--page">
-      <span class="llg-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4.5" y="10.5" width="15" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
-      <p class="llg-eyebrow">{{ collection.title | escape }}</p>
-      <h2 class="llg-title" id="LlgPageTitle">You must log in to view this collection</h2>
-      <p class="llg-sub">Log in or create a free account to see every piece.</p>
-      <a class="llg-btn" href="{{ llg_login }}?return_url={{ llg_return }}">Log in</a>
+  <section class="llg-page" aria-labelledby="LlgPageTitle" data-llg-scope data-return="{{ request.path | escape }}">
+    <div class="llg-card llg-card--page">{{ llg_body }}
       <a class="llg-link" href="{{ routes.root_url }}">Back to home</a>
     </div>
   </section>
 {%- else -%}
-  <div id="LexeLoginGate" class="llg" role="dialog" aria-modal="true" aria-labelledby="LlgTitle" aria-describedby="LlgSub" hidden>
+  <div id="LexeLoginGate" class="llg" role="dialog" aria-modal="true" aria-labelledby="LlgTitle" aria-describedby="LlgSub" hidden data-llg-scope>
     <div class="llg-backdrop" data-llg-close></div>
     <div class="llg-card" tabindex="-1">
       <button type="button" class="llg-close" data-llg-close aria-label="Close">
         <svg viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
       </button>
-      <span class="llg-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4.5" y="10.5" width="15" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
-      <p class="llg-eyebrow" data-llg-name></p>
-      <h2 class="llg-title" id="LlgTitle">You must log in to view this collection</h2>
-      <p class="llg-sub" id="LlgSub">Log in or create a free account to see every piece.</p>
-      <a class="llg-btn" href="{{ llg_login }}" data-llg-login data-base="{{ llg_login }}">Log in</a>
-      <button type="button" class="llg-link" data-llg-close>Not now</button>
+      {{ llg_body }}
     </div>
   </div>
+{%- endif -%}
+<script>
+(function(){
+  if(window.LexeGateForms) return; window.LexeGateForms=1;
+  var RE=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  function loginUrl(path,email){return '/customer_authentication/login?return_to='+encodeURIComponent(path||'/')+(email?'&login_hint='+encodeURIComponent(email):'')+'&locale={{ request.locale.iso_code }}';}
+  function retPath(scope){return scope.getAttribute('data-return')||'/';}
+  function wire(scope){
+    var f=scope.querySelector('[data-llg-form]'); if(!f||f._llg) return; f._llg=1;
+    var em=f.querySelector('input[type=email]'), er=f.querySelector('.llg-error'), btn=f.querySelector('[data-llg-submit]'), si=scope.querySelector('[data-llg-signin]');
+    function sync(){ var p=retPath(scope); f.querySelector('[data-llg-return]').value=loginUrl(p,em.value.trim()); if(si) si.href=loginUrl(p,''); }
+    sync(); scope._llgSync=sync;
+    function err(m){er.textContent=m; em.setAttribute('aria-invalid',m?'true':'false'); f.classList.toggle('has-error',!!m);}
+    em.addEventListener('input',function(){ if(f.classList.contains('has-error')&&RE.test(em.value.trim())) err(''); });
+    /* Validate BEFORE a submit event exists, so Shopify's hCaptcha hook only ever sees valid emails. */
+    function check(e){
+      var v=em.value.trim();
+      if(!RE.test(v)){ e.preventDefault(); e.stopImmediatePropagation(); err(v?'Enter a valid email address, like name@example.com.':'Enter your email to continue.'); em.focus(); return false; }
+      err(''); sync(); return true;
+    }
+    btn.addEventListener('click',check,true);
+    em.addEventListener('keydown',function(e){ if(e.key==='Enter'){ if(check(e)){ e.preventDefault(); f.requestSubmit?f.requestSubmit(btn):btn.click(); } } },true);
+    /* Valid: normal Shopify customer-form POST (Shopify adds its invisible hCaptcha; if it needs a visible check it shows it).
+       Shopify then redirects to return_to = sign-in for this collection with the email prefilled. */
+    f.addEventListener('submit',function(e){
+      if(!RE.test(em.value.trim())){ e.preventDefault(); return; }
+      try{sessionStorage.setItem('llg_pending',JSON.stringify({p:retPath(scope),e:em.value.trim(),t:Date.now()}));}catch(x){}
+      sync(); btn.classList.add('is-busy'); btn.setAttribute('aria-busy','true'); btn.firstChild.textContent='One moment\u2026';
+    });
+  }
+  /* Safety net: if Shopify returns to the page (customer_posted=true) instead of following return_to, continue to sign-in. */
+  try{ var pd=JSON.parse(sessionStorage.getItem('llg_pending')||'null');
+    if(pd&&Date.now()-pd.t<600000&&/[?&]customer_posted=true/.test(location.search)){ sessionStorage.removeItem('llg_pending'); location.replace(loginUrl(pd.p,pd.e)); return; }
+  }catch(x){}
+  window.LexeGateWire=wire;
+  function init(){ document.querySelectorAll('[data-llg-scope]').forEach(wire); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+})();
+</script>
+{%- unless gate_page -%}
   <script>
   (function(){
     var d=document.getElementById('LexeLoginGate'); if(!d||window.LexeGate) return;
-    var card=d.querySelector('.llg-card'), btn=d.querySelector('[data-llg-login]'), nm=d.querySelector('[data-llg-name]'), last=null, t=0;
-    function foc(){return Array.prototype.filter.call(d.querySelectorAll('a[href],button:not([disabled])'),function(e){return e.offsetParent!==null;});}
+    var card=d.querySelector('.llg-card'), nm=d.querySelector('[data-llg-name]'), last=null, t=0;
+    function foc(){return Array.prototype.filter.call(d.querySelectorAll('a[href],button:not([disabled]),input:not([type=hidden])'),function(e){return e.offsetParent!==null;});}
     function open(url,title,trigger){
       last=trigger||document.activeElement; clearTimeout(t);
-      btn.href=btn.getAttribute('data-base')+'?return_url='+encodeURIComponent(url||location.pathname);
+      d.setAttribute('data-return',url||location.pathname); if(window.LexeGateWire) window.LexeGateWire(d); if(d._llgSync) d._llgSync();
       nm.textContent=title||''; nm.hidden=!title;
       if(d.parentNode!==document.body) document.body.appendChild(d);
       d.hidden=false; document.documentElement.classList.add('llg-lock');
-      requestAnimationFrame(function(){requestAnimationFrame(function(){d.classList.add('is-open'); btn.focus({preventScroll:true});});});
+      requestAnimationFrame(function(){requestAnimationFrame(function(){d.classList.add('is-open'); var em=d.querySelector('input[type=email]'); if(em) em.focus({preventScroll:true});});});
     }
     function close(){
       if(d.hidden) return; d.classList.remove('is-open'); document.documentElement.classList.remove('llg-lock');
@@ -74,7 +123,7 @@
     },true);
   })();
   </script>
-{%- endif -%}
+{%- endunless -%}
 {%- unless llg_css_done -%}
 {%- assign llg_css_done = true -%}
 <style>
@@ -94,7 +143,7 @@
   .llg-eyebrow{margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#000}
   .llg-eyebrow[hidden]{display:none}
   .llg-title{margin:0 0 10px;font-family:var(--font-heading--family,inherit);font-size:22px;line-height:1.25;font-weight:700;letter-spacing:-.01em;color:#0a0a0a;text-transform:none}
-  .llg-sub{margin:0 0 24px;font-size:14px;line-height:1.5;color:rgba(10,10,10,.6)}
+  .llg-sub{margin:0 0 20px;font-size:14px;line-height:1.5;color:rgba(10,10,10,.6)}
   .llg-btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:50px;border-radius:12px;background:#000;color:#fff!important;text-decoration:none;
     font-size:13px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;transition:background .2s,transform .2s;box-sizing:border-box}
   .llg-btn:hover{background:#2b2b2b}
@@ -106,5 +155,20 @@
   .llg-card--page{box-shadow:0 20px 60px -25px rgba(0,0,0,.25);border:1px solid rgba(0,0,0,.06)}
   @media (max-width:480px){.llg{align-items:flex-end;padding:0}.llg .llg-card{max-width:none;border-radius:22px 22px 0 0;padding:36px 22px calc(22px + env(safe-area-inset-bottom));transform:translateY(40px)}.llg-title{font-size:20px}}
   @media (prefers-reduced-motion:reduce){.llg,.llg .llg-card{transition:none}}
+
+  .llg-form{text-align:left;margin:0}
+  .llg-label{display:block;font-size:12px;font-weight:600;letter-spacing:.04em;margin:0 0 6px;color:#0a0a0a}
+  .llg-input{display:block;width:100%;box-sizing:border-box;min-height:50px;padding:13px 16px;font:inherit;font-size:16px;color:#0a0a0a;background:#f4f4f4;border:1.5px solid transparent;border-radius:12px;transition:border-color .2s,background .2s;-webkit-appearance:none}
+  .llg-input:focus{outline:none;border-color:#000;background:#fff;box-shadow:0 0 0 3px rgba(0,0,0,.08)}
+  .llg-form.has-error .llg-input{border-color:#c62828;background:#fff}
+  .llg-error{margin:6px 0 0;font-size:13px;color:#c62828;min-height:0}
+  .llg-error:empty{display:none}
+  .llg-consent{margin:8px 0 16px;font-size:12px;line-height:1.45;color:rgba(10,10,10,.62)}
+  .llg-btn{border:0;cursor:pointer;font-family:inherit}
+  .llg-btn[disabled]{opacity:.75;cursor:progress}
+  .llg-member{margin:16px 0 0;font-size:13px;color:rgba(10,10,10,.62)}
+  .llg-member a{color:#000;font-weight:600;text-decoration:underline;text-underline-offset:3px}
+  .llg-member a:focus-visible{outline:2px solid #000;outline-offset:3px}
+  .llg-input::placeholder{color:rgba(10,10,10,.4)}
 </style>
 {%- endunless -%}
