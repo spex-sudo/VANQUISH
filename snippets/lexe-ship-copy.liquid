@@ -1,0 +1,90 @@
+{%- comment -%} LEXE 2026-10-15: render-time shipping copy fix (templates/product.json could not be read in full, so it is not rewritten). Replaces the old free-shipping line in the product "Shipping & Returns" block and hides any "Free shipping over $77" trust item, and swaps the returns line. Remove this snippet + its render line in layout/theme.liquid once product.json is edited directly. {%- endcomment -%}
+{%- if template.name == 'product' -%}
+<script>
+(function(){
+  var OLD=/Free Standard Shipping On Eligible Orders\./g, NEW='Shipping: $10.75 in Jamaica, $18.97 international.', RET=/30-day returns \u2014 items must be unworn with original tags\./g, RNEW='30-day returns on apparel. Items must be unworn, unwashed, with original tags.';
+  function run(){
+    var w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null),n;
+    while((n=w.nextNode())){ if(OLD.test(n.nodeValue)){ n.nodeValue=n.nodeValue.replace(OLD,NEW); } OLD.lastIndex=0; if(RET.test(n.nodeValue)){ n.nodeValue=n.nodeValue.replace(RET,RNEW); } RET.lastIndex=0; }
+    document.querySelectorAll('[class^="ap-trust-item"]').forEach(function(el){ if(/free shipping over/i.test(el.textContent)) el.style.setProperty('display','none','important'); });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',run); else run();
+})();
+</script>
+{%- endif -%}
+{%- comment -%} LEXE 2026-10-15 22:40: (1) hide fake "Customers are viewing" ticker everywhere. (2) While shop.metafields.lexe.checkout_live is not true: hide the "Buying it on its own? Use Add to cart." sentence and the whole homepage free-pair promo section (incl. Claim box). Both return automatically when checkout_live = true. (3) Free-pair offer line text set to the agreed copy. {%- endcomment -%}
+<script>
+(function(){
+  var LIVE={% if shop.metafields.lexe.checkout_live == true %}true{% else %}false{% endif %};
+  var OFFER='Free Specs from select styles on $45+ orders. Shipping from $10.75.';
+  function run(){
+    document.querySelectorAll('[class^="apex-free-"],[class*=" apex-free-"]').forEach(function(el){ if(/with orders of \$45\+/.test(el.textContent)) el.textContent=OFFER; });
+    var w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null),n,hide=[];
+    while((n=w.nextNode())){
+      if(/customers? (are|is) viewing/i.test(n.nodeValue)&&n.parentElement) hide.push(n.parentElement);
+    }
+    if(!LIVE){ var RX=/[\s\u00a0]*Buying[\s\u00a0]+it[\s\u00a0]+on[\s\u00a0]+its[\s\u00a0]+own[?\uff1f][\s\u00a0]*Use[\s\u00a0]+Add[\s\u00a0]+to[\s\u00a0]+cart\.?/i;
+      var TD=Object.getOwnPropertyDescriptor(Node.prototype,'textContent');
+      document.querySelectorAll('[id^="ap-claim-hint"],[class^="ap-claim-hint"]').forEach(function(el){ if(!el.__lexeGuard){ el.__lexeGuard=1; try{ Object.defineProperty(el,'textContent',{configurable:true,get:function(){return TD.get.call(this);},set:function(v){TD.set.call(this,String(v).replace(RX,''));}}); }catch(e){} } });
+      document.querySelectorAll('[id^="ap-claim-hint"],[class^="ap-claim-hint"],p,span,div').forEach(function(el){ if(el.children.length===0&&RX.test(TD.get.call(el))) TD.set.call(el,TD.get.call(el).replace(RX,'')); });
+      document.querySelectorAll('[id^="ap-claim"]:not([id^="ap-claim-"])').forEach(function(el){ el.style.setProperty('display','none','important'); });
+    }
+    hide.forEach(function(el){ el.style.setProperty('display','none','important'); });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',run); else run();
+  new MutationObserver(function(){ clearTimeout(window.__lexeT); window.__lexeT=setTimeout(run,150); }).observe(document.documentElement,{childList:true,subtree:true});
+})();
+</script>
+{%- unless shop.metafields.lexe.checkout_live == true -%}
+<style id="lexe-hide-claim">[id^="ap-claim"]:not([id^="ap-claim-"]){display:none !important;}</style>
+{%- if template.name == 'index' -%}
+<style id="lexe-hide-free-pair">[id$="__luxury_featureproduct_BNr6Rf"]{display:none !important;}</style>
+<script>(function(){var s=document.querySelector('[id$="__luxury_featureproduct_BNr6Rf"]');function k(){var e=document.querySelector('[id$="__luxury_featureproduct_BNr6Rf"]');if(e)e.parentNode.removeChild(e);} if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',k);else k();})();</script>
+{%- endif -%}
+{%- endunless -%}
+{%- comment -%} LEXE 2026-10-15 22:50 CD fixes: delivery badge text, homepage line, hide PULL HERE tab + VANQUISH THEME (digital-product) promo/cards (held, not deleted), hide quick-add drawer while checkout is off. {%- endcomment -%}
+<style id="lexe-cd-fixes">
+.vqsc-tag{display:none !important;}
+.lxb__prod:has(a[href*="/products/digital-product"]),a.va-card[href*="/products/digital-product"]{display:none !important;}
+{%- unless shop.metafields.lexe.checkout_live == true %}
+[id^="ApexDrawer-"]{display:none !important;}
+{%- endunless %}
+</style>
+<script>
+(function(){
+  var SW=[[/Delivery in 5[\u2013\u2014-]10 business days/,'Delivery in 10\u201318 business days'],[/^\s*Command the room\s*[-\u2013\u2014]\s*discover how black gives form to uncompromising luxury\.\s*$/,'Command the room.']];
+  function run(){
+    var w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null),n;
+    while((n=w.nextNode())){ var p=n.parentElement; if(!p||p.tagName==='SCRIPT'||p.tagName==='STYLE') continue; for(var i=0;i<SW.length;i++){ if(SW[i][0].test(n.nodeValue)) n.nodeValue=n.nodeValue.replace(SW[i][0],SW[i][1]); } }
+    document.querySelectorAll('a[href*="/products/digital-product"]').forEach(function(a){ var c=a.closest('.lxb__prod')||(a.classList.contains('va-card')?a:null); if(c) c.style.setProperty('display','none','important'); });
+    document.querySelectorAll('.vqsc-tag').forEach(function(e){ e.style.setProperty('display','none','important'); });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',run); else run();
+  new MutationObserver(function(){ clearTimeout(window.__lexeCD); window.__lexeCD=setTimeout(run,150); }).observe(document.documentElement,{childList:true,subtree:true,characterData:true});
+})();
+</script>
+{%- comment -%} LEXE 2026-10-15 22:55 CD re-gate: collapse hero gap left by hidden theme tile; carousel Limited label off + SHOP->Explore; timer single line; notify input padding. {%- endcomment -%}
+<style id="lexe-cd-regate">
+.lxb__grid:has(.lxb__prod a[href*="/products/digital-product"]) .lxb__img--b{bottom:0 !important;height:auto !important;clip-path:polygon(calc(0% + 2px) 0,100% 0,100% 100%,calc(16% + 2px) 100%) !important;}
+.lxb__grid:has(.lxb__prod a[href*="/products/digital-product"]) .lxb__img--b img{height:100% !important;object-fit:cover !important;}
+.lexe-hide{display:none !important;}
+[class^="stb-carousel"]{height:auto !important;}
+[class^="stb-track"]{transform:none !important;transition:none !important;}
+#LexeNotifyEmail{padding-left:12px !important;padding-right:12px !important;box-sizing:border-box;}
+a.orbit-card .status-wrapper{display:none !important;}
+</style>
+<script>
+(function(){
+  function run(){
+    document.querySelectorAll('a.orbit-card .orbit-cta').forEach(function(c){ var leaf=[].slice.call(c.querySelectorAll('*')).filter(function(e){return e.children.length===0&&e.textContent.trim();})[0]||c; if(leaf.textContent.trim()!=='Explore'&&leaf.children.length===0) leaf.textContent='Explore'; });
+    document.querySelectorAll('[class^="stb-msg"]').forEach(function(m){ if(!/Delivery in/.test(m.textContent)) m.classList.add('lexe-hide'); });
+    document.querySelectorAll('.status-wrapper').forEach(function(w){
+      var card=w.closest('a.orbit-card'); if(!card||!/\/collections\/lexespecs\b/.test(card.getAttribute('href')||'')) return;
+      if(!/^\s*Limited\s*$/i.test(w.textContent)) return; w.classList.add('lexe-hide');
+      for(var c=w.parentElement,i=0;c&&i<3&&card.contains(c);c=c.parentElement,i++){ var hit=[].slice.call(c.querySelectorAll('*')).filter(function(e){return e.children.length===0&&/^\s*SHOP\s*$/i.test(e.textContent);}); if(hit.length){ hit.forEach(function(e){ e.textContent='Explore'; }); break; } }
+    });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',run); else run();
+  new MutationObserver(function(){ clearTimeout(window.__lexeRG); window.__lexeRG=setTimeout(run,150); }).observe(document.documentElement,{childList:true,subtree:true});
+})();
+</script>

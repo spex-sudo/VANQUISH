@@ -93,6 +93,9 @@
       {%- else -%}
         {{ content_for_layout }}
       {%- endif -%}
+      {%- comment -%} LEXE upgrade preview 2026-10-15 {%- endcomment -%}
+      {%- if template.name == 'index' -%}{% section 'lexe-latest-arrivals' %}{%- endif -%}
+      {%- if template.name == 'product' -%}{% render 'lexe-notify-drop', product: product %}{%- endif -%}
     </main>
 
     <footer>
@@ -111,6 +114,8 @@
     {% render 'va-grid-end' %}
     {% render 'lexe-defer-media' %}
     {% render 'lexe-form-guard' %}
+    {% render 'lexe-ship-copy' %}
+    {% render 'lexe-preview-clean' %}
   </body>
 </html>
 

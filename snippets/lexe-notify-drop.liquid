@@ -1,0 +1,48 @@
+{%- comment -%} LEXE preview 2026-10-15: "Notify me when it drops" replaces add-to-cart while checkout is not live. Preview theme only. {%- endcomment -%}
+{%- assign lexe_checkout_live = shop.metafields.lexe.checkout_live.value | default: false -%}
+{%- if product and lexe_checkout_live != true -%}
+<div id="lexe-notify-drop" class="lexe-nd">
+  <div class="lexe-nd__info" id="lexe-ship-info">
+    <p class="lexe-nd__line">Prices in USD.</p>
+    <p class="lexe-nd__line">Shipping: $10.75 in Jamaica, $18.97 international.</p>
+    <p class="lexe-nd__line">Delivery: 10–18 business days after dispatch.</p>
+  </div>
+  {%- form 'customer', id: 'LexeNotifyForm', class: 'lexe-nd__form' -%}
+    <input type="hidden" name="contact[tags]" value="notify,notify-{{ product.handle }}">
+    {%- if form.posted_successfully? -%}
+      <p class="lexe-nd__ok" role="status">You're on the list. We'll email you when it lands.</p>
+    {%- else -%}
+      <p class="lexe-nd__title">Notify me when it drops</p>
+      {%- if form.errors -%}<p class="lexe-nd__err" role="alert">{{ form.errors | default_errors }}</p>{%- endif -%}
+      <label class="lexe-nd__label" for="LexeNotifyEmail">Email</label>
+      <input id="LexeNotifyEmail" class="lexe-nd__input" type="email" name="contact[email]" required autocomplete="email" placeholder="you@email.com">
+      <label class="lexe-nd__consent">
+        <input type="checkbox" required name="contact[note][consent]" value="yes-email-marketing">
+        <span>Email me about this drop and new LEXE pieces. Unsubscribe anytime. <a href="/policies/privacy-policy">Privacy</a></span>
+      </label>
+      <button type="submit" class="lexe-nd__btn">Notify me</button>
+    {%- endif -%}
+  {%- endform -%}
+</div>
+<style>
+  .lexe-nd{display:grid;gap:12px;margin:12px 0;font:inherit}
+  .lexe-nd__info{display:grid;gap:2px;font-size:13px;opacity:.85}
+  .lexe-nd__line{margin:0}
+  .lexe-nd__form{display:grid;gap:8px}
+  .lexe-nd__title{margin:0;font-weight:700}
+  .lexe-nd__label{font-size:12px}
+  .lexe-nd__input{padding:12px;border:1px solid #cfcfcf;border-radius:10px;font:inherit;width:100%}
+  .lexe-nd__consent{display:flex;gap:8px;font-size:12px;align-items:flex-start}
+  .lexe-nd__btn{padding:14px;border:0;border-radius:10px;background:#111;color:#fff;font:inherit;font-weight:700;cursor:pointer}
+  .lexe-nd__err{color:#b00020;margin:0}
+</style>
+<script>
+(function(){
+  var nd=document.getElementById('lexe-notify-drop'); if(!nd) return;
+  var main=document.getElementById('MainContent'); if(!main) return;
+  var f=main.querySelector('form[action*="/cart/add"]');
+  if(f && f.parentNode){ f.parentNode.insertBefore(nd,f); }
+  else { var t=main.querySelector('h1'); if(t&&t.parentNode) t.parentNode.insertBefore(nd,t.nextSibling); }
+})();
+</script>
+{%- endif -%}
