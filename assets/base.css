@@ -4216,4 +4216,4 @@ product-recommendations:has([data-has-recommendations='false']) {
   
 }
 /* LEXE 2026-10-16: checkout-button hiding moved to snippets/lexe-preview-clean.liquid (follows Theme settings > LEXE checkout lock). */
- 
+ .skip-to-content-link:not(:focus){position:absolute;left:-99999px}

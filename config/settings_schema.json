@@ -2354,7 +2354,7 @@
         "type": "text",
         "id": "lexe_currency_note",
         "label": "Currency / location note",
-        "default": "All prices are in US dollars (USD). LEXE by Devici Studios is based in Jamaica."
+        "default": "All prices are in US dollars (USD)."
       }
     ]
   }
