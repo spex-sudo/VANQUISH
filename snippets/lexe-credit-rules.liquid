@@ -1,0 +1,19 @@
+{%- comment -%}
+  LEXE repeat-order credit: plain rules line for the cart.
+  Hidden while Theme settings > LEXE checkout > "Lock purchasing to Notify me" is ON,
+  and also hidden until "Show repeat-order credit rules" is ON. Display only: no prices, no logic.
+{%- endcomment -%}
+{%- if settings.lexe_lock_notify == false and settings.lexe_credit_show -%}
+  <div class="lexe-credit-rules cart-primary-typography" style="margin-top:12px;font-size:13px;line-height:1.5;color:rgba(0,0,0,.7)">
+    <p style="margin:0 0 4px;font-weight:600">Repeat-order credit</p>
+    <p style="margin:0">
+      Orders with $45 or more in products earn a one-time code for your next order, worth {{ settings.lexe_credit_value | default: '$4' }} off.
+      We email it after your order is delivered and the return window has closed.
+    </p>
+    <p style="margin:4px 0 0">
+      Rules: one code per order, for your account only. Works on $40 or more in products (shipping not counted).
+      Can't be combined with any other code or the free Specs offer. Valid for 60 days from the day we send it. No cash value.
+      If the original order is refunded, the code is cancelled.
+    </p>
+  </div>
+{%- endif -%}

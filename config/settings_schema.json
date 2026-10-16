@@ -2313,6 +2313,24 @@
       },
       {
         "type": "header",
+        "content": "Repeat-order credit"
+      },
+      {
+        "type": "checkbox",
+        "id": "lexe_credit_show",
+        "label": "Show repeat-order credit rules in cart",
+        "default": false,
+        "info": "Only shows when purchasing is unlocked AND this is ON. Turn on the same day the first credit codes are issued."
+      },
+      {
+        "type": "text",
+        "id": "lexe_credit_value",
+        "label": "Credit amount shown",
+        "default": "$4",
+        "info": "Must match the amount on the codes you create."
+      },
+      {
+        "type": "header",
         "content": "Cart page"
       },
       {
