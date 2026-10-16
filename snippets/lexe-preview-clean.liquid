@@ -16,6 +16,7 @@
   [class^="ap-bar"], [class^="ap-atc"], [class^="apex-gqa"], .quick-add, [class*="quick-add__"],
   [class^="ap-buy"], [class*=" ap-buy"], [data-ap-buy], [data-ap-buy-lbl],
   a.apex-qa, .apex-qa, :has(> [data-ap-buy]){display:none!important}
+  button[name="checkout"], .cart__checkout-button, #CartDrawer-Checkout{display:none!important;pointer-events:none!important}
 </style>
 <script>
 (function(){
@@ -31,6 +32,7 @@
 })();
 </script>
 {%- endunless -%}
+<style id="lexe-wallets-off">/* Shop Pay / Apple Pay / Buy it now buttons stay hidden until wallets are confirmed for this store */ .shopify-payment-button, .additional-checkout-buttons{display:none!important}</style>
 <style id="lexe-trust-clean">
   .lock-countdown, [data-personal-countdown]{display:none!important}
   .compare-at-price, s.price-item, .price__compare, [class*="compare-at"], [class*="price-compare"],

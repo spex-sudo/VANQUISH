@@ -4215,16 +4215,5 @@ product-recommendations:has([data-has-recommendations='false']) {
   }
   
 }
-/* Hide every default checkout button on the entire site (Mobile & Desktop) */
-button[name="checkout"],
-.cart__checkout-button,
-#CartDrawer-Checkout,
-.shopify-payment-button {
-    display: none !important;
-    visibility: hidden !important;
-    height: 0 !important;
-    padding: 0 !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-}
+/* LEXE 2026-10-16: checkout-button hiding moved to snippets/lexe-preview-clean.liquid (follows Theme settings > LEXE checkout lock). */
  

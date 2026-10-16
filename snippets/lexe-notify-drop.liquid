@@ -8,13 +8,14 @@
     assign lexe_checkout_live = true
   endif
 -%}
-{%- if product and lexe_checkout_live != true -%}
+{%- if product -%}
 <div id="lexe-notify-drop" class="lexe-nd">
   <div class="lexe-nd__info" id="lexe-ship-info">
     <p class="lexe-nd__line">Prices in USD.</p>
     <p class="lexe-nd__line">Shipping: $10.75 in Jamaica, $18.97 international.</p>
     <p class="lexe-nd__line">Delivery: 10–18 business days after dispatch.</p>
   </div>
+  {%- unless lexe_checkout_live -%}
   {%- form 'customer', id: 'LexeNotifyForm', class: 'lexe-nd__form' -%}
     <input type="hidden" name="contact[tags]" value="notify,notify-{{ product.handle }}">
     {%- if form.posted_successfully? -%}
@@ -31,6 +32,7 @@
       <button type="submit" class="lexe-nd__btn">Notify me</button>
     {%- endif -%}
   {%- endform -%}
+  {%- endunless -%}
 </div>
 <style>
   .lexe-nd{display:grid;gap:12px;margin:12px 0;font:inherit}
