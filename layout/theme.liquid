@@ -79,13 +79,27 @@
       {%- elsif request.page_type == 'collection' -%}
         <h1 class="visually-hidden">{{ page_title | split: ' | ' | first | default: collection.title }}</h1>
       {%- endif -%}
-      {{ content_for_layout }}
+      {%- liquid
+        assign llg_gated = false
+        if customer == blank and request.page_type == 'collection' and collection
+          assign llg_handles = settings.login_required_collections | remove: ' ' | downcase | split: ','
+          if llg_handles contains collection.handle
+            assign llg_gated = true
+          endif
+        endif
+      -%}
+      {%- if llg_gated -%}
+        {% render 'lexe-login-gate', gate_page: true %}
+      {%- else -%}
+        {{ content_for_layout }}
+      {%- endif -%}
     </main>
 
     <footer>
       {% sections 'footer-group' %}
     </footer>
 
+    {%- if customer == blank -%}{% render 'lexe-login-gate' %}{%- endif -%}
     {% render 'search-modal' %}
     {% render 'apex-search-dropdown' %}
 
@@ -98,3 +112,4 @@
     {% render 'lexe-defer-media' %}
   </body>
 </html>
+

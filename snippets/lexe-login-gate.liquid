@@ -1,0 +1,97 @@
+{%- comment -%}
+  LEXE login gate (replaces the old Orbit Apex "Request Access" framework).
+  - render 'lexe-login-gate'               -> pop-up, opened by window.LexeGate.open(url, title, triggerEl)
+  - render 'lexe-login-gate', gate_page: true -> full prompt shown instead of a login-only collection's products
+  Login-only collections: Theme settings > "Login-required collections" (handles) + Orbit Apex block "Require login to view".
+{%- endcomment -%}
+{%- assign llg_login = '/account/login' -%}{%- comment -%} /account/login keeps return_url through Shopify's customer-account redirect (verified 302 -> return_to). {%- endcomment -%}
+{%- if gate_page -%}
+  {%- assign llg_return = request.path | url_encode -%}
+  <section class="llg-page" aria-labelledby="LlgPageTitle">
+    <div class="llg-card llg-card--page">
+      <span class="llg-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4.5" y="10.5" width="15" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+      <p class="llg-eyebrow">{{ collection.title | escape }}</p>
+      <h2 class="llg-title" id="LlgPageTitle">You must log in to view this collection</h2>
+      <p class="llg-sub">Log in or create a free account to see every piece.</p>
+      <a class="llg-btn" href="{{ llg_login }}?return_url={{ llg_return }}">Log in</a>
+      <a class="llg-link" href="{{ routes.root_url }}">Back to home</a>
+    </div>
+  </section>
+{%- else -%}
+  <div id="LexeLoginGate" class="llg" role="dialog" aria-modal="true" aria-labelledby="LlgTitle" aria-describedby="LlgSub" hidden>
+    <div class="llg-backdrop" data-llg-close></div>
+    <div class="llg-card" tabindex="-1">
+      <button type="button" class="llg-close" data-llg-close aria-label="Close">
+        <svg viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </button>
+      <span class="llg-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4.5" y="10.5" width="15" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+      <p class="llg-eyebrow" data-llg-name></p>
+      <h2 class="llg-title" id="LlgTitle">You must log in to view this collection</h2>
+      <p class="llg-sub" id="LlgSub">Log in or create a free account to see every piece.</p>
+      <a class="llg-btn" href="{{ llg_login }}" data-llg-login data-base="{{ llg_login }}">Log in</a>
+      <button type="button" class="llg-link" data-llg-close>Not now</button>
+    </div>
+  </div>
+  <script>
+  (function(){
+    var d=document.getElementById('LexeLoginGate'); if(!d||window.LexeGate) return;
+    var card=d.querySelector('.llg-card'), btn=d.querySelector('[data-llg-login]'), nm=d.querySelector('[data-llg-name]'), last=null, t=0;
+    function foc(){return Array.prototype.filter.call(d.querySelectorAll('a[href],button:not([disabled])'),function(e){return e.offsetParent!==null;});}
+    function open(url,title,trigger){
+      last=trigger||document.activeElement; clearTimeout(t);
+      btn.href=btn.getAttribute('data-base')+'?return_url='+encodeURIComponent(url||location.pathname);
+      nm.textContent=title||''; nm.hidden=!title;
+      if(d.parentNode!==document.body) document.body.appendChild(d);
+      d.hidden=false; document.documentElement.classList.add('llg-lock');
+      requestAnimationFrame(function(){requestAnimationFrame(function(){d.classList.add('is-open'); btn.focus({preventScroll:true});});});
+    }
+    function close(){
+      if(d.hidden) return; d.classList.remove('is-open'); document.documentElement.classList.remove('llg-lock');
+      t=setTimeout(function(){d.hidden=true;},260);
+      if(last&&last.focus) try{last.focus({preventScroll:true});}catch(e){}
+    }
+    d.addEventListener('click',function(e){ if(e.target.closest('[data-llg-close]')){e.preventDefault();close();} });
+    d.addEventListener('keydown',function(e){
+      if(e.key==='Escape'){e.preventDefault();close();return;}
+      if(e.key!=='Tab') return; var f=foc(); if(!f.length) return;
+      var a=f[0], z=f[f.length-1];
+      if(e.shiftKey&&(document.activeElement===a||!d.contains(document.activeElement))){e.preventDefault();z.focus();}
+      else if(!e.shiftKey&&(document.activeElement===z||!d.contains(document.activeElement))){e.preventDefault();a.focus();}
+    });
+    window.LexeGate={open:open,close:close};
+  })();
+  </script>
+{%- endif -%}
+{%- unless llg_css_done -%}
+{%- assign llg_css_done = true -%}
+<style>
+  .llg{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity .26s ease}
+  .llg[hidden]{display:none}
+  .llg.is-open{opacity:1}
+  .llg-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+  .llg-card{position:relative;width:100%;max-width:420px;background:#fff;color:#0a0a0a;border-radius:22px;padding:40px 32px 26px;text-align:center;
+    font-family:var(--font-body--family,inherit);box-shadow:0 30px 80px -20px rgba(0,0,0,.55);outline:none}
+  .llg .llg-card{transform:translateY(14px) scale(.98);transition:transform .32s cubic-bezier(.2,.8,.2,1)}
+  .llg.is-open .llg-card{transform:none}
+  .llg-close{position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:50%;border:0;background:rgba(0,0,0,.06);color:#0a0a0a;cursor:pointer;display:grid;place-items:center;transition:background .2s}
+  .llg-close:hover{background:rgba(0,0,0,.12)}
+  .llg-close svg{width:12px;height:12px}
+  .llg-icon{display:inline-grid;place-items:center;width:48px;height:48px;border-radius:50%;background:rgba(0,0,0,.06);color:#000;margin-bottom:14px}
+  .llg-icon svg{width:22px;height:22px}
+  .llg-eyebrow{margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#000}
+  .llg-eyebrow[hidden]{display:none}
+  .llg-title{margin:0 0 10px;font-family:var(--font-heading--family,inherit);font-size:22px;line-height:1.25;font-weight:700;letter-spacing:-.01em;color:#0a0a0a;text-transform:none}
+  .llg-sub{margin:0 0 24px;font-size:14px;line-height:1.5;color:rgba(10,10,10,.6)}
+  .llg-btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:50px;border-radius:12px;background:#000;color:#fff!important;text-decoration:none;
+    font-size:13px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;transition:background .2s,transform .2s;box-sizing:border-box}
+  .llg-btn:hover{background:#2b2b2b}
+  .llg-btn:active{transform:scale(.985)}
+  .llg-link{display:inline-block;margin-top:14px;padding:8px 10px;border:0;background:none;color:rgba(10,10,10,.6);font:inherit;font-size:13px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+  .llg-btn:focus-visible,.llg-link:focus-visible,.llg-close:focus-visible{outline:2px solid #000;outline-offset:3px;box-shadow:0 0 0 5px #fff}
+  html.llg-lock{overflow:hidden}
+  .llg-page{display:flex;justify-content:center;align-items:center;min-height:62vh;padding:120px 20px 80px;background:#fff}
+  .llg-card--page{box-shadow:0 20px 60px -25px rgba(0,0,0,.25);border:1px solid rgba(0,0,0,.06)}
+  @media (max-width:480px){.llg{align-items:flex-end;padding:0}.llg .llg-card{max-width:none;border-radius:22px 22px 0 0;padding:36px 22px calc(22px + env(safe-area-inset-bottom));transform:translateY(40px)}.llg-title{font-size:20px}}
+  @media (prefers-reduced-motion:reduce){.llg,.llg .llg-card{transition:none}}
+</style>
+{%- endunless -%}

@@ -2,28 +2,6 @@
 (function () {
   'use strict';
   var SID = '{{ sid }}';
-  var COMMIT_KEY = 'orbit_committed_v1';
-  var UNLOCK_KEY = 'orbit_unlocks_v1';
-  var EMAIL_KEY  = 'orbit_email_v1';
-
-  function safeGet(key) {
-    try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) { return null; }
-  }
-  function safeSet(key, val) {
-    try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
-  }
-
-  (function paintCommitted() {
-    var committed = safeGet(COMMIT_KEY);
-    if (!committed || !committed.length) return;
-    var section = document.querySelector('.orbit-master-' + SID);
-    if (!section) return;
-    section.querySelectorAll('.orbit-card[data-collection-handle]').forEach(function (card) {
-      if (committed.indexOf(card.getAttribute('data-collection-handle')) !== -1) {
-        card.setAttribute('data-committed', '1');
-      }
-    });
-  })();
 
   function ready(fn) {
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn, { once: true });
@@ -39,8 +17,6 @@
     var counter = document.getElementById('OrbitCount-' + SID);
     var live = document.getElementById('OrbitLive-' + SID);
     var dotsEl = document.getElementById('OrbitDots-' + SID);
-    var modal = document.getElementById('OrbitModal-' + SID);
-    var form = document.getElementById('OrbitForm-' + SID);
     if (!track || !root) return;
 
     var cards = Array.prototype.slice.call(track.querySelectorAll('.orbit-card'));
@@ -51,7 +27,6 @@
     var reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
     var sectionVisible = true;
-    var cdTimer = null;
     var autoTimer = null;
     var dragging = false;
     var swipeLocked = false;
@@ -69,19 +44,6 @@
     var programmatic = false;
     var scrollRaf = 0;
 
-    var _unlockCache = null;
-    function getUnlocks() {
-      if (!_unlockCache) _unlockCache = safeGet(UNLOCK_KEY) || {};
-      return _unlockCache;
-    }
-    function addUnlock(handle, atMs) {
-      var map = getUnlocks();
-      if (!map[handle]) { map[handle] = atMs; _unlockCache = map; safeSet(UNLOCK_KEY, map); }
-    }
-    function addCommitted(handle) {
-      var arr = safeGet(COMMIT_KEY) || [];
-      if (arr.indexOf(handle) === -1) { arr.push(handle); safeSet(COMMIT_KEY, arr); }
-    }
 
     function playVideo(v) {
       if (!v || reducedMotion || isTouch) return;
@@ -353,37 +315,6 @@
       }
     }
 
-    var cdCards = track.querySelectorAll('.orbit-card.is-locked[data-unlock-at]');
-    function pad(n) { return (n < 10 ? '0' : '') + n; }
-    function cdTick() {
-      if (!sectionVisible || document.hidden) return;
-      var now = Math.floor(Date.now() / 1000);
-      for (var i = 0; i < cdCards.length; i++) {
-        var card = cdCards[i];
-        var target = parseInt(card.getAttribute('data-unlock-at'), 10); if (!target) continue;
-        var diff = target - now, cd = card.querySelector('[data-countdown]'); if (!cd) continue;
-        if (diff <= 0) { cd.classList.remove('is-active'); continue; }
-        cd.classList.add('is-active');
-        var dEl = cd.querySelector('[data-d]');
-        var hEl = cd.querySelector('[data-h]');
-        var mEl = cd.querySelector('[data-m]');
-        var sEl = cd.querySelector('[data-s]');
-        if (dEl) dEl.textContent = pad(Math.floor(diff / 86400));
-        if (hEl) hEl.textContent = pad(Math.floor((diff % 86400) / 3600));
-        if (mEl) mEl.textContent = pad(Math.floor((diff % 3600) / 60));
-        if (sEl) sEl.textContent = pad(diff % 60);
-      }
-    }
-    function startCd() {
-      if (cdTimer || !cdCards.length) return;
-      cdTick();
-      cdTimer = setInterval(cdTick, 1000);
-    }
-    function stopCd() {
-      if (cdTimer) { clearInterval(cdTimer); cdTimer = null; }
-    }
-    if (cdCards.length) startCd();
-
     var autoSec = parseFloat(root.getAttribute('data-autoscroll') || '0');
     function startAuto() {
       if (autoTimer || !autoSec || total < 2 || reducedMotion) return;
@@ -401,14 +332,12 @@
       var visObs = new IntersectionObserver(function (entries) {
         sectionVisible = !!(entries[0] && entries[0].isIntersecting);
         if (sectionVisible && !document.hidden) {
-          startCd();
           startAuto();
           var av = cards[activeIdx] && cards[activeIdx].querySelector('video');
           if (av) playVideo(av);
           syncFromScroll();
         } else {
-          stopCd();
-          stopAuto();
+            stopAuto();
           cards.forEach(function (c) { pauseVideo(c.querySelector('video')); });
         }
       }, { threshold: 0.08 });
@@ -417,102 +346,22 @@
 
     document.addEventListener('visibilitychange', function () {
       if (document.hidden) {
-        stopCd();
         stopAuto();
         cards.forEach(function (c) { pauseVideo(c.querySelector('video')); });
       } else if (sectionVisible) {
-        startCd();
         startAuto();
         var av = cards[activeIdx] && cards[activeIdx].querySelector('video');
         if (av) playVideo(av);
       }
     });
 
-    var currentCardData = null, modalReady = false;
-    function openModal(card) {
-      if (!modal) return;
-      ensureModal();
-      if (modal.parentNode !== document.body) document.body.appendChild(modal);
-      currentCardData = {
-        handle: card.getAttribute('data-collection-handle') || '',
-        title: card.getAttribute('data-collection-title') || 'Collection',
-        url: card.getAttribute('data-collection-url') || ''
-      };
-      modal.querySelectorAll('[data-context-label]').forEach(function (el) { el.textContent = currentCardData.title; });
-      modal.style.display = 'flex';
-      modal.setAttribute('aria-hidden', 'false');
-      requestAnimationFrame(function () { modal.classList.add('is-open'); });
-    }
-    function closeModal() {
-      if (!modal) return;
-      modal.classList.remove('is-open');
-      modal.setAttribute('aria-hidden', 'true');
-      setTimeout(function () { modal.style.display = ''; }, 200);
-    }
-    function ensureModal() {
-      if (modalReady || !modal || !form) return;
-      modalReady = true;
-      var UNLOCK_HOURS = parseFloat(modal.getAttribute('data-unlock-hours') || '24');
-      var CD_ENABLED = modal.getAttribute('data-countdown-enabled') === '1';
-      var BUSINESS_TAG = (modal.getAttribute('data-business-tag') || 'business_partner').trim();
-      var nameInput = form.querySelector('input[name="contact[first_name]"]');
-      var emailInput = form.querySelector('input[name="contact[email]"]');
-      var bizChk = form.querySelector('[data-business]');
-      var tagsInput = form.querySelector('[data-tags]');
-      var honeypot = form.querySelector('input[name="contact[website]"]');
-      modal.querySelectorAll('[data-close]').forEach(function (btn) {
-        btn.addEventListener('click', function (ev) { ev.preventDefault(); closeModal(); });
-      });
-      modal.addEventListener('keydown', function (ev) {
-        if (ev.key === 'Escape') { ev.preventDefault(); closeModal(); }
-      });
-      form.addEventListener('submit', function (ev) {
-        ev.preventDefault();
-        if (honeypot && honeypot.value) { closeModal(); return; }
-        var ok = true;
-        if (!nameInput || !nameInput.value.trim()) ok = false;
-        if (!/[^\s@]+@[^\s@]+\.[^\s@]+/.test(emailInput ? emailInput.value.trim() : '')) ok = false;
-        if (!ok) return;
-        var isBiz = bizChk && bizChk.checked;
-        var tags = ['orbit-signup'];
-        if (isBiz && BUSINESS_TAG) tags.push(BUSINESS_TAG);
-        if (currentCardData && currentCardData.handle) tags.push('orbit-' + currentCardData.handle);
-        if (tagsInput) tagsInput.value = tags.join(',');
-        var unlocksAt = (isBiz || !CD_ENABLED) ? Date.now() - 1000 : Date.now() + UNLOCK_HOURS * 3600000;
-        if (currentCardData && currentCardData.handle) {
-          addCommitted(currentCardData.handle);
-          addUnlock(currentCardData.handle, unlocksAt);
-          track.querySelectorAll('.orbit-card[data-collection-handle="' + currentCardData.handle + '"]').forEach(function (c) {
-            c.setAttribute('data-committed', '1');
-          });
-        }
-        try { if (emailInput && emailInput.value) localStorage.setItem(EMAIL_KEY, emailInput.value.trim()); } catch (er) {}
-        fetch(form.getAttribute('action') || '/contact', {
-          method: 'POST', body: new FormData(form), credentials: 'same-origin'
-        }).catch(function () {});
-        closeModal();
-      });
-    }
-
-    function handleLocked(card) {
-      if (ignoreClick || swipeLocked) return;
-      if (card._orbitUnlocked || card.getAttribute('data-unlocked-locally') === '1') {
-        var url = card.getAttribute('data-collection-url');
-        if (url) location.href = url;
-        return;
-      }
-      openModal(card);
-    }
+    /* Login gate: logged-out visitors opening a login-only collection get the shared pop-up (snippets/lexe-login-gate, window.LexeGate). */
     cards.forEach(function (card) {
-      if (card.getAttribute('data-locked') !== '1') return;
+      if (card.getAttribute('data-login-required') !== '1') return;
       card.addEventListener('click', function (e) {
-        if (ignoreClick || swipeLocked) { e.preventDefault(); e.stopPropagation(); return; }
+        if (ignoreClick || swipeLocked || !window.LexeGate) return;
         e.preventDefault();
-        e.stopPropagation();
-        handleLocked(card);
-      });
-      card.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleLocked(card); }
+        window.LexeGate.open(card.getAttribute('href'), card.getAttribute('data-collection-title'), card);
       });
     });
 
@@ -540,3 +389,4 @@
   });
 })();
 </script>
+

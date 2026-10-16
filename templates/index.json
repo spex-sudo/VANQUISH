@@ -176,12 +176,7 @@
             "badge_text": "",
             "badge_bg": "#000000",
             "badge_text_color": "#ffffff",
-            "lock_collection": false,
-            "lock_label": "ACCESS RESTRICTED",
-            "lock_cta_label": "Request Access",
-            "unlocked_cta_label": "Shop Now",
-            "lock_color": "#888888",
-            "lock_unlock_at": ""
+            "lock_collection": false
           }
         },
         "collection_3YmCNK": {
@@ -195,12 +190,7 @@
             "badge_text": "",
             "badge_bg": "#000000",
             "badge_text_color": "#ff4d4d",
-            "lock_collection": false,
-            "lock_label": "ACCESS RESTRICTED",
-            "lock_cta_label": "Request Access",
-            "unlocked_cta_label": "Shop Now",
-            "lock_color": "#888888",
-            "lock_unlock_at": ""
+            "lock_collection": false
           }
         },
         "collection_zcXzR6": {
@@ -214,12 +204,7 @@
             "badge_text": "",
             "badge_bg": "#000000",
             "badge_text_color": "#ff4d4d",
-            "lock_collection": false,
-            "lock_label": "UNRELEASED",
-            "lock_cta_label": "Request Access",
-            "unlocked_cta_label": "Shop Now",
-            "lock_color": "#888888",
-            "lock_unlock_at": ""
+            "lock_collection": false
           }
         },
         "collection_fCeNdr": {
@@ -233,12 +218,7 @@
             "badge_text": "",
             "badge_bg": "#000000",
             "badge_text_color": "#ff4d4d",
-            "lock_collection": true,
-            "lock_label": "ACCESS RESTRICTED",
-            "lock_cta_label": "Request Access",
-            "unlocked_cta_label": "Shop Now",
-            "lock_color": "#888888",
-            "lock_unlock_at": ""
+            "lock_collection": true
           }
         },
         "collection_jQgwJn": {
@@ -253,12 +233,7 @@
             "badge_text": "SOLD OUT FOREVER",
             "badge_bg": "#000000",
             "badge_text_color": "#ff4d4d",
-            "lock_collection": true,
-            "lock_label": "ACCESS RESTRICTED",
-            "lock_cta_label": "Request Access",
-            "unlocked_cta_label": "Shop Now",
-            "lock_color": "#888888",
-            "lock_unlock_at": ""
+            "lock_collection": true
           }
         }
       },
@@ -303,28 +278,8 @@
         "price_prefix": "From",
         "unit_singular": "piece",
         "unit_plural": "pieces",
-        "countdown_day_label": "days",
-        "countdown_hour_label": "hrs",
-        "countdown_minute_label": "min",
-        "countdown_second_label": "sec",
         "sr_showing_label": "Showing",
         "sr_of_label": "of",
-        "committed_badge": "YOU’RE ON THE LIST",
-        "modal_bg": "#ffffff",
-        "modal_fg": "#000000",
-        "modal_accent": "#ece6fd",
-        "modal_radius": 24,
-        "modal_step1_title": "Request Access",
-        "modal_step1_sub": "Reserve your spot. We'll email when it opens.",
-        "modal_name_label": "First name",
-        "modal_email_label": "Email",
-        "modal_biz_label": "I'm a business owner",
-        "modal_cta_submit": "Reserve Access",
-        "modal_privacy_note": "We'll never share your email. Unsubscribe anytime.",
-        "countdown_enabled": true,
-        "unlock_hours": 20,
-        "business_tag": "business_partner",
-        "admin_notify_url": "",
         "enable_schema": true
       }
     },

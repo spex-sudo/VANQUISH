@@ -2284,5 +2284,17 @@
         "default": "equal-width-buttons"
       }
     ]
+  },
+  {
+    "name": "Login-required collections",
+    "settings": [
+      {
+        "type": "text",
+        "id": "login_required_collections",
+        "label": "Collection handles (comma separated)",
+        "default": "lexe, apparell",
+        "info": "Logged-out visitors see a 'You must log in' prompt instead of these collections' products. Orbit Apex cards for them stay looking normal and open a log-in pop-up."
+      }
+    ]
   }
 ]

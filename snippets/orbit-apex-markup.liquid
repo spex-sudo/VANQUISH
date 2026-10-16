@@ -57,46 +57,19 @@
           continue
         endif
         assign node_color   = block.settings.status_color | default: section.settings.accent_color
-        assign is_locked    = block.settings.lock_collection
-        assign lock_color   = block.settings.lock_color | default: '#888888'
-        assign lock_label   = block.settings.lock_label | default: 'ACCESS RESTRICTED'
-        assign lock_until   = block.settings.lock_unlock_at
-        assign cta_label    = block.settings.cta_label | default: 'Enter'
-        assign lock_cta     = block.settings.lock_cta_label | default: 'Request Access'
-        assign unlocked_cta = block.settings.unlocked_cta_label | default: 'Shop Now'
         assign coll_handle  = c.handle | default: 'unknown'
         assign coll_title   = c.title | default: 'Collection'
         assign coll_count   = c.products_count | default: 0
-        assign unlock_ts    = 0
-        if lock_until != blank
-          assign unlock_ts = lock_until | date: '%s' | plus: 0
-        endif
-        if is_locked and unlock_ts > 0 and now_ts >= unlock_ts
-          assign is_locked = false
+        assign cta_label    = block.settings.cta_label | default: 'Enter'
+        assign needs_login  = false
+        if customer == blank
+          if block.settings.lock_collection or login_handles contains coll_handle
+            assign needs_login = true
+          endif
         endif
         assign aria_label = coll_title
-        if is_locked
-          assign aria_label = coll_title | append: ' — ' | append: lock_label
-        endif
       -%}
 
-      {% if is_locked %}
-        <div
-          class="orbit-card is-locked{% if first_rendered %} is-active{% endif %}"
-          {{ block.shopify_attributes }}
-          data-index="{{ forloop.index0 }}"
-          data-collection-title="{{ coll_title | escape }}"
-          data-collection-handle="{{ coll_handle }}"
-          data-collection-url="{{ c.url | default: '' }}"
-          data-locked="1"
-          data-unlocked-cta="{{ unlocked_cta | escape }}"
-          {% if unlock_ts > 0 %}data-unlock-at="{{ unlock_ts }}"{% endif %}
-          style="--lock-color: {{ lock_color }};"
-          role="button" tabindex="0"
-          aria-label="{{ aria_label | escape }}"
-          {% if first_rendered %}aria-current="true"{% endif %}
-        >
-      {% else %}
         <a
           href="{{ c.url | default: '#' }}"
           class="orbit-card{% if first_rendered %} is-active{% endif %}"
@@ -104,10 +77,10 @@
           data-index="{{ forloop.index0 }}"
           data-collection-title="{{ coll_title | escape }}"
           data-collection-handle="{{ coll_handle }}"
+          {% if needs_login %}data-login-required="1"{% endif %}
           aria-label="{{ aria_label | escape }}"
           {% if first_rendered %}aria-current="true"{% endif %}
         >
-      {% endif %}
 
         <div class="hud-corners" aria-hidden="true">
           <span class="hud-corner hud-tl"></span><span class="hud-corner hud-tr"></span>
@@ -120,10 +93,6 @@
             {{ block.settings.badge_text | escape }}
           </div>
         {% endif %}
-
-        <div class="orbit-committed" data-committed-badge>
-          <span class="tick"></span>{{ committed_badge | escape }}
-        </div>
 
         {%- assign video_src = '' -%}
         {%- assign video_poster_url = '' -%}
@@ -168,7 +137,7 @@
             <div class="orbit-status-text" style="color:{{ node_color }};">{{ block.settings.status_text | default: 'READY' | escape }}</div>
           </div>
           <h3 class="orbit-title">{{ coll_title | escape }}</h3>
-          {%- if show_meta and is_locked == false -%}
+          {%- if show_meta -%}
             <div class="orbit-meta" aria-hidden="true">
               {%- if coll_count > 0 -%}<span>{{ coll_count }} {% if coll_count == 1 %}{{ unit_singular | escape }}{% else %}{{ unit_plural | escape }}{% endif %}</span>{%- endif -%}
               {%- if block.settings.price_from != blank -%}
@@ -177,41 +146,10 @@
               {%- endif -%}
             </div>
           {%- endif -%}
-          {%- if is_locked == false -%}
-            <span class="orbit-cta" aria-hidden="true"><span>{{ cta_label | escape }}</span><span class="orbit-cta-arrow"></span></span>
-          {%- endif -%}
+          <span class="orbit-cta" aria-hidden="true"><span>{{ cta_label | escape }}</span><span class="orbit-cta-arrow"></span></span>
         </div>
 
-        {% if is_locked %}
-          <div class="orbit-lock-veil" aria-hidden="true">
-            <div class="lock-icon">
-              <svg viewBox="0 0 24 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M6 12V8C6 4.686 8.686 2 12 2C15.314 2 18 4.686 18 8V12" stroke="{{ lock_color }}" stroke-width="2" stroke-linecap="round"/>
-                <rect x="3" y="12" width="18" height="14" rx="2" fill="none" stroke="{{ lock_color }}" stroke-width="2"/>
-                <circle cx="12" cy="19" r="2" fill="{{ lock_color }}"/>
-                <line x1="12" y1="21" x2="12" y2="24" stroke="{{ lock_color }}" stroke-width="2" stroke-linecap="round"/>
-              </svg>
-            </div>
-            <div class="lock-rule"></div>
-            <div class="lock-label" data-lock-label>{{ lock_label | escape }}</div>
-            {%- if unlock_ts > 0 -%}
-              <div class="lock-countdown" data-countdown>
-                <div class="lock-count-unit"><span class="lock-count-num" data-d>00</span><span class="lock-count-lbl">{{ cd_day_label | escape }}</span></div>
-                <div class="lock-count-unit"><span class="lock-count-num" data-h>00</span><span class="lock-count-lbl">{{ cd_hour_label | escape }}</span></div>
-                <div class="lock-count-unit"><span class="lock-count-num" data-m>00</span><span class="lock-count-lbl">{{ cd_min_label | escape }}</span></div>
-                <div class="lock-count-unit"><span class="lock-count-num" data-s>00</span><span class="lock-count-lbl">{{ cd_sec_label | escape }}</span></div>
-              </div>
-            {%- endif -%}
-            <div class="lock-countdown lock-countdown--personal" data-personal-countdown style="display:none;">
-              <div class="lock-count-unit"><span class="lock-count-num" data-pcd-h>00</span><span class="lock-count-lbl">{{ cd_hour_label | escape }}</span></div>
-              <div class="lock-count-unit"><span class="lock-count-num" data-pcd-m>00</span><span class="lock-count-lbl">{{ cd_min_label | escape }}</span></div>
-              <div class="lock-count-unit"><span class="lock-count-num" data-pcd-s>00</span><span class="lock-count-lbl">{{ cd_sec_label | escape }}</span></div>
-            </div>
-            <div class="lock-cta-hint" data-lock-cta-hint>{{ lock_cta | escape }}</div>
-          </div>
-        {% endif %}
-
-      {% if is_locked %}</div>{% else %}</a>{% endif %}
+      </a>
       {%- assign first_rendered = false -%}
     {% endfor %}
   </div>
@@ -225,7 +163,6 @@
           <button type="button"
             class="orbit-dot{% if dot_idx == 0 %} is-active{% endif %}"
             data-dot-index="{{ dot_idx }}"
-            {% if block.settings.lock_collection %}data-locked="1"{% endif %}
             aria-label="Go to {{ _c.title | default: 'collection' | escape }} ({{ dot_idx | plus: 1 }} of {{ rendered_count }})"
             role="tab"
             aria-selected="{% if dot_idx == 0 %}true{% else %}false{% endif %}"
@@ -238,67 +175,3 @@
 
   <div class="sr-only" aria-live="polite" id="OrbitLive-{{ sid }}"></div>
 </section>
-
-<div class="orbit-modal-{{ sid }}"
-  id="OrbitModal-{{ sid }}"
-  role="dialog" aria-modal="true"
-  aria-labelledby="OrbitModalTitle-{{ sid }}"
-  aria-hidden="true"
-  data-unlock-hours="{{ unlock_hours }}"
-  data-countdown-enabled="{% if countdown_enabled %}1{% else %}0{% endif %}"
-  data-business-tag="{{ business_tag }}"
-  data-admin-notify-url="{{ admin_notify_url }}"
->
-  <div class="m-backdrop" data-close></div>
-  <div class="m-card" role="document">
-    <button type="button" class="m-close" data-close aria-label="Close">
-      <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <path d="M1 1L13 13M13 1L1 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-      </svg>
-    </button>
-    {%- assign form_id = 'OrbitForm-' | append: sid -%}
-    {% form 'customer', id: form_id, class: 'm-form', novalidate: 'novalidate' %}
-      <input type="hidden" name="contact[accepts_marketing]" value="1">
-      <input type="hidden" name="contact[tags]" value="orbit-signup" data-tags>
-      <div class="m-step is-visible" data-step="form">
-        <div class="m-context"><span class="m-context-dot"></span><span data-context-label>Collection</span></div>
-        <h3 class="m-title" id="OrbitModalTitle-{{ sid }}">{{ modal_step1_title | escape }}</h3>
-        <p class="m-sub">{{ modal_step1_sub | escape }}</p>
-        {%- if form.errors -%}
-          <div class="m-error is-visible" data-orbit-error="true" role="alert">
-            {%- for field in form.errors -%}{{ form.errors.messages[field] }}{% unless forloop.last %} · {% endunless %}{%- endfor -%}
-          </div>
-        {%- endif -%}
-        <div class="m-fields">
-          <div class="m-field">
-            <label class="m-label" for="OrbitName-{{ sid }}">{{ modal_name_label | escape }}</label>
-            <input class="m-input" type="text" id="OrbitName-{{ sid }}" name="contact[first_name]" autocomplete="given-name" autocapitalize="words" required>
-            <div class="m-error" data-error-for="name">Please enter your first name.</div>
-          </div>
-          <div class="m-field">
-            <label class="m-label" for="OrbitEmail-{{ sid }}">{{ modal_email_label | escape }}</label>
-            <input class="m-input" type="email" id="OrbitEmail-{{ sid }}" name="contact[email]" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false" required value="{{ form.email }}">
-            <div class="m-error" data-error-for="email">Please enter a valid email.</div>
-          </div>
-        </div>
-        <label class="m-toggle">
-          <input type="checkbox" id="OrbitBiz-{{ sid }}" data-business>
-          <span class="m-toggle-track" aria-hidden="true"><span class="m-toggle-knob"></span></span>
-          <span class="m-toggle-label">{{ modal_biz_label | escape }}</span>
-        </label>
-        <div class="m-honeypot" aria-hidden="true">
-          <label>Leave this empty</label>
-          <input type="text" name="contact[website]" tabindex="-1" autocomplete="off">
-        </div>
-        <div class="m-actions">
-          <button type="submit" class="m-btn m-btn-primary" data-submit>
-            <span class="m-spin" aria-hidden="true"></span>
-            <span class="m-btn-label">{{ modal_cta_submit | escape }}</span>
-          </button>
-        </div>
-        <p class="m-privacy">{{ modal_privacy_note | escape }}</p>
-      </div>
-    {% endform %}
-    <div class="sr-only" aria-live="polite" data-live></div>
-  </div>
-</div>
