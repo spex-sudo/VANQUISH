@@ -1,0 +1,99 @@
+{%- comment -%}
+  LEXE 2026-10-16: minimal black/white cart page skin (cart page only; rendered from sections/main-cart.liquid).
+  Does not touch the cart drawer, checkout lock (snippets/lexe-preview-clean), gift logic or bundle add logic.
+{%- endcomment -%}
+{%- liquid
+  assign lexe_cm_live = false
+  if settings.lexe_lock_notify == false
+    assign lexe_cm_live = true
+  endif
+-%}
+<style id="lexe-cart-minimal">
+  .cart-page{--lx-ink:#000;--lx-line:rgba(0,0,0,.12);--lx-mute:rgba(0,0,0,.58);color:var(--lx-ink)}
+  .cart-page:not(.cart-page--empty){padding-top:max(var(--padding-block-start,24px),112px)}
+  .cart-page .cart-title h1,.cart-page .cart-page__title :is(h1,h2,h3,h4){letter-spacing:.02em;text-transform:uppercase;font-weight:600}
+  /* line items */
+  .cart-page .cart-items__table-row{padding-block:18px;border-color:var(--lx-line)!important}
+  .cart-page .cart-items__media-container{border-radius:0;background:#f4f4f4}
+  .cart-page .cart-items__title{font-weight:600;text-decoration:none;color:var(--lx-ink)}
+  .cart-page .cart-items__variants,.cart-page .cart-items__details dl,.cart-page .cart-items__unit-price-wrapper{color:var(--lx-mute);font-size:13px}
+  .cart-page .cart-items__price{font-weight:600;font-variant-numeric:tabular-nums}
+  /* qty stepper + remove */
+  .cart-page .cart-items__quantity .quantity-selector,.cart-page quantity-selector-component{border:1px solid var(--lx-ink)!important;border-radius:0!important;min-height:40px}
+  .cart-page .quantity-minus,.cart-page .quantity-plus{min-width:40px;min-height:40px;color:var(--lx-ink)}
+  .cart-page .quantity-minus:focus-visible,.cart-page .quantity-plus:focus-visible,.cart-page .cart-items__remove:focus-visible,.cart-page #checkout:focus-visible{outline:2px solid #000;outline-offset:2px}
+  .cart-page .cart-items__remove{min-width:40px;min-height:40px;color:var(--lx-ink);opacity:.7}
+  .cart-page .cart-items__remove:hover{opacity:1}
+  /* gift + bundle grouping */
+  .cart-page .lexe-gift-free{color:var(--lx-ink)!important;letter-spacing:.08em}
+  .cart-page .lexe-gift-line .cart-items__title::after{content:"Free gift";display:inline-block;margin-left:8px;padding:2px 6px;border:1px solid #000;font-size:10px;letter-spacing:.1em;text-transform:uppercase;vertical-align:middle}
+  .lexe-bundle-tag{margin:4px 0 0;font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
+  .cart-page .lexe-bundle-line > td:first-child{box-shadow:inset 3px 0 0 #000;padding-left:10px}
+  .cart-page .lexe-bundle-line:not(.lexe-bundle-end){border-bottom-style:dashed!important}
+  /* gift progress (black/white) */
+  .cart-page .lexe-gift-progress{border:1px solid var(--lx-line)!important;border-radius:0!important;background:#fafafa!important;color:#000}
+  .cart-page .lexe-gift-progress__bar{background:rgba(0,0,0,.1)!important;border-radius:0!important}
+  .cart-page .lexe-gift-progress__fill{background:#000!important;border-radius:0!important}
+  .cart-page .lexe-gift-line .cart-items__quantity{visibility:hidden}
+  /* summary */
+  .cart-page .cart-page__summary{background:#fff!important}
+  .cart-page .cart-page__summary .cart__summary-inner,.cart-page .cart-page__summary > *{background:transparent}
+  .cart-page .cart-page__summary .color-scheme-2,.cart-page .cart-page__summary [class*="color-scheme"]{background:#fff!important;color:#000}
+  .cart-page .cart-totals__total-value{font-weight:700;font-variant-numeric:tabular-nums}
+  .cart-page .cart-totals__tax-note{color:var(--lx-mute)}
+  .cart-page #checkout{background:#000!important;color:#fff!important;border:1px solid #000!important;border-radius:0!important;min-height:54px;width:100%;font-weight:700;letter-spacing:.14em;text-transform:uppercase;transition:opacity .15s ease}
+  .cart-page #checkout:hover{opacity:.86}
+  .cart-page :is(.cart-note,.cart-discount) summary{font-size:13px}
+  .lexe-cm-assure{display:flex;flex-wrap:wrap;gap:8px 18px;list-style:none;margin:14px 0 0;padding:0;font-size:12px;color:var(--lx-mute)}
+  .lexe-cm-assure li{display:flex;align-items:center;gap:6px}
+  .lexe-cm-assure a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+  .lexe-cm-soon{margin:12px 0 0;padding:12px 14px;border:1px solid var(--lx-line);font-size:13px;color:var(--lx-mute)}
+  /* empty state */
+  .cart-page--empty .cart-items__empty-button{background:#000!important;color:#fff!important;border-radius:0!important;min-height:50px;padding-inline:32px;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
+  @media (min-width:750px){
+    .cart-page .cart-page__summary{position:sticky;top:96px;align-self:start;height:fit-content;border:1px solid var(--lx-line);padding:24px}
+  }
+  {%- if lexe_cm_live -%}
+  @media (max-width:749px){
+    .cart-page:not(.cart-page--empty){padding-bottom:calc(96px + env(safe-area-inset-bottom))}
+    .cart-page .cart__ctas{position:fixed;left:0;right:0;bottom:0;z-index:20;background:#fff;margin:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--lx-line);box-shadow:0 -6px 18px rgba(0,0,0,.06)}
+    .cart-page--empty .cart__ctas{display:none}
+    .cart-page .cart-page__summary .cart-summary__inner{position:static!important}
+  }
+  {%- endif -%}
+  @media (prefers-reduced-motion:reduce){.cart-page #checkout{transition:none}}
+</style>
+{%- unless lexe_cm_live or cart.empty? -%}
+<script>
+  (function(){
+    function addSoon(){
+      var s=document.querySelector('.cart-page__summary .cart__ctas');
+      if(!s||s.querySelector('.lexe-cm-soon'))return;
+      var p=document.createElement('p');p.className='lexe-cm-soon';p.setAttribute('role','status');
+      p.textContent='Online checkout is opening soon. Your cart is saved on this device.';
+      s.appendChild(p);
+    }
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',addSoon);else addSoon();
+    new MutationObserver(addSoon).observe(document.documentElement,{childList:true,subtree:true});
+  })();
+</script>
+{%- endunless -%}
+<script id="lexe-cm-chat-lift">
+  /* Cart page only: when the mobile sticky Check out bar is showing, lift the floating AI/chat launcher (#ads-agent-host, open shadow root) above it. Style-only; the app itself is not modified. */
+  (function(){
+    var ID='lexe-cm-lift';
+    function bar(){var c=document.querySelector('.cart-page .cart__ctas'),b=c&&c.querySelector('#checkout');if(!c||!b||!b.offsetParent)return 0;if(getComputedStyle(c).position!=='fixed')return 0;return c.offsetHeight;}
+    function run(){
+      var h=document.getElementById('ads-agent-host'),r=h&&h.shadowRoot;if(!r)return;
+      var st=r.getElementById(ID),px=bar();
+      if(!px){if(st)st.remove();return;}
+      if(!st){st=document.createElement('style');st.id=ID;r.appendChild(st);}
+      var css='.rounded-full.fixed.bottom-0{bottom:'+(px+12)+'px!important;transition:bottom .2s ease}';
+      if(st.textContent!==css)st.textContent=css;
+    }
+    var t;function q(){clearTimeout(t);t=setTimeout(run,120);}
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',q);else q();
+    new MutationObserver(q).observe(document.body,{childList:true,subtree:true});
+    addEventListener('resize',q);
+  })();
+</script>
