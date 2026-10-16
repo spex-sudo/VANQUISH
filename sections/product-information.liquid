@@ -173,14 +173,14 @@
 {%- liquid
   assign bf_gf = false
   assign cjk_families = ',Shippori Antique,Shippori Antique B1,Shippori Mincho,Shippori Mincho B1,Zen Kaku Gothic New,Zen Kaku Gothic Antique,Zen Maru Gothic,Zen Old Mincho,Zen Antique,Kosugi,Kosugi Maru,Sawarabi Gothic,Sawarabi Mincho,M PLUS 1p,M PLUS Rounded 1c,Noto Sans JP,Noto Serif JP,Kaisei Decol,Kaisei Opti,Kaisei Tokumin,BIZ UDPGothic,BIZ UDPMincho,Murecho,Yuji Syuku,Klee One,Dela Gothic One,Hina Mincho,Potta One,Yusei Magic,'
-  assign bf_key = bf.family | prepend: ',' | append: ','
+  assign bf_name = bf.family | remove: '"' | remove: "'"
+  assign bf_key = bf_name | prepend: ',' | append: ','
   if cjk_families contains bf_key
     assign bf_gf = true
   endif
 -%}
-<!--bfdbg[{{ bf.family }}][{{ bf_key }}][{{ bf_gf }}][{{ cjk_families | size }}]-->
 {%- if bf_gf -%}
-  {%- capture bf_gf_url -%}https://fonts.googleapis.com/css2?family={{ bf.family | replace: ' ', '+' }}:wght@{{ bf.weight }}&display=swap{%- endcapture -%}
+  {%- capture bf_gf_url -%}https://fonts.googleapis.com/css2?family={{ bf_name | replace: ' ', '+' }}:wght@{{ bf.weight }}&display=swap{%- endcapture -%}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="{{ bf_gf_url }}" media="print" onload="this.media='all'">
@@ -2353,6 +2353,7 @@ body.ap-glassbar #MainContent{padding-bottom:var(--ap-glass-reserve,0px)}
     if(BE.panel&&BP.mode>1){BE.panel.hidden=false;BP.open=true;}
   }
   function doAdd(){
+    if(atc&&atc.classList.contains('ld'))return; /* lexe-security: in-flight guard, blocks double add */
     var cv=findVariant();
     if(!cv){
       if(atc){atc.classList.add('error');setTimeout(function(){atc.classList.remove('error');},420);}
@@ -2593,6 +2594,7 @@ body.ap-glassbar #MainContent{padding-bottom:var(--ap-glass-reserve,0px)}
     document.addEventListener('cart:updated',function(){setTimeout(check,300);});
     document.addEventListener('cart:item-added',function(){setTimeout(check,300);});
     if(btn)btn.addEventListener('click',function(){
+      if(busy)return; /* lexe-security: in-flight guard */
       var cv=findVariant();
       var email=(em&&em.value||'').trim();
       if(!cv)return;
@@ -4769,6 +4771,7 @@ body.ap-glassbar #MainContent{padding-bottom:var(--ap-glass-reserve,0px)}
   }
 }
 {% endschema %}
+
 
 
 

@@ -1,0 +1,24 @@
+{%- comment -%} lexe-security: honeypot + double-submit guard for Shopify contact/customer (newsletter, sign-up) forms. Works alongside Shopify's own hCaptcha. {%- endcomment -%}
+<script>
+(function(){
+  if(window.__lexeFormGuard)return;window.__lexeFormGuard=1;
+  var HP='lx_website',WIN=1500;
+  function guarded(f){var t=f&&f.querySelector&&f.querySelector('input[name="form_type"]');return !!t&&/^(contact|customer|create_customer)$/.test(t.value);}
+  function addHp(f){
+    if(f.querySelector('input[name="'+HP+'"]'))return;
+    var w=document.createElement('div');w.setAttribute('aria-hidden','true');
+    w.style.cssText='position:absolute!important;left:-9999px!important;width:1px;height:1px;overflow:hidden';
+    var i=document.createElement('input');i.type='text';i.name=HP;i.tabIndex=-1;i.autocomplete='off';i.value='';
+    w.appendChild(i);f.appendChild(w);
+  }
+  function scan(){Array.prototype.forEach.call(document.querySelectorAll('form'),function(f){if(guarded(f))addHp(f);});}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',scan);else scan();
+  document.addEventListener('submit',function(e){
+    var f=e.target;if(!guarded(f))return;
+    var hp=f.querySelector('input[name="'+HP+'"]');
+    var now=Date.now(),last=+(f.getAttribute('data-lx-sub')||0);
+    if((hp&&hp.value)||(now-last<WIN)){e.preventDefault();e.stopImmediatePropagation();return;}
+    f.setAttribute('data-lx-sub',String(now));
+  },true);
+})();
+</script>
