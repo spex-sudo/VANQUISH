@@ -1,5 +1,13 @@
 {%- comment -%} LEXE preview 2026-10-15: "Notify me when it drops" replaces add-to-cart while checkout is not live. Preview theme only. {%- endcomment -%}
-{%- assign lexe_checkout_live = shop.metafields.lexe.checkout_live.value | default: false -%}
+{%- liquid
+  comment
+    LEXE 2026-10-16: purchasing lock is the Theme settings > LEXE checkout > 'Lock purchasing to Notify me' checkbox (default ON). Metafield no longer used.
+  endcomment
+  assign lexe_checkout_live = false
+  if settings.lexe_lock_notify == false
+    assign lexe_checkout_live = true
+  endif
+-%}
 {%- if product and lexe_checkout_live != true -%}
 <div id="lexe-notify-drop" class="lexe-nd">
   <div class="lexe-nd__info" id="lexe-ship-info">

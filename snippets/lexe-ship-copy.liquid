@@ -15,7 +15,7 @@
 {%- comment -%} LEXE 2026-10-15 22:40: (1) hide fake "Customers are viewing" ticker everywhere. (2) While shop.metafields.lexe.checkout_live is not true: hide the "Buying it on its own? Use Add to cart." sentence and the whole homepage free-pair promo section (incl. Claim box). Both return automatically when checkout_live = true. (3) Free-pair offer line text set to the agreed copy. {%- endcomment -%}
 <script>
 (function(){
-  var LIVE={% if shop.metafields.lexe.checkout_live == true %}true{% else %}false{% endif %};
+  var LIVE={% if settings.lexe_lock_notify == false %}true{% else %}false{% endif %};
   var OFFER='Free Specs from select styles on $45+ orders. Shipping from $10.75.';
   function run(){
     document.querySelectorAll('[class^="apex-free-"],[class*=" apex-free-"]').forEach(function(el){ if(/with orders of \$45\+/.test(el.textContent)) el.textContent=OFFER; });
@@ -35,7 +35,7 @@
   new MutationObserver(function(){ clearTimeout(window.__lexeT); window.__lexeT=setTimeout(run,150); }).observe(document.documentElement,{childList:true,subtree:true});
 })();
 </script>
-{%- unless shop.metafields.lexe.checkout_live == true -%}
+{%- unless settings.lexe_lock_notify == false -%}
 <style id="lexe-hide-claim">[id^="ap-claim"]:not([id^="ap-claim-"]){display:none !important;}</style>
 {%- if template.name == 'index' -%}
 <style id="lexe-hide-free-pair">[id$="__luxury_featureproduct_BNr6Rf"]{display:none !important;}</style>
@@ -46,7 +46,7 @@
 <style id="lexe-cd-fixes">
 .vqsc-tag{display:none !important;}
 .lxb__prod:has(a[href*="/products/digital-product"]),a.va-card[href*="/products/digital-product"]{display:none !important;}
-{%- unless shop.metafields.lexe.checkout_live == true %}
+{%- unless settings.lexe_lock_notify == false %}
 [id^="ApexDrawer-"]{display:none !important;}
 {%- endunless %}
 </style>
