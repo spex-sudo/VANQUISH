@@ -11,6 +11,89 @@
   "type": "footer",
   "name": "Footer",
   "sections": {
+    "vanquish_atelier_H7GEMT": {
+      "type": "vanquish-atelier",
+      "blocks": {
+        "magazine_w4aPEe": {
+          "type": "magazine",
+          "settings": {
+            "image": "shopify://shop_images/IMG-0591.jpg",
+            "caption": "",
+            "link": ""
+          }
+        },
+        "magazine_pDXCGH": {
+          "type": "magazine",
+          "settings": {
+            "image": "shopify://shop_images/IMG-0527.jpg",
+            "caption": "",
+            "link": ""
+          }
+        },
+        "magazine_cirEjc": {
+          "type": "magazine",
+          "settings": {
+            "image": "shopify://shop_images/0124DAC3-0C0A-4301-B69C-DFDE7C360D48.jpg",
+            "caption": "",
+            "link": ""
+          }
+        },
+        "magazine_BDU6Am": {
+          "type": "magazine",
+          "settings": {
+            "image": "shopify://shop_images/IMG-0590.jpg",
+            "caption": "",
+            "link": ""
+          }
+        },
+        "magazine_xYqnYH": {
+          "type": "magazine",
+          "settings": {
+            "image": "shopify://shop_images/DB2AC5DD-6EE0-41D9-8CBD-6149205ECF2C.jpg",
+            "caption": "",
+            "link": ""
+          }
+        }
+      },
+      "block_order": [
+        "magazine_w4aPEe",
+        "magazine_pDXCGH",
+        "magazine_cirEjc",
+        "magazine_BDU6Am",
+        "magazine_xYqnYH"
+      ],
+      "name": "Product Atelier",
+      "settings": {
+        "display_mode": "magazine",
+        "products": [],
+        "collection": "",
+        "card_count": 8,
+        "show_header": false,
+        "title": "",
+        "show_arrows": false,
+        "card_shape": "landscape",
+        "landscape_ratio": "16 / 9",
+        "card_width": 340,
+        "squircle_radius": 0,
+        "landscape_radius": 0,
+        "card_gap": 20,
+        "show_names": true,
+        "name_font": "bebas_neue_n4",
+        "heading_font": "bebas_neue_n4",
+        "name_size": 22,
+        "title_size": 28,
+        "name_tracking": 4,
+        "name_transform": "uppercase",
+        "autoplay": true,
+        "autoplay_speed": 8,
+        "edge_fade": true,
+        "bg_color": "#FFFFFF",
+        "text_color": "#292929",
+        "section_padding": 32,
+        "pad_top": 40,
+        "pad_bottom": 16
+      }
+    },
     "lexe_specs_offer_yxf6P8": {
       "type": "lexe-specs-offer",
       "name": "LEXE Specs offer signup",
@@ -85,6 +168,7 @@
     }
   },
   "order": [
+    "vanquish_atelier_H7GEMT",
     "lexe_specs_offer_yxf6P8",
     "luxury_footer_gbxGDK"
   ]

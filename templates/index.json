@@ -327,115 +327,6 @@
         "pad_bottom": 0
       }
     },
-    "vanquish_atelier_r4XQki": {
-      "type": "vanquish-atelier",
-      "blocks": {
-        "magazine_cHVtmp": {
-          "type": "magazine",
-          "settings": {
-            "image": "shopify://shop_images/IMG-0591.jpg",
-            "caption": "",
-            "link": ""
-          }
-        },
-        "magazine_AAkwkK": {
-          "type": "magazine",
-          "settings": {
-            "image": "shopify://shop_images/IMG-0527.jpg",
-            "caption": "",
-            "link": ""
-          }
-        },
-        "magazine_V4FYyP": {
-          "type": "magazine",
-          "settings": {
-            "image": "shopify://shop_images/e46c653ef2f24fdf8f2f680493a1d33e-Max-Origin.webp",
-            "caption": "",
-            "link": ""
-          }
-        },
-        "magazine_zNVDU6": {
-          "type": "magazine",
-          "settings": {
-            "image": "shopify://shop_images/90617682-61BC-41D5-9771-B9DF6BF9204B.jpg",
-            "caption": "",
-            "link": ""
-          }
-        },
-        "magazine_hn7DPh": {
-          "type": "magazine",
-          "settings": {
-            "image": "shopify://shop_images/DB2AC5DD-6EE0-41D9-8CBD-6149205ECF2C.jpg",
-            "caption": "",
-            "link": ""
-          }
-        },
-        "magazine_4eft4U": {
-          "type": "magazine",
-          "settings": {
-            "image": "shopify://shop_images/0124DAC3-0C0A-4301-B69C-DFDE7C360D48.jpg",
-            "caption": "",
-            "link": ""
-          }
-        }
-      },
-      "block_order": [
-        "magazine_cHVtmp",
-        "magazine_AAkwkK",
-        "magazine_V4FYyP",
-        "magazine_zNVDU6",
-        "magazine_hn7DPh",
-        "magazine_4eft4U"
-      ],
-      "name": "Product Atelier",
-      "settings": {
-        "display_mode": "magazine",
-        "products": [
-          "hooded-ultra-short-motorcycle-leather-long-sleeved-pure-black-jacket",
-          "womens-fashion-long-sleeved-zippered-short-cut-navel-exposed-slim-fitting-hooded-faux-leather-jacket-for-women",
-          "suitable-for-iphone-16-promax-phone-case-apple-15-pro-five-corner-anti-drop-case-all-inclusive-14p-protective-case",
-          "waist-slimming-leather-slimming-long-sleeved-jacket",
-          "new-in-cat-eye-women-sunglasses-fashion-snake-wrapped-round-vintage-shades-eyewear-luxury-brand-design-uv400-sun-glasses",
-          "retro-dark-leather-pocket-patchwork-workwear-jacket",
-          "iphone-17-electroplated-phone-case-with-magsafe-magnetic-attachment",
-          "retro-motorcycle-style-shiny-topcoat-leather-exposed-waist-short-jacket",
-          "lexe-rimless-galets",
-          "stand-up-collar-zipper-fake-two-lychee-leather-patterned-jackets",
-          "new-butterfly-suitable-13-apple-15-promax-phone-case-iphone-14",
-          "retro-punk-street-loose-pu-leather-jacket-motorcycle-jacket",
-          "simple-and-advanced-13-suitable-for-iphone-14-iphone-case-14-pro-max-weaving-15-knitted-pattern-x-solid-color-11",
-          "retro-fur-collar-pu-leather-hooded-cotton-jacket",
-          "magnetic-suction-suitable-for-iphone-17-promax-lens-holder-phone-case",
-          "lexe-polygon-optics"
-        ],
-        "collection": "",
-        "card_count": 10,
-        "show_header": true,
-        "title": "Command the room-discover how black gives form to uncompromising luxury.",
-        "show_arrows": false,
-        "card_shape": "landscape",
-        "landscape_ratio": "16 / 9",
-        "card_width": 340,
-        "squircle_radius": 56,
-        "landscape_radius": 0,
-        "card_gap": 8,
-        "show_names": false,
-        "name_font": "system_ui_n4",
-        "heading_font": "source_sans_pro_n6",
-        "name_size": 14,
-        "title_size": 16,
-        "name_tracking": 2,
-        "name_transform": "none",
-        "autoplay": true,
-        "autoplay_speed": 8,
-        "edge_fade": false,
-        "bg_color": "#ffffff",
-        "text_color": "#5d5d5d",
-        "section_padding": 12,
-        "pad_top": 8,
-        "pad_bottom": 0
-      }
-    },
     "luxury_featureproduct_DDiGAR": {
       "type": "luxury-featureproduct",
       "name": "Apex Featured",
@@ -784,7 +675,6 @@
     "lexe_bento_hero",
     "luxury_collectiongrid_jpK7Cz",
     "vanquish_atelier_nwPpp6",
-    "vanquish_atelier_r4XQki",
     "luxury_featureproduct_DDiGAR",
     "vanquish_atelier_XfxTnG",
     "vanquish_transittimer_hmmnrA",
