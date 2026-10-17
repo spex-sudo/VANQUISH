@@ -525,12 +525,28 @@
     "lexe_trust_glass": {
       "type": "lexe-trust-glass",
       "blocks": {
-        "item_delivery": {
+        "item_LWfAGk": {
           "type": "item",
           "settings": {
-            "icon": "truck",
-            "text": "Delivery in 5–10 business days",
-            "link": "shopify://pages/shipping-returns"
+            "icon": "shield_plain",
+            "text": "Federally regulated",
+            "link": ""
+          }
+        },
+        "item_BLJzeB": {
+          "type": "item",
+          "settings": {
+            "icon": "lock",
+            "text": "Protected by REcaptcha",
+            "link": ""
+          }
+        },
+        "item_pnYaAa": {
+          "type": "item",
+          "settings": {
+            "icon": "card",
+            "text": "Fiserv Payment Processing",
+            "link": ""
           }
         },
         "item_returns": {
@@ -539,14 +555,6 @@
             "icon": "return",
             "text": "30-day apparel returns",
             "link": "shopify://pages/shipping-returns"
-          }
-        },
-        "item_secure": {
-          "type": "item",
-          "settings": {
-            "icon": "lock",
-            "text": "Secure card checkout",
-            "link": "shopify://pages/payment-and-security"
           }
         },
         "item_contact": {
@@ -559,9 +567,10 @@
         }
       },
       "block_order": [
-        "item_delivery",
+        "item_LWfAGk",
+        "item_BLJzeB",
+        "item_pnYaAa",
         "item_returns",
-        "item_secure",
         "item_contact"
       ],
       "name": "Trust Banner (glass)",
@@ -583,7 +592,7 @@
         "formal_bg": "#000000",
         "formal_text": "#f2efe6",
         "rule_color": "#B3DA8B",
-        "formal_item_icons": false,
+        "formal_item_icons": true,
         "show_texture": false,
         "texture_opacity": 4,
         "formal_height": 50,
