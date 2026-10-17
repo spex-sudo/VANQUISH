@@ -32,7 +32,6 @@
 {%- endunless -%}
 {%- comment -%} LEXE 2026-10-15 22:50 CD fixes: delivery badge text, homepage line, hide PULL HERE tab + VANQUISH THEME (digital-product) promo/cards (held, not deleted), hide quick-add drawer while checkout is off. {%- endcomment -%}
 <style id="lexe-cd-fixes">
-.vqsc-tag{display:none !important;}
 .lxb__prod:has(a[href*="/products/digital-product"]),a.va-card[href*="/products/digital-product"]{display:none !important;}
 {%- unless settings.lexe_lock_notify == false %}
 [id^="ApexDrawer-"]{display:none !important;}
@@ -45,7 +44,6 @@
     var w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null),n;
     while((n=w.nextNode())){ var p=n.parentElement; if(!p||p.tagName==='SCRIPT'||p.tagName==='STYLE') continue; for(var i=0;i<SW.length;i++){ if(SW[i][0].test(n.nodeValue)) n.nodeValue=n.nodeValue.replace(SW[i][0],SW[i][1]); } }
     document.querySelectorAll('a[href*="/products/digital-product"]').forEach(function(a){ var c=a.closest('.lxb__prod')||(a.classList.contains('va-card')?a:null); if(c) c.style.setProperty('display','none','important'); });
-    document.querySelectorAll('.vqsc-tag').forEach(function(e){ e.style.setProperty('display','none','important'); });
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',run); else run();
   new MutationObserver(function(){ clearTimeout(window.__lexeCD); window.__lexeCD=setTimeout(run,150); }).observe(document.documentElement,{childList:true,subtree:true,characterData:true});
