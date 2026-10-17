@@ -339,7 +339,7 @@
         "collection": "exodus",
         "product": "digital-product",
         "limit": 3,
-        "split_variants": false,
+        "split_variants": true,
         "kicker": "In the field",
         "word": "LEXE",
         "button_label": "Add to cart",
