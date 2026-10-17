@@ -289,8 +289,10 @@
         "product_ARMF8W": {
           "type": "product",
           "settings": {
-            "product": "",
+            "product": "digital-product",
             "matter": "inherit",
+            "image": "shopify://shop_images/IMG-0775.jpg",
+            "image_back": "shopify://shop_images/IMG-0774.jpg",
             "title": "",
             "line": "",
             "eyebrow": "",
