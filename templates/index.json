@@ -138,7 +138,7 @@
         "product_cta": "Explore",
         "product_video_url": "",
         "product_video_controls": true,
-        "video_mobile": true,
+        "video_mobile": false,
         "video_defer": true,
         "video_reduced_motion": false,
         "edge_pad": 0,
