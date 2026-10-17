@@ -331,10 +331,10 @@
       ],
       "name": "Vanquish Field",
       "settings": {
-        "source": "collection",
+        "source": "blocks",
         "collection": "exodus",
-        "product": "",
-        "limit": 1,
+        "product": "digital-product",
+        "limit": 3,
         "split_variants": false,
         "kicker": "In the field",
         "word": "LEXE",
