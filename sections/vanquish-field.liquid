@@ -1393,20 +1393,32 @@
 
 {% schema %}
 {
-  "name": "Product Field",
+  "name": "Vanquish Field",
   "tag": "section",
   "class": "vf-section",
   "max_blocks": 24,
   "settings": [
-    { "type": "header", "content": "Source" },
+    {
+      "type": "header",
+      "content": "Source"
+    },
     {
       "type": "select",
       "id": "source",
       "label": "Products come from",
       "options": [
-        { "value": "blocks", "label": "Product blocks" },
-        { "value": "collection", "label": "A collection" },
-        { "value": "product", "label": "One product" }
+        {
+          "value": "blocks",
+          "label": "Product blocks"
+        },
+        {
+          "value": "collection",
+          "label": "A collection"
+        },
+        {
+          "value": "product",
+          "label": "One product"
+        }
       ],
       "default": "blocks",
       "info": "Blocks for full control. A collection for the catalog. One product uses the picker below, or the product page you drop this on."
@@ -1414,15 +1426,13 @@
     {
       "type": "collection",
       "id": "collection",
-      "label": "Collection",
-      "visible_if": "{{ section.settings.source == 'collection' }}"
+      "label": "Collection"
     },
     {
       "type": "product",
       "id": "product",
       "label": "Product",
-      "info": "Leave empty on a product page to use that product.",
-      "visible_if": "{{ section.settings.source == 'product' }}"
+      "info": "Leave empty on a product page to use that product."
     },
     {
       "type": "range",
@@ -1431,37 +1441,95 @@
       "max": 8,
       "step": 1,
       "label": "Max products",
-      "default": 4,
-      "visible_if": "{{ section.settings.source != 'blocks' }}"
+      "default": 4
     },
     {
       "type": "checkbox",
       "id": "split_variants",
       "label": "Each variant is its own card",
       "default": false,
-      "info": "Use when variants have their own photos. Otherwise one card with a variant menu.",
-      "visible_if": "{{ section.settings.source == 'product' }}"
+      "info": "Use when variants have their own photos. Otherwise one card with a variant menu."
     },
-    { "type": "header", "content": "Copy" },
-    { "type": "text", "id": "kicker", "label": "Kicker", "default": "In the field" },
-    { "type": "text", "id": "word", "label": "Giant word", "info": "Sits behind the product. A block can override it." },
-    { "type": "text", "id": "button_label", "label": "Add button", "default": "Add to cart" },
-    { "type": "text", "id": "link_label", "label": "Link button", "default": "View" },
-    { "type": "checkbox", "id": "show_price", "label": "Show price", "default": true },
-    { "type": "checkbox", "id": "show_cart", "label": "Add to cart", "default": true, "info": "Off uses a link to the product instead of the cart form." },
-    { "type": "checkbox", "id": "show_turn", "label": "Turn to the back image", "default": true },
-    { "type": "header", "content": "Environment" },
+    {
+      "type": "header",
+      "content": "Copy"
+    },
+    {
+      "type": "text",
+      "id": "kicker",
+      "label": "Kicker",
+      "default": "In the field"
+    },
+    {
+      "type": "text",
+      "id": "word",
+      "label": "Giant word",
+      "info": "Sits behind the product. A block can override it."
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Add button",
+      "default": "Add to cart"
+    },
+    {
+      "type": "text",
+      "id": "link_label",
+      "label": "Link button",
+      "default": "View"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_price",
+      "label": "Show price",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_cart",
+      "label": "Add to cart",
+      "default": true,
+      "info": "Off uses a link to the product instead of the cart form."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_turn",
+      "label": "Turn to the back image",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Environment"
+    },
     {
       "type": "select",
       "id": "environment",
       "label": "Ground",
       "options": [
-        { "value": "paper", "label": "Paper" },
-        { "value": "night", "label": "Night" },
-        { "value": "chalk", "label": "Chalk" },
-        { "value": "ink", "label": "Ink" },
-        { "value": "sand", "label": "Sand" },
-        { "value": "custom", "label": "Custom" }
+        {
+          "value": "paper",
+          "label": "Paper"
+        },
+        {
+          "value": "night",
+          "label": "Night"
+        },
+        {
+          "value": "chalk",
+          "label": "Chalk"
+        },
+        {
+          "value": "ink",
+          "label": "Ink"
+        },
+        {
+          "value": "sand",
+          "label": "Sand"
+        },
+        {
+          "value": "custom",
+          "label": "Custom"
+        }
       ],
       "default": "paper"
     },
@@ -1472,17 +1540,41 @@
       "default": false,
       "info": "Cycles Paper, Night, Chalk, Ink, Sand. A block with its own colors keeps them."
     },
-    { "type": "color", "id": "ground", "label": "Custom ground", "default": "#f2e8d5", "visible_if": "{{ section.settings.environment == 'custom' }}" },
-    { "type": "color", "id": "ink", "label": "Custom ink", "default": "#1b130c", "visible_if": "{{ section.settings.environment == 'custom' }}" },
-    { "type": "color", "id": "accent", "label": "Custom accent", "default": "#e2462a", "visible_if": "{{ section.settings.environment == 'custom' }}" },
-    { "type": "header", "content": "Stage" },
+    {
+      "type": "color",
+      "id": "ground",
+      "label": "Custom ground",
+      "default": "#f2e8d5"
+    },
+    {
+      "type": "color",
+      "id": "ink",
+      "label": "Custom ink",
+      "default": "#1b130c"
+    },
+    {
+      "type": "color",
+      "id": "accent",
+      "label": "Custom accent",
+      "default": "#e2462a"
+    },
+    {
+      "type": "header",
+      "content": "Stage"
+    },
     {
       "type": "select",
       "id": "height",
       "label": "Height",
       "options": [
-        { "value": "stage", "label": "Full screen" },
-        { "value": "compact", "label": "Compact" }
+        {
+          "value": "stage",
+          "label": "Full screen"
+        },
+        {
+          "value": "compact",
+          "label": "Compact"
+        }
       ],
       "default": "stage"
     },
@@ -1491,9 +1583,18 @@
       "id": "density",
       "label": "Cut-outs",
       "options": [
-        { "value": "still", "label": "Still — none" },
-        { "value": "quiet", "label": "Quiet — 3" },
-        { "value": "full", "label": "Full — up to 6" }
+        {
+          "value": "still",
+          "label": "Still — none"
+        },
+        {
+          "value": "quiet",
+          "label": "Quiet — 3"
+        },
+        {
+          "value": "full",
+          "label": "Full — up to 6"
+        }
       ],
       "default": "quiet",
       "info": "Still hides every floating element. Quiet shows 3, Full shows 6. Cut-out blocks are used only in Pieces mode."
@@ -1503,12 +1604,30 @@
       "id": "matter",
       "label": "Floating matter",
       "options": [
-        { "value": "pieces", "label": "Pieces — your cut-outs" },
-        { "value": "apparel", "label": "Apparel — torn fabric" },
-        { "value": "files", "label": "Files — paper and code" },
-        { "value": "accessories", "label": "Accessories — pins" },
-        { "value": "mark", "label": "Mark — your logo" },
-        { "value": "auto", "label": "Follow each product type" }
+        {
+          "value": "pieces",
+          "label": "Pieces — your cut-outs"
+        },
+        {
+          "value": "apparel",
+          "label": "Apparel — torn fabric"
+        },
+        {
+          "value": "files",
+          "label": "Files — paper and code"
+        },
+        {
+          "value": "accessories",
+          "label": "Accessories — pins"
+        },
+        {
+          "value": "mark",
+          "label": "Mark — your logo"
+        },
+        {
+          "value": "auto",
+          "label": "Follow each product type"
+        }
       ],
       "default": "pieces",
       "info": "Apparel, files, pins, and the mark move with the page scroll. They do not loop. Auto reads the product type."
@@ -1524,11 +1643,16 @@
       "id": "mark_knock",
       "label": "Logo ground",
       "options": [
-        { "value": "clear", "label": "Already transparent" },
-        { "value": "black", "label": "Knock out black" }
+        {
+          "value": "clear",
+          "label": "Already transparent"
+        },
+        {
+          "value": "black",
+          "label": "Knock out black"
+        }
       ],
-      "default": "clear",
-      "visible_if": "{{ section.settings.matter == 'mark' or section.settings.matter == 'auto' }}"
+      "default": "clear"
     }
   ],
   "blocks": [
@@ -1536,56 +1660,173 @@
       "type": "product",
       "name": "Product",
       "settings": [
-        { "type": "product", "id": "product", "label": "Product" },
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Product"
+        },
         {
           "type": "select",
           "id": "matter",
           "label": "Floating matter",
           "options": [
-            { "value": "inherit", "label": "Section default" },
-            { "value": "pieces", "label": "Pieces — cut-outs" },
-            { "value": "apparel", "label": "Apparel — torn fabric" },
-            { "value": "files", "label": "Files — paper and code" },
-            { "value": "accessories", "label": "Accessories — pins" },
-            { "value": "mark", "label": "Mark — your logo" }
+            {
+              "value": "inherit",
+              "label": "Section default"
+            },
+            {
+              "value": "pieces",
+              "label": "Pieces — cut-outs"
+            },
+            {
+              "value": "apparel",
+              "label": "Apparel — torn fabric"
+            },
+            {
+              "value": "files",
+              "label": "Files — paper and code"
+            },
+            {
+              "value": "accessories",
+              "label": "Accessories — pins"
+            },
+            {
+              "value": "mark",
+              "label": "Mark — your logo"
+            }
           ],
           "default": "inherit"
         },
-        { "type": "image_picker", "id": "image", "label": "Front image", "info": "Overrides the product photo. Use a cut-out on a transparent ground." },
-        { "type": "image_picker", "id": "image_back", "label": "Back image" },
-        { "type": "text", "id": "title", "label": "Title override" },
-        { "type": "text", "id": "line", "label": "Line" },
-        { "type": "text", "id": "eyebrow", "label": "Kicker override" },
-        { "type": "text", "id": "word", "label": "Giant word" },
-        { "type": "textarea", "id": "facts", "label": "Facts", "info": "One fact per line." },
-        { "type": "textarea", "id": "note", "label": "Note" },
-        { "type": "text", "id": "cta", "label": "Button label" },
-        { "type": "url", "id": "link", "label": "Link", "info": "Used when there is no product, or when Add to cart is off." },
-        { "type": "checkbox", "id": "own_colors", "label": "Own colors", "default": false },
-        { "type": "color", "id": "ground", "label": "Ground", "default": "#121212", "visible_if": "{{ block.settings.own_colors == true }}" },
-        { "type": "color", "id": "ink", "label": "Ink", "default": "#f5f1e8", "visible_if": "{{ block.settings.own_colors == true }}" },
-        { "type": "color", "id": "accent", "label": "Accent", "default": "#c6e83a", "visible_if": "{{ block.settings.own_colors == true }}" }
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Front image",
+          "info": "Overrides the product photo. Use a cut-out on a transparent ground."
+        },
+        {
+          "type": "image_picker",
+          "id": "image_back",
+          "label": "Back image"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title override"
+        },
+        {
+          "type": "text",
+          "id": "line",
+          "label": "Line"
+        },
+        {
+          "type": "text",
+          "id": "eyebrow",
+          "label": "Kicker override"
+        },
+        {
+          "type": "text",
+          "id": "word",
+          "label": "Giant word"
+        },
+        {
+          "type": "textarea",
+          "id": "facts",
+          "label": "Facts",
+          "info": "One fact per line."
+        },
+        {
+          "type": "textarea",
+          "id": "note",
+          "label": "Note"
+        },
+        {
+          "type": "text",
+          "id": "cta",
+          "label": "Button label"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link",
+          "info": "Used when there is no product, or when Add to cart is off."
+        },
+        {
+          "type": "checkbox",
+          "id": "own_colors",
+          "label": "Own colors",
+          "default": false
+        },
+        {
+          "type": "color",
+          "id": "ground",
+          "label": "Ground",
+          "default": "#121212"
+        },
+        {
+          "type": "color",
+          "id": "ink",
+          "label": "Ink",
+          "default": "#f5f1e8"
+        },
+        {
+          "type": "color",
+          "id": "accent",
+          "label": "Accent",
+          "default": "#c6e83a"
+        }
       ]
     },
     {
       "type": "piece",
       "name": "Cut-out",
       "settings": [
-        { "type": "image_picker", "id": "image", "label": "Cut-out", "info": "Transparent PNG or WebP. Ingredient, crumb, hardware, petal." },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Cut-out",
+          "info": "Transparent PNG or WebP. Ingredient, crumb, hardware, petal."
+        },
         {
           "type": "select",
           "id": "applies",
           "label": "Shows with",
           "options": [
-            { "value": "all", "label": "Every product" },
-            { "value": "1", "label": "Product 1" },
-            { "value": "2", "label": "Product 2" },
-            { "value": "3", "label": "Product 3" },
-            { "value": "4", "label": "Product 4" },
-            { "value": "5", "label": "Product 5" },
-            { "value": "6", "label": "Product 6" },
-            { "value": "7", "label": "Product 7" },
-            { "value": "8", "label": "Product 8" }
+            {
+              "value": "all",
+              "label": "Every product"
+            },
+            {
+              "value": "1",
+              "label": "Product 1"
+            },
+            {
+              "value": "2",
+              "label": "Product 2"
+            },
+            {
+              "value": "3",
+              "label": "Product 3"
+            },
+            {
+              "value": "4",
+              "label": "Product 4"
+            },
+            {
+              "value": "5",
+              "label": "Product 5"
+            },
+            {
+              "value": "6",
+              "label": "Product 6"
+            },
+            {
+              "value": "7",
+              "label": "Product 7"
+            },
+            {
+              "value": "8",
+              "label": "Product 8"
+            }
           ],
           "default": "all"
         },
@@ -1594,9 +1835,18 @@
           "id": "size",
           "label": "Size",
           "options": [
-            { "value": "s", "label": "Small" },
-            { "value": "m", "label": "Medium" },
-            { "value": "l", "label": "Large" }
+            {
+              "value": "s",
+              "label": "Small"
+            },
+            {
+              "value": "m",
+              "label": "Medium"
+            },
+            {
+              "value": "l",
+              "label": "Large"
+            }
           ],
           "default": "m"
         }
@@ -1605,7 +1855,7 @@
   ],
   "presets": [
     {
-      "name": "Product Field",
+      "name": "Vanquish Field",
       "settings": {
         "source": "blocks",
         "kicker": "In the field",
@@ -1614,10 +1864,15 @@
         "height": "stage"
       },
       "blocks": [
-        { "type": "product" },
-        { "type": "product" }
+        {
+          "type": "product"
+        },
+        {
+          "type": "product"
+        }
       ]
     }
   ]
 }
 {% endschema %}
+
