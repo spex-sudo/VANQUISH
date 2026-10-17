@@ -67,7 +67,7 @@
   background-image:repeating-linear-gradient(45deg,{{ s.rule_color }} 0 1px,transparent 1px 7px),repeating-linear-gradient(-45deg,{{ s.rule_color }} 0 1px,transparent 1px 7px),repeating-radial-gradient(circle at 50% 50%,transparent 0 9px,{{ s.rule_color }} 9px 10px);}
 {%- endif %}
 #ltg-{{ sid }} .ltg-label,#ltg-{{ sid }} .ltg-row,#ltg-{{ sid }} .ltg-mq{position:relative;z-index:1;}
-#ltg-{{ sid }} .ltg-label{display:flex;align-items:center;gap:10px;padding:0 clamp(14px,1.6vw,22px) 0 clamp(16px,2.4vw,36px);flex:0 0 auto;white-space:nowrap;border-right:1px solid {{ s.divider_color }};}
+#ltg-{{ sid }} .ltg-label{display:flex;align-items:center;gap:10px;padding:0 clamp(14px,1.6vw,22px) 0 {{ s.label_left_pad }}px;flex:0 0 auto;white-space:nowrap;border-right:1px solid {{ s.divider_color }};}
 #ltg-{{ sid }} .ltg-label .ltg-seal{width:{{ s.seal_size }}px;height:{{ s.seal_size }}px;color:{{ s.rule_color }};flex:0 0 auto;display:block;}
 #ltg-{{ sid }} .ltg-label-t,#ltg-{{ sid }} .ltg-item--label .ltg-t{color:{{ s.rule_color }};letter-spacing:.13em;}
 #ltg-{{ sid }} .ltg-item{gap:8px;padding:0 clamp(12px,1.5vw,24px);}
@@ -83,12 +83,12 @@
   #ltg-{{ sid }} .ltg-bar{font-size:{{ s.formal_font_size | minus: 1 }}px;letter-spacing:.07em;}
   #ltg-{{ sid }} .ltg-label-t{letter-spacing:.09em;}
   #ltg-{{ sid }} .ltg-row .ltg-item{padding:0 12px;}
-  #ltg-{{ sid }} .ltg-label{gap:8px;padding:0 14px 0 16px;}
+  #ltg-{{ sid }} .ltg-label{gap:8px;padding:0 14px 0 {{ s.label_left_pad }}px;}
 }
 @media (max-width:{{ s.breakpoint }}px){
   #ltg-{{ sid }} .ltg-row{display:none;}
   #ltg-{{ sid }} .ltg-mq{display:block;height:100%;-webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);}
-  #ltg-{{ sid }} .ltg-label{padding:0 12px 0 14px;}
+  #ltg-{{ sid }} .ltg-label{padding:0 12px 0 {{ s.label_left_pad }}px;}
   #ltg-{{ sid }} .ltg-label-t{display:none;}
   #ltg-{{ sid }} .ltg-item--label{display:flex;}
   #ltg-{{ sid }} .ltg-mq .ltg-item{padding:0 16px;position:relative;}
@@ -215,6 +215,7 @@
     { "type": "text", "id": "label_text", "label": "Left label (name the store)", "default": "LEXE by Devici Studios — Customer Assurance" },
     { "type": "checkbox", "id": "show_seal", "label": "Show plain outline icon", "default": true },
     { "type": "select", "id": "seal_shape", "label": "Outline icon", "default": "shield", "options": [ { "value": "shield", "label": "Shield with check" }, { "value": "seal", "label": "Ring with check" } ] },
+    { "type": "range", "id": "label_left_pad", "label": "Space left of the label", "min": 8, "max": 64, "step": 2, "unit": "px", "default": 44, "info": "Leaves room for the PULL HERE tab on the left edge." },
     { "type": "range", "id": "seal_size", "label": "Outline icon size", "min": 14, "max": 28, "step": 1, "unit": "px", "default": 18 },
     { "type": "color", "id": "formal_bg", "label": "Background", "default": "#0B1F3A" },
     { "type": "color", "id": "formal_text", "label": "Text", "default": "#F2EFE6" },
