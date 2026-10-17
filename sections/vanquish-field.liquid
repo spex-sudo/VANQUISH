@@ -1,0 +1,1369 @@
+{%- comment -%}
+  VANQUISH — Product Field
+  One-screen product display for any product and any ground.
+  No WebGL, no scroll-pin, no animation frame. Pieces are CSS transforms
+  and only run while the section is on screen. Switching products is a
+  radio button, so it works before JavaScript.
+{%- endcomment -%}
+
+{%- liquid
+  assign sid = section.id
+  assign source = section.settings.source | default: 'blocks'
+  assign cap = section.settings.limit | at_most: 8 | at_least: 1
+  assign density = section.settings.density | default: 'quiet'
+  assign env = section.settings.environment | default: 'paper'
+  assign base_g = '#f2e8d5'
+  assign base_k = '#1b130c'
+  assign base_a = '#e2462a'
+  case env
+    when 'night'
+      assign base_g = '#101010'
+      assign base_k = '#f4f1ea'
+      assign base_a = '#f4f1ea'
+    when 'chalk'
+      assign base_g = '#eceae4'
+      assign base_k = '#171717'
+      assign base_a = '#171717'
+    when 'ink'
+      assign base_g = '#121a22'
+      assign base_k = '#e6eef4'
+      assign base_a = '#8fafc6'
+    when 'sand'
+      assign base_g = '#e7d5be'
+      assign base_k = '#2a2118'
+      assign base_a = '#8c3820'
+    when 'custom'
+      assign base_g = section.settings.ground
+      assign base_k = section.settings.ink
+      assign base_a = section.settings.accent
+  endcase
+
+  assign piece_cap = 0
+  if density == 'quiet'
+    assign piece_cap = 3
+  elsif density == 'full'
+    assign piece_cap = 6
+  endif
+
+  assign px = '10,82,14,78,86,22,8,70' | split: ','
+  assign py = '18,16,74,70,40,84,30,62' | split: ','
+  assign prot = '-16,8,18,-10,-6,14,12,-8' | split: ','
+  assign pdur = '10,12,9,13,11,8,12,10' | split: ','
+
+  assign titles = ''
+  assign lines = ''
+  assign words = ''
+  assign eyebrows = ''
+  assign facts = ''
+  assign notes = ''
+  assign metas = ''
+  assign oks = ''
+  assign vids = ''
+  assign urls = ''
+  assign kinds = ''
+  assign ctas = ''
+  assign fronts = ''
+  assign front_ws = ''
+  assign front_hs = ''
+  assign front_alts = ''
+  assign backs = ''
+  assign back_ws = ''
+  assign back_hs = ''
+  assign grounds = ''
+  assign inks = ''
+  assign accents = ''
+  assign card_count = 0
+  assign solo = nil
+
+  if source == 'product'
+    if section.settings.product != blank
+      assign solo = section.settings.product
+    elsif product != blank
+      assign solo = product
+    endif
+  endif
+-%}
+
+{%- if source == 'blocks' -%}
+    {%- for block in section.blocks -%}
+      {%- if block.type == 'product' and card_count < 8 -%}
+        {%- liquid
+          assign card_product = block.settings.product
+          assign front_obj = block.settings.image
+          if front_obj == blank and card_product != blank
+            assign front_obj = card_product.featured_image
+          endif
+          assign back_obj = block.settings.image_back
+          if back_obj == blank and block.settings.image == blank and card_product != blank
+            if card_product.images.size > 1
+              assign back_obj = card_product.images[1]
+            endif
+          endif
+          assign title = block.settings.title
+          if title == blank and card_product != blank
+            assign title = card_product.title
+          endif
+          if title == blank
+            assign title = 'Product'
+          endif
+          assign line = block.settings.line
+          if line == blank and card_product != blank
+            assign line = card_product.description | strip_html | truncate: 140
+          endif
+          assign word = block.settings.word | default: section.settings.word
+          assign eyebrow = block.settings.eyebrow | default: section.settings.kicker
+          assign fact_src = block.settings.facts
+          assign note = block.settings.note
+          assign meta = ''
+          assign ok = '1'
+          assign vid = ''
+          assign url = block.settings.link | default: card_product.url
+          assign kind = 'none'
+          assign cta = block.settings.cta
+          assign g = base_g
+          assign k = base_k
+          assign a = base_a
+          if block.settings.own_colors
+            assign g = block.settings.ground
+            assign k = block.settings.ink
+            assign a = block.settings.accent
+          elsif section.settings.vary and env != 'custom'
+            assign mix = card_count | modulo: 5
+            case mix
+              when 1
+                assign g = '#101010'
+                assign k = '#f4f1ea'
+                assign a = '#f4f1ea'
+              when 2
+                assign g = '#eceae4'
+                assign k = '#171717'
+                assign a = '#171717'
+              when 3
+                assign g = '#121a22'
+                assign k = '#e6eef4'
+                assign a = '#8fafc6'
+              when 4
+                assign g = '#e7d5be'
+                assign k = '#2a2118'
+                assign a = '#8c3820'
+            endcase
+          endif
+          if card_product != blank
+            if section.settings.show_price
+              assign meta = card_product.price | money
+            endif
+            if card_product.available == false
+              assign ok = '0'
+            endif
+            assign vid = card_product.selected_or_first_available_variant.id
+            if section.settings.show_cart
+              assign kind = 'cart'
+              if cta == blank
+                assign cta = section.settings.button_label
+              endif
+            elsif url != blank
+              assign kind = 'link'
+              if cta == blank
+                assign cta = section.settings.link_label
+              endif
+            endif
+          elsif url != blank
+            assign kind = 'link'
+            if cta == blank
+              assign cta = section.settings.link_label
+            endif
+          endif
+          if cta == blank
+            assign cta = section.settings.button_label
+          endif
+          assign front_url = ''
+          assign fw = '900'
+          assign fh = '900'
+          assign falt = title
+          if front_obj != blank
+            assign front_url = front_obj | image_url: width: 900
+            assign fw = '900'
+            assign fh = 900 | divided_by: front_obj.aspect_ratio | round
+            if front_obj.alt != blank
+              assign falt = front_obj.alt
+            endif
+          endif
+          assign back_url = ''
+          assign bw = ''
+          assign bh = ''
+          if back_obj != blank
+            assign back_url = back_obj | image_url: width: 900
+            assign bw = '900'
+            assign bh = 900 | divided_by: back_obj.aspect_ratio | round
+          endif
+          assign title = title | replace: '%%', '' | replace: ';;', ''
+          assign line = line | replace: '%%', '' | replace: ';;', '' | strip
+          assign word = word | replace: '%%', ''
+          assign eyebrow = eyebrow | replace: '%%', ''
+          assign note = note | replace: '%%', '' | strip
+          assign fact_flat = fact_src | newline_to_br | replace: '<br />', ';;' | replace: '<br/>', ';;' | replace: '<br>', ';;' | replace: '%%', ''
+          assign falt = falt | replace: '%%', ''
+          assign titles = titles | append: title | append: '%%'
+          assign lines = lines | append: line | append: '%%'
+          assign words = words | append: word | append: '%%'
+          assign eyebrows = eyebrows | append: eyebrow | append: '%%'
+          assign facts = facts | append: fact_flat | append: '%%'
+          assign notes = notes | append: note | append: '%%'
+          assign metas = metas | append: meta | append: '%%'
+          assign oks = oks | append: ok | append: '%%'
+          assign vids = vids | append: vid | append: '%%'
+          assign urls = urls | append: url | append: '%%'
+          assign kinds = kinds | append: kind | append: '%%'
+          assign ctas = ctas | append: cta | append: '%%'
+          assign fronts = fronts | append: front_url | append: '%%'
+          assign front_ws = front_ws | append: fw | append: '%%'
+          assign front_hs = front_hs | append: fh | append: '%%'
+          assign front_alts = front_alts | append: falt | append: '%%'
+          assign backs = backs | append: back_url | append: '%%'
+          assign back_ws = back_ws | append: bw | append: '%%'
+          assign back_hs = back_hs | append: bh | append: '%%'
+          assign grounds = grounds | append: g | append: '%%'
+          assign inks = inks | append: k | append: '%%'
+          assign accents = accents | append: a | append: '%%'
+          assign card_count = card_count | plus: 1
+        -%}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- elsif source == 'collection' and section.settings.collection != blank -%}
+    {%- for card_product in section.settings.collection.products limit: cap -%}
+      {%- liquid
+        assign front_obj = card_product.featured_image
+        assign back_obj = nil
+        if card_product.images.size > 1
+          assign back_obj = card_product.images[1]
+        endif
+        assign title = card_product.title
+        assign line = card_product.description | strip_html | truncate: 140
+        assign word = section.settings.word
+        assign eyebrow = section.settings.kicker
+        assign fact_flat = ''
+        assign note = ''
+        assign meta = ''
+        if section.settings.show_price
+          assign meta = card_product.price | money
+        endif
+        assign ok = '1'
+        if card_product.available == false
+          assign ok = '0'
+        endif
+        assign vid = card_product.selected_or_first_available_variant.id
+        assign url = card_product.url
+        assign kind = 'none'
+        assign cta = section.settings.button_label
+        if section.settings.show_cart
+          assign kind = 'cart'
+        else
+          assign kind = 'link'
+          assign cta = section.settings.link_label
+        endif
+        assign g = base_g
+        assign k = base_k
+        assign a = base_a
+        if section.settings.vary and env != 'custom'
+          assign mix = card_count | modulo: 5
+          case mix
+            when 1
+              assign g = '#101010'
+              assign k = '#f4f1ea'
+              assign a = '#f4f1ea'
+            when 2
+              assign g = '#eceae4'
+              assign k = '#171717'
+              assign a = '#171717'
+            when 3
+              assign g = '#121a22'
+              assign k = '#e6eef4'
+              assign a = '#8fafc6'
+            when 4
+              assign g = '#e7d5be'
+              assign k = '#2a2118'
+              assign a = '#8c3820'
+          endcase
+        endif
+        assign front_url = ''
+        assign fw = '900'
+        assign fh = '900'
+        assign falt = title
+        if front_obj != blank
+          assign front_url = front_obj | image_url: width: 900
+          assign fh = 900 | divided_by: front_obj.aspect_ratio | round
+          if front_obj.alt != blank
+            assign falt = front_obj.alt
+          endif
+        endif
+        assign back_url = ''
+        assign bw = ''
+        assign bh = ''
+        if back_obj != blank
+          assign back_url = back_obj | image_url: width: 900
+          assign bw = '900'
+          assign bh = 900 | divided_by: back_obj.aspect_ratio | round
+        endif
+        assign title = title | replace: '%%', ''
+        assign line = line | replace: '%%', '' | strip
+        assign word = word | replace: '%%', ''
+        assign falt = falt | replace: '%%', ''
+        assign titles = titles | append: title | append: '%%'
+        assign lines = lines | append: line | append: '%%'
+        assign words = words | append: word | append: '%%'
+        assign eyebrows = eyebrows | append: eyebrow | append: '%%'
+        assign facts = facts | append: fact_flat | append: '%%'
+        assign notes = notes | append: note | append: '%%'
+        assign metas = metas | append: meta | append: '%%'
+        assign oks = oks | append: ok | append: '%%'
+        assign vids = vids | append: vid | append: '%%'
+        assign urls = urls | append: url | append: '%%'
+        assign kinds = kinds | append: kind | append: '%%'
+        assign ctas = ctas | append: cta | append: '%%'
+        assign fronts = fronts | append: front_url | append: '%%'
+        assign front_ws = front_ws | append: fw | append: '%%'
+        assign front_hs = front_hs | append: fh | append: '%%'
+        assign front_alts = front_alts | append: falt | append: '%%'
+        assign backs = backs | append: back_url | append: '%%'
+        assign back_ws = back_ws | append: bw | append: '%%'
+        assign back_hs = back_hs | append: bh | append: '%%'
+        assign grounds = grounds | append: g | append: '%%'
+        assign inks = inks | append: k | append: '%%'
+        assign accents = accents | append: a | append: '%%'
+        assign card_count = card_count | plus: 1
+      -%}
+    {%- endfor -%}
+  {%- elsif source == 'product' and solo != blank -%}
+    {%- if section.settings.split_variants and solo.has_only_default_variant == false -%}
+      {%- for variant in solo.variants limit: cap -%}
+        {%- liquid
+          assign front_obj = variant.image | default: solo.featured_image
+          assign title = solo.title
+          if variant.title != 'Default Title'
+            assign title = variant.title
+          endif
+          assign line = solo.description | strip_html | truncate: 140
+          assign word = variant.option1 | default: section.settings.word
+          if word.size > 18
+            assign word = section.settings.word
+          endif
+          assign eyebrow = section.settings.kicker
+          assign fact_flat = ''
+          assign note = ''
+          assign meta = ''
+          if section.settings.show_price
+            assign meta = variant.price | money
+          endif
+          assign ok = '1'
+          if variant.available == false
+            assign ok = '0'
+          endif
+          assign vid = variant.id
+          assign url = solo.url
+          assign kind = 'cart'
+          assign cta = section.settings.button_label
+          if section.settings.show_cart == false
+            assign kind = 'link'
+            assign cta = section.settings.link_label
+          endif
+          assign g = base_g
+          assign k = base_k
+          assign a = base_a
+          if section.settings.vary and env != 'custom'
+            assign mix = card_count | modulo: 5
+            case mix
+              when 1
+                assign g = '#101010'
+                assign k = '#f4f1ea'
+                assign a = '#f4f1ea'
+              when 2
+                assign g = '#eceae4'
+                assign k = '#171717'
+                assign a = '#171717'
+              when 3
+                assign g = '#121a22'
+                assign k = '#e6eef4'
+                assign a = '#8fafc6'
+              when 4
+                assign g = '#e7d5be'
+                assign k = '#2a2118'
+                assign a = '#8c3820'
+            endcase
+          endif
+          assign front_url = ''
+          assign fw = '900'
+          assign fh = '900'
+          assign falt = title
+          if front_obj != blank
+            assign front_url = front_obj | image_url: width: 900
+            assign fh = 900 | divided_by: front_obj.aspect_ratio | round
+            if front_obj.alt != blank
+              assign falt = front_obj.alt
+            endif
+          endif
+          assign title = title | replace: '%%', ''
+          assign line = line | replace: '%%', '' | strip
+          assign word = word | replace: '%%', ''
+          assign falt = falt | replace: '%%', ''
+          assign titles = titles | append: title | append: '%%'
+          assign lines = lines | append: line | append: '%%'
+          assign words = words | append: word | append: '%%'
+          assign eyebrows = eyebrows | append: eyebrow | append: '%%'
+          assign facts = facts | append: fact_flat | append: '%%'
+          assign notes = notes | append: note | append: '%%'
+          assign metas = metas | append: meta | append: '%%'
+          assign oks = oks | append: ok | append: '%%'
+          assign vids = vids | append: vid | append: '%%'
+          assign urls = urls | append: url | append: '%%'
+          assign kinds = kinds | append: kind | append: '%%'
+          assign ctas = ctas | append: cta | append: '%%'
+          assign fronts = fronts | append: front_url | append: '%%'
+          assign front_ws = front_ws | append: fw | append: '%%'
+          assign front_hs = front_hs | append: fh | append: '%%'
+          assign front_alts = front_alts | append: falt | append: '%%'
+          assign backs = backs | append: '' | append: '%%'
+          assign back_ws = back_ws | append: '' | append: '%%'
+          assign back_hs = back_hs | append: '' | append: '%%'
+          assign grounds = grounds | append: g | append: '%%'
+          assign inks = inks | append: k | append: '%%'
+          assign accents = accents | append: a | append: '%%'
+          assign card_count = card_count | plus: 1
+        -%}
+      {%- endfor -%}
+    {%- else -%}
+      {%- liquid
+        assign front_obj = solo.featured_image
+        assign back_obj = nil
+        if solo.images.size > 1
+          assign back_obj = solo.images[1]
+        endif
+        assign title = solo.title
+        assign line = solo.description | strip_html | truncate: 140
+        assign word = section.settings.word
+        assign eyebrow = section.settings.kicker
+        assign meta = ''
+        if section.settings.show_price
+          assign meta = solo.price | money
+        endif
+        assign ok = '1'
+        if solo.available == false
+          assign ok = '0'
+        endif
+        assign vid = solo.selected_or_first_available_variant.id
+        assign url = solo.url
+        assign kind = 'cart'
+        assign cta = section.settings.button_label
+        if section.settings.show_cart == false
+          assign kind = 'link'
+          assign cta = section.settings.link_label
+        endif
+        assign g = base_g
+        assign k = base_k
+        assign a = base_a
+        assign front_url = ''
+        assign fw = '900'
+        assign fh = '900'
+        assign falt = title
+        if front_obj != blank
+          assign front_url = front_obj | image_url: width: 900
+          assign fh = 900 | divided_by: front_obj.aspect_ratio | round
+          if front_obj.alt != blank
+            assign falt = front_obj.alt
+          endif
+        endif
+        assign back_url = ''
+        assign bw = ''
+        assign bh = ''
+        if back_obj != blank
+          assign back_url = back_obj | image_url: width: 900
+          assign bw = '900'
+          assign bh = 900 | divided_by: back_obj.aspect_ratio | round
+        endif
+        assign line = line | replace: '%%', '' | strip
+        assign word = word | replace: '%%', ''
+        assign titles = titles | append: title | append: '%%'
+        assign lines = lines | append: line | append: '%%'
+        assign words = words | append: word | append: '%%'
+        assign eyebrows = eyebrows | append: eyebrow | append: '%%'
+        assign facts = facts | append: '' | append: '%%'
+        assign notes = notes | append: '' | append: '%%'
+        assign metas = metas | append: meta | append: '%%'
+        assign oks = oks | append: ok | append: '%%'
+        assign vids = vids | append: vid | append: '%%'
+        assign urls = urls | append: url | append: '%%'
+        assign kinds = kinds | append: kind | append: '%%'
+        assign ctas = ctas | append: cta | append: '%%'
+        assign fronts = fronts | append: front_url | append: '%%'
+        assign front_ws = front_ws | append: fw | append: '%%'
+        assign front_hs = front_hs | append: fh | append: '%%'
+        assign front_alts = front_alts | append: falt | append: '%%'
+        assign backs = backs | append: back_url | append: '%%'
+        assign back_ws = back_ws | append: bw | append: '%%'
+        assign back_hs = back_hs | append: bh | append: '%%'
+        assign grounds = grounds | append: g | append: '%%'
+        assign inks = inks | append: k | append: '%%'
+        assign accents = accents | append: a | append: '%%'
+        assign card_count = 1
+      -%}
+    {%- endif -%}
+  {%- endif -%}
+
+{%- liquid
+  assign title_list = titles | split: '%%'
+  assign line_list = lines | split: '%%'
+  assign word_list = words | split: '%%'
+  assign eyebrow_list = eyebrows | split: '%%'
+  assign fact_list = facts | split: '%%'
+  assign note_list = notes | split: '%%'
+  assign meta_list = metas | split: '%%'
+  assign ok_list = oks | split: '%%'
+  assign vid_list = vids | split: '%%'
+  assign url_list = urls | split: '%%'
+  assign kind_list = kinds | split: '%%'
+  assign cta_list = ctas | split: '%%'
+  assign front_list = fronts | split: '%%'
+  assign fw_list = front_ws | split: '%%'
+  assign fh_list = front_hs | split: '%%'
+  assign falt_list = front_alts | split: '%%'
+  assign back_list = backs | split: '%%'
+  assign bw_list = back_ws | split: '%%'
+  assign bh_list = back_hs | split: '%%'
+  assign g_list = grounds | split: '%%'
+  assign k_list = inks | split: '%%'
+  assign a_list = accents | split: '%%'
+  if card_count > 0
+    assign root_g = g_list[0]
+    assign root_k = k_list[0]
+    assign root_a = a_list[0]
+  else
+    assign root_g = base_g
+    assign root_k = base_k
+    assign root_a = base_a
+  endif
+-%}
+
+<style>
+  #vf-{{ sid }} {
+    --ground: {{ root_g }};
+    --ink: {{ root_k }};
+    --accent: {{ root_a }};
+    --muted: color-mix(in srgb, var(--ink) 62%, transparent);
+    --line: color-mix(in srgb, var(--ink) 16%, transparent);
+    --ease: cubic-bezier(0.2, 0, 0, 1);
+    display: flex;
+    flex-direction: column;
+    background: var(--ground);
+    color: var(--ink);
+    overflow: hidden;
+    position: relative;
+    font-family: inherit;
+    -webkit-font-smoothing: antialiased;
+  }
+  #vf-{{ sid }} *,
+  #vf-{{ sid }} *::before,
+  #vf-{{ sid }} *::after { box-sizing: border-box; }
+  #vf-{{ sid }} .vf-pick {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+  #vf-{{ sid }} .vf-stage {
+    min-height: {% if section.settings.height == 'compact' %}70svh{% else %}100svh{% endif %};
+    display: grid;
+    grid-template-columns: minmax(260px, 40%) 1fr;
+    grid-template-rows: minmax(0, 1fr) auto;
+    position: relative;
+  }
+  #vf-{{ sid }} .vf-backs {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+  #vf-{{ sid }} .vf-bg {
+    position: absolute;
+    inset: 0;
+    background: var(--ground);
+    visibility: hidden;
+  }
+  #vf-{{ sid }} .vf-word {
+    position: absolute;
+    left: 68%;
+    top: 46%;
+    margin: 0;
+    transform: translate(-50%, -50%);
+    font-weight: 700;
+    font-size: clamp(64px, 13vw, 188px);
+    letter-spacing: -0.045em;
+    line-height: 0.8;
+    white-space: nowrap;
+    color: var(--ink);
+    opacity: 0.14;
+    user-select: none;
+  }
+  #vf-{{ sid }} .vf-grid {
+    display: contents;
+  }
+  #vf-{{ sid }} .vf-visual {
+    grid-column: 2;
+    grid-row: 1;
+    position: relative;
+    min-height: 0;
+    z-index: 1;
+  }
+  #vf-{{ sid }} .vf-shared,
+  #vf-{{ sid }} .vf-own {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  #vf-{{ sid }} .vf-shared { z-index: 1; }
+  #vf-{{ sid }} .vf-bags {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    z-index: 2;
+  }
+  #vf-{{ sid }} .vf-bag {
+    grid-area: 1 / 1;
+    position: relative;
+    display: grid;
+    place-items: center;
+    perspective: 900px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 240ms var(--ease), visibility 0s linear 240ms;
+  }
+  #vf-{{ sid }} .vf-flip {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  #vf-{{ sid }} .vf-card {
+    display: grid;
+    place-items: center;
+    transform-style: preserve-3d;
+    transition: transform 600ms var(--ease);
+  }
+  #vf-{{ sid }} .vf-flip:checked ~ .vf-card { transform: rotateY(180deg); }
+  #vf-{{ sid }} .vf-flip:focus-visible ~ .vf-card { outline: 2px solid var(--ink); outline-offset: 6px; }
+  #vf-{{ sid }} .vf-front,
+  #vf-{{ sid }} .vf-back {
+    grid-area: 1 / 1;
+    width: auto;
+    height: min(58vh, 520px);
+    max-width: min(86%, 460px);
+    object-fit: contain;
+    backface-visibility: hidden;
+  }
+  #vf-{{ sid }} .vf-back { transform: rotateY(180deg); }
+  #vf-{{ sid }} .vf-piece {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    width: var(--s);
+    height: auto;
+    transform: translate(-50%, -50%) rotate(var(--r));
+    animation: vf-drift-{{ sid }} var(--dur) var(--ease) var(--delay) infinite alternate;
+    animation-play-state: paused;
+    pointer-events: none;
+    user-select: none;
+  }
+  #vf-{{ sid }}.is-live .vf-piece { animation-play-state: running; }
+  #vf-{{ sid }}.is-hidden-tab .vf-piece { animation-play-state: paused; }
+  @keyframes vf-drift-{{ sid }} {
+    from { transform: translate(-50%, -50%) rotate(var(--r)) translate3d(0, 0, 0); }
+    to { transform: translate(-50%, -50%) rotate(calc(var(--r) + 7deg)) translate3d(12px, -16px, 0); }
+  }
+  #vf-{{ sid }} .vf-copies {
+    grid-column: 1;
+    grid-row: 1;
+    z-index: 2;
+    display: grid;
+    align-content: center;
+    padding: 28px 28px 28px 32px;
+  }
+  #vf-{{ sid }} .vf-copy {
+    grid-area: 1 / 1;
+    max-width: 460px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 240ms var(--ease), visibility 0s linear 240ms;
+  }
+  #vf-{{ sid }} .vf-kicker {
+    display: flex;
+    gap: 14px;
+    margin: 0 0 12px;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  #vf-{{ sid }} .vf-title {
+    margin: 0;
+    font-weight: 700;
+    font-size: clamp(36px, 4.6vw, 68px);
+    letter-spacing: -0.03em;
+    line-height: 0.92;
+    color: var(--ink);
+  }
+  #vf-{{ sid }} .vf-line {
+    margin: 14px 0 0;
+    max-width: 34ch;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  #vf-{{ sid }} .vf-facts {
+    list-style: none;
+    margin: 18px 0 0;
+    padding: 0;
+    border-top: 1px solid var(--line);
+    max-width: 320px;
+  }
+  #vf-{{ sid }} .vf-facts li {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 14px;
+  }
+  #vf-{{ sid }} .vf-note {
+    margin: 14px 0 0;
+    max-width: 38ch;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  #vf-{{ sid }} .vf-meta {
+    margin: 16px 0 0;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  #vf-{{ sid }} .vf-acts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+    align-items: center;
+  }
+  #vf-{{ sid }} .vf-acts form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin: 0;
+  }
+  #vf-{{ sid }} .vf-add,
+  #vf-{{ sid }} .vf-turn {
+    appearance: none;
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: 2px;
+    font: inherit;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  #vf-{{ sid }} .vf-add {
+    background: var(--accent);
+    color: var(--ground);
+    border: 1px solid var(--accent);
+  }
+  #vf-{{ sid }} .vf-add:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  #vf-{{ sid }} .vf-turn {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--line);
+  }
+  #vf-{{ sid }} .vf-select {
+    min-height: 44px;
+    max-width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-size: 14px;
+    padding: 0 10px;
+  }
+  #vf-{{ sid }} .vf-rail {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    z-index: 3;
+    display: flex;
+    overflow-x: auto;
+    border-top: 1px solid var(--line);
+    scrollbar-width: none;
+  }
+  #vf-{{ sid }} .vf-rail::-webkit-scrollbar { display: none; }
+  #vf-{{ sid }} .vf-tab {
+    flex: 0 0 auto;
+    min-height: 48px;
+    padding: 0 16px;
+    display: inline-flex;
+    align-items: center;
+    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+  }
+  #vf-{{ sid }} .vf-empty {
+    margin: 0;
+    padding: 48px 24px;
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  #vf-{{ sid }} .vf-add:focus-visible,
+  #vf-{{ sid }} .vf-turn:focus-visible,
+  #vf-{{ sid }} .vf-select:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 3px;
+  }
+  {%- for i in (1..8) -%}
+  {%- assign idx = i | minus: 1 -%}
+  {%- if i <= card_count -%}
+  #vf-{{ sid }} > .vf-pick:nth-child({{ i }}):checked ~ .vf-stage {
+    --ground: {{ g_list[idx] }};
+    --ink: {{ k_list[idx] }};
+    --accent: {{ a_list[idx] }};
+    --muted: color-mix(in srgb, {{ k_list[idx] }} 62%, transparent);
+    --line: color-mix(in srgb, {{ k_list[idx] }} 16%, transparent);
+  }
+  {%- endif -%}
+  #vf-{{ sid }} > .vf-pick:nth-child({{ i }}):checked ~ .vf-stage .vf-bg:nth-child({{ i }}),
+  #vf-{{ sid }} > .vf-pick:nth-child({{ i }}):checked ~ .vf-stage .vf-bag:nth-child({{ i }}),
+  #vf-{{ sid }} > .vf-pick:nth-child({{ i }}):checked ~ .vf-stage .vf-copy:nth-child({{ i }}) {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition: opacity 240ms var(--ease), visibility 0s;
+  }
+  #vf-{{ sid }} > .vf-pick:nth-child({{ i }}):checked ~ .vf-stage .vf-tab:nth-child({{ i }}) {
+    color: var(--ink);
+    border-bottom-color: var(--accent);
+  }
+  #vf-{{ sid }} > .vf-pick:nth-child({{ i }}):focus-visible ~ .vf-stage .vf-tab:nth-child({{ i }}) {
+    outline: 2px solid var(--ink);
+    outline-offset: 3px;
+  }
+  {%- endfor -%}
+  @media (max-width: 749px) {
+    #vf-{{ sid }} .vf-stage {
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    #vf-{{ sid }} .vf-visual {
+      height: 78vw;
+      min-height: 280px;
+      flex: none;
+    }
+    #vf-{{ sid }} .vf-word {
+      left: 50%;
+      top: 38%;
+      font-size: clamp(52px, 18vw, 104px);
+    }
+    #vf-{{ sid }} .vf-front,
+    #vf-{{ sid }} .vf-back {
+      height: min(56vw, 320px);
+      max-width: 68%;
+    }
+    #vf-{{ sid }} .vf-piece { width: calc(var(--s) * 0.62); }
+    #vf-{{ sid }} .vf-copies { padding: 8px 20px 20px; }
+    #vf-{{ sid }} .vf-title { font-size: clamp(34px, 11vw, 52px); }
+    #vf-{{ sid }}[data-density="full"] .vf-piece:nth-child(n+4) { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #vf-{{ sid }} .vf-piece { animation: none; }
+    #vf-{{ sid }} .vf-card,
+    #vf-{{ sid }} .vf-bag,
+    #vf-{{ sid }} .vf-copy { transition: none; }
+  }
+</style>
+
+{%- if card_count == 0 -%}
+  <div id="vf-{{ sid }}" class="vf" style="--ground: {{ root_g }}; --ink: {{ root_k }}; background: {{ root_g }}; color: {{ root_k }};">
+    {%- if request.design_mode -%}
+      <p class="vf-empty">Add a product block, or choose a collection.</p>
+    {%- endif -%}
+  </div>
+{%- else -%}
+<vanquish-field id="vf-{{ sid }}" class="vf" data-density="{{ density }}" data-height="{{ section.settings.height }}">
+  {%- for i in (1..card_count) -%}
+    <input class="vf-pick" type="radio" name="vf-{{ sid }}" id="vf-{{ sid }}-{{ i }}" {% if i == 1 %}checked{% endif %}>
+  {%- endfor -%}
+  <div class="vf-stage">
+    <div class="vf-backs" aria-hidden="true">
+      {%- for i in (1..card_count) -%}
+        {%- assign idx = i | minus: 1 -%}
+        <div class="vf-bg" style="--ground: {{ g_list[idx] }}; --ink: {{ k_list[idx] }};">
+          {%- if word_list[idx] != blank -%}
+            <p class="vf-word">{{ word_list[idx] }}</p>
+          {%- endif -%}
+        </div>
+      {%- endfor -%}
+    </div>
+    <div class="vf-grid">
+      <div class="vf-visual">
+        {%- if piece_cap > 0 -%}
+          <div class="vf-shared">
+            {%- assign shared_n = 0 -%}
+            {%- for block in section.blocks -%}
+              {%- if block.type == 'piece' and block.settings.applies == 'all' and block.settings.image != blank and shared_n < piece_cap -%}
+                {%- liquid
+                  assign slot = shared_n | modulo: 8
+                  assign pw = 96
+                  if block.settings.size == 'm'
+                    assign pw = 132
+                  elsif block.settings.size == 'l'
+                    assign pw = 176
+                  endif
+                  assign ph = pw | divided_by: block.settings.image.aspect_ratio | round
+                -%}
+                <img
+                  class="vf-piece"
+                  src="{{ block.settings.image | image_url: width: 280 }}"
+                  alt=""
+                  width="{{ pw }}"
+                  height="{{ ph }}"
+                  loading="lazy"
+                  decoding="async"
+                  style="--x: {{ px[slot] }}%; --y: {{ py[slot] }}%; --r: {{ prot[slot] }}deg; --s: {{ pw }}px; --dur: {{ pdur[slot] }}s; --delay: -{{ slot | times: 0.6 }}s;"
+                  {{ block.shopify_attributes }}
+                >
+                {%- assign shared_n = shared_n | plus: 1 -%}
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+        <div class="vf-bags">
+          {%- for i in (1..card_count) -%}
+            {%- assign idx = i | minus: 1 -%}
+            <div class="vf-bag" style="--ground: {{ g_list[idx] }}; --ink: {{ k_list[idx] }}; --accent: {{ a_list[idx] }};">
+              {%- if back_list[idx] != blank and section.settings.show_turn -%}
+                <input class="vf-flip" type="checkbox" id="vf-flip-{{ sid }}-{{ i }}">
+              {%- endif -%}
+              <div class="vf-card">
+                {%- if front_list[idx] != blank -%}
+                  <img
+                    class="vf-front"
+                    data-vf-front="{{ i }}"
+                    src="{{ front_list[idx] }}"
+                    alt="{{ falt_list[idx] }}"
+                    width="{{ fw_list[idx] }}"
+                    height="{{ fh_list[idx] }}"
+                    {% if i == 1 %}fetchpriority="high"{% else %}loading="lazy"{% endif %}
+                    decoding="async"
+                  >
+                {%- endif -%}
+                {%- if back_list[idx] != blank -%}
+                  <img class="vf-back" src="{{ back_list[idx] }}" alt="" width="{{ bw_list[idx] }}" height="{{ bh_list[idx] }}" loading="lazy" decoding="async">
+                {%- endif -%}
+              </div>
+              {%- if piece_cap > 0 -%}
+                <div class="vf-own">
+                  {%- assign own_n = 0 -%}
+                  {%- assign own_cap = piece_cap -%}
+                  {%- if shared_n > 0 and density != 'full' -%}
+                    {%- assign own_cap = 0 -%}
+                  {%- elsif shared_n > 0 -%}
+                    {%- assign own_cap = 3 -%}
+                  {%- endif -%}
+                  {%- for block in section.blocks -%}
+                    {%- assign applies = i | append: '' -%}
+                    {%- if block.type == 'piece' and block.settings.applies == applies and block.settings.image != blank and own_n < own_cap -%}
+                      {%- liquid
+                        assign slot = own_n | plus: 3 | modulo: 8
+                        assign pw = 96
+                        if block.settings.size == 'm'
+                          assign pw = 132
+                        elsif block.settings.size == 'l'
+                          assign pw = 176
+                        endif
+                        assign ph = pw | divided_by: block.settings.image.aspect_ratio | round
+                      -%}
+                      <img
+                        class="vf-piece"
+                        src="{{ block.settings.image | image_url: width: 280 }}"
+                        alt=""
+                        width="{{ pw }}"
+                        height="{{ ph }}"
+                        loading="lazy"
+                        decoding="async"
+                        style="--x: {{ px[slot] }}%; --y: {{ py[slot] }}%; --r: {{ prot[slot] }}deg; --s: {{ pw }}px; --dur: {{ pdur[slot] }}s; --delay: -{{ slot | times: 0.5 }}s;"
+                        {{ block.shopify_attributes }}
+                      >
+                      {%- assign own_n = own_n | plus: 1 -%}
+                    {%- endif -%}
+                  {%- endfor -%}
+                </div>
+              {%- endif -%}
+            </div>
+          {%- endfor -%}
+        </div>
+      </div>
+      <div class="vf-copies">
+        {%- for i in (1..card_count) -%}
+          {%- assign idx = i | minus: 1 -%}
+          <div class="vf-copy" style="--ground: {{ g_list[idx] }}; --ink: {{ k_list[idx] }}; --accent: {{ a_list[idx] }};">
+            <p class="vf-kicker">
+              <span>{{ i | prepend: '00' | slice: -2, 2 }} / {{ card_count | prepend: '00' | slice: -2, 2 }}</span>
+              {%- if eyebrow_list[idx] != blank -%}<span>{{ eyebrow_list[idx] }}</span>{%- endif -%}
+            </p>
+            <h2 class="vf-title">{{ title_list[idx] }}</h2>
+            {%- if line_list[idx] != blank -%}<p class="vf-line">{{ line_list[idx] }}</p>{%- endif -%}
+            {%- assign fact_bits = fact_list[idx] | split: ';;' -%}
+            {%- assign shown_fact = false -%}
+            {%- for bit in fact_bits -%}
+              {%- assign bit_clean = bit | strip -%}
+              {%- if bit_clean != blank -%}
+                {%- unless shown_fact -%}<ul class="vf-facts">{%- assign shown_fact = true -%}{%- endunless -%}
+                <li>{{ bit_clean }}</li>
+              {%- endif -%}
+            {%- endfor -%}
+            {%- if shown_fact -%}</ul>{%- endif -%}
+            {%- if note_list[idx] != blank -%}<p class="vf-note">{{ note_list[idx] }}</p>{%- endif -%}
+            {%- if meta_list[idx] != blank -%}<p class="vf-meta" data-vf-price="{{ i }}">{{ meta_list[idx] }}</p>{%- endif -%}
+            <div class="vf-acts">
+              {%- if kind_list[idx] == 'cart' and vid_list[idx] != blank -%}
+                {%- assign form_id = 'vf-form-' | append: sid | append: '-' | append: i -%}
+                {%- if source == 'product' and section.settings.split_variants == false and solo.has_only_default_variant == false and i == 1 -%}
+                  {%- form 'product', solo, id: form_id -%}
+                    <input type="hidden" name="quantity" value="1">
+                    <select class="vf-select" name="id" data-vf-variants data-i="{{ i }}" aria-label="Variant">
+                      {%- for variant in solo.variants -%}
+                        <option
+                          value="{{ variant.id }}"
+                          {% if variant.id == solo.selected_or_first_available_variant.id %}selected{% endif %}
+                          {% if variant.image %}data-img="{{ variant.image | image_url: width: 900 }}"{% endif %}
+                          data-available="{% if variant.available %}true{% else %}false{% endif %}"
+                          data-price="{{ variant.price | money | escape }}"
+                        >
+                          {{ variant.title }}{% if section.settings.show_price %} — {{ variant.price | money }}{% endif %}
+                        </option>
+                      {%- endfor -%}
+                    </select>
+                    <button class="vf-add" type="submit" name="add" data-vf-submit="{{ i }}" data-label="{{ cta_list[idx] }}" {% if ok_list[idx] != '1' %}disabled{% endif %}>
+                      {%- if ok_list[idx] == '1' -%}{{ cta_list[idx] }}{%- else -%}Sold out{%- endif -%}
+                    </button>
+                  {%- endform -%}
+                {%- else -%}
+                  {%- assign form_product = solo -%}
+                  {%- if source == 'blocks' -%}
+                    {%- assign seen = 0 -%}
+                    {%- for block in section.blocks -%}
+                      {%- if block.type == 'product' -%}
+                        {%- assign seen = seen | plus: 1 -%}
+                        {%- if seen == i -%}
+                          {%- assign form_product = block.settings.product -%}
+                        {%- endif -%}
+                      {%- endif -%}
+                    {%- endfor -%}
+                  {%- elsif source == 'collection' -%}
+                    {%- assign seen = 0 -%}
+                    {%- for card_product in section.settings.collection.products limit: cap -%}
+                      {%- assign seen = seen | plus: 1 -%}
+                      {%- if seen == i -%}
+                        {%- assign form_product = card_product -%}
+                      {%- endif -%}
+                    {%- endfor -%}
+                  {%- endif -%}
+                  {%- if form_product != blank -%}
+                    {%- form 'product', form_product, id: form_id -%}
+                      <input type="hidden" name="quantity" value="1">
+                      <input type="hidden" name="id" value="{{ vid_list[idx] }}">
+                      <button class="vf-add" type="submit" name="add" data-label="{{ cta_list[idx] }}" {% if ok_list[idx] != '1' %}disabled{% endif %}>
+                        {%- if ok_list[idx] == '1' -%}{{ cta_list[idx] }}{%- else -%}Sold out{%- endif -%}
+                      </button>
+                    {%- endform -%}
+                  {%- endif -%}
+                {%- endif -%}
+              {%- elsif kind_list[idx] == 'link' and url_list[idx] != blank -%}
+                <a class="vf-add" href="{{ url_list[idx] }}">{{ cta_list[idx] }}</a>
+              {%- endif -%}
+              {%- if back_list[idx] != blank and section.settings.show_turn -%}
+                <label class="vf-turn" for="vf-flip-{{ sid }}-{{ i }}">Turn</label>
+              {%- endif -%}
+            </div>
+          </div>
+        {%- endfor -%}
+      </div>
+      {%- if card_count > 1 -%}
+        <div class="vf-rail" role="tablist" aria-label="{{ section.settings.kicker | default: 'Products' | escape }}">
+          {%- for i in (1..card_count) -%}
+            {%- assign idx = i | minus: 1 -%}
+            <label class="vf-tab" for="vf-{{ sid }}-{{ i }}">{{ title_list[idx] }}</label>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</vanquish-field>
+<script>
+  (function () {
+    if (customElements.get("vanquish-field")) return;
+    class VanquishField extends HTMLElement {
+      connectedCallback() {
+        if (this.dataset.ready === "1") return;
+        this.dataset.ready = "1";
+        var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var mark = function () {
+          var on = !reduce && !document.hidden && this._seen;
+          this.classList.toggle("is-live", on);
+          this.classList.toggle("is-hidden-tab", document.hidden);
+        }.bind(this);
+        this._vis = function () { mark(); };
+        document.addEventListener("visibilitychange", this._vis);
+        if ("IntersectionObserver" in window && !reduce) {
+          this._io = new IntersectionObserver(function (entries) {
+            this._seen = entries.some(function (entry) { return entry.isIntersecting; });
+            mark();
+          }.bind(this), { rootMargin: "80px" });
+          this._io.observe(this);
+        } else {
+          this._seen = !reduce;
+          mark();
+        }
+        this._change = function (event) {
+          var sel = event.target;
+          if (!sel || !sel.matches || !sel.matches("[data-vf-variants]")) return;
+          var opt = sel.options[sel.selectedIndex];
+          if (!opt) return;
+          var id = sel.getAttribute("data-i");
+          var front = this.querySelector('[data-vf-front="' + id + '"]');
+          var img = opt.getAttribute("data-img");
+          if (front && img) {
+            front.removeAttribute("srcset");
+            front.src = img;
+          }
+          var btn = this.querySelector('[data-vf-submit="' + id + '"]');
+          if (btn) {
+            var available = opt.getAttribute("data-available") === "true";
+            btn.disabled = !available;
+            btn.textContent = available ? (btn.getAttribute("data-label") || "Add to cart") : "Sold out";
+          }
+          var price = this.querySelector('[data-vf-price="' + id + '"]');
+          var next = opt.getAttribute("data-price");
+          if (price && next) price.textContent = next;
+        }.bind(this);
+        this.addEventListener("change", this._change);
+      }
+      disconnectedCallback() {
+        this.dataset.ready = "";
+        if (this._io) this._io.disconnect();
+        if (this._vis) document.removeEventListener("visibilitychange", this._vis);
+        if (this._change) this.removeEventListener("change", this._change);
+      }
+    }
+    customElements.define("vanquish-field", VanquishField);
+  })();
+</script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Product Field",
+  "tag": "section",
+  "class": "vf-section",
+  "max_blocks": 24,
+  "settings": [
+    { "type": "header", "content": "Source" },
+    {
+      "type": "select",
+      "id": "source",
+      "label": "Products come from",
+      "options": [
+        { "value": "blocks", "label": "Product blocks" },
+        { "value": "collection", "label": "A collection" },
+        { "value": "product", "label": "One product" }
+      ],
+      "default": "blocks",
+      "info": "Blocks for full control. A collection for the catalog. One product uses the picker below, or the product page you drop this on."
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection",
+      "visible_if": "{{ section.settings.source == 'collection' }}"
+    },
+    {
+      "type": "product",
+      "id": "product",
+      "label": "Product",
+      "info": "Leave empty on a product page to use that product.",
+      "visible_if": "{{ section.settings.source == 'product' }}"
+    },
+    {
+      "type": "range",
+      "id": "limit",
+      "min": 1,
+      "max": 8,
+      "step": 1,
+      "label": "Max products",
+      "default": 4,
+      "visible_if": "{{ section.settings.source != 'blocks' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "split_variants",
+      "label": "Each variant is its own card",
+      "default": false,
+      "info": "Use when variants have their own photos. Otherwise one card with a variant menu.",
+      "visible_if": "{{ section.settings.source == 'product' }}"
+    },
+    { "type": "header", "content": "Copy" },
+    { "type": "text", "id": "kicker", "label": "Kicker", "default": "In the field" },
+    { "type": "text", "id": "word", "label": "Giant word", "info": "Sits behind the product. A block can override it." },
+    { "type": "text", "id": "button_label", "label": "Add button", "default": "Add to cart" },
+    { "type": "text", "id": "link_label", "label": "Link button", "default": "View" },
+    { "type": "checkbox", "id": "show_price", "label": "Show price", "default": true },
+    { "type": "checkbox", "id": "show_cart", "label": "Add to cart", "default": true, "info": "Off uses a link to the product instead of the cart form." },
+    { "type": "checkbox", "id": "show_turn", "label": "Turn to the back image", "default": true },
+    { "type": "header", "content": "Environment" },
+    {
+      "type": "select",
+      "id": "environment",
+      "label": "Ground",
+      "options": [
+        { "value": "paper", "label": "Paper" },
+        { "value": "night", "label": "Night" },
+        { "value": "chalk", "label": "Chalk" },
+        { "value": "ink", "label": "Ink" },
+        { "value": "sand", "label": "Sand" },
+        { "value": "custom", "label": "Custom" }
+      ],
+      "default": "paper"
+    },
+    {
+      "type": "checkbox",
+      "id": "vary",
+      "label": "Shift the ground per product",
+      "default": false,
+      "info": "Cycles Paper, Night, Chalk, Ink, Sand. A block with its own colors keeps them."
+    },
+    { "type": "color", "id": "ground", "label": "Custom ground", "default": "#f2e8d5", "visible_if": "{{ section.settings.environment == 'custom' }}" },
+    { "type": "color", "id": "ink", "label": "Custom ink", "default": "#1b130c", "visible_if": "{{ section.settings.environment == 'custom' }}" },
+    { "type": "color", "id": "accent", "label": "Custom accent", "default": "#e2462a", "visible_if": "{{ section.settings.environment == 'custom' }}" },
+    { "type": "header", "content": "Stage" },
+    {
+      "type": "select",
+      "id": "height",
+      "label": "Height",
+      "options": [
+        { "value": "stage", "label": "Full screen" },
+        { "value": "compact", "label": "Compact" }
+      ],
+      "default": "stage"
+    },
+    {
+      "type": "select",
+      "id": "density",
+      "label": "Cut-outs",
+      "options": [
+        { "value": "still", "label": "Still — none" },
+        { "value": "quiet", "label": "Quiet — 3" },
+        { "value": "full", "label": "Full — up to 6" }
+      ],
+      "default": "quiet",
+      "info": "Cut-outs are the piece blocks. They drift only while this section is on screen, and they stop for reduced motion."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "product",
+      "name": "Product",
+      "settings": [
+        { "type": "product", "id": "product", "label": "Product" },
+        { "type": "image_picker", "id": "image", "label": "Front image", "info": "Overrides the product photo. Use a cut-out on a transparent ground." },
+        { "type": "image_picker", "id": "image_back", "label": "Back image" },
+        { "type": "text", "id": "title", "label": "Title override" },
+        { "type": "text", "id": "line", "label": "Line" },
+        { "type": "text", "id": "eyebrow", "label": "Kicker override" },
+        { "type": "text", "id": "word", "label": "Giant word" },
+        { "type": "textarea", "id": "facts", "label": "Facts", "info": "One fact per line." },
+        { "type": "textarea", "id": "note", "label": "Note" },
+        { "type": "text", "id": "cta", "label": "Button label" },
+        { "type": "url", "id": "link", "label": "Link", "info": "Used when there is no product, or when Add to cart is off." },
+        { "type": "checkbox", "id": "own_colors", "label": "Own colors", "default": false },
+        { "type": "color", "id": "ground", "label": "Ground", "default": "#121212", "visible_if": "{{ block.settings.own_colors == true }}" },
+        { "type": "color", "id": "ink", "label": "Ink", "default": "#f5f1e8", "visible_if": "{{ block.settings.own_colors == true }}" },
+        { "type": "color", "id": "accent", "label": "Accent", "default": "#c6e83a", "visible_if": "{{ block.settings.own_colors == true }}" }
+      ]
+    },
+    {
+      "type": "piece",
+      "name": "Cut-out",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Cut-out", "info": "Transparent PNG or WebP. Ingredient, crumb, hardware, petal." },
+        {
+          "type": "select",
+          "id": "applies",
+          "label": "Shows with",
+          "options": [
+            { "value": "all", "label": "Every product" },
+            { "value": "1", "label": "Product 1" },
+            { "value": "2", "label": "Product 2" },
+            { "value": "3", "label": "Product 3" },
+            { "value": "4", "label": "Product 4" },
+            { "value": "5", "label": "Product 5" },
+            { "value": "6", "label": "Product 6" },
+            { "value": "7", "label": "Product 7" },
+            { "value": "8", "label": "Product 8" }
+          ],
+          "default": "all"
+        },
+        {
+          "type": "select",
+          "id": "size",
+          "label": "Size",
+          "options": [
+            { "value": "s", "label": "Small" },
+            { "value": "m", "label": "Medium" },
+            { "value": "l", "label": "Large" }
+          ],
+          "default": "m"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product Field",
+      "settings": {
+        "source": "blocks",
+        "kicker": "In the field",
+        "environment": "paper",
+        "density": "quiet",
+        "height": "stage"
+      },
+      "blocks": [
+        { "type": "product" },
+        { "type": "product" }
+      ]
+    }
+  ]
+}
+{% endschema %}
