@@ -216,14 +216,14 @@
         "message_cikf9r": {
           "type": "message",
           "settings": {
-            "text": "Delivery in 10–18 business days"
+            "text": "Delivery in 5–10 business days"
           }
         },
         "message_yLgV6H": {
           "type": "message",
           "disabled": true,
           "settings": {
-            "text": "Delivery in 10–18 business days"
+            "text": "Delivery in 5–10 business days"
           }
         },
         "message_mkgWBG": {
