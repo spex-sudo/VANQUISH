@@ -84,7 +84,7 @@
           "settings": {
             "column": "right",
             "title": "Shipping & Returns",
-            "content": "<p>Free Standard Shipping On Eligible Orders.</p><p>30-day returns — items must be unworn with original tags.</p>",
+            "content": "<p>Shipping from $10.75. Rates shown at checkout.</p><p>30-day returns on apparel. Items must be unworn, unwashed, with original tags.</p>",
             "image": "shopify://shop_images/66DF17D4-1451-49D4-81A7-8EA0B47D6FB5.jpg",
             "redirect_url": ""
           }
@@ -138,7 +138,7 @@
         "glass_bundle_detail": true,
         "glass_show_ribbon": true,
         "show_trust_strip": false,
-        "trust_1": "Free shipping over $77",
+        "trust_1": "Tracked shipping",
         "trust_2": "30-day returns",
         "trust_3": "Authentic",
         "show_pill": true,
@@ -216,14 +216,14 @@
         "message_cikf9r": {
           "type": "message",
           "settings": {
-            "text": "Delivery in 5–10 business days"
+            "text": "Delivery in 10–18 business days"
           }
         },
         "message_yLgV6H": {
           "type": "message",
           "disabled": true,
           "settings": {
-            "text": "Delivery in 5–10 business days"
+            "text": "Delivery in 10–18 business days"
           }
         },
         "message_mkgWBG": {
