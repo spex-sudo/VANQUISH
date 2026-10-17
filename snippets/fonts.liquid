@@ -29,7 +29,8 @@
     fetchpriority="low"
   >
 {%- endunless -%}
-{%- unless settings.type_accent_font.system? -%}
+{%- assign lexe_acc_url = settings.type_accent_font | font_url -%}{%- assign lexe_head_url = settings.type_heading_font | font_url -%}
+{%- unless settings.type_accent_font.system? or lexe_acc_url == lexe_head_url -%}
   <link
     rel="preload"
     as="font"
