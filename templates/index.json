@@ -79,8 +79,8 @@
       "settings": {
         "overlay_style": "glass",
         "bg": "#ffffff",
-        "bg_opacity": 80,
-        "blur_amount": 30,
+        "bg_opacity": 65,
+        "blur_amount": 40,
         "bar_color": "#bebfff",
         "fps": 7,
         "min_ms": 1900,
