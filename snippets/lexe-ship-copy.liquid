@@ -1,17 +1,5 @@
 {%- comment -%} LEXE 2026-10-15: render-time shipping copy fix (templates/product.json could not be read in full, so it is not rewritten). Replaces the old free-shipping line in the product "Shipping & Returns" block and hides any "Free shipping over $77" trust item, and swaps the returns line. Remove this snippet + its render line in layout/theme.liquid once product.json is edited directly. {%- endcomment -%}
-{%- if template.name == 'product' -%}
-<script>
-(function(){
-  var OLD=/Free Standard Shipping On Eligible Orders\./g, NEW='Shipping: $10.75 in Jamaica, $18.97 international.', RET=/30-day returns \u2014 items must be unworn with original tags\./g, RNEW='30-day returns on apparel. Items must be unworn, unwashed, with original tags.';
-  function run(){
-    var w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null),n;
-    while((n=w.nextNode())){ if(OLD.test(n.nodeValue)){ n.nodeValue=n.nodeValue.replace(OLD,NEW); } OLD.lastIndex=0; if(RET.test(n.nodeValue)){ n.nodeValue=n.nodeValue.replace(RET,RNEW); } RET.lastIndex=0; }
-    document.querySelectorAll('[class^="ap-trust-item"]').forEach(function(el){ if(/free shipping over/i.test(el.textContent)) el.style.setProperty('display','none','important'); });
-  }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',run); else run();
-})();
-</script>
-{%- endif -%}
+{%- comment -%} 2026-10-17: PDP shipping/returns text patch removed - templates/product.json now carries the correct copy at source. {%- endcomment -%}
 {%- comment -%} LEXE 2026-10-15 22:40: (1) hide fake "Customers are viewing" ticker everywhere. (2) While shop.metafields.lexe.checkout_live is not true: hide the "Buying it on its own? Use Add to cart." sentence and the whole homepage free-pair promo section (incl. Claim box). Both return automatically when checkout_live = true. (3) Free-pair offer line text set to the agreed copy. {%- endcomment -%}
 <script>
 (function(){
@@ -52,7 +40,7 @@
 </style>
 <script>
 (function(){
-  var SW=[[/Delivery in 5[\u2013\u2014-]10 business days/,'Delivery in 10\u201318 business days'],[/^\s*Command the room\s*[-\u2013\u2014]\s*discover how black gives form to uncompromising luxury\.\s*$/,'Command the room.']];
+  var SW=[[/^\s*Command the room\s*[-\u2013\u2014]\s*discover how black gives form to uncompromising luxury\.\s*$/,'Command the room.']];
   function run(){
     var w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null),n;
     while((n=w.nextNode())){ var p=n.parentElement; if(!p||p.tagName==='SCRIPT'||p.tagName==='STYLE') continue; for(var i=0;i<SW.length;i++){ if(SW[i][0].test(n.nodeValue)) n.nodeValue=n.nodeValue.replace(SW[i][0],SW[i][1]); } }
