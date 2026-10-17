@@ -42,7 +42,7 @@
             {%- if block.settings.link != blank -%}
               {%- assign href = block.settings.link -%}
             {%- endif -%}
-            {%- assign alt_text = block.settings.caption | default: img.alt | escape -%}
+            {%- assign alt_text = block.settings.caption | default: img.alt | default: section.settings.title | default: shop.name | strip | escape -%}
             <a class="va-card" role="listitem" href="{{ href }}" {{ block.shopify_attributes }}>
               <div class="va-media">
                 {{ img | image_url: width: 900 | image_tag: widths: '320, 480, 640, 800, 900', sizes: '(max-width: 749px) 50vw, 280px', loading: 'lazy', decoding: 'async', alt: alt_text }}

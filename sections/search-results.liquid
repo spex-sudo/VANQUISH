@@ -90,7 +90,7 @@
     {%- for col in collections limit: 8 -%}
       {%- unless col.handle == 'all' -%}
         <a class="vs-chip{{ sid }}" href="{{ col.url }}">
-          {%- if col.image -%}<img src="{{ col.image | image_url: width: 80 }}" alt="">{%- elsif col.featured_image -%}<img src="{{ col.featured_image | image_url: width: 80 }}" alt="">{%- endif -%}
+          {%- if col.image -%}<img src="{{ col.image | image_url: width: 80 }}" alt="" width="22" height="22" loading="lazy" decoding="async">{%- elsif col.featured_image -%}<img src="{{ col.featured_image | image_url: width: 80 }}" alt="" width="22" height="22" loading="lazy" decoding="async">{%- endif -%}
           {{ col.title | escape }}
         </a>
       {%- endunless -%}
