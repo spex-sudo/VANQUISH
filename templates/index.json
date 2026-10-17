@@ -283,6 +283,78 @@
         "enable_schema": true
       }
     },
+    "vanquish_field_VAMhBa": {
+      "type": "vanquish-field",
+      "blocks": {
+        "product_ARMF8W": {
+          "type": "product",
+          "settings": {
+            "product": "",
+            "matter": "inherit",
+            "title": "",
+            "line": "",
+            "eyebrow": "",
+            "word": "",
+            "facts": "",
+            "note": "",
+            "cta": "",
+            "link": "",
+            "own_colors": false,
+            "ground": "#121212",
+            "ink": "#f5f1e8",
+            "accent": "#c6e83a"
+          }
+        },
+        "product_YLXFje": {
+          "type": "product",
+          "settings": {
+            "product": "",
+            "matter": "inherit",
+            "title": "",
+            "line": "",
+            "eyebrow": "",
+            "word": "",
+            "facts": "",
+            "note": "",
+            "cta": "",
+            "link": "",
+            "own_colors": false,
+            "ground": "#121212",
+            "ink": "#f5f1e8",
+            "accent": "#c6e83a"
+          }
+        }
+      },
+      "block_order": [
+        "product_ARMF8W",
+        "product_YLXFje"
+      ],
+      "name": "Vanquish Field",
+      "settings": {
+        "source": "collection",
+        "collection": "exodus",
+        "product": "",
+        "limit": 1,
+        "split_variants": false,
+        "kicker": "In the field",
+        "word": "LEXE",
+        "button_label": "Add to cart",
+        "link_label": "View",
+        "show_price": true,
+        "show_cart": true,
+        "show_turn": true,
+        "environment": "night",
+        "vary": true,
+        "ground": "#f2e8d5",
+        "ink": "#1b130c",
+        "accent": "#e2462a",
+        "height": "stage",
+        "density": "quiet",
+        "matter": "mark",
+        "mark": "shopify://shop_images/IMG-0112.png",
+        "mark_knock": "clear"
+      }
+    },
     "vanquish_atelier_nwPpp6": {
       "type": "vanquish-atelier",
       "name": "Product Atelier",
@@ -591,7 +663,7 @@
         "seal_size": 20,
         "formal_bg": "#000000",
         "formal_text": "#f2efe6",
-        "rule_color": "#B3DA8B",
+        "rule_color": "#b3da8b",
         "formal_item_icons": true,
         "show_texture": false,
         "texture_opacity": 4,
@@ -765,6 +837,7 @@
     "luxury_transition_m6cr6x",
     "lexe_bento_hero",
     "luxury_collectiongrid_jpK7Cz",
+    "vanquish_field_VAMhBa",
     "vanquish_atelier_nwPpp6",
     "luxury_featureproduct_DDiGAR",
     "vanquish_atelier_XfxTnG",
