@@ -14,6 +14,46 @@
     "vanquish_atelier_H7GEMT": {
       "type": "vanquish-atelier",
       "blocks": {
+        "magazine_Th7KGM": {
+          "type": "magazine",
+          "settings": {
+            "image": "shopify://shop_images/90617682-61BC-41D5-9771-B9DF6BF9204B.jpg",
+            "caption": "",
+            "link": "shopify://pages/links"
+          }
+        },
+        "magazine_aDFJcM": {
+          "type": "magazine",
+          "settings": {
+            "image": "shopify://shop_images/DB2AC5DD-6EE0-41D9-8CBD-6149205ECF2C.jpg",
+            "caption": "",
+            "link": ""
+          }
+        },
+        "magazine_dcaEW8": {
+          "type": "magazine",
+          "settings": {
+            "image": "shopify://shop_images/0124DAC3-0C0A-4301-B69C-DFDE7C360D48.jpg",
+            "caption": "",
+            "link": ""
+          }
+        },
+        "magazine_bt9Jr9": {
+          "type": "magazine",
+          "settings": {
+            "image": "shopify://shop_images/IMG-0527.jpg",
+            "caption": "",
+            "link": ""
+          }
+        },
+        "magazine_DjC8b9": {
+          "type": "magazine",
+          "settings": {
+            "image": "shopify://shop_images/IMG-0590.jpg",
+            "caption": "",
+            "link": ""
+          }
+        },
         "magazine_3FqcTr": {
           "type": "magazine",
           "settings": {
@@ -32,6 +72,11 @@
         }
       },
       "block_order": [
+        "magazine_Th7KGM",
+        "magazine_aDFJcM",
+        "magazine_dcaEW8",
+        "magazine_bt9Jr9",
+        "magazine_DjC8b9",
         "magazine_3FqcTr",
         "magazine_w4aPEe"
       ],
