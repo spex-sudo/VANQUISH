@@ -89,7 +89,7 @@
         "loading_text": "Loading",
         "text_position": "center",
         "text_offset_x": 32,
-        "text_offset_y": 40,
+        "text_offset_y": 32,
         "loading_font": "rounded",
         "loading_font_size": 10,
         "loading_font_weight": "700",
