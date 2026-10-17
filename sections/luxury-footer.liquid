@@ -830,14 +830,19 @@
   </div>
 
   {%- comment %} ── PAYMENT ICONS — mirrors shop.enabled_payment_types so it always matches Settings → Payments, no hardcoded logos to maintain ── {%- endcomment %}
-  {%- if section.settings.show_payment_icons and shop.enabled_payment_types.size > 0 -%}
+  {%- comment -%} 2026-10-17: while no gateway is active (Pause and Build plan) shop.enabled_payment_types is empty, so fall back to the card brands the Scotiabank/Fiserv card checkout takes. The live list from Settings > Payments is used again as soon as a gateway is on. {%- endcomment -%}
+  {%- assign vq_pay_types = shop.enabled_payment_types -%}
+  {%- if vq_pay_types.size == 0 -%}
+    {%- assign vq_pay_types = 'visa,master,american_express,discover' | split: ',' -%}
+  {%- endif -%}
+  {%- if section.settings.show_payment_icons and vq_pay_types.size > 0 -%}
     <div class="vq-payment-row">
       <div class="vq-payment-inner">
         {%- if section.settings.payment_icons_label != blank -%}
           <span class="vq-payment-label">{{ section.settings.payment_icons_label }}</span>
         {%- endif -%}
         <ul class="vq-payment-icons" role="list" aria-label="Accepted payment methods">
-          {%- for type in shop.enabled_payment_types -%}
+          {%- for type in vq_pay_types -%}
             <li>{{ type | payment_type_svg_tag: class: 'vq-pay-icon' }}</li>
           {%- endfor -%}
         </ul>
