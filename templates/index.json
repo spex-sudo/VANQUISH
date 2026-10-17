@@ -623,7 +623,7 @@
       "type": "vanquish-scratch",
       "name": "Scratch Funnel — Tag",
       "settings": {
-        "enabled": false,
+        "enabled": true,
         "display_mode": "tag",
         "tag_text": "PULL HERE",
         "tag_side": "left",
