@@ -463,7 +463,6 @@
     },
     "vanquish_transittimer_hmmnrA": {
       "type": "vanquish-transittimer",
-      "disabled": true,
       "blocks": {
         "message_AqpJt4": {
           "type": "message",
@@ -482,6 +481,7 @@
         "message_AqpJt4",
         "message_DJNPdF"
       ],
+      "disabled": true,
       "name": "Trust Banner",
       "settings": {
         "bg_color": "#000000",
@@ -524,7 +524,6 @@
     },
     "lexe_trust_glass": {
       "type": "lexe-trust-glass",
-      "name": "Trust Banner (glass)",
       "blocks": {
         "item_delivery": {
           "type": "item",
@@ -565,13 +564,32 @@
         "item_secure",
         "item_contact"
       ],
+      "name": "Trust Banner (glass)",
       "settings": {
+        "style": "formal",
         "aria_label": "Store promises",
         "page_bg": "#ffffff",
+        "show_label": false,
+        "label_text": "",
+        "show_seal": true,
+        "seal_shape": "shield",
+        "label_left_pad": 44,
+        "seal_size": 18,
+        "formal_bg": "#000000",
+        "formal_text": "#f2efe6",
+        "rule_color": "#67B85E",
+        "divider_color": "#F1FFF0",
+        "formal_font": "grotesque",
+        "formal_font_size": 12,
+        "formal_item_icons": true,
+        "show_texture": true,
+        "texture_opacity": 4,
+        "formal_height": 50,
+        "formal_pad_y": 0,
         "bg_color": "#0b0b0d",
         "text_color": "#ffffff",
-        "accent_color": "#9966CC",
-        "glow": true,
+        "accent_color": "#9966cc",
+        "glow": false,
         "height": 48,
         "radius": 24,
         "side_pad": 12,
@@ -580,11 +598,11 @@
         "font_size": 13,
         "font_weight": "500",
         "letter_spacing": 2,
-        "uppercase": false,
+        "uppercase": true,
         "icon_size": 18,
         "show_dots": true,
         "mobile_mode": "marquee",
-        "speed": 6,
+        "speed": 3,
         "breakpoint": 1100
       }
     },
