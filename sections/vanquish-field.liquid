@@ -1,10 +1,10 @@
 {%- comment -%}
   VANQUISH — Product Field
   One-screen product display for any product and any ground.
-  No WebGL, no scroll-pin, no animation frame.
-  Food uses uploaded cut-outs. Apparel, files, pins, and a logo
-  use built-in matter that moves with page scroll and stays still
-  when the section is off screen or motion is reduced.
+  Scroll pins the stage and walks each product in turn: the giant word
+  slides, the ground takes that product's colours, and the matter travels
+  with the page. No WebGL, no animation frame. Motion pauses off screen
+  and when the visitor asks for reduced motion.
 {%- endcomment -%}
 
 {%- liquid
@@ -640,12 +640,12 @@
     --muted: color-mix(in srgb, var(--ink) 62%, transparent);
     --line: color-mix(in srgb, var(--ink) 16%, transparent);
     --ease: cubic-bezier(0.2, 0, 0, 1);
-    display: flex;
-    flex-direction: column;
+    display: block;
     background: var(--ground);
     color: var(--ink);
-    overflow: hidden;
+    overflow: visible;
     position: relative;
+    height: calc(var(--screens, 1.4) * 100svh);
     font-family: inherit;
     -webkit-font-smoothing: antialiased;
   }
@@ -665,10 +665,13 @@
   }
   #vf-{{ sid }} .vf-stage {
     min-height: {% if section.settings.height == 'compact' %}70svh{% else %}100svh{% endif %};
+    height: {% if section.settings.height == 'compact' %}70svh{% else %}100svh{% endif %};
     display: grid;
     grid-template-columns: minmax(260px, 40%) 1fr;
     grid-template-rows: minmax(0, 1fr) auto;
-    position: relative;
+    position: sticky;
+    top: 0;
+    overflow: hidden;
   }
   #vf-{{ sid }} .vf-backs {
     position: absolute;
@@ -688,7 +691,7 @@
     left: 68%;
     top: 46%;
     margin: 0;
-    transform: translate(-50%, -50%);
+    transform: translate(calc(-50% + (0.5 - var(--local, 0.45)) * 16vw), -50%);
     font-weight: 700;
     font-size: clamp(64px, 13vw, 188px);
     letter-spacing: -0.045em;
@@ -1043,6 +1046,8 @@
     #vf-{{ sid }} .vf-card,
     #vf-{{ sid }} .vf-bag,
     #vf-{{ sid }} .vf-copy { transition: none; }
+    #vf-{{ sid }} { height: auto; }
+    #vf-{{ sid }} .vf-stage { position: relative; top: auto; }
   }
 </style>
 
@@ -1053,7 +1058,7 @@
     {%- endif -%}
   </div>
 {%- else -%}
-<vanquish-field id="vf-{{ sid }}" class="vf" data-density="{{ density }}" data-height="{{ section.settings.height }}" data-knock="{{ section.settings.mark_knock | default: 'clear' }}">
+<vanquish-field id="vf-{{ sid }}" class="vf" data-density="{{ density }}" data-height="{{ section.settings.height }}" data-knock="{{ section.settings.mark_knock | default: 'clear' }}" data-chapters="{{ card_count }}" style="--screens: {{ card_count | plus: 0.4 }};">
   {%- for i in (1..card_count) -%}
     <input class="vf-pick" type="radio" name="vf-{{ sid }}" id="vf-{{ sid }}-{{ i }}" {% if i == 1 %}checked{% endif %}>
   {%- endfor -%}
@@ -1323,23 +1328,52 @@
         this.addEventListener("change", this._change);
         if (!reduce) {
           this._raf = 0;
+          this._fromScroll = false;
+          var picks = this.querySelectorAll(".vf-pick");
+          var self = this;
+          var chapterOf = function (node) {
+            for (var i = 0; i < picks.length; i++) if (picks[i] === node) return i;
+            return -1;
+          };
           this._scroll = function () {
-            if (!this._seen || document.hidden) return;
-            if (this._raf) return;
-            var self = this;
-            this._raf = requestAnimationFrame(function () {
+            if (!self._seen || document.hidden) return;
+            if (self._raf) return;
+            self._raf = requestAnimationFrame(function () {
               self._raf = 0;
               if (!self._seen || document.hidden) return;
               var rect = self.getBoundingClientRect();
-              var view = window.innerHeight || 1;
-              var p = (view - rect.top) / (rect.height + view);
+              var travel = Math.max(1, self.offsetHeight - window.innerHeight);
+              var p = -rect.top / travel;
               if (p < 0) p = 0;
               if (p > 1) p = 1;
+              var n = picks.length || 1;
+              var cp = p * n;
+              var i = Math.min(n - 1, Math.floor(cp));
+              var local = cp - i;
               self.style.setProperty("--p", p.toFixed(3));
+              self.style.setProperty("--local", local.toFixed(3));
+              var pick = picks[i];
+              if (pick && !pick.checked) {
+                self._fromScroll = true;
+                pick.checked = true;
+                self._fromScroll = false;
+              }
             });
-          }.bind(this);
+          };
           window.addEventListener("scroll", this._scroll, { passive: true });
           this._scroll();
+          this._jump = function (event) {
+            var pick = event.target;
+            if (!pick || !pick.classList || !pick.classList.contains("vf-pick")) return;
+            if (self._fromScroll) return;
+            var i = chapterOf(pick);
+            if (i < 0) return;
+            var n = picks.length || 1;
+            var top = self.getBoundingClientRect().top + window.scrollY;
+            var travel = Math.max(1, self.offsetHeight - window.innerHeight);
+            window.scrollTo({ top: top + ((i + 0.12) / n) * travel, behavior: "smooth" });
+          };
+          this.addEventListener("change", this._jump);
         }
       }
       disconnectedCallback() {
@@ -1347,6 +1381,7 @@
         if (this._io) this._io.disconnect();
         if (this._vis) document.removeEventListener("visibilitychange", this._vis);
         if (this._change) this.removeEventListener("change", this._change);
+        if (this._jump) this.removeEventListener("change", this._jump);
         if (this._scroll) window.removeEventListener("scroll", this._scroll);
         if (this._raf) cancelAnimationFrame(this._raf);
       }
