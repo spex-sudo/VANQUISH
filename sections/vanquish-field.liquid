@@ -1,9 +1,10 @@
 {%- comment -%}
   VANQUISH — Product Field
   One-screen product display for any product and any ground.
-  No WebGL, no scroll-pin, no animation frame. Pieces are CSS transforms
-  and only run while the section is on screen. Switching products is a
-  radio button, so it works before JavaScript.
+  No WebGL, no scroll-pin, no animation frame.
+  Food uses uploaded cut-outs. Apparel, files, pins, and a logo
+  use built-in matter that moves with page scroll and stays still
+  when the section is off screen or motion is reduced.
 {%- endcomment -%}
 
 {%- liquid
@@ -49,6 +50,23 @@
   assign py = '18,16,74,70,40,84,30,62' | split: ','
   assign prot = '-16,8,18,-10,-6,14,12,-8' | split: ','
   assign pdur = '10,12,9,13,11,8,12,10' | split: ','
+  assign pfrom = '28px,64px,18px,72px,40px,22px' | split: ','
+  assign pto = '-72px,-140px,-46px,-150px,-96px,-40px' | split: ','
+  assign pspin = '7deg,-11deg,5deg,-8deg,12deg,-4deg' | split: ','
+  assign psizes = '150,128,112,158,104,92' | split: ','
+  assign code_bits = 'cut(sheet)~~await open(file)~~fit-content~~export const page~~decode(buf)~~--bleed: 3mm' | split: '~~'
+  assign cloth_0 = 'vf-matter-cloth-ivory.webp' | asset_url
+  assign cloth_1 = 'vf-matter-cloth-denim.webp' | asset_url
+  assign cloth_2 = 'vf-matter-cloth-rust.webp' | asset_url
+  assign paper_0 = 'vf-matter-paper-sheet.webp' | asset_url
+  assign paper_1 = 'vf-matter-paper-corner.webp' | asset_url
+  assign pin_0 = 'vf-matter-pin-safety.webp' | asset_url
+  assign pin_1 = 'vf-matter-pin-round.webp' | asset_url
+  assign pin_2 = 'vf-matter-pin-bar.webp' | asset_url
+  assign mark_src = 'vf-matter-mark.png' | asset_url
+  if section.settings.mark != blank
+    assign mark_src = section.settings.mark | image_url: width: 480
+  endif
 
   assign titles = ''
   assign lines = ''
@@ -72,6 +90,7 @@
   assign grounds = ''
   assign inks = ''
   assign accents = ''
+  assign matters = ''
   assign card_count = 0
   assign solo = nil
 
@@ -225,6 +244,28 @@
           assign grounds = grounds | append: g | append: '%%'
           assign inks = inks | append: k | append: '%%'
           assign accents = accents | append: a | append: '%%'
+          assign card_matter = section.settings.matter | default: 'pieces'
+          assign picked = block.settings.matter | default: 'inherit'
+          if picked != 'inherit'
+            assign card_matter = picked
+          endif
+          if card_matter == 'auto'
+            assign card_matter = 'pieces'
+            assign ptype = ''
+            if card_product != blank
+              assign ptype = card_product.type | downcase
+            endif
+            if ptype contains 'shirt' or ptype contains 'tee' or ptype contains 'hoodie' or ptype contains 'jacket' or ptype contains 'coat' or ptype contains 'dress' or ptype contains 'pant' or ptype contains 'trouser' or ptype contains 'apparel' or ptype contains 'clothing' or ptype contains 'knit' or ptype contains 'denim' or ptype contains 'top' or ptype contains 'skirt'
+            assign card_matter = 'apparel'
+            elsif ptype contains 'file' or ptype contains 'digital' or ptype contains 'download' or ptype contains 'template' or ptype contains 'pdf' or ptype contains 'ebook' or ptype contains 'document' or ptype contains 'guide'
+            assign card_matter = 'files'
+            elsif ptype contains 'accessor' or ptype contains 'jewel' or ptype contains 'pin' or ptype contains 'glass' or ptype contains 'eyewear' or ptype contains 'sunglass' or ptype contains 'watch' or ptype contains 'hat' or ptype contains 'bag' or ptype contains 'belt' or ptype contains 'scarf'
+            assign card_matter = 'accessories'
+            elsif ptype contains 'logo' or ptype contains 'mark' or ptype contains 'brand'
+            assign card_matter = 'mark'
+            endif
+          endif
+          assign matters = matters | append: card_matter | append: '%%'
           assign card_count = card_count | plus: 1
         -%}
       {%- endif -%}
@@ -330,6 +371,24 @@
         assign grounds = grounds | append: g | append: '%%'
         assign inks = inks | append: k | append: '%%'
         assign accents = accents | append: a | append: '%%'
+        assign card_matter = section.settings.matter | default: 'pieces'
+        if card_matter == 'auto'
+          assign card_matter = 'pieces'
+          assign ptype = ''
+          if card_product != blank
+            assign ptype = card_product.type | downcase
+          endif
+          if ptype contains 'shirt' or ptype contains 'tee' or ptype contains 'hoodie' or ptype contains 'jacket' or ptype contains 'coat' or ptype contains 'dress' or ptype contains 'pant' or ptype contains 'trouser' or ptype contains 'apparel' or ptype contains 'clothing' or ptype contains 'knit' or ptype contains 'denim' or ptype contains 'top' or ptype contains 'skirt'
+          assign card_matter = 'apparel'
+          elsif ptype contains 'file' or ptype contains 'digital' or ptype contains 'download' or ptype contains 'template' or ptype contains 'pdf' or ptype contains 'ebook' or ptype contains 'document' or ptype contains 'guide'
+          assign card_matter = 'files'
+          elsif ptype contains 'accessor' or ptype contains 'jewel' or ptype contains 'pin' or ptype contains 'glass' or ptype contains 'eyewear' or ptype contains 'sunglass' or ptype contains 'watch' or ptype contains 'hat' or ptype contains 'bag' or ptype contains 'belt' or ptype contains 'scarf'
+          assign card_matter = 'accessories'
+          elsif ptype contains 'logo' or ptype contains 'mark' or ptype contains 'brand'
+          assign card_matter = 'mark'
+          endif
+        endif
+        assign matters = matters | append: card_matter | append: '%%'
         assign card_count = card_count | plus: 1
       -%}
     {%- endfor -%}
@@ -427,6 +486,21 @@
           assign grounds = grounds | append: g | append: '%%'
           assign inks = inks | append: k | append: '%%'
           assign accents = accents | append: a | append: '%%'
+          assign card_matter = section.settings.matter | default: 'pieces'
+          if card_matter == 'auto'
+            assign card_matter = 'pieces'
+            assign ptype = solo.type | downcase
+            if ptype contains 'shirt' or ptype contains 'tee' or ptype contains 'hoodie' or ptype contains 'jacket' or ptype contains 'coat' or ptype contains 'dress' or ptype contains 'pant' or ptype contains 'trouser' or ptype contains 'apparel' or ptype contains 'clothing' or ptype contains 'knit' or ptype contains 'denim' or ptype contains 'top' or ptype contains 'skirt'
+            assign card_matter = 'apparel'
+            elsif ptype contains 'file' or ptype contains 'digital' or ptype contains 'download' or ptype contains 'template' or ptype contains 'pdf' or ptype contains 'ebook' or ptype contains 'document' or ptype contains 'guide'
+            assign card_matter = 'files'
+            elsif ptype contains 'accessor' or ptype contains 'jewel' or ptype contains 'pin' or ptype contains 'glass' or ptype contains 'eyewear' or ptype contains 'sunglass' or ptype contains 'watch' or ptype contains 'hat' or ptype contains 'bag' or ptype contains 'belt' or ptype contains 'scarf'
+            assign card_matter = 'accessories'
+            elsif ptype contains 'logo' or ptype contains 'mark' or ptype contains 'brand'
+            assign card_matter = 'mark'
+            endif
+          endif
+          assign matters = matters | append: card_matter | append: '%%'
           assign card_count = card_count | plus: 1
         -%}
       {%- endfor -%}
@@ -503,6 +577,21 @@
         assign grounds = grounds | append: g | append: '%%'
         assign inks = inks | append: k | append: '%%'
         assign accents = accents | append: a | append: '%%'
+        assign card_matter = section.settings.matter | default: 'pieces'
+        if card_matter == 'auto'
+          assign card_matter = 'pieces'
+          assign ptype = solo.type | downcase
+          if ptype contains 'shirt' or ptype contains 'tee' or ptype contains 'hoodie' or ptype contains 'jacket' or ptype contains 'coat' or ptype contains 'dress' or ptype contains 'pant' or ptype contains 'trouser' or ptype contains 'apparel' or ptype contains 'clothing' or ptype contains 'knit' or ptype contains 'denim' or ptype contains 'top' or ptype contains 'skirt'
+          assign card_matter = 'apparel'
+          elsif ptype contains 'file' or ptype contains 'digital' or ptype contains 'download' or ptype contains 'template' or ptype contains 'pdf' or ptype contains 'ebook' or ptype contains 'document' or ptype contains 'guide'
+          assign card_matter = 'files'
+          elsif ptype contains 'accessor' or ptype contains 'jewel' or ptype contains 'pin' or ptype contains 'glass' or ptype contains 'eyewear' or ptype contains 'sunglass' or ptype contains 'watch' or ptype contains 'hat' or ptype contains 'bag' or ptype contains 'belt' or ptype contains 'scarf'
+          assign card_matter = 'accessories'
+          elsif ptype contains 'logo' or ptype contains 'mark' or ptype contains 'brand'
+          assign card_matter = 'mark'
+          endif
+        endif
+        assign matters = matters | append: card_matter | append: '%%'
         assign card_count = 1
       -%}
     {%- endif -%}
@@ -531,6 +620,7 @@
   assign g_list = grounds | split: '%%'
   assign k_list = inks | split: '%%'
   assign a_list = accents | split: '%%'
+  assign matter_list = matters | split: '%%'
   if card_count > 0
     assign root_g = g_list[0]
     assign root_k = k_list[0]
@@ -619,11 +709,14 @@
     z-index: 1;
   }
   #vf-{{ sid }} .vf-shared,
-  #vf-{{ sid }} .vf-own {
+  #vf-{{ sid }} .vf-own,
+  #vf-{{ sid }} .vf-matter {
     position: absolute;
     inset: 0;
     pointer-events: none;
   }
+  #vf-{{ sid }} .vf-matter { z-index: 1; }
+  #vf-{{ sid }} .vf-own { z-index: 3; }
   #vf-{{ sid }} .vf-shared { z-index: 1; }
   #vf-{{ sid }} .vf-bags {
     position: absolute;
@@ -653,6 +746,8 @@
   #vf-{{ sid }} .vf-card {
     display: grid;
     place-items: center;
+    position: relative;
+    z-index: 2;
     transform-style: preserve-3d;
     transition: transform 600ms var(--ease);
   }
@@ -685,6 +780,51 @@
   @keyframes vf-drift-{{ sid }} {
     from { transform: translate(-50%, -50%) rotate(var(--r)) translate3d(0, 0, 0); }
     to { transform: translate(-50%, -50%) rotate(calc(var(--r) + 7deg)) translate3d(12px, -16px, 0); }
+  }
+
+  #vf-{{ sid }} .vf-float {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    width: var(--s);
+    height: auto;
+    margin: 0;
+    transform: translate3d(-50%, -50%, 0) rotate(var(--r));
+    pointer-events: none;
+    user-select: none;
+  }
+  #vf-{{ sid }} .vf-code {
+    width: auto;
+    max-width: 28ch;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.35;
+    letter-spacing: 0;
+    color: var(--ink);
+    opacity: 0.72;
+    white-space: nowrap;
+  }
+  #vf-{{ sid }} .vf-mark {
+    width: var(--s);
+    aspect-ratio: 1.28;
+    background: var(--ink);
+    -webkit-mask: var(--mark) center / contain no-repeat;
+    mask: var(--mark) center / contain no-repeat;
+  }
+  #vf-{{ sid }}[data-knock="black"] .vf-mark { mask-mode: luminance; }
+  @supports (animation-timeline: view()) {
+    #vf-{{ sid }} .vf-float {
+      animation-name: vf-scroll-{{ sid }};
+      animation-duration: auto;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
+    }
+  }
+  @keyframes vf-scroll-{{ sid }} {
+    from { transform: translate3d(-50%, calc(-50% + var(--from)), 0) rotate(var(--r)); }
+    to { transform: translate3d(-50%, calc(-50% + var(--to)), 0) rotate(calc(var(--r) + var(--spin))); }
   }
   #vf-{{ sid }} .vf-copies {
     grid-column: 1;
@@ -897,6 +1037,7 @@
       max-width: 66%;
     }
     #vf-{{ sid }} .vf-piece { width: calc(var(--s) * 0.58); }
+    #vf-{{ sid }} .vf-float:not(.vf-code) { width: calc(var(--s) * 0.62); }
     #vf-{{ sid }} .vf-copies { padding: 4px 20px 16px; }
     #vf-{{ sid }} .vf-title { font-size: clamp(32px, 10vw, 48px); }
     #vf-{{ sid }} .vf-note {
@@ -908,7 +1049,8 @@
     #vf-{{ sid }}[data-density="full"] .vf-piece:nth-child(n+4) { display: none; }
   }
   @media (prefers-reduced-motion: reduce) {
-    #vf-{{ sid }} .vf-piece { animation: none; }
+    #vf-{{ sid }} .vf-piece,
+    #vf-{{ sid }} .vf-float { animation: none; }
     #vf-{{ sid }} .vf-card,
     #vf-{{ sid }} .vf-bag,
     #vf-{{ sid }} .vf-copy { transition: none; }
@@ -922,7 +1064,7 @@
     {%- endif -%}
   </div>
 {%- else -%}
-<vanquish-field id="vf-{{ sid }}" class="vf" data-density="{{ density }}" data-height="{{ section.settings.height }}">
+<vanquish-field id="vf-{{ sid }}" class="vf" data-density="{{ density }}" data-height="{{ section.settings.height }}" data-knock="{{ section.settings.mark_knock | default: 'clear' }}">
   {%- for i in (1..card_count) -%}
     <input class="vf-pick" type="radio" name="vf-{{ sid }}" id="vf-{{ sid }}-{{ i }}" {% if i == 1 %}checked{% endif %}>
   {%- endfor -%}
@@ -939,37 +1081,6 @@
     </div>
     <div class="vf-grid">
       <div class="vf-visual">
-        {%- if piece_cap > 0 -%}
-          <div class="vf-shared">
-            {%- assign shared_n = 0 -%}
-            {%- for block in section.blocks -%}
-              {%- if block.type == 'piece' and block.settings.applies == 'all' and block.settings.image != blank and shared_n < piece_cap -%}
-                {%- liquid
-                  assign slot = shared_n | modulo: 8
-                  assign pw = 96
-                  if block.settings.size == 'm'
-                    assign pw = 132
-                  elsif block.settings.size == 'l'
-                    assign pw = 176
-                  endif
-                  assign ph = pw | divided_by: block.settings.image.aspect_ratio | round
-                -%}
-                <img
-                  class="vf-piece"
-                  src="{{ block.settings.image | image_url: width: 280 }}"
-                  alt=""
-                  width="{{ pw }}"
-                  height="{{ ph }}"
-                  loading="lazy"
-                  decoding="async"
-                  style="--x: {{ px[slot] }}%; --y: {{ py[slot] }}%; --r: {{ prot[slot] }}deg; --s: {{ pw }}px; --dur: {{ pdur[slot] }}s; --delay: -{{ slot | times: 0.6 }}s;"
-                  {{ block.shopify_attributes }}
-                >
-                {%- assign shared_n = shared_n | plus: 1 -%}
-              {%- endif -%}
-            {%- endfor -%}
-          </div>
-        {%- endif -%}
         <div class="vf-bags">
           {%- for i in (1..card_count) -%}
             {%- assign idx = i | minus: 1 -%}
@@ -994,20 +1105,58 @@
                   <img class="vf-back" src="{{ back_list[idx] }}" alt="" width="{{ bw_list[idx] }}" height="{{ bh_list[idx] }}" loading="lazy" decoding="async">
                 {%- endif -%}
               </div>
-              {%- if piece_cap > 0 -%}
+              {%- assign card_matter = matter_list[idx] | default: 'pieces' -%}
+              {%- if piece_cap > 0 and card_matter != 'pieces' -%}
+                <div class="vf-matter" data-matter="{{ card_matter }}">
+                  {%- for n in (1..piece_cap) -%}
+                    {%- liquid
+                      assign slot = n | minus: 1
+                      assign parity = slot | modulo: 2
+                      assign shot_i = slot | modulo: 3
+                      assign paper_i = slot | divided_by: 2 | modulo: 2
+                      assign shot = ''
+                      if card_matter == 'apparel'
+                        if shot_i == 0
+                          assign shot = cloth_0
+                        elsif shot_i == 1
+                          assign shot = cloth_1
+                        else
+                          assign shot = cloth_2
+                        endif
+                      elsif card_matter == 'accessories'
+                        if shot_i == 0
+                          assign shot = pin_0
+                        elsif shot_i == 1
+                          assign shot = pin_1
+                        else
+                          assign shot = pin_2
+                        endif
+                      elsif card_matter == 'files' and parity == 0
+                        if paper_i == 0
+                          assign shot = paper_0
+                        else
+                          assign shot = paper_1
+                        endif
+                      endif
+                    -%}
+                    {%- if card_matter == 'mark' -%}
+                      <span class="vf-float vf-mark" style="--x: {{ px[slot] }}%; --y: {{ py[slot] }}%; --r: {{ prot[slot] }}deg; --s: {{ psizes[slot] }}px; --from: {{ pfrom[slot] }}; --to: {{ pto[slot] }}; --spin: {{ pspin[slot] }}; --mark: url({{ mark_src }});"></span>
+                    {%- elsif card_matter == 'files' and parity == 1 -%}
+                      <span class="vf-float vf-code" style="--x: {{ px[slot] }}%; --y: {{ py[slot] }}%; --r: {{ prot[slot] }}deg; --from: {{ pfrom[slot] }}; --to: {{ pto[slot] }}; --spin: {{ pspin[slot] }};">{{ code_bits[slot] }}</span>
+                    {%- elsif shot != blank -%}
+                      <img class="vf-float" src="{{ shot }}" alt="" width="{{ psizes[slot] }}" height="{{ psizes[slot] }}" {% if i == 1 %}loading="eager"{% else %}loading="lazy"{% endif %} decoding="async" style="--x: {{ px[slot] }}%; --y: {{ py[slot] }}%; --r: {{ prot[slot] }}deg; --s: {{ psizes[slot] }}px; --from: {{ pfrom[slot] }}; --to: {{ pto[slot] }}; --spin: {{ pspin[slot] }};">
+                    {%- endif -%}
+                  {%- endfor -%}
+                </div>
+              {%- elsif piece_cap > 0 -%}
                 <div class="vf-own">
                   {%- assign own_n = 0 -%}
-                  {%- assign own_cap = piece_cap -%}
-                  {%- if shared_n > 0 and density != 'full' -%}
-                    {%- assign own_cap = 0 -%}
-                  {%- elsif shared_n > 0 -%}
-                    {%- assign own_cap = 3 -%}
-                  {%- endif -%}
                   {%- for block in section.blocks -%}
                     {%- assign applies = i | append: '' -%}
-                    {%- if block.type == 'piece' and block.settings.applies == applies and block.settings.image != blank and own_n < own_cap -%}
+                    {%- if block.type == 'piece' and block.settings.image != blank and own_n < piece_cap -%}
+                      {%- if block.settings.applies == 'all' or block.settings.applies == applies -%}
                       {%- liquid
-                        assign slot = own_n | plus: 3 | modulo: 8
+                        assign slot = own_n | modulo: 8
                         assign pw = 96
                         if block.settings.size == 'm'
                           assign pw = 132
@@ -1028,6 +1177,7 @@
                         {{ block.shopify_attributes }}
                       >
                       {%- assign own_n = own_n | plus: 1 -%}
+                      {%- endif -%}
                     {%- endif -%}
                   {%- endfor -%}
                 </div>
@@ -1299,7 +1449,39 @@
         { "value": "full", "label": "Full — up to 6" }
       ],
       "default": "quiet",
-      "info": "Cut-outs are the piece blocks. They drift only while this section is on screen, and they stop for reduced motion."
+      "info": "Still hides every floating element. Quiet shows 3, Full shows 6. Cut-out blocks are used only in Pieces mode."
+    },
+    {
+      "type": "select",
+      "id": "matter",
+      "label": "Floating matter",
+      "options": [
+        { "value": "pieces", "label": "Pieces — your cut-outs" },
+        { "value": "apparel", "label": "Apparel — torn fabric" },
+        { "value": "files", "label": "Files — paper and code" },
+        { "value": "accessories", "label": "Accessories — pins" },
+        { "value": "mark", "label": "Mark — your logo" },
+        { "value": "auto", "label": "Follow each product type" }
+      ],
+      "default": "pieces",
+      "info": "Apparel, files, pins, and the mark move with the page scroll. They do not loop. Auto reads the product type."
+    },
+    {
+      "type": "image_picker",
+      "id": "mark",
+      "label": "Logo",
+      "info": "Used in Mark mode. Transparent PNG, or a white mark on black if Logo ground is set to knock out black. Empty uses the built-in mark."
+    },
+    {
+      "type": "select",
+      "id": "mark_knock",
+      "label": "Logo ground",
+      "options": [
+        { "value": "clear", "label": "Already transparent" },
+        { "value": "black", "label": "Knock out black" }
+      ],
+      "default": "clear",
+      "visible_if": "{{ section.settings.matter == 'mark' or section.settings.matter == 'auto' }}"
     }
   ],
   "blocks": [
@@ -1308,6 +1490,20 @@
       "name": "Product",
       "settings": [
         { "type": "product", "id": "product", "label": "Product" },
+        {
+          "type": "select",
+          "id": "matter",
+          "label": "Floating matter",
+          "options": [
+            { "value": "inherit", "label": "Section default" },
+            { "value": "pieces", "label": "Pieces — cut-outs" },
+            { "value": "apparel", "label": "Apparel — torn fabric" },
+            { "value": "files", "label": "Files — paper and code" },
+            { "value": "accessories", "label": "Accessories — pins" },
+            { "value": "mark", "label": "Mark — your logo" }
+          ],
+          "default": "inherit"
+        },
         { "type": "image_picker", "id": "image", "label": "Front image", "info": "Overrides the product photo. Use a cut-out on a transparent ground." },
         { "type": "image_picker", "id": "image_back", "label": "Back image" },
         { "type": "text", "id": "title", "label": "Title override" },
