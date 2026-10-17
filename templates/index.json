@@ -286,6 +286,27 @@
     "vanquish_field_VAMhBa": {
       "type": "vanquish-field",
       "blocks": {
+        "product_YLXFje": {
+          "type": "product",
+          "settings": {
+            "product": "digital-product",
+            "matter": "inherit",
+            "image": "shopify://shop_images/IMG-0743.jpg",
+            "image_back": "shopify://shop_images/IMG-0743.jpg",
+            "title": "",
+            "line": "",
+            "eyebrow": "",
+            "word": "",
+            "facts": "",
+            "note": "",
+            "cta": "",
+            "link": "",
+            "own_colors": false,
+            "ground": "#121212",
+            "ink": "#f5f1e8",
+            "accent": "#c6e83a"
+          }
+        },
         "product_ARMF8W": {
           "type": "product",
           "settings": {
@@ -306,30 +327,11 @@
             "ink": "#f5f1e8",
             "accent": "#c6e83a"
           }
-        },
-        "product_YLXFje": {
-          "type": "product",
-          "settings": {
-            "product": "",
-            "matter": "inherit",
-            "title": "",
-            "line": "",
-            "eyebrow": "",
-            "word": "",
-            "facts": "",
-            "note": "",
-            "cta": "",
-            "link": "",
-            "own_colors": false,
-            "ground": "#121212",
-            "ink": "#f5f1e8",
-            "accent": "#c6e83a"
-          }
         }
       },
       "block_order": [
-        "product_ARMF8W",
-        "product_YLXFje"
+        "product_YLXFje",
+        "product_ARMF8W"
       ],
       "name": "Vanquish Field",
       "settings": {
@@ -345,14 +347,14 @@
         "show_price": true,
         "show_cart": true,
         "show_turn": true,
-        "environment": "night",
+        "environment": "custom",
         "vary": true,
-        "ground": "#f2e8d5",
-        "ink": "#1b130c",
-        "accent": "#e2462a",
+        "ground": "#FFFFFF",
+        "ink": "#FFFFFF",
+        "accent": "#5B2AE2",
         "height": "stage",
         "density": "quiet",
-        "matter": "mark",
+        "matter": "files",
         "mark": "shopify://shop_images/IMG-0112.png",
         "mark_knock": "clear"
       }
