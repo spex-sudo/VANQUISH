@@ -35,6 +35,28 @@
   if dur < 12
     assign dur = 12
   endif
+  assign tf = s.type_font
+  assign tfw = tf
+  assign tw = tf.weight
+  if s.type_weight != 'font'
+    assign tfm = tf | font_modify: 'weight', s.type_weight
+    if tfm != nil
+      assign tfw = tfm
+    endif
+    assign tw = s.type_weight
+  endif
+  if tf.system?
+    assign fam = tf.family | downcase
+    if fam contains 'mono'
+      assign tstack = 'ui-monospace,SFMono-Regular,Menlo,Consolas,monospace'
+    elsif fam contains 'sans' or fam contains 'system'
+      assign tstack = '"Helvetica Neue",Helvetica,Arial,system-ui,sans-serif'
+    else
+      assign tstack = '"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,"Times New Roman",serif'
+    endif
+  else
+    assign tstack = tf.family | append: ', ' | append: tf.fallback_families
+  endif
   if formal
     assign bar_h = s.formal_height
   else
@@ -53,35 +75,33 @@
 #ltg-{{ sid }} .ltg-row{flex:1 1 auto;min-width:0;}
 #ltg-{{ sid }} .ltg-mq{display:none;flex:1 1 auto;min-width:0;}
 #ltg-{{ sid }} .ltg-track{display:flex;width:max-content;height:100%;}
+{{ tfw | font_face: font_display: 'swap' }}
+#ltg-{{ sid }} .ltg-bar{font-family:{{ tstack }};font-size:{{ s.type_size }}px;font-weight:{{ tw }};line-height:1;letter-spacing:{{ s.type_spacing | divided_by: 100.0 }}em;{% case s.type_transform %}{% when 'uppercase' %}text-transform:uppercase;font-variant-caps:normal;{% when 'small_caps' %}text-transform:none;font-variant-caps:all-small-caps;{% else %}text-transform:none;font-variant-caps:normal;{% endcase %}}
 @keyframes ltg-{{ sid }}-x{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
 {%- if formal %}
 /* ── Formal ── */
 #ltg-{{ sid }}{background:{{ s.page_bg }};padding:{{ s.formal_pad_y }}px 0;}
 #ltg-{{ sid }} .ltg-bar{color:{{ s.formal_text }};background-color:{{ s.formal_bg }};
-  border-top:1px solid {{ s.rule_color }};border-bottom:1px solid {{ s.rule_color }};
-  font-family:{% if s.formal_font == 'serif' %}"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,"Times New Roman",serif{% else %}"Helvetica Neue",Helvetica,Arial,system-ui,sans-serif{% endif %};
-  font-size:{{ s.formal_font_size }}px;font-weight:400;line-height:1;font-variant-caps:all-small-caps;letter-spacing:.11em;}
-#ltg-{{ sid }} .ltg-bar::before{content:"";position:absolute;inset:3px 0;pointer-events:none;border-top:1px solid {{ s.rule_color }};border-bottom:1px solid {{ s.rule_color }};opacity:.28;}
+  --ltg-div:rgba(255,255,255,.18);--ltg-div:color-mix(in srgb,currentColor 20%,transparent);}
 {%- if s.show_texture %}
 #ltg-{{ sid }} .ltg-bar::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:{{ s.texture_opacity | divided_by: 100.0 }};
-  background-image:repeating-linear-gradient(45deg,{{ s.rule_color }} 0 1px,transparent 1px 7px),repeating-linear-gradient(-45deg,{{ s.rule_color }} 0 1px,transparent 1px 7px),repeating-radial-gradient(circle at 50% 50%,transparent 0 9px,{{ s.rule_color }} 9px 10px);}
+  background-image:repeating-linear-gradient(45deg,currentColor 0 1px,transparent 1px 7px),repeating-linear-gradient(-45deg,currentColor 0 1px,transparent 1px 7px),repeating-radial-gradient(circle at 50% 50%,transparent 0 9px,currentColor 9px 10px);}
 {%- endif %}
 #ltg-{{ sid }} .ltg-label,#ltg-{{ sid }} .ltg-row,#ltg-{{ sid }} .ltg-mq{position:relative;z-index:1;}
-#ltg-{{ sid }} .ltg-label{display:flex;align-items:center;gap:10px;padding:0 clamp(14px,1.6vw,22px) 0 {{ s.label_left_pad }}px;flex:0 0 auto;white-space:nowrap;border-right:1px solid {{ s.divider_color }};}
+#ltg-{{ sid }} .ltg-label{display:flex;align-items:center;gap:10px;padding:0 clamp(14px,1.6vw,22px) 0 {{ s.label_left_pad }}px;flex:0 0 auto;white-space:nowrap;border-right:1px solid var(--ltg-div);}
 #ltg-{{ sid }} .ltg-label .ltg-seal{width:{{ s.seal_size }}px;height:{{ s.seal_size }}px;color:{{ s.rule_color }};flex:0 0 auto;display:block;}
-#ltg-{{ sid }} .ltg-label-t,#ltg-{{ sid }} .ltg-item--label .ltg-t{color:{{ s.rule_color }};letter-spacing:.13em;}
+#ltg-{{ sid }} .ltg-label-t,#ltg-{{ sid }} .ltg-item--label .ltg-t{opacity:.72;}
 #ltg-{{ sid }} .ltg-item{gap:8px;padding:0 clamp(12px,1.5vw,24px);}
-#ltg-{{ sid }} .ltg-row .ltg-item + .ltg-item{border-left:1px solid {{ s.divider_color }};}
+#ltg-{{ sid }} .ltg-row .ltg-item + .ltg-item{border-left:1px solid var(--ltg-div);}
 #ltg-{{ sid }} .ltg-item .ltg-item-sep{display:none;}
 #ltg-{{ sid }} .ltg-row .ltg-item{height:56%;}
-#ltg-{{ sid }} .ltg-ic{width:{{ s.formal_font_size | plus: 2 }}px;height:{{ s.formal_font_size | plus: 2 }}px;color:{{ s.rule_color }};}
+#ltg-{{ sid }} .ltg-ic{width:{{ s.type_size | plus: 2 }}px;height:{{ s.type_size | plus: 2 }}px;color:{{ s.rule_color }};}
 #ltg-{{ sid }} .ltg-row{justify-content:space-evenly;}
-#ltg-{{ sid }} .ltg-item a:hover .ltg-t,#ltg-{{ sid }} .ltg-item a:focus-visible .ltg-t{text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px;text-decoration-color:{{ s.rule_color }};}
-#ltg-{{ sid }} .ltg-item a:focus-visible{outline:1px solid {{ s.rule_color }};outline-offset:-3px;}
+#ltg-{{ sid }} .ltg-item a:hover .ltg-t,#ltg-{{ sid }} .ltg-item a:focus-visible .ltg-t{text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px;text-decoration-color:currentColor;}
+#ltg-{{ sid }} .ltg-item a:focus-visible{outline:1px solid currentColor;outline-offset:-3px;}
 #ltg-{{ sid }} .ltg-item--label{display:none;}
 @media (max-width:1299px){
-  #ltg-{{ sid }} .ltg-bar{font-size:{{ s.formal_font_size | minus: 1 }}px;letter-spacing:.07em;}
-  #ltg-{{ sid }} .ltg-label-t{letter-spacing:.09em;}
+  #ltg-{{ sid }} .ltg-bar{font-size:{{ s.type_size | minus: 1 }}px;letter-spacing:{{ s.type_spacing | times: 0.6 | divided_by: 100.0 }}em;}
   #ltg-{{ sid }} .ltg-row .ltg-item{padding:0 12px;}
   #ltg-{{ sid }} .ltg-label{gap:8px;padding:0 14px 0 {{ s.label_left_pad }}px;}
 }
@@ -92,22 +112,21 @@
   #ltg-{{ sid }} .ltg-label-t{display:none;}
   #ltg-{{ sid }} .ltg-item--label{display:flex;}
   #ltg-{{ sid }} .ltg-mq .ltg-item{padding:0 16px;position:relative;}
-  #ltg-{{ sid }} .ltg-mq .ltg-item .ltg-item-sep{display:block;position:absolute;right:0;top:28%;bottom:28%;width:1px;background:{{ s.divider_color }};}
+  #ltg-{{ sid }} .ltg-mq .ltg-item .ltg-item-sep{display:block;position:absolute;right:0;top:28%;bottom:28%;width:1px;background:var(--ltg-div);}
 {%- else %}
 /* ── Glass ── */
 #ltg-{{ sid }}{--ltg-bg:{{ s.bg_color }};--ltg-fg:{{ s.text_color }};--ltg-ac:{{ s.accent_color }};--ltg-r:{{ s.radius }}px;padding:{{ s.pad_top }}px {{ s.side_pad }}px {{ s.pad_bottom }}px;background:{{ s.page_bg }};}
 #ltg-{{ sid }} .ltg-bar{border-radius:var(--ltg-r);color:var(--ltg-fg);
   background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.015)),var(--ltg-bg);
   -webkit-backdrop-filter:blur(18px) saturate(150%);backdrop-filter:blur(18px) saturate(150%);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.10),inset 0 0 0 1px rgba(255,255,255,.07){% if s.glow %},0 10px 30px -18px var(--ltg-ac){% endif %};}
-#ltg-{{ sid }} .ltg-bar::after{content:"";position:absolute;left:12%;right:12%;bottom:0;height:1px;pointer-events:none;background:linear-gradient(90deg,transparent,var(--ltg-ac),transparent);opacity:{% if s.glow %}.75{% else %}0{% endif %};}
-#ltg-{{ sid }} .ltg-item{gap:9px;font:{{ s.font_weight }} {{ s.font_size }}px/1 var(--font-body-family,-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif);letter-spacing:{{ s.letter_spacing | divided_by: 100.0 }}em;{% if s.uppercase %}text-transform:uppercase;{% endif %}}
-#ltg-{{ sid }} .ltg-item a:hover .ltg-t,#ltg-{{ sid }} .ltg-item a:focus-visible .ltg-t{text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--ltg-ac);}
-#ltg-{{ sid }} .ltg-item a:focus-visible{outline:2px solid var(--ltg-ac);outline-offset:-2px;border-radius:8px;}
+  }
+#ltg-{{ sid }} .ltg-item{gap:9px;}
+#ltg-{{ sid }} .ltg-item a:hover .ltg-t,#ltg-{{ sid }} .ltg-item a:focus-visible .ltg-t{text-decoration:underline;text-underline-offset:3px;text-decoration-color:currentColor;}
+#ltg-{{ sid }} .ltg-item a:focus-visible{outline:2px solid currentColor;outline-offset:-2px;border-radius:8px;}
 #ltg-{{ sid }} .ltg-ic{width:{{ s.icon_size }}px;height:{{ s.icon_size }}px;color:var(--ltg-ac);}
 #ltg-{{ sid }} .ltg-t{opacity:.92;}
 #ltg-{{ sid }} .ltg-item-sep{display:none;}
-#ltg-{{ sid }} .ltg-dot{width:4px;height:4px;border-radius:50%;background:var(--ltg-ac);opacity:.7;flex:0 0 auto;}
+#ltg-{{ sid }} .ltg-dot{width:4px;height:4px;border-radius:50%;background:currentColor;opacity:.35;flex:0 0 auto;}
 #ltg-{{ sid }} .ltg-row{justify-content:center;gap:clamp(18px,3vw,44px);padding:0 24px;}
 #ltg-{{ sid }} .ltg-item--label{display:none;}
 @media (max-width:{{ s.breakpoint }}px){
@@ -139,13 +158,7 @@
     {%- if formal -%}
       <div class="ltg-label">
         {%- if s.show_seal -%}
-          <svg class="ltg-seal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-          {%- if s.seal_shape == 'seal' -%}
-            <circle cx="12" cy="12" r="9.25"/><circle cx="12" cy="12" r="7" stroke-opacity=".55"/><path d="m8.6 12.1 2.3 2.3 4.6-4.7"/>
-          {%- else -%}
-            <path d="M12 3 5 5.8v5.4c0 4.3 2.9 7.7 7 9.3 4.1-1.6 7-5 7-9.3V5.8z"/><path d="m9 12.1 2.1 2.1 4-4.1"/>
-          {%- endif -%}
-          </svg>
+          {%- render 'lexe-trust-icon', icon: s.seal_shape, class: 'ltg-seal', stroke: 1.3 -%}
         {%- endif -%}
         {%- if show_label -%}<span class="ltg-label-t">{{ label | escape }}</span>{%- endif -%}
       </div>
@@ -171,20 +184,7 @@
           {%- if show_ic and block.settings.custom_icon != blank -%}
             <span class="ltg-ic" aria-hidden="true">{{ block.settings.custom_icon | image_url: width: 64 | image_tag: width: 18, height: 18, alt: '', loading: 'lazy' }}</span>
           {%- elsif show_ic and block.settings.icon != 'none' -%}
-            <svg class="ltg-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="{% if formal %}1.3{% else %}1.6{% endif %}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-            {%- case block.settings.icon -%}
-              {%- when 'truck' -%}<path d="M3 6.5h10.5v9H3z"/><path d="M13.5 9.5h3.8l2.7 3v3h-6.5"/><circle cx="7" cy="17.5" r="1.7"/><circle cx="17" cy="17.5" r="1.7"/>
-              {%- when 'return' -%}<path d="M9 7 5 11l4 4"/><path d="M5 11h9.5a4.5 4.5 0 0 1 0 9H11"/>
-              {%- when 'lock' -%}<rect x="5" y="10.5" width="14" height="9.5" rx="2.4"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/><path d="M12 14.2v2.2"/>
-              {%- when 'card' -%}<rect x="3" y="6" width="18" height="12.5" rx="2.4"/><path d="M3 10h18"/><path d="M7 15h3.5"/>
-              {%- when 'mail' -%}<rect x="3.5" y="6" width="17" height="12.5" rx="2.4"/><path d="m4.5 7.5 7.5 5.5 7.5-5.5"/>
-              {%- when 'chat' -%}<path d="M5 17.5V7.8A2.3 2.3 0 0 1 7.3 5.5h9.4A2.3 2.3 0 0 1 19 7.8v6.4a2.3 2.3 0 0 1-2.3 2.3H9z"/>
-              {%- when 'shield' -%}<path d="M12 3.5 5 6.3v5.2c0 4.2 2.9 7.5 7 9 4.1-1.5 7-4.8 7-9V6.3z"/><path d="m9.2 12 2 2 3.8-3.8"/>
-              {%- when 'box' -%}<path d="m12 3.5 8 4.2v8.6l-8 4.2-8-4.2V7.7z"/><path d="m4 7.7 8 4.2 8-4.2"/><path d="M12 11.9v8.6"/>
-              {%- when 'ruler' -%}<rect x="2.5" y="8" width="19" height="8" rx="1.6"/><path d="M6.5 8v3M10 8v2M13.5 8v3M17 8v2"/>
-              {%- when 'sparkle' -%}<path d="M12 4v4M12 16v4M4 12h4M16 12h4"/><path d="m7.8 7.8 1.6 1.6M14.6 14.6l1.6 1.6M16.2 7.8l-1.6 1.6M9.4 14.6l-1.6 1.6"/>
-            {%- endcase -%}
-            </svg>
+            {%- if formal -%}{%- render 'lexe-trust-icon', icon: block.settings.icon, class: 'ltg-ic', stroke: 1.3 -%}{%- else -%}{%- render 'lexe-trust-icon', icon: block.settings.icon, class: 'ltg-ic', stroke: 1.6 -%}{%- endif -%}
           {%- endif -%}
           <span class="ltg-t">{{ block.settings.text | escape }}</span>
           {%- if block.settings.link != blank -%}</a>{%- endif -%}
@@ -206,62 +206,613 @@
   "class": "section-lexe-trust-glass",
   "max_blocks": 8,
   "settings": [
-    { "type": "select", "id": "style", "label": "Style", "default": "formal", "options": [ { "value": "formal", "label": "Formal" }, { "value": "glass", "label": "Glass" } ] },
-    { "type": "text", "id": "aria_label", "label": "Label for screen readers", "default": "Store promises" },
-    { "type": "color", "id": "page_bg", "label": "Background around the banner", "default": "#ffffff" },
-    { "type": "header", "content": "Formal style" },
-    { "type": "paragraph", "content": "Keep it the store's own promise: no crests, flags, seals with words, or 'official', 'certified', 'verified', 'approved' or agency/bank names." },
-    { "type": "checkbox", "id": "show_label", "label": "Show left label", "default": true },
-    { "type": "text", "id": "label_text", "label": "Left label (name the store)", "default": "LEXE by Devici Studios — Customer Assurance" },
-    { "type": "checkbox", "id": "show_seal", "label": "Show plain outline icon", "default": true },
-    { "type": "select", "id": "seal_shape", "label": "Outline icon", "default": "shield", "options": [ { "value": "shield", "label": "Shield with check" }, { "value": "seal", "label": "Ring with check" } ] },
-    { "type": "range", "id": "label_left_pad", "label": "Space left of the label", "min": 8, "max": 64, "step": 2, "unit": "px", "default": 44, "info": "Leaves room for the PULL HERE tab on the left edge." },
-    { "type": "range", "id": "seal_size", "label": "Outline icon size", "min": 14, "max": 28, "step": 1, "unit": "px", "default": 18 },
-    { "type": "color", "id": "formal_bg", "label": "Background", "default": "#0B1F3A" },
-    { "type": "color", "id": "formal_text", "label": "Text", "default": "#F2EFE6" },
-    { "type": "color", "id": "rule_color", "label": "Rules, icon and label (brass or silver)", "default": "#B89B5E" },
-    { "type": "color", "id": "divider_color", "label": "Dividers between items", "default": "#3A4B66" },
-    { "type": "select", "id": "formal_font", "label": "Type", "default": "serif", "options": [ { "value": "serif", "label": "Serif" }, { "value": "grotesque", "label": "Neutral sans" } ] },
-    { "type": "range", "id": "formal_font_size", "label": "Text size", "min": 11, "max": 18, "step": 1, "unit": "px", "default": 13 },
-    { "type": "checkbox", "id": "formal_item_icons", "label": "Show an icon on each item", "default": false },
-    { "type": "checkbox", "id": "show_texture", "label": "Fine line texture", "default": true },
-    { "type": "range", "id": "texture_opacity", "label": "Texture strength", "min": 1, "max": 12, "step": 1, "unit": "%", "default": 4 },
-    { "type": "range", "id": "formal_height", "label": "Height", "min": 40, "max": 72, "step": 2, "unit": "px", "default": 50 },
-    { "type": "range", "id": "formal_pad_y", "label": "Space above and below", "min": 0, "max": 40, "step": 2, "unit": "px", "default": 0 },
-    { "type": "header", "content": "Glass style" },
-    { "type": "color", "id": "bg_color", "label": "Glass color", "default": "#0b0b0d" },
-    { "type": "color", "id": "text_color", "label": "Text", "default": "#ffffff" },
-    { "type": "color", "id": "accent_color", "label": "Accent (icons, dots, glow)", "default": "#9966CC" },
-    { "type": "checkbox", "id": "glow", "label": "Amethyst edge glow", "default": true },
-    { "type": "range", "id": "height", "label": "Height", "min": 36, "max": 72, "step": 2, "unit": "px", "default": 48 },
-    { "type": "range", "id": "radius", "label": "Corner radius", "min": 0, "max": 36, "step": 2, "unit": "px", "default": 24 },
-    { "type": "range", "id": "side_pad", "label": "Side spacing", "min": 0, "max": 40, "step": 2, "unit": "px", "default": 12 },
-    { "type": "range", "id": "pad_top", "label": "Top spacing", "min": 0, "max": 40, "step": 2, "unit": "px", "default": 10 },
-    { "type": "range", "id": "pad_bottom", "label": "Bottom spacing", "min": 0, "max": 40, "step": 2, "unit": "px", "default": 10 },
-    { "type": "range", "id": "font_size", "label": "Text size", "min": 10, "max": 18, "step": 1, "unit": "px", "default": 13 },
-    { "type": "select", "id": "font_weight", "label": "Text weight", "default": "500", "options": [ { "value": "400", "label": "Regular" }, { "value": "500", "label": "Medium" }, { "value": "600", "label": "Semibold" } ] },
-    { "type": "range", "id": "letter_spacing", "label": "Letter spacing", "min": 0, "max": 20, "step": 1, "default": 2, "info": "In hundredths of an em" },
-    { "type": "checkbox", "id": "uppercase", "label": "Uppercase", "default": false },
-    { "type": "range", "id": "icon_size", "label": "Icon size", "min": 14, "max": 28, "step": 1, "unit": "px", "default": 18 },
-    { "type": "checkbox", "id": "show_dots", "label": "Dots between messages on phones", "default": true },
-    { "type": "header", "content": "Phones (both styles)" },
-    { "type": "select", "id": "mobile_mode", "label": "Phone layout", "default": "marquee", "options": [ { "value": "marquee", "label": "Smooth scroll (pauses on touch)" }, { "value": "swipe", "label": "Swipe" } ], "info": "Visitors who turn on Reduce Motion always get Swipe." },
-    { "type": "range", "id": "speed", "label": "Scroll time per message", "min": 3, "max": 12, "step": 1, "unit": "s", "default": 6 },
-    { "type": "range", "id": "breakpoint", "label": "Phone layout below", "min": 600, "max": 1400, "step": 10, "unit": "px", "default": 1100 }
+    {
+      "type": "select",
+      "id": "style",
+      "label": "Style",
+      "default": "formal",
+      "options": [
+        {
+          "value": "formal",
+          "label": "Formal"
+        },
+        {
+          "value": "glass",
+          "label": "Glass"
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "aria_label",
+      "label": "Label for screen readers",
+      "default": "Store promises"
+    },
+    {
+      "type": "color",
+      "id": "page_bg",
+      "label": "Background around the banner",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "Type (label and messages)"
+    },
+    {
+      "type": "font_picker",
+      "id": "type_font",
+      "label": "Font",
+      "default": "serif"
+    },
+    {
+      "type": "range",
+      "id": "type_size",
+      "label": "Font size",
+      "min": 10,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 13
+    },
+    {
+      "type": "select",
+      "id": "type_weight",
+      "label": "Weight",
+      "default": "font",
+      "options": [
+        {
+          "value": "font",
+          "label": "As picked in Font"
+        },
+        {
+          "value": "300",
+          "label": "Light"
+        },
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        }
+      ],
+      "info": "If the font has no file for that weight, the picked weight is used."
+    },
+    {
+      "type": "range",
+      "id": "type_spacing",
+      "label": "Letter spacing",
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "default": 11,
+      "info": "In hundredths of an em"
+    },
+    {
+      "type": "select",
+      "id": "type_transform",
+      "label": "Letter case",
+      "default": "small_caps",
+      "options": [
+        {
+          "value": "none",
+          "label": "As typed"
+        },
+        {
+          "value": "uppercase",
+          "label": "Uppercase"
+        },
+        {
+          "value": "small_caps",
+          "label": "Small caps"
+        }
+      ]
+    },
+    {
+      "type": "header",
+      "content": "Formal style"
+    },
+    {
+      "type": "paragraph",
+      "content": "Keep it the store's own promise: no crests, flags, seals with words, or 'official', 'certified', 'verified', 'approved' or agency/bank names. Only the icons take a colour."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_label",
+      "label": "Show left label",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "label_text",
+      "label": "Left label (name the store)",
+      "default": "LEXE by Devici Studios — Customer Assurance"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_seal",
+      "label": "Show plain outline icon",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "seal_shape",
+      "label": "Label icon",
+      "default": "shield",
+      "options": [
+        {
+          "value": "truck",
+          "label": "Delivery truck"
+        },
+        {
+          "value": "box",
+          "label": "Package"
+        },
+        {
+          "value": "parcel_pin",
+          "label": "Parcel with tracking pin"
+        },
+        {
+          "value": "return",
+          "label": "Return arrow"
+        },
+        {
+          "value": "exchange",
+          "label": "Exchange arrows"
+        },
+        {
+          "value": "lock",
+          "label": "Lock"
+        },
+        {
+          "value": "card",
+          "label": "Credit card"
+        },
+        {
+          "value": "shield_plain",
+          "label": "Shield"
+        },
+        {
+          "value": "shield",
+          "label": "Shield with check"
+        },
+        {
+          "value": "seal",
+          "label": "Ring with check"
+        },
+        {
+          "value": "mail",
+          "label": "Envelope"
+        },
+        {
+          "value": "chat",
+          "label": "Chat bubble"
+        },
+        {
+          "value": "phone",
+          "label": "Phone"
+        },
+        {
+          "value": "headset",
+          "label": "Headset"
+        },
+        {
+          "value": "clock",
+          "label": "Clock"
+        },
+        {
+          "value": "calendar",
+          "label": "Calendar"
+        },
+        {
+          "value": "globe",
+          "label": "Globe"
+        },
+        {
+          "value": "ruler",
+          "label": "Ruler / size guide"
+        },
+        {
+          "value": "leaf",
+          "label": "Leaf"
+        },
+        {
+          "value": "star",
+          "label": "Star (decoration only)"
+        },
+        {
+          "value": "heart",
+          "label": "Heart"
+        },
+        {
+          "value": "gift",
+          "label": "Gift"
+        },
+        {
+          "value": "tag",
+          "label": "Tag"
+        },
+        {
+          "value": "receipt",
+          "label": "Receipt"
+        },
+        {
+          "value": "document",
+          "label": "Document / policy"
+        },
+        {
+          "value": "hanger",
+          "label": "Hanger"
+        },
+        {
+          "value": "sparkle",
+          "label": "Sparkle"
+        }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "label_left_pad",
+      "label": "Space left of the label",
+      "min": 8,
+      "max": 64,
+      "step": 2,
+      "unit": "px",
+      "default": 44,
+      "info": "Leaves room for the PULL HERE tab on the left edge."
+    },
+    {
+      "type": "range",
+      "id": "seal_size",
+      "label": "Outline icon size",
+      "min": 14,
+      "max": 28,
+      "step": 1,
+      "unit": "px",
+      "default": 18
+    },
+    {
+      "type": "color",
+      "id": "formal_bg",
+      "label": "Background (neutral)",
+      "default": "#0B1F3A"
+    },
+    {
+      "type": "color",
+      "id": "formal_text",
+      "label": "Text (neutral)",
+      "default": "#F2EFE6"
+    },
+    {
+      "type": "color",
+      "id": "rule_color",
+      "label": "Icon colour",
+      "default": "#B89B5E"
+    },
+    {
+      "type": "checkbox",
+      "id": "formal_item_icons",
+      "label": "Show an icon on each item",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_texture",
+      "label": "Fine line texture",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "texture_opacity",
+      "label": "Texture strength",
+      "min": 1,
+      "max": 12,
+      "step": 1,
+      "unit": "%",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "formal_height",
+      "label": "Height",
+      "min": 40,
+      "max": 72,
+      "step": 2,
+      "unit": "px",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "formal_pad_y",
+      "label": "Space above and below",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "Glass style"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Glass background (neutral)",
+      "default": "#0b0b0d"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text (neutral)",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Icon colour",
+      "default": "#9966CC"
+    },
+    {
+      "type": "range",
+      "id": "height",
+      "label": "Height",
+      "min": 36,
+      "max": 72,
+      "step": 2,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "radius",
+      "label": "Corner radius",
+      "min": 0,
+      "max": 36,
+      "step": 2,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "side_pad",
+      "label": "Side spacing",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "pad_top",
+      "label": "Top spacing",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 10
+    },
+    {
+      "type": "range",
+      "id": "pad_bottom",
+      "label": "Bottom spacing",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 10
+    },
+    {
+      "type": "range",
+      "id": "icon_size",
+      "label": "Icon size",
+      "min": 14,
+      "max": 28,
+      "step": 1,
+      "unit": "px",
+      "default": 18
+    },
+    {
+      "type": "checkbox",
+      "id": "show_dots",
+      "label": "Dots between messages on phones",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Phones (both styles)"
+    },
+    {
+      "type": "select",
+      "id": "mobile_mode",
+      "label": "Phone layout",
+      "default": "marquee",
+      "options": [
+        {
+          "value": "marquee",
+          "label": "Smooth scroll (pauses on touch)"
+        },
+        {
+          "value": "swipe",
+          "label": "Swipe"
+        }
+      ],
+      "info": "Visitors who turn on Reduce Motion always get Swipe."
+    },
+    {
+      "type": "range",
+      "id": "speed",
+      "label": "Scroll time per message",
+      "min": 3,
+      "max": 12,
+      "step": 1,
+      "unit": "s",
+      "default": 6
+    },
+    {
+      "type": "range",
+      "id": "breakpoint",
+      "label": "Phone layout below",
+      "min": 600,
+      "max": 1400,
+      "step": 10,
+      "unit": "px",
+      "default": 1100
+    }
   ],
   "blocks": [
     {
       "type": "item",
       "name": "Message",
       "settings": [
-        { "type": "select", "id": "icon", "label": "Icon", "default": "truck", "options": [
-          { "value": "none", "label": "None" }, { "value": "truck", "label": "Delivery" }, { "value": "return", "label": "Returns" },
-          { "value": "lock", "label": "Lock" }, { "value": "card", "label": "Card" }, { "value": "mail", "label": "Email" },
-          { "value": "chat", "label": "Chat" }, { "value": "shield", "label": "Shield" }, { "value": "box", "label": "Parcel" },
-          { "value": "ruler", "label": "Size guide" }, { "value": "sparkle", "label": "Sparkle" } ] },
-        { "type": "image_picker", "id": "custom_icon", "label": "Custom icon (replaces the icon above)" },
-        { "type": "text", "id": "text", "label": "Text", "default": "Delivery in 5–10 business days", "info": "Keep it true: no free shipping, countdowns or stock claims." },
-        { "type": "url", "id": "link", "label": "Link (optional)" }
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "default": "truck",
+          "options": [
+            {
+              "value": "none",
+              "label": "None"
+            },
+            {
+              "value": "truck",
+              "label": "Delivery truck"
+            },
+            {
+              "value": "box",
+              "label": "Package"
+            },
+            {
+              "value": "parcel_pin",
+              "label": "Parcel with tracking pin"
+            },
+            {
+              "value": "return",
+              "label": "Return arrow"
+            },
+            {
+              "value": "exchange",
+              "label": "Exchange arrows"
+            },
+            {
+              "value": "lock",
+              "label": "Lock"
+            },
+            {
+              "value": "card",
+              "label": "Credit card"
+            },
+            {
+              "value": "shield_plain",
+              "label": "Shield"
+            },
+            {
+              "value": "shield",
+              "label": "Shield with check"
+            },
+            {
+              "value": "seal",
+              "label": "Ring with check"
+            },
+            {
+              "value": "mail",
+              "label": "Envelope"
+            },
+            {
+              "value": "chat",
+              "label": "Chat bubble"
+            },
+            {
+              "value": "phone",
+              "label": "Phone"
+            },
+            {
+              "value": "headset",
+              "label": "Headset"
+            },
+            {
+              "value": "clock",
+              "label": "Clock"
+            },
+            {
+              "value": "calendar",
+              "label": "Calendar"
+            },
+            {
+              "value": "globe",
+              "label": "Globe"
+            },
+            {
+              "value": "ruler",
+              "label": "Ruler / size guide"
+            },
+            {
+              "value": "leaf",
+              "label": "Leaf"
+            },
+            {
+              "value": "star",
+              "label": "Star (decoration only)"
+            },
+            {
+              "value": "heart",
+              "label": "Heart"
+            },
+            {
+              "value": "gift",
+              "label": "Gift"
+            },
+            {
+              "value": "tag",
+              "label": "Tag"
+            },
+            {
+              "value": "receipt",
+              "label": "Receipt"
+            },
+            {
+              "value": "document",
+              "label": "Document / policy"
+            },
+            {
+              "value": "hanger",
+              "label": "Hanger"
+            },
+            {
+              "value": "sparkle",
+              "label": "Sparkle"
+            }
+          ],
+          "info": "Star and heart are decoration only, not ratings."
+        },
+        {
+          "type": "image_picker",
+          "id": "custom_icon",
+          "label": "Custom icon (replaces the icon above)"
+        },
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Text",
+          "default": "Delivery in 5–10 business days",
+          "info": "Keep it true: no free shipping, countdowns or stock claims."
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link (optional)"
+        }
       ]
     }
   ],
@@ -269,10 +820,38 @@
     {
       "name": "Trust banner",
       "blocks": [
-        { "type": "item", "settings": { "icon": "truck", "text": "Delivery in 5–10 business days", "link": "shopify://pages/shipping-returns" } },
-        { "type": "item", "settings": { "icon": "return", "text": "30-day apparel returns", "link": "shopify://pages/shipping-returns" } },
-        { "type": "item", "settings": { "icon": "lock", "text": "Secure card checkout", "link": "shopify://pages/payment-and-security" } },
-        { "type": "item", "settings": { "icon": "mail", "text": "Questions? We reply by email", "link": "shopify://pages/contact-us" } }
+        {
+          "type": "item",
+          "settings": {
+            "icon": "truck",
+            "text": "Delivery in 5–10 business days",
+            "link": "shopify://pages/shipping-returns"
+          }
+        },
+        {
+          "type": "item",
+          "settings": {
+            "icon": "return",
+            "text": "30-day apparel returns",
+            "link": "shopify://pages/shipping-returns"
+          }
+        },
+        {
+          "type": "item",
+          "settings": {
+            "icon": "lock",
+            "text": "Secure card checkout",
+            "link": "shopify://pages/payment-and-security"
+          }
+        },
+        {
+          "type": "item",
+          "settings": {
+            "icon": "mail",
+            "text": "Questions? We reply by email",
+            "link": "shopify://pages/contact-us"
+          }
+        }
       ]
     }
   ]
