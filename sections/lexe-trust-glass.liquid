@@ -45,18 +45,8 @@
     endif
     assign tw = s.type_weight
   endif
-  if tf.system?
-    assign fam = tf.family | downcase
-    if fam contains 'mono'
-      assign tstack = 'ui-monospace,SFMono-Regular,Menlo,Consolas,monospace'
-    elsif fam contains 'sans' or fam contains 'system'
-      assign tstack = '"Helvetica Neue",Helvetica,Arial,system-ui,sans-serif'
-    else
-      assign tstack = '"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,"Times New Roman",serif'
-    endif
-  else
-    assign tstack = tf.family | append: ', ' | append: tf.fallback_families
-  endif
+  # System fonts return their own full stacks; font_face prints nothing for them.
+  assign tstack = tf.family | append: ', ' | append: tf.fallback_families
   if formal
     assign bar_h = s.formal_height
   else
