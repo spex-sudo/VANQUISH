@@ -29,47 +29,11 @@
             "caption": "",
             "link": ""
           }
-        },
-        "magazine_pDXCGH": {
-          "type": "magazine",
-          "settings": {
-            "image": "shopify://shop_images/IMG-0527.jpg",
-            "caption": "",
-            "link": ""
-          }
-        },
-        "magazine_cirEjc": {
-          "type": "magazine",
-          "settings": {
-            "image": "shopify://shop_images/0124DAC3-0C0A-4301-B69C-DFDE7C360D48.jpg",
-            "caption": "",
-            "link": ""
-          }
-        },
-        "magazine_BDU6Am": {
-          "type": "magazine",
-          "settings": {
-            "image": "shopify://shop_images/IMG-0590.jpg",
-            "caption": "",
-            "link": ""
-          }
-        },
-        "magazine_xYqnYH": {
-          "type": "magazine",
-          "settings": {
-            "image": "shopify://shop_images/DB2AC5DD-6EE0-41D9-8CBD-6149205ECF2C.jpg",
-            "caption": "",
-            "link": ""
-          }
         }
       },
       "block_order": [
         "magazine_3FqcTr",
-        "magazine_w4aPEe",
-        "magazine_pDXCGH",
-        "magazine_cirEjc",
-        "magazine_BDU6Am",
-        "magazine_xYqnYH"
+        "magazine_w4aPEe"
       ],
       "name": "Product Atelier",
       "settings": {
@@ -115,7 +79,7 @@
         "heading": "JOIN THE WAITLIST",
         "text": "Join the LEXE waitlist and claim your spot as a loyal member of our studio.",
         "button_label": "JOIN",
-        "consent": "You're joining LEXE emails about GIVEAWAYS, OFFERS, AND NEW PIECES,\nNo spam unsubscribe any time.",
+        "consent": "You're joining LEXE emails about new pieces and drops. No spam. Unsubscribe anytime.",
         "success_heading": "You're on the list",
         "terms": "One use per customer.",
         "bg_color": "#ffffff",

@@ -28,13 +28,18 @@
       {%- if form.posted_successfully? -%}
         <div class="lso-success" role="status">
           <h2 id="lso-title-{{ sid }}">{{ s.success_heading | escape }}</h2>
+          {%- comment -%} 2026-10-17: LEXESPECS is capped at 2 uses, so while the purchase lock is ON the signup confirms only and shows no free-pair code. {%- endcomment -%}
+          {%- if settings.lexe_lock_notify == false -%}
           <p>Your code:</p>
           <div class="lso-code">{{ s.code | escape }}</div>
           <p>
             Add {% if gift != blank %}the <a href="{{ gift.url }}">{{ gift.title | escape }}</a>{% else %}the gift glasses{% endif %}{% if gift2 != blank %} or the <a href="{{ gift2.url }}">{{ gift2.title | escape }}</a>{% endif %}
-            to your cart with {{ s.threshold | escape }} or more of {% if s.eligible_url != blank %}<a href="{{ s.eligible_url }}">eligible items</a>{% else %}eligible items{% endif %}, then enter {{ s.code | escape }} at checkout.
+            to your cart with {{ s.threshold | escape }}+ product spend on {% if s.eligible_url != blank %}<a href="{{ s.eligible_url }}">eligible items</a>{% else %}eligible items{% endif %}, then enter {{ s.code | escape }} at checkout.
           </p>
           <p class="lso-note">{{ s.terms | escape }}</p>
+          {%- else -%}
+          <p>We'll email you when new pieces drop.</p>
+          {%- endif -%}
         </div>
       {%- else -%}
         <h2 id="lso-title-{{ sid }}">{{ s.heading | escape }}</h2>
@@ -66,9 +71,9 @@
     { "type": "product", "id": "gift_product_2", "label": "Second gift product (optional)" },
     { "type": "url", "id": "eligible_url", "label": "Link to eligible items (optional)" },
     { "type": "text", "id": "code", "label": "Discount code (must match the live code)", "default": "LEXESPECS" },
-    { "type": "text", "id": "threshold", "label": "Threshold shown to customers", "default": "$75" },
+    { "type": "text", "id": "threshold", "label": "Threshold shown to customers (product spend)", "default": "$45" },
     { "type": "text", "id": "heading", "label": "Heading", "default": "Free LEXE Specs" },
-    { "type": "textarea", "id": "text", "label": "Text", "default": "Join the LEXE email list and we'll show your code for a free pair of LEXE Candy Sunglasses on orders of $75 or more." },
+    { "type": "textarea", "id": "text", "label": "Text", "default": "Join the LEXE email list and we'll show your code for a free pair of LEXE Candy Sunglasses with $45+ product spend." },
     { "type": "text", "id": "button_label", "label": "Button label", "default": "Show my code" },
     { "type": "textarea", "id": "consent", "label": "Consent line", "default": "You're joining LEXE emails about new pieces and offers. You can unsubscribe anytime." },
     { "type": "text", "id": "success_heading", "label": "Success heading", "default": "You're on the list" },
