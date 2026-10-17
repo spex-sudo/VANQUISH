@@ -578,7 +578,7 @@
         "formal_bg": "#000000",
         "formal_text": "#f2efe6",
         "rule_color": "#67B85E",
-        "divider_color": "#F1FFF0",
+        "divider_color": "#000000",
         "formal_font": "grotesque",
         "formal_font_size": 12,
         "formal_item_icons": true,
