@@ -463,6 +463,7 @@
     },
     "vanquish_transittimer_hmmnrA": {
       "type": "vanquish-transittimer",
+      "disabled": true,
       "blocks": {
         "message_AqpJt4": {
           "type": "message",
@@ -519,6 +520,72 @@
         "btn_radius": 30,
         "btn_pad_v": 9,
         "btn_pad_h": 18
+      }
+    },
+    "lexe_trust_glass": {
+      "type": "lexe-trust-glass",
+      "name": "Trust Banner (glass)",
+      "blocks": {
+        "item_delivery": {
+          "type": "item",
+          "settings": {
+            "icon": "truck",
+            "text": "Delivery in 5–10 business days",
+            "link": "shopify://pages/shipping-returns"
+          }
+        },
+        "item_returns": {
+          "type": "item",
+          "settings": {
+            "icon": "return",
+            "text": "30-day apparel returns",
+            "link": "shopify://pages/shipping-returns"
+          }
+        },
+        "item_secure": {
+          "type": "item",
+          "settings": {
+            "icon": "lock",
+            "text": "Secure card checkout",
+            "link": "shopify://pages/payment-and-security"
+          }
+        },
+        "item_contact": {
+          "type": "item",
+          "settings": {
+            "icon": "mail",
+            "text": "Questions? We reply by email",
+            "link": "shopify://pages/contact-us"
+          }
+        }
+      },
+      "block_order": [
+        "item_delivery",
+        "item_returns",
+        "item_secure",
+        "item_contact"
+      ],
+      "settings": {
+        "aria_label": "Store promises",
+        "page_bg": "#ffffff",
+        "bg_color": "#0b0b0d",
+        "text_color": "#ffffff",
+        "accent_color": "#9966CC",
+        "glow": true,
+        "height": 48,
+        "radius": 24,
+        "side_pad": 12,
+        "pad_top": 10,
+        "pad_bottom": 10,
+        "font_size": 13,
+        "font_weight": "500",
+        "letter_spacing": 2,
+        "uppercase": false,
+        "icon_size": 18,
+        "show_dots": true,
+        "mobile_mode": "marquee",
+        "speed": 6,
+        "breakpoint": 990
       }
     },
     "luxury_featureproduct_BNr6Rf": {
@@ -678,6 +745,7 @@
     "luxury_featureproduct_DDiGAR",
     "vanquish_atelier_XfxTnG",
     "vanquish_transittimer_hmmnrA",
+    "lexe_trust_glass",
     "luxury_featureproduct_BNr6Rf",
     "vanquish_scratch_MJQr7J"
   ]

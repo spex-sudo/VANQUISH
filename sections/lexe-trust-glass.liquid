@@ -1,0 +1,179 @@
+{%- comment -%}
+  LEXE Trust Glass (2026-10-17). Replaces the home "Trust Banner" (vanquish-transittimer).
+  Desktop: one centered row. Phone: seamless CSS marquee, or swipe row. No JS, no timers.
+  prefers-reduced-motion: no animation, swipe row instead. Fixed height, so no layout shift.
+  Every message is a block: icon + text + optional link.
+{%- endcomment -%}
+{%- liquid
+  assign s = section.settings
+  assign sid = section.id
+  assign n = 0
+  for b in section.blocks
+    if b.settings.text != blank
+      assign n = n | plus: 1
+    endif
+  endfor
+  assign reps = 1
+  if n < 3
+    assign reps = 3
+  endif
+  assign dur = s.speed | times: n | times: reps
+  if dur < 12
+    assign dur = 12
+  endif
+-%}
+{%- if n > 0 -%}
+<style>
+#ltg-{{ sid }}{--ltg-bg:{{ s.bg_color }};--ltg-fg:{{ s.text_color }};--ltg-ac:{{ s.accent_color }};--ltg-h:{{ s.height }}px;--ltg-r:{{ s.radius }}px;padding:{{ s.pad_top }}px {{ s.side_pad }}px {{ s.pad_bottom }}px;background:{{ s.page_bg }};}
+#ltg-{{ sid }} .ltg-glass{position:relative;height:var(--ltg-h);border-radius:var(--ltg-r);overflow:hidden;color:var(--ltg-fg);
+  background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.015)),var(--ltg-bg);
+  -webkit-backdrop-filter:blur(18px) saturate(150%);backdrop-filter:blur(18px) saturate(150%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10),inset 0 0 0 1px rgba(255,255,255,.07){% if s.glow %},0 10px 30px -18px var(--ltg-ac){% endif %};
+  contain:layout paint;}
+#ltg-{{ sid }} .ltg-glass::after{content:"";position:absolute;left:12%;right:12%;bottom:0;height:1px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,var(--ltg-ac),transparent);opacity:{% if s.glow %}.75{% else %}0{% endif %};}
+#ltg-{{ sid }} .ltg-list{list-style:none;margin:0;padding:0;display:flex;align-items:center;height:100%;}
+#ltg-{{ sid }} .ltg-item{display:flex;align-items:center;gap:9px;flex:0 0 auto;white-space:nowrap;height:100%;
+  font:{{ s.font_weight }} {{ s.font_size }}px/1 var(--font-body-family,-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif);
+  letter-spacing:{{ s.letter_spacing | divided_by: 100.0 }}em;{% if s.uppercase %}text-transform:uppercase;{% endif %}}
+#ltg-{{ sid }} .ltg-item a{color:inherit;text-decoration:none;display:flex;align-items:center;gap:9px;height:100%;}
+#ltg-{{ sid }} .ltg-item a:hover .ltg-t,#ltg-{{ sid }} .ltg-item a:focus-visible .ltg-t{text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--ltg-ac);}
+#ltg-{{ sid }} .ltg-item a:focus-visible{outline:2px solid var(--ltg-ac);outline-offset:-2px;border-radius:8px;}
+#ltg-{{ sid }} .ltg-ic{width:{{ s.icon_size }}px;height:{{ s.icon_size }}px;flex:0 0 auto;color:var(--ltg-ac);display:block;}
+#ltg-{{ sid }} .ltg-ic img{width:100%;height:100%;object-fit:contain;display:block;}
+#ltg-{{ sid }} .ltg-t{opacity:.92;}
+#ltg-{{ sid }} .ltg-dot{width:4px;height:4px;border-radius:50%;background:var(--ltg-ac);opacity:.7;flex:0 0 auto;}
+/* desktop row */
+#ltg-{{ sid }} .ltg-row{justify-content:center;gap:clamp(18px,3vw,44px);padding:0 24px;}
+#ltg-{{ sid }} .ltg-mq{display:none;}
+@media (max-width:{{ s.breakpoint }}px){
+  #ltg-{{ sid }} .ltg-row{display:none;}
+  #ltg-{{ sid }} .ltg-mq{display:block;height:100%;
+    -webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent);mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent);}
+  #ltg-{{ sid }} .ltg-track{display:flex;width:max-content;height:100%;}
+  #ltg-{{ sid }} .ltg-mq .ltg-list{gap:0;}
+  #ltg-{{ sid }} .ltg-mq .ltg-item{padding-right:28px;gap:8px;}
+  #ltg-{{ sid }} .ltg-mq .ltg-dot{margin-left:20px;}
+  {%- if s.mobile_mode == 'marquee' %}
+  #ltg-{{ sid }} .ltg-track{animation:ltg-{{ sid }}-x {{ dur }}s linear infinite;will-change:transform;}
+  #ltg-{{ sid }} .ltg-mq:hover .ltg-track,#ltg-{{ sid }} .ltg-mq:active .ltg-track,#ltg-{{ sid }} .ltg-mq:focus-within .ltg-track{animation-play-state:paused;}
+  {%- else %}
+  #ltg-{{ sid }} .ltg-mq{overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;}
+  #ltg-{{ sid }} .ltg-mq::-webkit-scrollbar{display:none;}
+  #ltg-{{ sid }} .ltg-mq .ltg-item{scroll-snap-align:start;padding-left:20px;}
+  #ltg-{{ sid }} .ltg-clone{display:none;}
+  {%- endif %}
+}
+@keyframes ltg-{{ sid }}-x{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
+@media (prefers-reduced-motion:reduce){
+  #ltg-{{ sid }} .ltg-track{animation:none !important;}
+  #ltg-{{ sid }} .ltg-mq{overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;}
+  #ltg-{{ sid }} .ltg-mq::-webkit-scrollbar{display:none;}
+  #ltg-{{ sid }} .ltg-mq .ltg-item{scroll-snap-align:start;padding-left:20px;}
+  #ltg-{{ sid }} .ltg-clone,#ltg-{{ sid }} .ltg-rep{display:none;}
+}
+</style>
+<section id="ltg-{{ sid }}" class="ltg" aria-label="{{ s.aria_label | escape }}">
+  <div class="ltg-glass">
+    {%- for pass in (1..3) -%}
+      {%- if pass == 1 -%}<ul class="ltg-list ltg-row" role="list">{%- elsif pass == 2 -%}<div class="ltg-mq"><div class="ltg-track"><ul class="ltg-list" role="list">{%- else -%}<ul class="ltg-list ltg-clone" role="list" aria-hidden="true">{%- endif -%}
+      {%- liquid
+        assign r = 1
+        if pass > 1 and s.mobile_mode == 'marquee'
+          assign r = reps
+        endif
+      -%}
+      {%- for k in (1..r) -%}
+      {%- for block in section.blocks -%}
+        {%- if block.settings.text == blank -%}{%- continue -%}{%- endif -%}
+        <li class="ltg-item{% if k > 1 %} ltg-rep{% endif %}"{% if pass == 1 and k == 1 %} {{ block.shopify_attributes }}{% endif %}>
+          {%- if block.settings.link != blank -%}<a href="{{ block.settings.link }}"{% if pass == 3 %} tabindex="-1"{% endif %}>{%- endif -%}
+          {%- if block.settings.custom_icon != blank -%}
+            <span class="ltg-ic" aria-hidden="true">{{ block.settings.custom_icon | image_url: width: 64 | image_tag: width: s.icon_size, height: s.icon_size, alt: '', loading: 'lazy' }}</span>
+          {%- elsif block.settings.icon != 'none' -%}
+            <svg class="ltg-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            {%- case block.settings.icon -%}
+              {%- when 'truck' -%}<path d="M3 6.5h10.5v9H3z"/><path d="M13.5 9.5h3.8l2.7 3v3h-6.5"/><circle cx="7" cy="17.5" r="1.7"/><circle cx="17" cy="17.5" r="1.7"/>
+              {%- when 'return' -%}<path d="M9 7 5 11l4 4"/><path d="M5 11h9.5a4.5 4.5 0 0 1 0 9H11"/>
+              {%- when 'lock' -%}<rect x="5" y="10.5" width="14" height="9.5" rx="2.4"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/><path d="M12 14.2v2.2"/>
+              {%- when 'card' -%}<rect x="3" y="6" width="18" height="12.5" rx="2.4"/><path d="M3 10h18"/><path d="M7 15h3.5"/>
+              {%- when 'mail' -%}<rect x="3.5" y="6" width="17" height="12.5" rx="2.4"/><path d="m4.5 7.5 7.5 5.5 7.5-5.5"/>
+              {%- when 'chat' -%}<path d="M5 17.5V7.8A2.3 2.3 0 0 1 7.3 5.5h9.4A2.3 2.3 0 0 1 19 7.8v6.4a2.3 2.3 0 0 1-2.3 2.3H9z"/>
+              {%- when 'shield' -%}<path d="M12 3.5 5 6.3v5.2c0 4.2 2.9 7.5 7 9 4.1-1.5 7-4.8 7-9V6.3z"/><path d="m9.2 12 2 2 3.8-3.8"/>
+              {%- when 'box' -%}<path d="m12 3.5 8 4.2v8.6l-8 4.2-8-4.2V7.7z"/><path d="m4 7.7 8 4.2 8-4.2"/><path d="M12 11.9v8.6"/>
+              {%- when 'ruler' -%}<rect x="2.5" y="8" width="19" height="8" rx="1.6"/><path d="M6.5 8v3M10 8v2M13.5 8v3M17 8v2"/>
+              {%- when 'sparkle' -%}<path d="M12 4v4M12 16v4M4 12h4M16 12h4"/><path d="m7.8 7.8 1.6 1.6M14.6 14.6l1.6 1.6M16.2 7.8l-1.6 1.6M9.4 14.6l-1.6 1.6"/>
+            {%- endcase -%}
+            </svg>
+          {%- endif -%}
+          <span class="ltg-t">{{ block.settings.text | escape }}</span>
+          {%- if block.settings.link != blank -%}</a>{%- endif -%}
+          {%- if s.show_dots and pass > 1 -%}<span class="ltg-dot" aria-hidden="true"></span>{%- endif -%}
+        </li>
+      {%- endfor -%}
+      {%- endfor -%}
+      {%- if pass == 1 -%}</ul>{%- elsif pass == 2 -%}</ul>{%- else -%}</ul></div></div>{%- endif -%}
+    {%- endfor -%}
+  </div>
+</section>
+{%- endif -%}
+{% schema %}
+{
+  "name": "Trust glass",
+  "tag": "div",
+  "class": "section-lexe-trust-glass",
+  "max_blocks": 8,
+  "settings": [
+    { "type": "text", "id": "aria_label", "label": "Label for screen readers", "default": "Store promises" },
+    { "type": "header", "content": "Style" },
+    { "type": "color", "id": "page_bg", "label": "Background behind the glass", "default": "#000000" },
+    { "type": "color", "id": "bg_color", "label": "Glass color", "default": "#0b0b0d" },
+    { "type": "color", "id": "text_color", "label": "Text", "default": "#ffffff" },
+    { "type": "color", "id": "accent_color", "label": "Accent (icons, dots, glow)", "default": "#9966CC" },
+    { "type": "checkbox", "id": "glow", "label": "Amethyst edge glow", "default": true },
+    { "type": "range", "id": "height", "label": "Height", "min": 36, "max": 72, "step": 2, "unit": "px", "default": 48 },
+    { "type": "range", "id": "radius", "label": "Corner radius", "min": 0, "max": 36, "step": 2, "unit": "px", "default": 24 },
+    { "type": "range", "id": "side_pad", "label": "Side spacing", "min": 0, "max": 40, "step": 2, "unit": "px", "default": 12 },
+    { "type": "range", "id": "pad_top", "label": "Top spacing", "min": 0, "max": 40, "step": 2, "unit": "px", "default": 10 },
+    { "type": "range", "id": "pad_bottom", "label": "Bottom spacing", "min": 0, "max": 40, "step": 2, "unit": "px", "default": 10 },
+    { "type": "header", "content": "Text and icons" },
+    { "type": "range", "id": "font_size", "label": "Text size", "min": 10, "max": 18, "step": 1, "unit": "px", "default": 13 },
+    { "type": "select", "id": "font_weight", "label": "Text weight", "default": "500", "options": [ { "value": "400", "label": "Regular" }, { "value": "500", "label": "Medium" }, { "value": "600", "label": "Semibold" } ] },
+    { "type": "range", "id": "letter_spacing", "label": "Letter spacing", "min": 0, "max": 20, "step": 1, "default": 2, "info": "In hundredths of an em" },
+    { "type": "checkbox", "id": "uppercase", "label": "Uppercase", "default": false },
+    { "type": "range", "id": "icon_size", "label": "Icon size", "min": 14, "max": 28, "step": 1, "unit": "px", "default": 18 },
+    { "type": "checkbox", "id": "show_dots", "label": "Dots between messages on phones", "default": true },
+    { "type": "header", "content": "Phones" },
+    { "type": "select", "id": "mobile_mode", "label": "Phone layout", "default": "marquee", "options": [ { "value": "marquee", "label": "Smooth scroll (pauses on touch)" }, { "value": "swipe", "label": "Swipe" } ], "info": "Visitors who turn on Reduce Motion always get Swipe." },
+    { "type": "range", "id": "speed", "label": "Scroll time per message", "min": 3, "max": 12, "step": 1, "unit": "s", "default": 6 },
+    { "type": "range", "id": "breakpoint", "label": "Phone layout below", "min": 600, "max": 1200, "step": 10, "unit": "px", "default": 990 }
+  ],
+  "blocks": [
+    {
+      "type": "item",
+      "name": "Message",
+      "settings": [
+        { "type": "select", "id": "icon", "label": "Icon", "default": "truck", "options": [
+          { "value": "none", "label": "None" }, { "value": "truck", "label": "Delivery" }, { "value": "return", "label": "Returns" },
+          { "value": "lock", "label": "Lock" }, { "value": "card", "label": "Card" }, { "value": "mail", "label": "Email" },
+          { "value": "chat", "label": "Chat" }, { "value": "shield", "label": "Shield" }, { "value": "box", "label": "Parcel" },
+          { "value": "ruler", "label": "Size guide" }, { "value": "sparkle", "label": "Sparkle" } ] },
+        { "type": "image_picker", "id": "custom_icon", "label": "Custom icon (replaces the icon above)" },
+        { "type": "text", "id": "text", "label": "Text", "default": "Delivery in 5–10 business days", "info": "Keep it true: no free shipping, countdowns or stock claims." },
+        { "type": "url", "id": "link", "label": "Link (optional)" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Trust glass",
+      "blocks": [
+        { "type": "item", "settings": { "icon": "truck", "text": "Delivery in 5–10 business days" } },
+        { "type": "item", "settings": { "icon": "return", "text": "30-day apparel returns" } },
+        { "type": "item", "settings": { "icon": "lock", "text": "Secure card checkout" } },
+        { "type": "item", "settings": { "icon": "mail", "text": "Questions? We reply by email" } }
+      ]
+    }
+  ]
+}
+{% endschema %}
