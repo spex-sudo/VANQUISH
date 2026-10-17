@@ -789,7 +789,7 @@
     width: var(--s);
     height: auto;
     margin: 0;
-    transform: translate3d(-50%, -50%, 0) rotate(var(--r));
+    transform: translate3d(-50%, calc(-50% + var(--from) * (1 - var(--p, 0)) + var(--to) * var(--p, 0)), 0) rotate(calc(var(--r) + var(--spin) * var(--p, 0)));
     pointer-events: none;
     user-select: none;
   }
@@ -812,20 +812,6 @@
     mask: var(--mark) center / contain no-repeat;
   }
   #vf-{{ sid }}[data-knock="black"] .vf-mark { mask-mode: luminance; }
-  @supports (animation-timeline: view()) {
-    #vf-{{ sid }} .vf-float {
-      animation-name: vf-scroll-{{ sid }};
-      animation-duration: auto;
-      animation-timing-function: linear;
-      animation-fill-mode: both;
-      animation-timeline: view();
-      animation-range: cover 0% cover 100%;
-    }
-  }
-  @keyframes vf-scroll-{{ sid }} {
-    from { transform: translate3d(-50%, calc(-50% + var(--from)), 0) rotate(var(--r)); }
-    to { transform: translate3d(-50%, calc(-50% + var(--to)), 0) rotate(calc(var(--r) + var(--spin))); }
-  }
   #vf-{{ sid }} .vf-copies {
     grid-column: 1;
     grid-row: 1;
@@ -1049,8 +1035,11 @@
     #vf-{{ sid }}[data-density="full"] .vf-piece:nth-child(n+4) { display: none; }
   }
   @media (prefers-reduced-motion: reduce) {
-    #vf-{{ sid }} .vf-piece,
-    #vf-{{ sid }} .vf-float { animation: none; }
+    #vf-{{ sid }} .vf-piece { animation: none; }
+    #vf-{{ sid }} .vf-float {
+      animation: none;
+      transform: translate3d(-50%, -50%, 0) rotate(var(--r));
+    }
     #vf-{{ sid }} .vf-card,
     #vf-{{ sid }} .vf-bag,
     #vf-{{ sid }} .vf-copy { transition: none; }
@@ -1295,6 +1284,7 @@
           var on = !reduce && !document.hidden && this._seen;
           this.classList.toggle("is-live", on);
           this.classList.toggle("is-hidden-tab", document.hidden);
+          if (this._scroll) this._scroll();
         }.bind(this);
         this._vis = function () { mark(); };
         document.addEventListener("visibilitychange", this._vis);
@@ -1331,12 +1321,34 @@
           if (price && next) price.textContent = next;
         }.bind(this);
         this.addEventListener("change", this._change);
+        if (!reduce) {
+          this._raf = 0;
+          this._scroll = function () {
+            if (!this._seen || document.hidden) return;
+            if (this._raf) return;
+            var self = this;
+            this._raf = requestAnimationFrame(function () {
+              self._raf = 0;
+              if (!self._seen || document.hidden) return;
+              var rect = self.getBoundingClientRect();
+              var view = window.innerHeight || 1;
+              var p = (view - rect.top) / (rect.height + view);
+              if (p < 0) p = 0;
+              if (p > 1) p = 1;
+              self.style.setProperty("--p", p.toFixed(3));
+            });
+          }.bind(this);
+          window.addEventListener("scroll", this._scroll, { passive: true });
+          this._scroll();
+        }
       }
       disconnectedCallback() {
         this.dataset.ready = "";
         if (this._io) this._io.disconnect();
         if (this._vis) document.removeEventListener("visibilitychange", this._vis);
         if (this._change) this.removeEventListener("change", this._change);
+        if (this._scroll) window.removeEventListener("scroll", this._scroll);
+        if (this._raf) cancelAnimationFrame(this._raf);
       }
     }
     customElements.define("vanquish-field", VanquishField);
