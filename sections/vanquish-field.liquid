@@ -21,8 +21,18 @@
         <div class="vf-board">
           {%- if section.settings.show_halo -%}
             <div class="vf-halo" aria-hidden="true"></div>
-            <span class="vf-bit vf-bit-a" aria-hidden="true"></span>
-            <span class="vf-bit vf-bit-b" aria-hidden="true"></span>
+            <div class="vf-floats" aria-hidden="true">
+              <img class="vf-float" src="{{ 'vf-matter-cloth-ivory.webp' | asset_url }}" alt="" width="120" height="90" style="--x:8%;--y:22%;--s:118px;--r:-18deg;--dx:10px;--dy:-16px;--dur:7.5s;--delay:0s">
+              <img class="vf-float" src="{{ 'vf-matter-cloth-denim.webp' | asset_url }}" alt="" width="110" height="80" style="--x:78%;--y:16%;--s:104px;--r:14deg;--dx:-12px;--dy:14px;--dur:8.2s;--delay:-2s">
+              <img class="vf-float" src="{{ 'vf-matter-cloth-rust.webp' | asset_url }}" alt="" width="96" height="72" style="--x:92%;--y:62%;--s:86px;--r:28deg;--dx:-8px;--dy:-12px;--dur:6.8s;--delay:-1s">
+              <img class="vf-float" src="{{ 'vf-matter-paper-sheet.webp' | asset_url }}" alt="" width="100" height="120" style="--x:6%;--y:68%;--s:92px;--r:-8deg;--dx:8px;--dy:-10px;--dur:9s;--delay:-3s">
+              <img class="vf-float" src="{{ 'vf-matter-paper-corner.webp' | asset_url }}" alt="" width="80" height="80" style="--x:88%;--y:34%;--s:72px;--r:12deg;--dx:6px;--dy:12px;--dur:7s;--delay:-4s">
+              <img class="vf-float" src="{{ 'vf-matter-pin-safety.webp' | asset_url }}" alt="" width="48" height="48" style="--x:18%;--y:42%;--s:42px;--r:-24deg;--dx:6px;--dy:-8px;--dur:6s;--delay:-1.5s">
+              <img class="vf-float" src="{{ 'vf-matter-pin-round.webp' | asset_url }}" alt="" width="40" height="40" style="--x:70%;--y:28%;--s:34px;--r:8deg;--dx:-6px;--dy:8px;--dur:5.6s;--delay:-2.4s">
+              <img class="vf-float" src="{{ 'vf-matter-pin-bar.webp' | asset_url }}" alt="" width="56" height="28" style="--x:84%;--y:78%;--s:54px;--r:-16deg;--dx:8px;--dy:-6px;--dur:7.4s;--delay:-.6s">
+              <img class="vf-float vf-mark" src="{{ 'vf-matter-mark.png' | asset_url }}" alt="" width="72" height="72" style="--x:24%;--y:12%;--s:64px;--r:0deg;--dx:4px;--dy:-10px;--dur:8.6s;--delay:-3.2s">
+              <span class="vf-float vf-code" style="--x:62%;--y:72%;--s:auto;--r:-6deg;--dx:10px;--dy:-8px;--dur:8s;--delay:-2.2s">await field()</span>
+            </div>
           {%- endif -%}
 
           <div class="vf-mid">
@@ -180,11 +190,25 @@
   background: var(--bg);
   transform-origin: center top;
 }
-#vf-{{ sid }} .vf-halo { position: absolute; width: min(46vw, 560px); height: min(46vw, 560px); border-radius: 50%; background: var(--halo); right: 4vw; top: 12px; pointer-events: none; }
-#vf-{{ sid }} .vf-bit { position: absolute; width: 14px; height: 14px; background: var(--green); clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); animation: vf-drift-{{ sid }} 7s ease-in-out infinite alternate; pointer-events: none; }
-#vf-{{ sid }} .vf-bit-a { left: 18vw; top: 180px; }
-#vf-{{ sid }} .vf-bit-b { right: 6vw; top: 140px; animation-delay: -2s; }
-@keyframes vf-drift-{{ sid }} { from { translate: 0 0; } to { translate: 8px -14px; } }
+#vf-{{ sid }} .vf-halo {
+  position: absolute; z-index: 0; pointer-events: none;
+  width: min(68vw, 760px); height: min(56vw, 640px); right: -6vw; top: -40px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 48% 46%, var(--halo) 0%, transparent 68%);
+}
+#vf-{{ sid }} .vf-floats { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+#vf-{{ sid }} .vf-float {
+  position: absolute; left: var(--x); top: var(--y); width: var(--s); height: auto; z-index: 1;
+  transform: translate(-50%, -50%) rotate(var(--r));
+  animation: vf-float-{{ sid }} var(--dur) ease-in-out var(--delay) infinite alternate;
+  pointer-events: none; user-select: none;
+}
+#vf-{{ sid }} .vf-mark { width: var(--s); mix-blend-mode: multiply; }
+#vf-{{ sid }} .vf-code {
+  width: auto; color: var(--ink); opacity: 0.45;
+  font: 500 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0.04em; white-space: nowrap;
+}
+@keyframes vf-float-{{ sid }} { from { translate: 0 0; } to { translate: var(--dx) var(--dy); } }
 #vf-{{ sid }} .vf-mid { position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; padding: 28px var(--pad) 0; }
 #vf-{{ sid }} .vf-arrows { display: flex; gap: 8px; }
 #vf-{{ sid }} .vf-arrows button {
@@ -263,7 +287,9 @@
   #vf-{{ sid }} .vf-copy { width: 100%; }
   #vf-{{ sid }} .vf-copy h2 { font-size: clamp(28px, 9vw, var(--title)); }
   #vf-{{ sid }} .vf-copy p { max-width: none; }
-  #vf-{{ sid }} .vf-halo { width: 220px; height: 220px; right: -40px; }
+  #vf-{{ sid }} .vf-halo { width: 280px; height: 240px; right: -70px; top: -20px; }
+  #vf-{{ sid }} .vf-float { width: min(var(--s), 64px); }
+  #vf-{{ sid }} .vf-code { display: none; }
   #vf-{{ sid }} .vf-row { grid-template-columns: 1fr; padding: 96px 16px 24px; }
   #vf-{{ sid }} .vf-card { display: none; }
   #vf-{{ sid }} .vf-card.is-feature {
