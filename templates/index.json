@@ -212,8 +212,8 @@
           "settings": {
             "collection": "lexe",
             "status_text": "UNRELEASED",
-            "status_color": "#8537d4",
-            "cta_label": "Enter",
+            "status_color": "#8B9DDA",
+            "cta_label": "SHOP",
             "price_from": "",
             "badge_text": "",
             "badge_bg": "#000000",
