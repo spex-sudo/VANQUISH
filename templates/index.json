@@ -283,13 +283,20 @@
         "enable_schema": true
       }
     },
-    "vanquish_field_brzUNU": {
+    "vanquish_field_JN6xGk": {
       "type": "vanquish-field",
       "name": "Vanquish Field",
       "settings": {
-        "heading": "Command The Room",
-        "heading_size": 54,
-        "note": "Model what explicitly defines you!",
+        "heading": "MVP",
+        "heading_font": "syne_n8",
+        "body_font": "assistant_n4",
+        "heading_size": 28,
+        "note_size": 13,
+        "product_title_size": 20,
+        "price_size": 12,
+        "button_size": 12,
+        "image_size": 160,
+        "note": "Sign up to get exclusive access to deals on drinks this holiday season.",
         "quick_label": "Quick add",
         "sold_out": "Sold out",
         "price_label": "Price",
@@ -303,17 +310,18 @@
         "background": "#ffffff",
         "heading_color": "#000000",
         "note_color": "#b0b0b0",
-        "text_color": "#000000",
+        "text_color": "#BEBFFF",
         "feature_color": "#000000",
         "card_color": "#f3f1ec",
         "button_color": "#ffffff",
-        "button_text_color": "#bebfff",
-        "halo_color": "#000000",
-        "show_halo": false,
+        "button_text_color": "#BEBFFF",
+        "halo_color": "#AEAEAE",
+        "show_halo": true,
         "side_padding": 20,
-        "card_radius": 20,
+        "card_radius": 28,
+        "image_radius": 24,
         "scroll_transition": true,
-        "scroll_distance": 50
+        "scroll_distance": 70
       }
     },
     "vanquish_atelier_nwPpp6": {
@@ -799,7 +807,7 @@
     "luxury_transition_m6cr6x",
     "lexe_bento_hero",
     "luxury_collectiongrid_jpK7Cz",
-    "vanquish_field_brzUNU",
+    "vanquish_field_JN6xGk",
     "vanquish_atelier_nwPpp6",
     "luxury_featureproduct_DDiGAR",
     "vanquish_atelier_XfxTnG",
