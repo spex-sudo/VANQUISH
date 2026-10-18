@@ -3,7 +3,7 @@
   assign cap = section.settings.limit | default: 4 | at_most: 8 | at_least: 1
   assign heading = section.settings.heading | default: 'The happiest hour of the year'
   assign note = section.settings.note | default: 'Sign up to get exclusive access to deals on drinks this holiday season.'
-  assign cta = section.settings.cart_label | default: 'Add to cart'
+  assign cta = section.settings.quick_label | default: 'Quick Add'
   assign price_label = section.settings.price_label | default: 'Price'
   assign travel = section.settings.scroll_distance | default: 70
 -%}
@@ -48,7 +48,7 @@
                   <h3>{{ product.title }}</h3>
                   {%- form 'product', product, class: 'vf-cart' -%}
                     <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
-                    <button class="vf-add" type="submit" name="add" data-label="{{ cta | escape }}" data-ok="{% if product.available %}1{% else %}0{% endif %}">{{ cta }}</button>
+                    <button class="vf-add" type="submit" name="add" data-label="{{ cta | escape }}" data-ok="{% if product.available %}1{% else %}0{% endif %}"><span>{{ cta }}</span></button>
                   {%- endform -%}
                   <ul class="vf-facts">
                     {%- if section.settings.show_price -%}
@@ -88,7 +88,7 @@
                     <h3>{{ card_title }}</h3>
                     {%- form 'product', product, class: 'vf-cart' -%}
                       <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
-                      <button class="vf-add" type="submit" name="add" data-label="{{ cta | escape }}" data-ok="{% if product.available %}1{% else %}0{% endif %}">{{ cta }}</button>
+                      <button class="vf-add" type="submit" name="add" data-label="{{ cta | escape }}" data-ok="{% if product.available %}1{% else %}0{% endif %}"><span>{{ cta }}</span></button>
                     {%- endform -%}
                     <ul class="vf-facts">
                       {%- if section.settings.show_price -%}
@@ -230,13 +230,18 @@
 }
 #vf-{{ sid }} .vf-add, #vf-{{ sid }} .vf-opt, #vf-{{ sid }} select { position: relative; z-index: 8; touch-action: manipulation; pointer-events: auto; }
 #vf-{{ sid }} .vf-add {
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  width: 100%; min-height: 48px; padding: 0 16px;
-  border: 2px solid #111; border-radius: 999px; background: #fff; color: #111;
-  box-shadow: 0 8px 18px rgb(0 0 0 / 16%);
-  font-family: var(--font-body); font-weight: 800; font-size: var(--btn-size); line-height: 1; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;
+  display: grid; grid-template-columns: 36px 1fr; align-items: stretch;
+  width: 100%; min-height: 36px; padding: 0;
+  border: 1px solid #1d1d1f; border-radius: 2px; background: #f5f5f7; color: #1d1d1f;
+  box-shadow: none; overflow: hidden; cursor: pointer;
+  font-family: var(--font-body); font-weight: 500; font-size: 11px; line-height: 1;
+  letter-spacing: 0.18em; text-transform: none;
 }
-#vf-{{ sid }} .vf-add::before { content: "+"; font-size: 16px; line-height: 1; }
+#vf-{{ sid }} .vf-add::before {
+  content: "+"; display: grid; place-items: center;
+  background: #1d1d1f; color: #fff; font-size: 18px; font-weight: 400; letter-spacing: 0;
+}
+#vf-{{ sid }} .vf-add span { display: grid; place-items: center; padding: 0 12px; }
 #vf-{{ sid }} .vf-toast { position: absolute; left: var(--pad); bottom: 8px; z-index: 6; margin: 0; color: var(--heading); font-size: 12px; }
 @media (max-width: 749px) {
   #vf-{{ sid }} .vf-mid { flex-wrap: wrap; align-items: flex-start; padding: 16px 16px 0; }
@@ -328,7 +333,8 @@
         if (button) {
           button.dataset.ok = match.ok ? '1' : '0';
           button.disabled = false;
-          button.textContent = button.dataset.label || 'Quick add';
+          var label = button.querySelector('span');
+          if (label) label.textContent = button.dataset.label || 'Quick Add';
         }
       });
     });
@@ -347,10 +353,13 @@
     }
     var id = input.value;
     if (!id) return;
-    if (!button.dataset.label) button.dataset.label = button.textContent;
+    if (!button.dataset.label) {
+      var current = button.querySelector('span');
+      button.dataset.label = current ? current.textContent : 'Quick Add';
+    }
     button.dataset.busy = '1';
     button.disabled = true;
-    button.textContent = 'Adding';
+    button.querySelector('span').textContent = 'Adding';
     fetch('/cart/add.js', {
       method: 'POST',
       credentials: 'same-origin',
@@ -358,7 +367,7 @@
       body: JSON.stringify({ id: Number(id), quantity: 1 })
     }).then(function (res) {
       if (!res.ok) throw new Error('cart');
-      button.textContent = 'Added';
+      button.querySelector('span').textContent = 'Added';
       say('Added to cart');
       return fetch('/cart.js', { credentials: 'same-origin', headers: { Accept: 'application/json' } }).then(function (r) { return r.json(); });
     }).then(function (cart) {
@@ -367,12 +376,12 @@
       document.dispatchEvent(new CustomEvent('cart:item-added', { bubbles: true }));
       if (window.apexOpenDrawer) window.apexOpenDrawer();
     }).catch(function () {
-      button.textContent = 'Try again';
+      button.querySelector('span').textContent = 'Try again';
     }).then(function () {
       setTimeout(function () {
         button.dataset.busy = '';
         button.disabled = false;
-        button.textContent = button.dataset.label;
+        button.querySelector('span').textContent = button.dataset.label;
       }, 700);
     });
   });
@@ -484,7 +493,7 @@
     { "type": "range", "id": "button_size", "label": "Button text size", "min": 10, "max": 18, "step": 1, "unit": "px", "default": 12 },
     { "type": "range", "id": "image_size", "label": "Image size", "min": 90, "max": 280, "step": 10, "unit": "px", "default": 160 },
     { "type": "textarea", "id": "note", "label": "Note", "default": "Sign up to get exclusive access to deals on drinks this holiday season." },
-    { "type": "text", "id": "cart_label", "label": "Add to cart label", "default": "Add to cart" },
+    { "type": "text", "id": "quick_label", "label": "Quick Add label", "default": "Quick Add" },
     { "type": "text", "id": "sold_out", "label": "Sold out label", "default": "Sold out" },
     { "type": "text", "id": "price_label", "label": "Price label", "default": "Price" },
     { "type": "checkbox", "id": "show_price", "label": "Show price", "default": true },

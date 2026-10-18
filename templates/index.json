@@ -297,6 +297,7 @@
         "button_size": 12,
         "image_size": 160,
         "note": "Sign up to get exclusive access to deals on lexe",
+        "quick_label": "Quick Add",
         "sold_out": "Sold out",
         "price_label": "Price",
         "show_price": true,
