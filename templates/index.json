@@ -317,8 +317,8 @@
         "button_text_color": "#BEBFFF",
         "halo_color": "#AEAEAE",
         "show_halo": true,
-        "side_padding": 20,
-        "card_radius": 28,
+        "side_padding": 0,
+        "card_radius": 32,
         "image_radius": 24,
         "scroll_transition": true,
         "scroll_distance": 70
