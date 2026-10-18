@@ -283,30 +283,8 @@
         "enable_schema": true
       }
     },
-    "vanquish_field_wHm9er": {
+    "vanquish_field_brzUNU": {
       "type": "vanquish-field",
-      "blocks": {
-        "product_ngiJDY": {
-          "type": "product",
-          "settings": {
-            "product": "",
-            "title": "",
-            "fact": ""
-          }
-        },
-        "product_WKFcj7": {
-          "type": "product",
-          "settings": {
-            "product": "",
-            "title": "",
-            "fact": ""
-          }
-        }
-      },
-      "block_order": [
-        "product_ngiJDY",
-        "product_WKFcj7"
-      ],
       "name": "Vanquish Field",
       "settings": {
         "heading": "The happiest hour of the year",
@@ -323,17 +301,17 @@
         "collection": "lexespecs",
         "limit": 4,
         "background": "#ffffff",
-        "heading_color": "#000000",
+        "heading_color": "#1b6b45",
         "note_color": "#b0b0b0",
-        "text_color": "#BEBFFF",
-        "feature_color": "#000000",
+        "text_color": "#173024",
+        "feature_color": "#1b6b45",
         "card_color": "#f3f1ec",
         "button_color": "#ffffff",
-        "button_text_color": "#000000",
-        "halo_color": "#BEBFFF",
+        "button_text_color": "#155838",
+        "halo_color": "#e7f4ec",
         "show_halo": true,
-        "side_padding": 4,
-        "card_radius": 32,
+        "side_padding": 20,
+        "card_radius": 28,
         "scroll_transition": true,
         "scroll_distance": 70
       }
@@ -821,7 +799,7 @@
     "luxury_transition_m6cr6x",
     "lexe_bento_hero",
     "luxury_collectiongrid_jpK7Cz",
-    "vanquish_field_wHm9er",
+    "vanquish_field_brzUNU",
     "vanquish_atelier_nwPpp6",
     "luxury_featureproduct_DDiGAR",
     "vanquish_atelier_XfxTnG",
