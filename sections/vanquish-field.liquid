@@ -70,9 +70,7 @@
                   <script type="application/json" data-variants>[{%- for variant in product.variants -%}{"id":{{ variant.id }},"ok":{{ variant.available | json }},"opt":{{ variant.options | json }},"img":{{ variant.image | default: product.featured_image | image_url: width: 720 | json }},"price":{{ variant.price | money | json }}}{%- unless forloop.last -%},{%- endunless -%}{%- endfor -%}]</script>
                   {%- form 'product', product, class: 'vf-cart' -%}
                     <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
-                    <button class="vf-add" type="submit" name="add" {% unless product.available %}disabled{% endunless %}>
-                      {%- if product.available -%}{{ cta }}{%- else -%}{{ section.settings.sold_out | default: 'Sold out' }}{%- endif -%}
-                    </button>
+                    <button class="vf-add" type="submit" name="add" data-label="{{ cta | escape }}" data-ok="{% if product.available %}1{% else %}0{% endif %}">{{ cta }}</button>
                   {%- endform -%}
                 </article>
               {%- endfor -%}
@@ -101,7 +99,7 @@
                     <script type="application/json" data-variants>[{%- for variant in product.variants -%}{"id":{{ variant.id }},"ok":{{ variant.available | json }},"opt":{{ variant.options | json }},"img":{{ variant.image | default: product.featured_image | image_url: width: 720 | json }},"price":{{ variant.price | money | json }}}{%- unless forloop.last -%},{%- endunless -%}{%- endfor -%}]</script>
                     {%- form 'product', product, class: 'vf-cart' -%}
                       <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
-                      <button class="vf-add" type="submit" name="add">{{ cta }}</button>
+                      <button class="vf-add" type="submit" name="add" data-label="{{ cta | escape }}" data-ok="{% if product.available %}1{% else %}0{% endif %}">{{ cta }}</button>
                     {%- endform -%}
                   </article>
                 {%- endif -%}
@@ -176,12 +174,13 @@
 }
 #vf-{{ sid }} .vf-row.is-dragging { cursor: grabbing; }
 #vf-{{ sid }} .vf-card {
-  position: relative; height: 300px; border-radius: var(--radius); background: var(--card); color: var(--ink); padding: 118px 18px 16px;
-  box-shadow: 0 10px 24px rgb(30 40 34 / 6%); order: 9;
+  position: relative; height: auto; min-height: 260px; border-radius: var(--radius); background: var(--card); color: var(--ink); padding: 118px 18px 16px;
+  box-shadow: 0 10px 24px rgb(30 40 34 / 6%); order: 9; overflow: visible;
+  display: flex; flex-direction: column;
 }
 #vf-{{ sid }} .vf-card[hidden] { display: none; }
 #vf-{{ sid }} .vf-card.is-feature {
-  height: 400px; background: var(--green); color: #fff; padding: 150px 18px 16px;
+  min-height: 320px; height: auto; background: var(--green); color: #fff; padding: 150px 18px 16px;
   box-shadow: 0 24px 50px rgb(20 60 40 / 28%); z-index: 4;
 }
 #vf-{{ sid }} .vf-drink {
@@ -201,12 +200,15 @@
 #vf-{{ sid }} .vf-opt { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 #vf-{{ sid }} .vf-opt span { font: 600 18px/1 Outfit, sans-serif; }
 #vf-{{ sid }} .vf-opt select { appearance: none; background: transparent; border: 0; border-bottom: 1px solid rgb(255 255 255 / 55%); color: #fff; font: 500 12px/1 Outfit, sans-serif; padding: 6px 0; min-width: 0; max-width: 58%; }
-#vf-{{ sid }} .vf-cart { margin: 0; }
+#vf-{{ sid }} .vf-cart { margin: 12px 0 0; margin-top: auto; }
 #vf-{{ sid }} .vf-add, #vf-{{ sid }} .vf-opt, #vf-{{ sid }} select { position: relative; z-index: 5; touch-action: manipulation; pointer-events: auto; }
-#vf-{{ sid }} .vf-card:not(.is-feature) { height: auto; min-height: 280px; }
-#vf-{{ sid }} .vf-add { display: flex; align-items: center; justify-content: center; margin-top: 14px; width: 100%; height: 40px; border: 0; border-radius: 999px; background: var(--green); color: #fff; font: 800 11px/1 Outfit, sans-serif; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; }
-#vf-{{ sid }} .vf-add[disabled] { opacity: 0.45; cursor: default; }
-#vf-{{ sid }} .vf-card.is-feature .vf-add { height: 44px; background: var(--btn); color: var(--btn-text); }
+#vf-{{ sid }} .vf-add {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; min-height: 44px; padding: 0 14px;
+  border: 0; border-radius: 999px; background: var(--green); color: #fff;
+  font: 800 12px/1 Outfit, sans-serif; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer;
+}
+#vf-{{ sid }} .vf-card.is-feature .vf-add { background: var(--btn); color: var(--btn-text); }
 #vf-{{ sid }} .vf-toast { position: absolute; left: var(--pad); bottom: 8px; z-index: 6; margin: 0; color: var(--heading); font-size: 12px; }
 @media (max-width: 749px) {
   #vf-{{ sid }} .vf-mid { flex-wrap: wrap; align-items: flex-start; padding: 16px 16px 0; }
@@ -217,7 +219,7 @@
   #vf-{{ sid }} .vf-row { grid-template-columns: 1fr; padding: 96px 16px 24px; }
   #vf-{{ sid }} .vf-card { display: none; }
   #vf-{{ sid }} .vf-card.is-feature {
-    display: block;
+    display: flex;
     width: 100%;
     height: auto;
     min-height: 220px;
@@ -225,9 +227,6 @@
   }
   #vf-{{ sid }} .vf-card.is-feature .vf-drink { width: 160px; bottom: calc(100% - 96px); }
   #vf-{{ sid }} .vf-card.is-feature h3 { font-size: 26px; }
-}
-@media (prefers-reduced-motion: reduce) {
-  #vf-{{ sid }} .vf-drink, #vf-{{ sid }} .vf-bit { animation: none; }
 }
 </style>
 
@@ -246,8 +245,7 @@
   var board = root.querySelector('.vf-board');
   var shell = document.getElementById('shopify-section-{{ sid }}') || root;
   var drinks = root.querySelectorAll('.vf-drink');
-  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var enabled = root.dataset.scroll === 'on' && !reduce;
+  var enabled = root.dataset.scroll !== 'off';
 
   function place() {
     var n = cards.length;
@@ -300,8 +298,9 @@
         if (price && match.price) price.textContent = match.price;
         var button = card.querySelector('.vf-add');
         if (button) {
-          button.disabled = !match.ok;
-          button.textContent = match.ok ? (button.dataset.label || button.textContent) : (root.dataset.sold || 'Sold out');
+          button.dataset.ok = match.ok ? '1' : '0';
+          button.disabled = false;
+          button.textContent = button.dataset.label || 'Quick add';
         }
       });
     });
@@ -313,7 +312,11 @@
     event.preventDefault();
     var button = form.querySelector('.vf-add');
     var input = form.querySelector('input[name="id"]');
-    if (!button || !input || button.disabled || button.dataset.busy) return;
+    if (!button || !input || button.dataset.busy) return;
+    if (button.dataset.ok === '0') {
+      say(root.dataset.sold || 'Sold out');
+      return;
+    }
     var id = input.value;
     if (!id) return;
     if (!button.dataset.label) button.dataset.label = button.textContent;
@@ -403,42 +406,33 @@
   });
 
   function scrub() {
-    if (!board) return;
-    if (!enabled) {
-      board.style.opacity = '1';
-      board.style.transform = 'none';
-      return;
-    }
+    if (!board || !enabled) return;
     var rect = board.getBoundingClientRect();
     var vh = window.innerHeight || 1;
     var p = (vh - rect.top) / (vh + Math.max(rect.height, 1));
     if (p < 0) p = 0;
     if (p > 1) p = 1;
-    var inn = p / 0.2;
-    if (inn > 1) inn = 1;
-    var out = (p - 0.58) / 0.42;
-    if (out < 0) out = 0;
-    if (out > 1) out = 1;
-    var show = inn * (1 - out);
-    board.style.opacity = String(show);
-    board.style.transform = 'translate3d(0,' + ((1 - inn) * 56 - out * 72) + 'px,0) scale(' + (0.9 + show * 0.1) + ')';
+    var travel = (p - 0.5) * 2;
+    var close = p <= 0.5 ? 0 : (p - 0.5) / 0.5;
+    board.style.opacity = String(1 - close);
+    board.style.transform = 'translate3d(0,' + (travel * -36 - close * 48) + 'px,0) scale(' + (1 - close * 0.05) + ')';
     Array.prototype.forEach.call(drinks, function (img, i) {
       var dir = i % 2 ? 1 : -1;
-      img.style.transform = 'translate3d(calc(-50% + ' + (dir * 18 * out) + 'px), ' + ((1 - inn) * 36 - out * 90) + 'px, 0)';
+      img.style.transform = 'translate3d(calc(-50% + ' + (dir * travel * 22) + 'px),' + (travel * -90) + 'px,0)';
     });
   }
 
-  if (shell) shell.style.marginBottom = '0px';
-  if (run) run.style.height = 'auto';
-  if (stage) {
-    stage.style.position = 'relative';
-    stage.style.top = 'auto';
-    stage.style.left = 'auto';
-    stage.style.width = '100%';
-    stage.style.zIndex = 'auto';
+  var frame = 0;
+  function onScroll() {
+    if (frame) return;
+    frame = requestAnimationFrame(function () {
+      frame = 0;
+      scrub();
+    });
   }
+  if (shell) shell.style.marginBottom = '0px';
   scrub();
-  window.addEventListener('scroll', scrub, { passive: true });
+  window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', scrub);
   window.addEventListener('load', scrub);
 })();
