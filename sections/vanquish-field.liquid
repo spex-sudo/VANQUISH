@@ -76,9 +76,9 @@
               {%- endfor -%}
             {%- endif -%}
 
-            {%- if shown == 0 -%}
+            {%- if shown < 8 -%}
               {%- for block in section.blocks -%}
-                {%- if block.settings.product != blank -%}
+                {%- if block.settings.product != blank and shown < 8 -%}
                   {%- assign product = block.settings.product -%}
                   {%- assign shown = shown | plus: 1 -%}
                   {%- assign card_title = product.title -%}
@@ -96,6 +96,17 @@
                         <li><span>{{ block.settings.fact }}</span></li>
                       {%- endif -%}
                     </ul>
+                    <div class="vf-opts">
+                      {%- unless product.has_only_default_variant -%}
+                        {%- for option in product.options_with_values -%}
+                          <label class="vf-opt"><span>{{ option.name }}</span>
+                            <select data-option="{{ forloop.index0 }}" aria-label="{{ option.name }}">
+                              {%- for value in option.values -%}<option value="{{ value | escape }}">{{ value }}</option>{%- endfor -%}
+                            </select>
+                          </label>
+                        {%- endfor -%}
+                      {%- endunless -%}
+                    </div>
                     <script type="application/json" data-variants>[{%- for variant in product.variants -%}{"id":{{ variant.id }},"ok":{{ variant.available | json }},"opt":{{ variant.options | json }},"img":{{ variant.image | default: product.featured_image | image_url: width: 720 | json }},"price":{{ variant.price | money | json }}}{%- unless forloop.last -%},{%- endunless -%}{%- endfor -%}]</script>
                     {%- form 'product', product, class: 'vf-cart' -%}
                       <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
@@ -136,6 +147,7 @@
   --btn-text: {{ section.settings.button_text_color }};
   --halo: {{ section.settings.halo_color }};
   --radius: {{ section.settings.card_radius }}px;
+  --img-radius: {{ section.settings.image_radius }}px;
   --pad: {{ section.settings.side_padding }}px;
   --title: {{ section.settings.heading_size }}px;
   width: 100%;
@@ -174,19 +186,19 @@
 }
 #vf-{{ sid }} .vf-row.is-dragging { cursor: grabbing; }
 #vf-{{ sid }} .vf-card {
-  position: relative; height: auto; min-height: 260px; border-radius: var(--radius); background: var(--card); color: var(--ink); padding: 118px 18px 16px;
+  position: relative; height: auto; min-height: 260px; border-radius: var(--radius); background: var(--card); color: var(--ink); padding: 118px 18px 74px;
   box-shadow: 0 10px 24px rgb(30 40 34 / 6%); order: 9; overflow: visible;
   display: flex; flex-direction: column;
 }
 #vf-{{ sid }} .vf-card[hidden] { display: none; }
 #vf-{{ sid }} .vf-card.is-feature {
-  min-height: 320px; height: auto; background: var(--green); color: #fff; padding: 150px 18px 16px;
+  min-height: 320px; height: auto; background: var(--green); color: #fff; padding: 150px 18px 74px;
   box-shadow: 0 24px 50px rgb(20 60 40 / 28%); z-index: 4;
 }
 #vf-{{ sid }} .vf-drink {
-  position: absolute; left: 50%; bottom: calc(100% - 108px); width: min(46%, 160px); height: auto;
-  transform: translate3d(-50%, 0, 0); pointer-events: auto; touch-action: pan-y;
-  filter: drop-shadow(0 16px 16px rgb(20 30 24 / 18%)); object-fit: contain;
+  position: absolute; left: 50%; bottom: calc(100% - 108px); z-index: 2; width: min(46%, 160px); height: auto;
+  transform: translate3d(-50%, 0, 0); pointer-events: none; touch-action: pan-y;
+  border-radius: var(--img-radius); filter: drop-shadow(0 16px 16px rgb(20 30 24 / 18%)); object-fit: contain;
 }
 #vf-{{ sid }} .vf-card.is-feature .vf-drink { width: min(58%, 210px); bottom: calc(100% - 140px); }
 @keyframes vf-bob-{{ sid }} { from { translate: 0 0; } to { translate: 0 -10px; } }
@@ -200,15 +212,18 @@
 #vf-{{ sid }} .vf-opt { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 #vf-{{ sid }} .vf-opt span { font: 600 18px/1 Outfit, sans-serif; }
 #vf-{{ sid }} .vf-opt select { appearance: none; background: transparent; border: 0; border-bottom: 1px solid rgb(255 255 255 / 55%); color: #fff; font: 500 12px/1 Outfit, sans-serif; padding: 6px 0; min-width: 0; max-width: 58%; }
-#vf-{{ sid }} .vf-cart { margin: 12px 0 0; margin-top: auto; }
-#vf-{{ sid }} .vf-add, #vf-{{ sid }} .vf-opt, #vf-{{ sid }} select { position: relative; z-index: 5; touch-action: manipulation; pointer-events: auto; }
+#vf-{{ sid }} .vf-cart {
+  position: absolute; left: 14px; right: 14px; bottom: 14px; z-index: 8; margin: 0;
+}
+#vf-{{ sid }} .vf-add, #vf-{{ sid }} .vf-opt, #vf-{{ sid }} select { position: relative; z-index: 8; touch-action: manipulation; pointer-events: auto; }
 #vf-{{ sid }} .vf-add {
-  display: flex; align-items: center; justify-content: center;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
   width: 100%; min-height: 44px; padding: 0 14px;
-  border: 0; border-radius: 999px; background: var(--green); color: #fff;
+  border: 0; border-radius: 999px; background: #111; color: #fff;
+  box-shadow: 0 10px 22px rgb(0 0 0 / 22%);
   font: 800 12px/1 Outfit, sans-serif; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer;
 }
-#vf-{{ sid }} .vf-card.is-feature .vf-add { background: var(--btn); color: var(--btn-text); }
+#vf-{{ sid }} .vf-add::before { content: "+"; font-size: 16px; line-height: 1; }
 #vf-{{ sid }} .vf-toast { position: absolute; left: var(--pad); bottom: 8px; z-index: 6; margin: 0; color: var(--heading); font-size: 12px; }
 @media (max-width: 749px) {
   #vf-{{ sid }} .vf-mid { flex-wrap: wrap; align-items: flex-start; padding: 16px 16px 0; }
@@ -223,7 +238,7 @@
     width: 100%;
     height: auto;
     min-height: 220px;
-    padding: 108px 16px 18px;
+    padding: 108px 16px 74px;
   }
   #vf-{{ sid }} .vf-card.is-feature .vf-drink { width: 160px; bottom: calc(100% - 96px); }
   #vf-{{ sid }} .vf-card.is-feature h3 { font-size: 26px; }
@@ -458,7 +473,7 @@
     { "type": "text", "id": "next_label", "label": "Next label", "default": "Next" },
 
     { "type": "header", "content": "Products" },
-    { "type": "collection", "id": "collection", "label": "Collection", "info": "When a collection is chosen, it fills the row. Leave it empty to use the product blocks instead." },
+    { "type": "collection", "id": "collection", "label": "Collection", "info": "Collection products show first. Product blocks below are added after them. Leave the collection empty to use only the blocks." },
     { "type": "range", "id": "limit", "label": "Products to show", "min": 1, "max": 8, "step": 1, "default": 4 },
 
     { "type": "header", "content": "Colors" },
@@ -476,11 +491,13 @@
     { "type": "header", "content": "Layout" },
     { "type": "range", "id": "side_padding", "label": "Side padding", "min": 0, "max": 80, "step": 2, "unit": "px", "default": 20 },
     { "type": "range", "id": "card_radius", "label": "Card radius", "min": 0, "max": 48, "step": 2, "unit": "px", "default": 28 },
+    { "type": "range", "id": "image_radius", "label": "Image corner radius", "min": 0, "max": 80, "step": 2, "unit": "px", "default": 24 },
 
     { "type": "header", "content": "Scroll" },
     { "type": "checkbox", "id": "scroll_transition", "label": "Close into the next section on scroll", "default": true },
     { "type": "range", "id": "scroll_distance", "label": "Close distance", "min": 30, "max": 120, "step": 5, "unit": "vh", "default": 70 }
   ],
+  "max_blocks": 8,
   "blocks": [
     {
       "type": "product",
