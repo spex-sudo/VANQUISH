@@ -285,6 +285,20 @@
     },
     "vanquish_field_JN6xGk": {
       "type": "vanquish-field",
+      "blocks": {
+        "product_M3KDfT": {
+          "type": "product",
+          "settings": {
+            "product": "pu-leather-oversize-travel-bag",
+            "image": "shopify://shop_images/13CC4FC86FDA7A2B85993EDF390E273E.jpg",
+            "title": "",
+            "fact": ""
+          }
+        }
+      },
+      "block_order": [
+        "product_M3KDfT"
+      ],
       "name": "Vanquish Field",
       "settings": {
         "heading": "MVP",
@@ -305,7 +319,7 @@
         "show_arrows": true,
         "prev_label": "Previous",
         "next_label": "Next",
-        "collection": "lexespecs",
+        "collection": "",
         "limit": 7,
         "background": "#ffffff",
         "heading_color": "#000000",
