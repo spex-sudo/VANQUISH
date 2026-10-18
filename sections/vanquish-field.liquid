@@ -3,7 +3,7 @@
   assign cap = section.settings.limit | default: 4 | at_most: 8 | at_least: 1
   assign heading = section.settings.heading | default: 'The happiest hour of the year'
   assign note = section.settings.note | default: 'Sign up to get exclusive access to deals on drinks this holiday season.'
-  assign cta = section.settings.button_label | default: 'Add to cart'
+  assign cta = section.settings.quick_label | default: 'Quick add'
   assign price_label = section.settings.price_label | default: 'Price'
   assign travel = section.settings.scroll_distance | default: 70
 -%}
@@ -15,6 +15,7 @@
   id="vf-{{ sid }}"
   data-scroll="{% if section.settings.scroll_transition %}on{% else %}off{% endif %}"
   data-travel="{{ travel }}"
+  data-sold="{{ section.settings.sold_out | default: 'Sold out' | escape }}"
 >
   <div class="vf-run" data-run>
     <div class="vf-stage" data-stage>
@@ -49,7 +50,7 @@
                   <h3>{{ product.title }}</h3>
                   <ul class="vf-facts">
                     {%- if section.settings.show_price -%}
-                      <li><span>{{ price_label }}</span><b>{{ product.price | money }}</b></li>
+                      <li><span>{{ price_label }}</span><b data-price>{{ product.price | money }}</b></li>
                     {%- endif -%}
                     {%- if section.settings.show_type and product.type != blank -%}
                       <li><span>{{ product.type }}</span></li>
@@ -66,7 +67,7 @@
                       {%- endfor -%}
                     {%- endunless -%}
                   </div>
-                  <script type="application/json" data-variants>[{%- for variant in product.variants -%}{"id":{{ variant.id }},"ok":{{ variant.available | json }},"opt":{{ variant.options | json }}}{%- unless forloop.last -%},{%- endunless -%}{%- endfor -%}]</script>
+                  <script type="application/json" data-variants>[{%- for variant in product.variants -%}{"id":{{ variant.id }},"ok":{{ variant.available | json }},"opt":{{ variant.options | json }},"img":{{ variant.image | default: product.featured_image | image_url: width: 720 | json }},"price":{{ variant.price | money | json }}}{%- unless forloop.last -%},{%- endunless -%}{%- endfor -%}]</script>
                   {%- form 'product', product, class: 'vf-cart' -%}
                     <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
                     <button class="vf-add" type="submit" name="add" {% unless product.available %}disabled{% endunless %}>
@@ -91,13 +92,13 @@
                     <h3>{{ card_title }}</h3>
                     <ul class="vf-facts">
                       {%- if section.settings.show_price -%}
-                        <li><span>{{ price_label }}</span><b>{{ product.price | money }}</b></li>
+                        <li><span>{{ price_label }}</span><b data-price>{{ product.price | money }}</b></li>
                       {%- endif -%}
                       {%- if block.settings.fact != blank -%}
                         <li><span>{{ block.settings.fact }}</span></li>
                       {%- endif -%}
                     </ul>
-                    <script type="application/json" data-variants>[{%- for variant in product.variants -%}{"id":{{ variant.id }},"ok":{{ variant.available | json }},"opt":{{ variant.options | json }}}{%- unless forloop.last -%},{%- endunless -%}{%- endfor -%}]</script>
+                    <script type="application/json" data-variants>[{%- for variant in product.variants -%}{"id":{{ variant.id }},"ok":{{ variant.available | json }},"opt":{{ variant.options | json }},"img":{{ variant.image | default: product.featured_image | image_url: width: 720 | json }},"price":{{ variant.price | money | json }}}{%- unless forloop.last -%},{%- endunless -%}{%- endfor -%}]</script>
                     {%- form 'product', product, class: 'vf-cart' -%}
                       <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
                       <button class="vf-add" type="submit" name="add">{{ cta }}</button>
@@ -202,8 +203,10 @@
 #vf-{{ sid }} .vf-opt select { appearance: none; background: transparent; border: 0; border-bottom: 1px solid rgb(255 255 255 / 55%); color: #fff; font: 500 12px/1 Outfit, sans-serif; padding: 6px 0; min-width: 0; max-width: 58%; }
 #vf-{{ sid }} .vf-cart { margin: 0; }
 #vf-{{ sid }} .vf-add, #vf-{{ sid }} .vf-opt, #vf-{{ sid }} select { position: relative; z-index: 5; touch-action: manipulation; pointer-events: auto; }
-#vf-{{ sid }} .vf-add { display: none; margin-top: 18px; width: 100%; height: 44px; border: 0; border-radius: 999px; background: var(--btn); color: var(--btn-text); font: 800 12px/1 Outfit, sans-serif; letter-spacing: 0.14em; cursor: pointer; }
-#vf-{{ sid }} .vf-card.is-feature .vf-add { display: block; }
+#vf-{{ sid }} .vf-card:not(.is-feature) { height: auto; min-height: 280px; }
+#vf-{{ sid }} .vf-add { display: flex; align-items: center; justify-content: center; margin-top: 14px; width: 100%; height: 40px; border: 0; border-radius: 999px; background: var(--green); color: #fff; font: 800 11px/1 Outfit, sans-serif; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; }
+#vf-{{ sid }} .vf-add[disabled] { opacity: 0.45; cursor: default; }
+#vf-{{ sid }} .vf-card.is-feature .vf-add { height: 44px; background: var(--btn); color: var(--btn-text); }
 #vf-{{ sid }} .vf-toast { position: absolute; left: var(--pad); bottom: 8px; z-index: 6; margin: 0; color: var(--heading); font-size: 12px; }
 @media (max-width: 749px) {
   #vf-{{ sid }} .vf-mid { flex-wrap: wrap; align-items: flex-start; padding: 16px 16px 0; }
@@ -288,9 +291,58 @@
         var match = variants.filter(function (variant) {
           return picks.every(function (value, i) { return !variant.opt[i] || variant.opt[i] === value; });
         })[0] || variants[0];
+        if (!match) return;
         var input = card.querySelector('input[name="id"]');
-        if (match && input) input.value = String(match.id);
+        if (input) input.value = String(match.id);
+        var photo = card.querySelector('.vf-drink');
+        if (photo && match.img) photo.src = match.img;
+        var price = card.querySelector('[data-price]');
+        if (price && match.price) price.textContent = match.price;
+        var button = card.querySelector('.vf-add');
+        if (button) {
+          button.disabled = !match.ok;
+          button.textContent = match.ok ? (button.dataset.label || button.textContent) : (root.dataset.sold || 'Sold out');
+        }
       });
+    });
+  });
+
+  root.addEventListener('submit', function (event) {
+    var form = event.target;
+    if (!form || !form.classList || !form.classList.contains('vf-cart')) return;
+    event.preventDefault();
+    var button = form.querySelector('.vf-add');
+    var input = form.querySelector('input[name="id"]');
+    if (!button || !input || button.disabled || button.dataset.busy) return;
+    var id = input.value;
+    if (!id) return;
+    if (!button.dataset.label) button.dataset.label = button.textContent;
+    button.dataset.busy = '1';
+    button.disabled = true;
+    button.textContent = 'Adding';
+    fetch('/cart/add.js', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ id: Number(id), quantity: 1 })
+    }).then(function (res) {
+      if (!res.ok) throw new Error('cart');
+      button.textContent = 'Added';
+      say('Added to cart');
+      return fetch('/cart.js', { credentials: 'same-origin', headers: { Accept: 'application/json' } }).then(function (r) { return r.json(); });
+    }).then(function (cart) {
+      document.dispatchEvent(new CustomEvent('cart:updated', { bubbles: true, detail: { cart: cart } }));
+      document.dispatchEvent(new CustomEvent('cart:refresh', { bubbles: true, detail: cart }));
+      document.dispatchEvent(new CustomEvent('cart:item-added', { bubbles: true }));
+      if (window.apexOpenDrawer) window.apexOpenDrawer();
+    }).catch(function () {
+      button.textContent = 'Try again';
+    }).then(function () {
+      setTimeout(function () {
+        button.dataset.busy = '';
+        button.disabled = false;
+        button.textContent = button.dataset.label;
+      }, 700);
     });
   });
 
@@ -402,7 +454,7 @@
     { "type": "text", "id": "heading", "label": "Heading", "default": "The happiest hour of the year" },
     { "type": "range", "id": "heading_size", "label": "Heading size", "min": 28, "max": 72, "step": 2, "unit": "px", "default": 54 },
     { "type": "textarea", "id": "note", "label": "Note", "default": "Sign up to get exclusive access to deals on drinks this holiday season." },
-    { "type": "text", "id": "button_label", "label": "Add to cart label", "default": "Add to cart" },
+    { "type": "text", "id": "quick_label", "label": "Quick add label", "default": "Quick add" },
     { "type": "text", "id": "sold_out", "label": "Sold out label", "default": "Sold out" },
     { "type": "text", "id": "price_label", "label": "Price label", "default": "Price" },
     { "type": "checkbox", "id": "show_price", "label": "Show price", "default": true },
