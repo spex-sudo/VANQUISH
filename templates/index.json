@@ -283,75 +283,31 @@
         "enable_schema": true
       }
     },
-    "vanquish_field_xefgyJ": {
+    "vanquish_field_RjH63n": {
       "type": "vanquish-field",
       "blocks": {
-        "product_XwWY9E": {
+        "product_zMxgdJ": {
           "type": "product",
           "settings": {
-            "product": "",
-            "matter": "inherit",
-            "title": "",
-            "line": "",
-            "eyebrow": "",
-            "word": "",
-            "facts": "",
-            "note": "",
-            "cta": "",
-            "link": "",
-            "own_colors": false,
-            "ground": "#121212",
-            "ink": "#f5f1e8",
-            "accent": "#c6e83a"
+            "product": ""
           }
         },
-        "product_iMLKpA": {
+        "product_qja37e": {
           "type": "product",
           "settings": {
-            "product": "",
-            "matter": "inherit",
-            "title": "",
-            "line": "",
-            "eyebrow": "",
-            "word": "",
-            "facts": "",
-            "note": "",
-            "cta": "",
-            "link": "",
-            "own_colors": false,
-            "ground": "#121212",
-            "ink": "#f5f1e8",
-            "accent": "#c6e83a"
+            "product": ""
           }
         }
       },
       "block_order": [
-        "product_XwWY9E",
-        "product_iMLKpA"
+        "product_zMxgdJ",
+        "product_qja37e"
       ],
       "name": "Vanquish Field",
       "settings": {
-        "source": "collection",
-        "collection": "exodus",
-        "product": "",
-        "limit": 4,
-        "split_variants": true,
-        "kicker": "In the field",
-        "word": "",
         "button_label": "Add to cart",
-        "link_label": "View",
-        "show_price": true,
-        "show_cart": true,
-        "show_turn": true,
-        "environment": "paper",
-        "vary": true,
-        "ground": "#f2e8d5",
-        "ink": "#1b130c",
-        "accent": "#e2462a",
-        "height": "stage",
-        "density": "quiet",
-        "matter": "apparel",
-        "mark_knock": "clear"
+        "collection": "lexespecs",
+        "limit": 4
       }
     },
     "vanquish_atelier_nwPpp6": {
@@ -836,7 +792,7 @@
     "luxury_transition_m6cr6x",
     "lexe_bento_hero",
     "luxury_collectiongrid_jpK7Cz",
-    "vanquish_field_xefgyJ",
+    "vanquish_field_RjH63n",
     "vanquish_atelier_nwPpp6",
     "luxury_featureproduct_DDiGAR",
     "vanquish_atelier_XfxTnG",
