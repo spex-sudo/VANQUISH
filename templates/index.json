@@ -315,7 +315,7 @@
         "card_color": "#f3f1ec",
         "button_color": "#ffffff",
         "button_text_color": "#BEBFFF",
-        "halo_color": "#AEAEAE",
+        "halo_color": "#DCDCDC",
         "show_halo": true,
         "side_padding": 0,
         "card_radius": 32,
