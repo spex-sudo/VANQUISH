@@ -16,8 +16,8 @@
   data-scroll="{% if section.settings.scroll_transition %}on{% else %}off{% endif %}"
   data-travel="{{ travel }}"
 >
-  <div class="vf-track" data-track>
-    <div class="vf-sticky">
+  <div class="vf-run" data-run>
+    <div class="vf-stage" data-stage>
       <div class="vf-scale">
         <div class="vf-board">
           {%- if section.settings.show_halo -%}
@@ -145,15 +145,14 @@
   font-family: Outfit, "Avenir Next", "Segoe UI", sans-serif;
   color: var(--ink);
 }
-#vf-{{ sid }} .vf-track { position: relative; }
-#vf-{{ sid }} .vf-sticky { position: sticky; top: 0; z-index: 1; }
+#vf-{{ sid }} .vf-run { position: relative; }
+#vf-{{ sid }} .vf-stage { position: relative; width: 100%; top: 0; left: 0; }
 #vf-{{ sid }} .vf-scale { width: 100%; margin: 0; position: relative; }
 #vf-{{ sid }} .vf-board {
   position: relative;
   width: 100%;
   background: var(--bg);
   transform-origin: center top;
-  will-change: opacity, transform, clip-path;
 }
 #vf-{{ sid }} .vf-halo { position: absolute; width: min(46vw, 560px); height: min(46vw, 560px); border-radius: 50%; background: var(--halo); right: 4vw; top: 12px; pointer-events: none; }
 #vf-{{ sid }} .vf-bit { position: absolute; width: 14px; height: 14px; background: var(--green); clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); animation: vf-drift-{{ sid }} 7s ease-in-out infinite alternate; pointer-events: none; }
@@ -188,7 +187,6 @@
   position: absolute; left: 50%; bottom: calc(100% - 108px); width: min(46%, 160px); height: auto;
   transform: translate3d(-50%, 0, 0); pointer-events: auto; touch-action: pan-y;
   filter: drop-shadow(0 16px 16px rgb(20 30 24 / 18%)); object-fit: contain;
-  animation: vf-bob-{{ sid }} 4.8s ease-in-out infinite alternate;
 }
 #vf-{{ sid }} .vf-card.is-feature .vf-drink { width: min(58%, 210px); bottom: calc(100% - 140px); }
 @keyframes vf-bob-{{ sid }} { from { translate: 0 0; } to { translate: 0 -10px; } }
@@ -222,10 +220,11 @@
   var cards = Array.prototype.slice.call(row.querySelectorAll('.vf-card'));
   var index = 0;
   var toast = root.querySelector('[data-toast]');
-  var track = root.querySelector('[data-track]');
-  var sticky = root.querySelector('.vf-sticky');
+  var run = root.querySelector('[data-run]');
+  var stage = root.querySelector('[data-stage]');
   var board = root.querySelector('.vf-board');
   var shell = document.getElementById('shopify-section-{{ sid }}') || root;
+  var drinks = root.querySelectorAll('.vf-drink');
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var enabled = root.dataset.scroll === 'on' && !reduce;
 
@@ -334,42 +333,82 @@
     say('Added');
   });
 
+  function paint(p) {
+    if (!board) return;
+    board.style.opacity = String(1 - p);
+    board.style.transform = 'translate3d(0,' + (-28 * p) + 'px,0) scale(' + (1 - p * 0.08) + ')';
+    Array.prototype.forEach.call(drinks, function (img, i) {
+      var dir = i % 2 ? 1 : -1;
+      img.style.transform = 'translate3d(calc(-50% + ' + (dir * 16 * p) + 'px), ' + (-80 * p) + 'px, 0)';
+    });
+    if (stage) stage.style.pointerEvents = p > 0.92 ? 'none' : 'auto';
+  }
+
+  function holdPx() {
+    return (window.innerHeight || 800) * (Number(root.dataset.travel || 70) / 100);
+  }
+
   function layout() {
-    if (!track || !sticky || !board) return;
-    var h = board.offsetHeight;
+    if (!run || !board) return;
     if (!enabled) {
-      track.style.height = 'auto';
-      sticky.style.position = 'relative';
-      sticky.style.height = 'auto';
+      run.style.height = 'auto';
       shell.style.marginBottom = '0px';
-      board.style.opacity = '1';
-      board.style.transform = 'none';
-      board.style.clipPath = 'none';
+      stage.style.position = 'relative';
+      stage.style.top = 'auto';
+      stage.style.width = '100%';
+      paint(0);
       return;
     }
-    var hold = (window.innerHeight || 800) * (Number(root.dataset.travel || 70) / 100);
-    sticky.style.position = 'sticky';
-    sticky.style.top = '0px';
-    sticky.style.height = h + 'px';
-    track.style.height = (h + hold) + 'px';
+    var h = board.offsetHeight;
+    var hold = holdPx();
+    run.style.height = (h + hold) + 'px';
     shell.style.marginBottom = (-hold) + 'px';
   }
 
   function scrub() {
-    if (!enabled || !track || !sticky) return;
-    var hold = track.offsetHeight - sticky.offsetHeight;
-    var p = hold > 1 ? (-track.getBoundingClientRect().top / hold) : 0;
-    if (p < 0) p = 0;
-    if (p > 1) p = 1;
-    board.style.opacity = String(1 - p);
-    board.style.transform = 'translate3d(0,' + (p * -36) + 'px,0)';
-    board.style.clipPath = 'inset(0 0 ' + (p * 100) + '% 0)';
+    if (!enabled || !run || !stage || !board) return;
+    var rect = run.getBoundingClientRect();
+    var h = board.offsetHeight;
+    var hold = holdPx();
+    if (rect.top > 0) {
+      stage.style.position = 'relative';
+      stage.style.top = 'auto';
+      stage.style.left = 'auto';
+      stage.style.width = '100%';
+      stage.style.zIndex = '1';
+      var vh = window.innerHeight || 1;
+      var enter = 1 - Math.max(0, Math.min(1, rect.top / vh));
+      board.style.opacity = '1';
+      board.style.transform = 'none';
+      Array.prototype.forEach.call(drinks, function (img, i) {
+        var dir = i % 2 ? 1 : -1;
+        img.style.transform = 'translate3d(calc(-50% + ' + (dir * 10 * enter) + 'px), ' + ((1 - enter) * 28) + 'px, 0)';
+      });
+      return;
+    }
+    if (rect.bottom <= h + 1) {
+      stage.style.position = 'absolute';
+      stage.style.top = Math.max(0, run.offsetHeight - h) + 'px';
+      stage.style.left = '0';
+      stage.style.width = '100%';
+      stage.style.zIndex = '1';
+      paint(1);
+      return;
+    }
+    var p = hold > 1 ? Math.max(0, Math.min(1, -rect.top / hold)) : 0;
+    stage.style.position = 'fixed';
+    stage.style.top = '0px';
+    stage.style.left = '0px';
+    stage.style.width = '100%';
+    stage.style.zIndex = '3';
+    paint(p);
   }
 
   layout();
   scrub();
   window.addEventListener('scroll', scrub, { passive: true });
   window.addEventListener('resize', function () { layout(); scrub(); });
+  window.addEventListener('load', function () { layout(); scrub(); });
 })();
 </script>
 
