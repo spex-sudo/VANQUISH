@@ -132,6 +132,8 @@
   margin: 0;
   position: relative;
   overflow: hidden;
+  opacity: 0;
+  transform: translateY(36px);
 }
 #vf-{{ sid }} .vf-board {
   position: relative; left: auto; top: auto; width: 100%; height: auto; margin: 0;
@@ -202,7 +204,8 @@
 #vf-{{ sid }} .vf-card.is-feature .vf-add { display: block; }
 #vf-{{ sid }} .vf-toast { position: absolute; left: 36px; bottom: 12px; z-index: 6; margin: 0; color: var(--green); font-size: 12px; letter-spacing: 0.08em; }
 @media (prefers-reduced-motion: reduce) {
-  #vf-{{ sid }} .vf-drink, #vf-{{ sid }} .vf-bit, #vf-{{ sid }} .vf-scale { animation: none; transition: none; }
+  #vf-{{ sid }} .vf-drink, #vf-{{ sid }} .vf-bit { animation: none; }
+  #vf-{{ sid }} .vf-scale { opacity: 1; transform: none; }
 }
 </style>
 
@@ -216,8 +219,6 @@
   var cards = Array.prototype.slice.call(row.querySelectorAll('.vf-card'));
   var index = 0;
   var toast = root.querySelector('[data-toast]');
-  var open = true;
-  var busy = false;
 
   function place() {
     var n = cards.length;
@@ -333,43 +334,28 @@
     say('Added');
   });
 
-  function setOpen(next) {
-    open = Math.max(0, Math.min(1, next));
-    if (!full || !clip) return;
-    var h = Math.round(full * open);
-    clip.style.height = h + 'px';
-    shell.style.marginBottom = (h - full) + 'px';
-  }
-
-  var full = 0;
-  var origin = 0;
-  var shell = document.getElementById('shopify-section-{{ sid }}') || root;
   var clip = root.querySelector('.vf-scale');
-
-  function measure() {
+  var shell = document.getElementById('shopify-section-{{ sid }}') || root;
+  function fade() {
     if (!clip) return;
-    var keep = typeof open === 'number' ? open : 1;
-    clip.style.height = 'auto';
-    shell.style.marginBottom = '0px';
-    full = clip.offsetHeight;
-    open = 1;
-    setOpen(keep);
-    if (keep > 0.995) origin = shell.getBoundingClientRect().top + window.scrollY;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      clip.style.opacity = '1';
+      clip.style.transform = 'none';
+      return;
+    }
+    var rect = shell.getBoundingClientRect();
+    var vh = window.innerHeight || 1;
+    var start = vh * 0.92;
+    var end = vh * 0.45;
+    var p = (start - rect.top) / (start - end);
+    if (p < 0) p = 0;
+    if (p > 1) p = 1;
+    clip.style.opacity = String(p);
+    clip.style.transform = 'translateY(' + ((1 - p) * 36) + 'px)';
   }
-  measure();
-  window.addEventListener('resize', measure);
-
-  var lastY = window.scrollY;
-  window.addEventListener('scroll', function () {
-    var y = window.scrollY;
-    var dy = y - lastY;
-    lastY = y;
-    if (!full || !dy) return;
-    if (open > 0.995) origin = shell.getBoundingClientRect().top + window.scrollY;
-    var top = origin - y;
-    if (top > window.innerHeight * 0.45 || top < -40) return;
-    setOpen(open + dy / full);
-  }, { passive: true });
+  fade();
+  window.addEventListener('scroll', fade, { passive: true });
+  window.addEventListener('resize', fade);
 })();
 </script>
 
