@@ -42,7 +42,7 @@
     endif
   endif
   if statement == blank and s.statement_from_description
-    assign statement = collection.description | strip_html | truncatewords: 24
+    assign statement = collection.description | split: '</p>' | first | split: '<h' | first | strip_html | strip | truncatewords: 28
   endif
   assign hero_handle = ''
   if hero_img == blank
@@ -101,7 +101,7 @@
 #lsh-{{ sid }} .lsh-tr{justify-self:end;font-size:12px;opacity:.6}
 #lsh-{{ sid }} .lsh-stage{position:relative;height:{{ s.stage_h }}px;display:flex;align-items:center;justify-content:center}
 #lsh-{{ sid }} .lsh-big{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;white-space:nowrap;font-family:var(--df);font-weight:{{ s.display_weight }};font-size:{{ s.headline_vw }}vw;line-height:.8;letter-spacing:{{ s.headline_spacing | divided_by: 100.0 }}em;color:var(--fg);{% if s.headline_case == 'upper' %}text-transform:uppercase;{% elsif s.headline_case == 'lower' %}text-transform:lowercase;{% endif %}z-index:1;pointer-events:none;user-select:none}
-#lsh-{{ sid }} .lsh-hero{position:relative;z-index:2;height:100%;width:min(46%,560px);margin:0}
+#lsh-{{ sid }} .lsh-hero{position:relative;z-index:2;height:100%;width:min(36%,460px);margin:0}
 #lsh-{{ sid }} .lsh-hero img{width:100%;height:100%;object-fit:{% if s.image_look == 'card' %}cover;border-radius:{{ s.card_radius }}px{% else %}contain{% endif %};{% if s.image_look == 'cutout' %}mix-blend-mode:multiply;{% endif %}display:block}
 #lsh-{{ sid }} .lsh-about{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;padding:40px 0 56px;align-items:start}
 #lsh-{{ sid }} .lsh-eyebrow{grid-column:1/5;font-size:13px;line-height:1.4;margin:0}
@@ -146,7 +146,7 @@
   #lsh-{{ sid }} .lsh-nav{font-size:11px;line-height:1.6}
   #lsh-{{ sid }} .lsh-mark{font-size:{{ s.wordmark_size | times: 0.8 | round }}px}
   #lsh-{{ sid }} .lsh-stage{height:{{ s.stage_h_mobile }}px}
-  #lsh-{{ sid }} .lsh-big{font-size:{{ s.headline_vw | times: 1.6 }}vw}
+  #lsh-{{ sid }} .lsh-big{font-size:{{ s.headline_vw | times: 1.25 }}vw}
   #lsh-{{ sid }} .lsh-hero{width:54%}
   #lsh-{{ sid }} .lsh-about{grid-template-columns:1fr;gap:12px;padding:20px 0 36px}
   #lsh-{{ sid }} .lsh-eyebrow,#lsh-{{ sid }} .lsh-say{grid-column:1/-1}
@@ -190,7 +190,7 @@
       <p class="lsh-big" aria-hidden="true">{{ headline | escape }}</p>
       {%- if hero_img != blank -%}
         <figure class="lsh-hero">
-          {{ hero_img | image_url: width: 1200 | image_tag: loading: 'eager', fetchpriority: 'high', sizes: '(max-width: 749px) 54vw, 560px', widths: '400,600,800,1000,1200', alt: collection.title }}
+          {{ hero_img | image_url: width: 1200 | image_tag: loading: 'eager', fetchpriority: 'high', sizes: '(max-width: 749px) 54vw, 460px', widths: '400,600,800,1000,1200', alt: collection.title }}
         </figure>
       {%- endif -%}
       {%- if s.show_last_viewed -%}
@@ -375,7 +375,7 @@
       "min": 8,
       "max": 30,
       "step": 1,
-      "default": 17
+      "default": 22
     },
     {
       "type": "range",
@@ -460,7 +460,7 @@
       "min": 220,
       "max": 520,
       "step": 10,
-      "default": 340,
+      "default": 300,
       "unit": "px"
     },
     {
@@ -736,7 +736,7 @@
       "min": 0,
       "max": 200,
       "step": 4,
-      "default": 96,
+      "default": 124,
       "unit": "px"
     },
     {
@@ -746,7 +746,7 @@
       "min": 0,
       "max": 200,
       "step": 4,
-      "default": 84,
+      "default": 120,
       "unit": "px"
     }
   ],
