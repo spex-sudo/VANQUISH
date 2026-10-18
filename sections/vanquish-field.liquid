@@ -142,12 +142,14 @@
   max-width: 100vw;
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
-  padding: 0;
+  padding: 0 !important;
   background: transparent;
   position: relative;
   z-index: 1;
-  overflow-anchor: none;
+  overflow-x: clip;
+  box-sizing: border-box;
 }
+html:has(#shopify-section-{{ sid }}) { overflow-x: clip; }
 #vf-{{ sid }} {
   --green: {{ section.settings.feature_color }};
   --ink: {{ section.settings.text_color }};
@@ -189,10 +191,11 @@
   width: 100%;
   background: var(--bg);
   transform-origin: center top;
+  overflow: clip;
 }
 #vf-{{ sid }} .vf-halo {
   position: absolute; z-index: 0; pointer-events: none;
-  width: min(68vw, 760px); height: min(56vw, 640px); right: -6vw; top: -40px;
+  width: min(62%, 720px); height: min(80%, 560px); right: 0; top: 0;
   border-radius: 50%;
   background: radial-gradient(ellipse at 48% 46%, var(--halo) 0%, transparent 68%);
 }
@@ -287,7 +290,7 @@
   #vf-{{ sid }} .vf-copy { width: 100%; }
   #vf-{{ sid }} .vf-copy h2 { font-size: clamp(28px, 9vw, var(--title)); }
   #vf-{{ sid }} .vf-copy p { max-width: none; }
-  #vf-{{ sid }} .vf-halo { width: 280px; height: 240px; right: -70px; top: -20px; }
+  #vf-{{ sid }} .vf-halo { width: 240px; height: 220px; right: 0; top: 0; }
   #vf-{{ sid }} .vf-float { width: min(var(--s), 64px); }
   #vf-{{ sid }} .vf-code { display: none; }
   #vf-{{ sid }} .vf-row { grid-template-columns: 1fr; padding: 96px 16px 24px; }
