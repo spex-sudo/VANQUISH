@@ -203,7 +203,12 @@
         "compact_pad_top_mobile": 140,
         "compact_headline_size": 46,
         "compact_headline_size_mobile": 32
-      }
+      },
+      "disabled": true
+    },
+    "store_hero": {
+      "type": "lexe-store-hero",
+      "settings": {}
     },
     "luxury_collection_dpMLw3": {
       "type": "luxury-collection",
@@ -541,6 +546,7 @@
   "order": [
     "main",
     "vanquishcollection_header_TJzBWn",
+    "store_hero",
     "lexe_strip",
     "luxury_collection_dpMLw3",
     "lexe_intro"

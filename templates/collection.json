@@ -207,7 +207,12 @@
         "show_dots": true,
         "dot_color": "#d4b6ff",
         "show_card_label": false
-      }
+      },
+      "disabled": true
+    },
+    "store_hero": {
+      "type": "lexe-store-hero",
+      "settings": {}
     },
     "lexe_strip": {
       "type": "lexe-collection-strip",
@@ -534,6 +539,7 @@
   "order": [
     "vanquish_notch_6eqjzC",
     "header",
+    "store_hero",
     "lexe_strip",
     "grid",
     "lexe_intro"
