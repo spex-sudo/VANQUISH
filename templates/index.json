@@ -619,7 +619,7 @@
       "settings": {
         "style": "formal",
         "aria_label": "Store promises",
-        "page_bg": "#ffffff",
+        "page_bg": "#C8C8C8",
         "type_font": "system_ui_n4",
         "type_size": 12,
         "type_weight": "400",
@@ -632,7 +632,7 @@
         "label_left_pad": 44,
         "seal_size": 20,
         "formal_bg": "#FFFFFF",
-        "formal_text": "#f2efe6",
+        "formal_text": "#1C1C1C",
         "rule_color": "#2D7A8A",
         "formal_item_icons": true,
         "show_texture": false,
