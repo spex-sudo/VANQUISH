@@ -581,6 +581,61 @@
         "pad_bottom": 16
       }
     },
+    "vanquish_field_MD4XTT": {
+      "type": "vanquish-field",
+      "blocks": {
+        "product_tCyArz": {
+          "type": "product",
+          "settings": {
+            "product": "digital-product",
+            "title": "",
+            "fact": ""
+          }
+        }
+      },
+      "block_order": [
+        "product_tCyArz"
+      ],
+      "name": "Vanquish Field",
+      "settings": {
+        "heading": "MVP",
+        "heading_font": "syne_n8",
+        "body_font": "space_grotesk_n7",
+        "heading_size": 28,
+        "note_size": 13,
+        "product_title_size": 14,
+        "price_size": 10,
+        "button_size": 12,
+        "image_size": 130,
+        "note": "Sign up to get exclusive access to deals on lexe",
+        "quick_label": "Quick Add",
+        "sold_out": "Sold out",
+        "price_label": "Price",
+        "show_price": true,
+        "show_type": true,
+        "show_arrows": true,
+        "prev_label": "Previous",
+        "next_label": "Next",
+        "collection": "",
+        "limit": 7,
+        "background": "#ffffff",
+        "heading_color": "#000000",
+        "note_color": "#b0b0b0",
+        "text_color": "#bebfff",
+        "feature_color": "#000000",
+        "card_color": "#f3f1ec",
+        "button_color": "#ffffff",
+        "button_text_color": "#dadada",
+        "halo_color": "#eceaea",
+        "show_halo": true,
+        "float_mode": "logo",
+        "side_padding": 0,
+        "card_radius": 32,
+        "image_radius": 24,
+        "scroll_transition": true,
+        "scroll_distance": 70
+      }
+    },
     "luxury_featureproduct_BNr6Rf": {
       "type": "luxury-featureproduct",
       "name": "Apex Featured",
@@ -738,6 +793,7 @@
     "luxury_featureproduct_rqCKNm",
     "lexe_trust_glass",
     "vanquish_atelier_XfxTnG",
+    "vanquish_field_MD4XTT",
     "luxury_featureproduct_BNr6Rf",
     "vanquish_scratch_MJQr7J"
   ]
