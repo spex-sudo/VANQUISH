@@ -312,6 +312,7 @@
     },
     "vanquish_atelier_nwPpp6": {
       "type": "vanquish-atelier",
+      "disabled": true,
       "name": "Product Atelier",
       "settings": {
         "display_mode": "products",
