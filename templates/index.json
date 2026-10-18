@@ -315,7 +315,7 @@
         "card_color": "#f3f1ec",
         "button_color": "#ffffff",
         "button_text_color": "#dadada",
-        "halo_color": "#ECEAEA",
+        "halo_color": "#eceaea",
         "show_halo": true,
         "side_padding": 0,
         "card_radius": 32,
@@ -567,14 +567,6 @@
     "lexe_trust_glass": {
       "type": "lexe-trust-glass",
       "blocks": {
-        "item_LWfAGk": {
-          "type": "item",
-          "settings": {
-            "icon": "shield_plain",
-            "text": "Federally regulated",
-            "link": ""
-          }
-        },
         "item_BLJzeB": {
           "type": "item",
           "settings": {
@@ -588,6 +580,14 @@
           "settings": {
             "icon": "card",
             "text": "Fiserv Payment Processing",
+            "link": ""
+          }
+        },
+        "item_LWfAGk": {
+          "type": "item",
+          "settings": {
+            "icon": "document",
+            "text": "Legal compliance",
             "link": ""
           }
         },
@@ -609,9 +609,9 @@
         }
       },
       "block_order": [
-        "item_LWfAGk",
         "item_BLJzeB",
         "item_pnYaAa",
+        "item_LWfAGk",
         "item_returns",
         "item_contact"
       ],
@@ -631,13 +631,13 @@
         "seal_shape": "shield",
         "label_left_pad": 44,
         "seal_size": 20,
-        "formal_bg": "#000000",
+        "formal_bg": "#FFFFFF",
         "formal_text": "#f2efe6",
-        "rule_color": "#b3da8b",
+        "rule_color": "#2D7A8A",
         "formal_item_icons": true,
         "show_texture": false,
-        "texture_opacity": 4,
-        "formal_height": 50,
+        "texture_opacity": 3,
+        "formal_height": 48,
         "formal_pad_y": 0,
         "bg_color": "#0b0b0d",
         "text_color": "#ffffff",
