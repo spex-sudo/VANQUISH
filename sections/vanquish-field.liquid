@@ -116,6 +116,7 @@
   margin-right: calc(50% - 50vw);
   padding: 0;
   background: #fff;
+  overflow-anchor: none;
 }
 #vf-{{ sid }} {
   --green: #1b6b45;
@@ -131,15 +132,6 @@
   margin: 0;
   position: relative;
   overflow: hidden;
-  max-height: 1400px;
-  opacity: 1;
-  transform-origin: top center;
-  transition: max-height 0.7s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.55s ease, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-}
-#vf-{{ sid }}.is-closed .vf-scale {
-  max-height: 0;
-  opacity: 0;
-  transform: translateY(-12px);
 }
 #vf-{{ sid }} .vf-board {
   position: relative; left: auto; top: auto; width: 100%; height: auto; margin: 0;
@@ -342,24 +334,41 @@
   });
 
   function setOpen(next) {
-    if (next === open || busy) return;
-    open = next;
-    busy = true;
-    root.classList.toggle('is-closed', !open);
-    setTimeout(function () { busy = false; }, 720);
+    open = Math.max(0, Math.min(1, next));
+    if (!full || !clip) return;
+    var h = Math.round(full * open);
+    clip.style.height = h + 'px';
+    shell.style.marginBottom = (h - full) + 'px';
   }
+
+  var full = 0;
+  var origin = 0;
+  var shell = document.getElementById('shopify-section-{{ sid }}') || root;
+  var clip = root.querySelector('.vf-scale');
+
+  function measure() {
+    if (!clip) return;
+    var keep = typeof open === 'number' ? open : 1;
+    clip.style.height = 'auto';
+    shell.style.marginBottom = '0px';
+    full = clip.offsetHeight;
+    open = 1;
+    setOpen(keep);
+    if (keep > 0.995) origin = shell.getBoundingClientRect().top + window.scrollY;
+  }
+  measure();
+  window.addEventListener('resize', measure);
 
   var lastY = window.scrollY;
   window.addEventListener('scroll', function () {
     var y = window.scrollY;
-    var up = y < lastY - 2;
-    var down = y > lastY + 2;
+    var dy = y - lastY;
     lastY = y;
-    var rect = root.getBoundingClientRect();
-    var onSection = rect.top < window.innerHeight * 0.72 && rect.bottom > window.innerHeight * 0.28;
-    if (!onSection) return;
-    if (up) setOpen(false);
-    else if (down) setOpen(true);
+    if (!full || !dy) return;
+    if (open > 0.995) origin = shell.getBoundingClientRect().top + window.scrollY;
+    var top = origin - y;
+    if (top > window.innerHeight * 0.45 || top < -40) return;
+    setOpen(open + dy / full);
   }, { passive: true });
 })();
 </script>
