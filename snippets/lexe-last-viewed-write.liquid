@@ -1,0 +1,4 @@
+{%- comment -%} B18: remember the shopper's last viewed product in their own browser (read by sections/lexe-store-hero). No tracking, no network. {%- endcomment -%}
+{%- if product -%}
+<script>try{localStorage.setItem('lexe:lastViewed',JSON.stringify({h:{{ product.handle | json }},t:{{ product.title | json }},i:{% if product.featured_image %}{{ product.featured_image | image_url: width: 160 | json }}{% else %}""{% endif %},p:{{ product.price | money | strip_html | json }},u:{{ product.url | json }},ts:Date.now()}))}catch(e){}</script>
+{%- endif -%}

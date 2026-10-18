@@ -1,0 +1,808 @@
+{%- comment -%}
+  LEXE store hero (B18, 2026-10-17). Each collection as its own store:
+  nav list, centred wordmark, giant headline cut by the product image, statement + pills,
+  coloured band with New arrivals / Bestsellers tabs and a card carousel, and a "Last viewed" glass card.
+  Replaces sections/vanquishcollection-header.liquid (kept, disabled in templates, for restore).
+  No add-to-cart here (purchase lock). Badges only from product tags Jay sets (tag prefix).
+{%- endcomment -%}
+{%- liquid
+  assign s = section.settings
+  assign sid = section.id
+  assign ov = nil
+  for b in section.blocks
+    if b.type == 'collection' and b.settings.collection != blank and b.settings.collection.handle == collection.handle
+      assign ov = b
+    endif
+  endfor
+
+  assign wordmark = s.wordmark | default: collection.title
+  assign headline = s.headline | default: collection.title
+  assign statement = s.statement
+  assign hero_img = s.hero_image
+  assign hero_prod = s.hero_product
+  assign band_bg = s.band_bg
+  if ov
+    if ov.settings.wordmark != blank
+      assign wordmark = ov.settings.wordmark
+    endif
+    if ov.settings.headline != blank
+      assign headline = ov.settings.headline
+    endif
+    if ov.settings.statement != blank
+      assign statement = ov.settings.statement
+    endif
+    if ov.settings.hero_image != blank
+      assign hero_img = ov.settings.hero_image
+    endif
+    if ov.settings.hero_product != blank
+      assign hero_prod = ov.settings.hero_product
+    endif
+    if ov.settings.band_bg != blank and ov.settings.band_bg != 'rgba(0,0,0,0)'
+      assign band_bg = ov.settings.band_bg
+    endif
+  endif
+  if statement == blank and s.statement_from_description
+    assign statement = collection.description | strip_html | truncatewords: 24
+  endif
+  assign hero_handle = ''
+  if hero_img == blank
+    if hero_prod != blank and hero_prod.featured_image != blank
+      assign hero_img = hero_prod.featured_image
+      assign hero_handle = hero_prod.handle
+    elsif s.auto_image
+      for p in collection.products limit: 12
+        if p.featured_image != blank
+          assign hero_img = p.featured_image
+          assign hero_handle = p.handle
+          break
+        endif
+      endfor
+    endif
+  endif
+
+  assign sort = collection.sort_by
+  assign exact = false
+  if sort == 'best-selling'
+    assign tab_now = 'best'
+    assign list = collection.products
+    assign exact = true
+  else
+    assign tab_now = 'new'
+    if sort == 'created-descending'
+      assign list = collection.products
+      assign exact = true
+    else
+      assign list = collection.products | sort: 'created_at' | reverse
+    endif
+  endif
+
+  assign df = s.display_font
+  assign tf = s.text_font
+  assign dfw = df | font_modify: 'weight', s.display_weight
+  if dfw == nil
+    assign dfw = df
+  endif
+  assign tag_pre = s.badge_prefix | downcase
+-%}
+{%- style -%}
+{{ dfw | font_face: font_display: 'swap' }}
+{{ tf | font_face: font_display: 'swap' }}
+#lsh-{{ sid }}{--bg:{{ s.hero_bg }};--fg:{{ s.hero_fg }};--ac:{{ s.accent }};--band:{{ band_bg }};--bfg:{{ s.band_fg }};--btn:{{ s.btn_bg }};--btnfg:{{ s.btn_fg }};
+  --df:{{ df.family }},{{ df.fallback_families }};--tf:{{ tf.family }},{{ tf.fallback_families }};
+  background:var(--bg);color:var(--fg);font-family:var(--tf);position:relative;overflow:hidden;}
+#lsh-{{ sid }} *{box-sizing:border-box}
+#lsh-{{ sid }} .lsh-wrap{max-width:{{ s.max_w }}px;margin:0 auto;padding:{{ s.pad_top }}px clamp(16px,4vw,48px) 0}
+#lsh-{{ sid }} .lsh-top{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:16px;min-height:72px}
+#lsh-{{ sid }} .lsh-nav{list-style:none;margin:0;padding:0;font-size:12px;line-height:1.75;letter-spacing:.02em}
+#lsh-{{ sid }} .lsh-nav a{color:inherit;text-decoration:none;opacity:.6}
+#lsh-{{ sid }} .lsh-nav li:first-child a{opacity:1;color:var(--ac)}
+#lsh-{{ sid }} .lsh-nav a:hover{opacity:1}
+#lsh-{{ sid }} .lsh-mark{margin:0;font-family:var(--df);font-weight:{{ s.display_weight }};font-size:{{ s.wordmark_size }}px;letter-spacing:{{ s.wordmark_spacing | divided_by: 100.0 }}em;text-transform:uppercase;color:{{ s.wordmark_color }};text-align:center;line-height:1}
+#lsh-{{ sid }} .lsh-tr{justify-self:end;font-size:12px;opacity:.6}
+#lsh-{{ sid }} .lsh-stage{position:relative;height:{{ s.stage_h }}px;display:flex;align-items:center;justify-content:center}
+#lsh-{{ sid }} .lsh-big{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;white-space:nowrap;font-family:var(--df);font-weight:{{ s.display_weight }};font-size:{{ s.headline_vw }}vw;line-height:.8;letter-spacing:{{ s.headline_spacing | divided_by: 100.0 }}em;color:var(--fg);{% if s.headline_case == 'upper' %}text-transform:uppercase;{% elsif s.headline_case == 'lower' %}text-transform:lowercase;{% endif %}z-index:1;pointer-events:none;user-select:none}
+#lsh-{{ sid }} .lsh-hero{position:relative;z-index:2;height:100%;width:min(46%,560px);margin:0}
+#lsh-{{ sid }} .lsh-hero img{width:100%;height:100%;object-fit:{% if s.image_look == 'card' %}cover;border-radius:{{ s.card_radius }}px{% else %}contain{% endif %};{% if s.image_look == 'cutout' %}mix-blend-mode:multiply;{% endif %}display:block}
+#lsh-{{ sid }} .lsh-about{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;padding:40px 0 56px;align-items:start}
+#lsh-{{ sid }} .lsh-eyebrow{grid-column:1/5;font-size:13px;line-height:1.4;margin:0}
+#lsh-{{ sid }} .lsh-eyebrow span{display:block;opacity:.55}
+#lsh-{{ sid }} .lsh-eyebrow strong{font-weight:600}
+#lsh-{{ sid }} .lsh-say{grid-column:7/13}
+#lsh-{{ sid }} .lsh-say p{margin:0 0 18px;font-size:{{ s.statement_size }}px;line-height:1.35;font-weight:500;max-width:34em}
+#lsh-{{ sid }} .lsh-btns{display:flex;gap:8px;align-items:center}
+#lsh-{{ sid }} .lsh-pill{display:inline-flex;align-items:center;height:40px;padding:0 20px;border-radius:999px;background:var(--btn);color:var(--btnfg);font-size:13px;text-decoration:none;letter-spacing:.01em;white-space:nowrap}
+#lsh-{{ sid }} .lsh-circ{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;border:1px solid currentColor;color:var(--fg);background:transparent;text-decoration:none;cursor:pointer;padding:0}
+#lsh-{{ sid }} .lsh-circ svg{width:18px;height:18px}
+#lsh-{{ sid }} .lsh-lv{position:absolute;z-index:3;right:0;bottom:16px;width:250px;display:flex;gap:10px;align-items:center;padding:8px 12px 8px 8px;border-radius:18px;background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.7);box-shadow:0 8px 30px -12px rgba(0,0,0,.25);-webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%);color:#0a0a0a;text-decoration:none;font-size:12px;line-height:1.3}
+#lsh-{{ sid }} .lsh-lv[hidden]{display:none}
+#lsh-{{ sid }} .lsh-lv img{width:48px;height:48px;border-radius:12px;object-fit:cover;flex:0 0 auto;background:#eee}
+#lsh-{{ sid }} .lsh-lv small{display:block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;opacity:.55}
+#lsh-{{ sid }} .lsh-lv b{display:block;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:170px}
+#lsh-{{ sid }} .lsh-band{background:var(--band);color:var(--bfg);padding:48px 0 56px}
+#lsh-{{ sid }} .lsh-tabs{display:flex;justify-content:center;align-items:baseline;gap:clamp(16px,3vw,36px);margin:0 auto 32px;padding:0 16px}
+#lsh-{{ sid }} .lsh-tab{appearance:none;background:none;border:0;color:inherit;cursor:pointer;font-family:var(--df);font-weight:{{ s.display_weight }};font-size:15px;letter-spacing:.04em;text-transform:uppercase;opacity:.38;padding:4px 0;transition:opacity .2s}
+#lsh-{{ sid }} .lsh-tab[aria-selected="true"]{opacity:1;font-size:clamp(22px,3vw,34px)}
+#lsh-{{ sid }} .lsh-tab:focus-visible{outline:1px solid var(--ac);outline-offset:4px}
+#lsh-{{ sid }} .lsh-car{position:relative;max-width:{{ s.max_w }}px;margin:0 auto;padding:0 clamp(16px,6vw,84px)}
+#lsh-{{ sid }} .lsh-track{display:grid;grid-auto-flow:column;grid-auto-columns:calc((100% - {{ s.cards_desktop | minus: 1 | times: 16 }}px)/{{ s.cards_desktop }});gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;list-style:none;margin:0;padding:0}
+#lsh-{{ sid }} .lsh-track::-webkit-scrollbar{display:none}
+#lsh-{{ sid }} .lsh-track[hidden]{display:none}
+#lsh-{{ sid }} .lsh-card{scroll-snap-align:start;min-width:0}
+#lsh-{{ sid }} .lsh-ph{position:relative;display:block;aspect-ratio:4/5;border-radius:{{ s.card_radius }}px;overflow:hidden;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1)}
+#lsh-{{ sid }} .lsh-ph img{width:100%;height:100%;object-fit:cover;display:block}
+#lsh-{{ sid }} .lsh-badge{position:absolute;left:12px;top:12px;padding:4px 10px;border-radius:999px;font-size:10px;letter-spacing:.06em;text-transform:uppercase;background:rgba(255,255,255,.22);color:#fff;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+#lsh-{{ sid }} .lsh-meta{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 4px 0}
+#lsh-{{ sid }} .lsh-meta b{display:block;font-weight:500;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#lsh-{{ sid }} .lsh-meta span{display:block;font-size:12px;opacity:.6;margin-top:2px}
+#lsh-{{ sid }} .lsh-meta>div{min-width:0}
+#lsh-{{ sid }} .lsh-more{flex:0 0 auto;height:30px;padding:0 14px;display:inline-flex;align-items:center;border-radius:999px;background:var(--bfg);color:var(--band);font-size:11px;text-decoration:none}
+#lsh-{{ sid }} .lsh-arw{position:absolute;top:calc(50% - 40px);width:40px;height:40px;border-radius:50%;border:1px solid currentColor;background:transparent;color:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.7}
+#lsh-{{ sid }} .lsh-arw:hover{opacity:1}
+#lsh-{{ sid }} .lsh-arw svg{width:18px;height:18px}
+#lsh-{{ sid }} .lsh-prev{left:clamp(8px,1.5vw,24px)}#lsh-{{ sid }} .lsh-next{right:clamp(8px,1.5vw,24px)}
+@media (max-width:749px){
+  #lsh-{{ sid }} .lsh-wrap{padding-top:{{ s.pad_top_mobile }}px}
+  #lsh-{{ sid }} .lsh-top{min-height:56px}
+  #lsh-{{ sid }} .lsh-nav{font-size:11px;line-height:1.6}
+  #lsh-{{ sid }} .lsh-mark{font-size:{{ s.wordmark_size | times: 0.8 | round }}px}
+  #lsh-{{ sid }} .lsh-stage{height:{{ s.stage_h_mobile }}px}
+  #lsh-{{ sid }} .lsh-big{font-size:{{ s.headline_vw | times: 1.6 }}vw}
+  #lsh-{{ sid }} .lsh-hero{width:54%}
+  #lsh-{{ sid }} .lsh-about{grid-template-columns:1fr;gap:12px;padding:20px 0 36px}
+  #lsh-{{ sid }} .lsh-eyebrow,#lsh-{{ sid }} .lsh-say{grid-column:1/-1}
+  #lsh-{{ sid }} .lsh-say p{font-size:{{ s.statement_size | minus: 3 }}px}
+  #lsh-{{ sid }} .lsh-lv{width:200px;bottom:4px;padding:6px 10px 6px 6px}
+  #lsh-{{ sid }} .lsh-lv img{width:38px;height:38px}
+  #lsh-{{ sid }} .lsh-lv b{max-width:130px}
+  #lsh-{{ sid }} .lsh-band{padding:32px 0 40px}
+  #lsh-{{ sid }} .lsh-car{padding:0 16px}
+  #lsh-{{ sid }} .lsh-track{grid-auto-columns:68%;gap:12px;scroll-padding:0 16px}
+  #lsh-{{ sid }} .lsh-arw{display:none}
+  #lsh-{{ sid }} .lsh-tab{font-size:12px}
+}
+@media (prefers-reduced-motion:reduce){#lsh-{{ sid }} .lsh-track{scroll-behavior:auto}#lsh-{{ sid }} .lsh-tab{transition:none}}
+{%- endstyle -%}
+
+{%- capture band_href -%}#lsh-{{ sid }}-band{%- endcapture -%}
+{%- assign btn_href = s.btn_link | default: band_href -%}
+{%- assign arrow_href = s.arrow_link | default: band_href -%}
+{%- capture arrow -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>{%- endcapture -%}
+{%- capture arrow_l -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>{%- endcapture -%}
+
+<section id="lsh-{{ sid }}" class="lsh" data-lsh data-url="{{ collection.url }}" data-sid="{{ sid }}" data-hero="{{ hero_handle }}" data-exact="{{ exact }}" aria-label="{{ collection.title | escape }}">
+  <div class="lsh-wrap">
+    <div class="lsh-top">
+      <ul class="lsh-nav">
+        {%- if s.nav_menu != blank -%}
+          {%- for l in s.nav_menu.links limit: 5 -%}<li><a href="{{ l.url }}">{{ l.title | escape }}</a></li>{%- endfor -%}
+        {%- else -%}
+          <li><a href="#lsh-{{ sid }}-band">{{ s.nav_1 | escape }}</a></li>
+          <li><a href="{{ collection.url }}?sort_by=created-descending">{{ s.tab_new_label | escape }}</a></li>
+          <li><a href="{{ collection.url }}?sort_by=best-selling">{{ s.tab_best_label | escape }}</a></li>
+          <li><a href="{{ routes.collections_url }}">{{ s.nav_4 | escape }}</a></li>
+        {%- endif -%}
+      </ul>
+      <h1 class="lsh-mark">{{ wordmark | escape }}</h1>
+      <div class="lsh-tr">{%- if s.show_count -%}{{ collection.products_count }} {{ s.count_label | escape }}{%- endif -%}</div>
+    </div>
+
+    <div class="lsh-stage">
+      <p class="lsh-big" aria-hidden="true">{{ headline | escape }}</p>
+      {%- if hero_img != blank -%}
+        <figure class="lsh-hero">
+          {{ hero_img | image_url: width: 1200 | image_tag: loading: 'eager', fetchpriority: 'high', sizes: '(max-width: 749px) 54vw, 560px', widths: '400,600,800,1000,1200', alt: collection.title }}
+        </figure>
+      {%- endif -%}
+      {%- if s.show_last_viewed -%}
+        <a class="lsh-lv" href="#" hidden data-lsh-lv>
+          <img alt="" width="48" height="48" loading="lazy" decoding="async">
+          <span><small>{{ s.lv_label | escape }}</small><b></b><span class="lsh-lv-p"></span></span>
+        </a>
+      {%- endif -%}
+    </div>
+
+    <div class="lsh-about">
+      <p class="lsh-eyebrow"><span>{{ s.eyebrow_1 | escape }}</span><strong>{{ s.eyebrow_2 | escape }}</strong></p>
+      <div class="lsh-say">
+        {%- if statement != blank -%}<p>{{ statement | escape }}</p>{%- endif -%}
+        <div class="lsh-btns">
+          {%- if s.btn_label != blank -%}<a class="lsh-pill" href="{{ btn_href }}">{{ s.btn_label | escape }}</a>{%- endif -%}
+          <a class="lsh-circ" href="{{ arrow_href }}" aria-label="{{ s.arrow_aria | escape }}">{{ arrow }}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {%- if s.show_band -%}
+  <div class="lsh-band" id="lsh-{{ sid }}-band">
+    <div class="lsh-tabs" role="tablist">
+      <button class="lsh-tab" role="tab" type="button" data-tab="new" data-sort="created-descending" aria-selected="{% if tab_now == 'new' %}true{% else %}false{% endif %}" aria-controls="lsh-{{ sid }}-p">{{ s.tab_new_label | escape }}</button>
+      {%- if s.show_best -%}<button class="lsh-tab" role="tab" type="button" data-tab="best" data-sort="best-selling" aria-selected="{% if tab_now == 'best' %}true{% else %}false{% endif %}" aria-controls="lsh-{{ sid }}-p">{{ s.tab_best_label | escape }}</button>{%- endif -%}
+    </div>
+    <div class="lsh-car">
+      <ul class="lsh-track" id="lsh-{{ sid }}-p" role="tabpanel" data-panel="{{ tab_now }}" tabindex="0">
+        {%- for p in list limit: s.card_count -%}
+          {%- assign badge = '' -%}
+          {%- if tag_pre != blank -%}
+            {%- for t in p.tags -%}
+              {%- assign tl = t | downcase -%}
+              {%- if tl contains tag_pre and tl.size > tag_pre.size -%}
+                {%- assign pre = tl | slice: 0, tag_pre.size -%}
+                {%- if pre == tag_pre -%}{%- assign badge = t | slice: tag_pre.size, 40 | strip -%}{%- break -%}{%- endif -%}
+              {%- endif -%}
+            {%- endfor -%}
+          {%- endif -%}
+          <li class="lsh-card">
+            <a class="lsh-ph" href="{{ p.url | within: collection }}" tabindex="-1" aria-hidden="true">
+              {%- if p.featured_image -%}{{ p.featured_image | image_url: width: 600 | image_tag: loading: 'lazy', sizes: '(max-width: 749px) 68vw, 300px', widths: '300,450,600', alt: '' }}{%- endif -%}
+              {%- if badge != blank -%}<span class="lsh-badge">{{ badge | escape }}</span>{%- endif -%}
+            </a>
+            <div class="lsh-meta">
+              <div><b>{{ p.title | escape }}</b><span>{% if p.price_varies %}{{ s.from_label | escape }} {{ p.price_min | money }}{% else %}{{ p.price | money }}{% endif %}</span></div>
+              <a class="lsh-more" href="{{ p.url | within: collection }}" aria-label="{{ s.card_btn | escape }}: {{ p.title | escape }}">{{ s.card_btn | escape }}</a>
+            </div>
+          </li>
+        {%- endfor -%}
+      </ul>
+      <button class="lsh-arw lsh-prev" type="button" aria-label="{{ s.prev_aria | escape }}" data-dir="-1">{{ arrow_l }}</button>
+      <button class="lsh-arw lsh-next" type="button" aria-label="{{ s.next_aria | escape }}" data-dir="1">{{ arrow }}</button>
+    </div>
+  </div>
+  {%- endif -%}
+</section>
+
+<script>
+(function(){
+  var r=document.getElementById('lsh-{{ sid }}'); if(!r||r.dataset.on) return; r.dataset.on=1;
+  var tr=r.querySelector('.lsh-track'), cache={};
+  if(tr){
+    cache[tr.dataset.panel]=r.dataset.exact==='true'?tr.innerHTML:null;
+    r.querySelectorAll('.lsh-arw').forEach(function(b){b.addEventListener('click',function(){
+      var c=tr.querySelector('.lsh-card'); var w=c?c.getBoundingClientRect().width+16:300;
+      tr.scrollBy({left:w*(+b.dataset.dir),behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});});});
+    function load(tab,sort,cb){
+      if(cache[tab]) return cb(cache[tab]);
+      fetch(r.dataset.url+'?sort_by='+sort+'&section_id='+encodeURIComponent(r.dataset.sid)).then(function(x){return x.text()}).then(function(h){
+        var d=new DOMParser().parseFromString(h,'text/html'), t=d.querySelector('.lsh-track'); if(t){cache[tab]=t.innerHTML; cb(cache[tab]);}
+      }).catch(function(){});
+    }
+    var tabs=r.querySelectorAll('.lsh-tab');
+    tabs.forEach(function(b){b.addEventListener('click',function(){
+      if(b.getAttribute('aria-selected')==='true') return;
+      tabs.forEach(function(o){o.setAttribute('aria-selected',o===b?'true':'false')});
+      load(b.dataset.tab,b.dataset.sort,function(h){tr.innerHTML=h; tr.dataset.panel=b.dataset.tab; tr.scrollLeft=0;});
+    });});
+    if(!cache[tr.dataset.panel]){var a=r.querySelector('.lsh-tab[aria-selected="true"]'); if(a){var go=function(){load(a.dataset.tab,a.dataset.sort,function(h){if(tr.dataset.panel===a.dataset.tab) tr.innerHTML=h;});}; ('requestIdleCallback' in window)?requestIdleCallback(go,{timeout:2500}):setTimeout(go,1200);}}
+  }
+  var lv=r.querySelector('[data-lsh-lv]');
+  if(lv){try{var v=JSON.parse(localStorage.getItem('lexe:lastViewed')||'null');
+    if(v&&v.u&&v.t&&v.h!==r.dataset.hero&&/^\/[^\/]/.test(v.u)){
+      lv.href=v.u; lv.querySelector('b').textContent=v.t; lv.querySelector('.lsh-lv-p').textContent=v.p||'';
+      var im=lv.querySelector('img'); if(v.i&&/^(https:)?\/\//.test(v.i)) im.src=v.i; else im.remove();
+      lv.hidden=false;}}catch(e){}}
+})();
+</script>
+
+{% schema %}
+{
+  "name": "LEXE store hero",
+  "tag": "div",
+  "class": "lsh-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Each collection as its own store. Text left blank uses the collection's own title. Add a 'Collection' block to give one collection its own wordmark, headline, image, statement and band colour. No add to cart here: 'Learn more' opens the product."
+    },
+    {
+      "type": "header",
+      "content": "Top"
+    },
+    {
+      "type": "link_list",
+      "id": "nav_menu",
+      "label": "Top-left menu",
+      "info": "Optional. Without a menu, it shows: the first label below, the two tab labels (sorted links) and the last label below."
+    },
+    {
+      "type": "text",
+      "id": "nav_1",
+      "label": "Menu item 1",
+      "default": "Explore"
+    },
+    {
+      "type": "text",
+      "id": "nav_4",
+      "label": "Menu item 4",
+      "default": "All collections"
+    },
+    {
+      "type": "text",
+      "id": "wordmark",
+      "label": "Wordmark",
+      "info": "Blank = collection title"
+    },
+    {
+      "type": "range",
+      "id": "wordmark_size",
+      "label": "Wordmark size",
+      "min": 12,
+      "max": 40,
+      "step": 1,
+      "default": 18,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "wordmark_spacing",
+      "label": "Wordmark letter spacing",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "default": 18
+    },
+    {
+      "type": "color",
+      "id": "wordmark_color",
+      "label": "Wordmark colour",
+      "default": "#9966CC"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_count",
+      "label": "Show product count",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "count_label",
+      "label": "Count label",
+      "default": "pieces"
+    },
+    {
+      "type": "header",
+      "content": "Headline and image"
+    },
+    {
+      "type": "text",
+      "id": "headline",
+      "label": "Giant headline",
+      "info": "Blank = collection title. One short word works best."
+    },
+    {
+      "type": "range",
+      "id": "headline_vw",
+      "label": "Headline size (% of screen width)",
+      "min": 8,
+      "max": 30,
+      "step": 1,
+      "default": 17
+    },
+    {
+      "type": "range",
+      "id": "headline_spacing",
+      "label": "Headline letter spacing",
+      "min": -10,
+      "max": 10,
+      "step": 1,
+      "default": -4
+    },
+    {
+      "type": "select",
+      "id": "headline_case",
+      "label": "Headline case",
+      "default": "lower",
+      "options": [
+        {
+          "value": "none",
+          "label": "As typed"
+        },
+        {
+          "value": "lower",
+          "label": "lowercase"
+        },
+        {
+          "value": "upper",
+          "label": "UPPERCASE"
+        }
+      ]
+    },
+    {
+      "type": "image_picker",
+      "id": "hero_image",
+      "label": "Hero image",
+      "info": "A cut-out PNG on transparent background looks best. Blank = product below, or the collection's first product."
+    },
+    {
+      "type": "product",
+      "id": "hero_product",
+      "label": "Hero product"
+    },
+    {
+      "type": "checkbox",
+      "id": "auto_image",
+      "label": "Use first product image when nothing is picked",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "image_look",
+      "label": "Image look",
+      "default": "cutout",
+      "options": [
+        {
+          "value": "cutout",
+          "label": "Cut-out (blends white backgrounds)"
+        },
+        {
+          "value": "contain",
+          "label": "Plain"
+        },
+        {
+          "value": "card",
+          "label": "Rounded card"
+        }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "stage_h",
+      "label": "Stage height (desktop)",
+      "min": 320,
+      "max": 760,
+      "step": 10,
+      "default": 520,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "stage_h_mobile",
+      "label": "Stage height (phone)",
+      "min": 220,
+      "max": 520,
+      "step": 10,
+      "default": 340,
+      "unit": "px"
+    },
+    {
+      "type": "header",
+      "content": "Statement"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow_1",
+      "label": "Small line",
+      "default": "About us"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow_2",
+      "label": "Bold line",
+      "default": "What we do"
+    },
+    {
+      "type": "textarea",
+      "id": "statement",
+      "label": "Statement",
+      "info": "Blank = collection description (shortened) if the box below is on."
+    },
+    {
+      "type": "checkbox",
+      "id": "statement_from_description",
+      "label": "Use collection description when blank",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "statement_size",
+      "label": "Statement size",
+      "min": 12,
+      "max": 28,
+      "step": 1,
+      "default": 17,
+      "unit": "px"
+    },
+    {
+      "type": "text",
+      "id": "btn_label",
+      "label": "Pill button label",
+      "default": "Learn more"
+    },
+    {
+      "type": "url",
+      "id": "btn_link",
+      "label": "Pill button link",
+      "info": "Blank = scroll to the products band"
+    },
+    {
+      "type": "url",
+      "id": "arrow_link",
+      "label": "Circle arrow link",
+      "info": "Blank = scroll to the products band"
+    },
+    {
+      "type": "text",
+      "id": "arrow_aria",
+      "label": "Circle arrow label (screen readers)",
+      "default": "See the pieces"
+    },
+    {
+      "type": "header",
+      "content": "Last viewed"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_last_viewed",
+      "label": "Show the shopper's last viewed product",
+      "default": true,
+      "info": "Stored only in the shopper's own browser. Hidden when there is none or it is this hero's product."
+    },
+    {
+      "type": "text",
+      "id": "lv_label",
+      "label": "Label",
+      "default": "Last viewed"
+    },
+    {
+      "type": "header",
+      "content": "Products band"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_band",
+      "label": "Show band",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "tab_new_label",
+      "label": "Tab 1 (newest first)",
+      "default": "New arrivals"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_best",
+      "label": "Show tab 2 (best-selling sort)",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "tab_best_label",
+      "label": "Tab 2 label",
+      "default": "Bestsellers"
+    },
+    {
+      "type": "range",
+      "id": "card_count",
+      "label": "Cards",
+      "min": 3,
+      "max": 16,
+      "step": 1,
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "cards_desktop",
+      "label": "Cards visible on desktop",
+      "min": 2,
+      "max": 5,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "text",
+      "id": "badge_prefix",
+      "label": "Badge tag prefix",
+      "default": "badge:",
+      "info": "A product tagged e.g. 'badge:New in' shows a 'New in' pill. No tag, no badge. Only use words that are true."
+    },
+    {
+      "type": "text",
+      "id": "card_btn",
+      "label": "Card button",
+      "default": "Learn more"
+    },
+    {
+      "type": "text",
+      "id": "from_label",
+      "label": "Varying price prefix",
+      "default": "From"
+    },
+    {
+      "type": "text",
+      "id": "prev_aria",
+      "label": "Previous label (screen readers)",
+      "default": "Previous"
+    },
+    {
+      "type": "text",
+      "id": "next_aria",
+      "label": "Next label (screen readers)",
+      "default": "Next"
+    },
+    {
+      "type": "header",
+      "content": "Type"
+    },
+    {
+      "type": "font_picker",
+      "id": "display_font",
+      "label": "Wordmark, headline and tabs font",
+      "default": "sans_serif_n4"
+    },
+    {
+      "type": "select",
+      "id": "display_weight",
+      "label": "Display weight",
+      "default": "500",
+      "options": [
+        {
+          "value": "300",
+          "label": "Light"
+        },
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        }
+      ]
+    },
+    {
+      "type": "font_picker",
+      "id": "text_font",
+      "label": "Text font",
+      "default": "sans_serif_n4"
+    },
+    {
+      "type": "header",
+      "content": "Colours and layout"
+    },
+    {
+      "type": "color",
+      "id": "hero_bg",
+      "label": "Hero background",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "color",
+      "id": "hero_fg",
+      "label": "Hero text",
+      "default": "#0A0A0A"
+    },
+    {
+      "type": "color",
+      "id": "accent",
+      "label": "Accent",
+      "default": "#9966CC"
+    },
+    {
+      "type": "color",
+      "id": "btn_bg",
+      "label": "Pill button",
+      "default": "#0A0A0A"
+    },
+    {
+      "type": "color",
+      "id": "btn_fg",
+      "label": "Pill button text",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "color",
+      "id": "band_bg",
+      "label": "Band colour",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "band_fg",
+      "label": "Band text",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "range",
+      "id": "card_radius",
+      "label": "Card corner radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "default": 28,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "max_w",
+      "label": "Max width",
+      "min": 1000,
+      "max": 1600,
+      "step": 20,
+      "default": 1320,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "pad_top",
+      "label": "Top space (desktop, clears floating header)",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "default": 96,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "pad_top_mobile",
+      "label": "Top space (phone)",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "default": 84,
+      "unit": "px"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "collection",
+      "name": "Collection",
+      "settings": [
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "Collection"
+        },
+        {
+          "type": "text",
+          "id": "wordmark",
+          "label": "Wordmark"
+        },
+        {
+          "type": "text",
+          "id": "headline",
+          "label": "Giant headline"
+        },
+        {
+          "type": "image_picker",
+          "id": "hero_image",
+          "label": "Hero image"
+        },
+        {
+          "type": "product",
+          "id": "hero_product",
+          "label": "Hero product"
+        },
+        {
+          "type": "textarea",
+          "id": "statement",
+          "label": "Statement"
+        },
+        {
+          "type": "color",
+          "id": "band_bg",
+          "label": "Band colour",
+          "info": "Leave clear to use the section colour"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "LEXE store hero"
+    }
+  ],
+  "enabled_on": {
+    "templates": [
+      "collection"
+    ]
+  }
+}
+{% endschema %}
