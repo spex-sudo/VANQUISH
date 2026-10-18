@@ -253,7 +253,7 @@
         "bg_color": "#000000",
         "accent_color": "#A7A7A7",
         "aspect_ratio": "3/4",
-        "padding_v": 0,
+        "padding_v": 10,
         "bottom_fade": true,
         "fade_to_color": "#ffffff",
         "fade_height": 220,
