@@ -3,7 +3,7 @@
   assign cap = section.settings.limit | default: 4 | at_most: 8 | at_least: 1
   assign heading = section.settings.heading | default: 'The happiest hour of the year'
   assign note = section.settings.note | default: 'Sign up to get exclusive access to deals on drinks this holiday season.'
-  assign cta = section.settings.quick_label | default: 'Quick add'
+  assign cta = section.settings.cart_label | default: 'Add to cart'
   assign price_label = section.settings.price_label | default: 'Price'
   assign travel = section.settings.scroll_distance | default: 70
 -%}
@@ -46,6 +46,10 @@
                 <article class="vf-card{% if forloop.first %} is-feature{% endif %}" data-i="{{ forloop.index0 }}">
                   <img class="vf-drink" src="{{ product.featured_image | image_url: width: 800 }}" alt="" width="800" height="800" draggable="false">
                   <h3>{{ product.title }}</h3>
+                  {%- form 'product', product, class: 'vf-cart' -%}
+                    <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+                    <button class="vf-add" type="submit" name="add" data-label="{{ cta | escape }}" data-ok="{% if product.available %}1{% else %}0{% endif %}">{{ cta }}</button>
+                  {%- endform -%}
                   <ul class="vf-facts">
                     {%- if section.settings.show_price -%}
                       <li><span>{{ price_label }}</span><b data-price>{{ product.price | money }}</b></li>
@@ -66,10 +70,6 @@
                     {%- endunless -%}
                   </div>
                   <script type="application/json" data-variants>[{%- for variant in product.variants -%}{"id":{{ variant.id }},"ok":{{ variant.available | json }},"opt":{{ variant.options | json }},"img":{{ variant.image | default: product.featured_image | image_url: width: 720 | json }},"price":{{ variant.price | money | json }}}{%- unless forloop.last -%},{%- endunless -%}{%- endfor -%}]</script>
-                  {%- form 'product', product, class: 'vf-cart' -%}
-                    <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
-                    <button class="vf-add" type="submit" name="add" data-label="{{ cta | escape }}" data-ok="{% if product.available %}1{% else %}0{% endif %}">{{ cta }}</button>
-                  {%- endform -%}
                 </article>
               {%- endfor -%}
             {%- endif -%}
@@ -86,6 +86,10 @@
                   <article class="vf-card{% if shown == 1 %} is-feature{% endif %}" data-i="{{ shown | minus: 1 }}" {{ block.shopify_attributes }}>
                     <img class="vf-drink" src="{{ card_image | image_url: width: 800 }}" alt="" width="800" height="800" draggable="false">
                     <h3>{{ card_title }}</h3>
+                    {%- form 'product', product, class: 'vf-cart' -%}
+                      <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+                      <button class="vf-add" type="submit" name="add" data-label="{{ cta | escape }}" data-ok="{% if product.available %}1{% else %}0{% endif %}">{{ cta }}</button>
+                    {%- endform -%}
                     <ul class="vf-facts">
                       {%- if section.settings.show_price -%}
                         <li><span>{{ price_label }}</span><b data-price>{{ product.price | money }}</b></li>
@@ -106,10 +110,6 @@
                       {%- endunless -%}
                     </div>
                     <script type="application/json" data-variants>[{%- for variant in product.variants -%}{"id":{{ variant.id }},"ok":{{ variant.available | json }},"opt":{{ variant.options | json }},"img":{{ variant.image | default: product.featured_image | image_url: width: 720 | json }},"price":{{ variant.price | money | json }}}{%- unless forloop.last -%},{%- endunless -%}{%- endfor -%}]</script>
-                    {%- form 'product', product, class: 'vf-cart' -%}
-                      <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
-                      <button class="vf-add" type="submit" name="add" data-label="{{ cta | escape }}" data-ok="{% if product.available %}1{% else %}0{% endif %}">{{ cta }}</button>
-                    {%- endform -%}
                   </article>
                 {%- endif -%}
               {%- endfor -%}
@@ -199,13 +199,13 @@
 }
 #vf-{{ sid }} .vf-row.is-dragging { cursor: grabbing; }
 #vf-{{ sid }} .vf-card {
-  position: relative; height: auto; min-height: 260px; border-radius: var(--radius); background: var(--card); color: var(--ink); padding: 118px 18px 74px;
+  position: relative; height: auto; min-height: 260px; border-radius: var(--radius); background: var(--card); color: var(--ink); padding: 118px 18px 18px;
   box-shadow: 0 10px 24px rgb(30 40 34 / 6%); order: 9; overflow: visible;
   display: flex; flex-direction: column;
 }
 #vf-{{ sid }} .vf-card[hidden] { display: none; }
 #vf-{{ sid }} .vf-card.is-feature {
-  min-height: 320px; height: auto; background: var(--green); color: #fff; padding: 150px 18px 74px;
+  min-height: 320px; height: auto; background: var(--green); color: #fff; padding: 150px 18px 18px;
   box-shadow: 0 24px 50px rgb(20 60 40 / 28%); z-index: 4;
 }
 #vf-{{ sid }} .vf-drink {
@@ -226,15 +226,15 @@
 #vf-{{ sid }} .vf-opt span { font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: calc(var(--card-title) * 0.8); line-height: 1; }
 #vf-{{ sid }} .vf-opt select { appearance: none; background: transparent; border: 0; border-bottom: 1px solid rgb(255 255 255 / 55%); color: #fff; font-family: var(--font-body); font-size: var(--price-size); font-weight: var(--font-body-weight); padding: 6px 0; min-width: 0; max-width: 58%; }
 #vf-{{ sid }} .vf-cart {
-  position: absolute; left: 14px; right: 14px; bottom: 14px; z-index: 8; margin: 0;
+  position: relative; z-index: 8; margin: 16px 0 0;
 }
 #vf-{{ sid }} .vf-add, #vf-{{ sid }} .vf-opt, #vf-{{ sid }} select { position: relative; z-index: 8; touch-action: manipulation; pointer-events: auto; }
 #vf-{{ sid }} .vf-add {
   display: flex; align-items: center; justify-content: center; gap: 8px;
-  width: 100%; min-height: 44px; padding: 0 14px;
-  border: 0; border-radius: 999px; background: #111; color: #fff;
-  box-shadow: 0 10px 22px rgb(0 0 0 / 22%);
-  font-family: var(--font-body); font-weight: 800; font-size: var(--btn-size); line-height: 1; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer;
+  width: 100%; min-height: 48px; padding: 0 16px;
+  border: 2px solid #111; border-radius: 999px; background: #fff; color: #111;
+  box-shadow: 0 8px 18px rgb(0 0 0 / 16%);
+  font-family: var(--font-body); font-weight: 800; font-size: var(--btn-size); line-height: 1; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;
 }
 #vf-{{ sid }} .vf-add::before { content: "+"; font-size: 16px; line-height: 1; }
 #vf-{{ sid }} .vf-toast { position: absolute; left: var(--pad); bottom: 8px; z-index: 6; margin: 0; color: var(--heading); font-size: 12px; }
@@ -251,7 +251,7 @@
     width: 100%;
     height: auto;
     min-height: 220px;
-    padding: 108px 16px 74px;
+    padding: 108px 16px 18px;
   }
   #vf-{{ sid }} .vf-card.is-feature .vf-drink { width: min(46vw, calc(var(--img-size) * 1.15)); bottom: calc(100% - 96px); }
   #vf-{{ sid }} .vf-card.is-feature h3 { font-size: var(--card-title); }
@@ -484,7 +484,7 @@
     { "type": "range", "id": "button_size", "label": "Button text size", "min": 10, "max": 18, "step": 1, "unit": "px", "default": 12 },
     { "type": "range", "id": "image_size", "label": "Image size", "min": 90, "max": 280, "step": 10, "unit": "px", "default": 160 },
     { "type": "textarea", "id": "note", "label": "Note", "default": "Sign up to get exclusive access to deals on drinks this holiday season." },
-    { "type": "text", "id": "quick_label", "label": "Quick add label", "default": "Quick add" },
+    { "type": "text", "id": "cart_label", "label": "Add to cart label", "default": "Add to cart" },
     { "type": "text", "id": "sold_out", "label": "Sold out label", "default": "Sold out" },
     { "type": "text", "id": "price_label", "label": "Price label", "default": "Price" },
     { "type": "checkbox", "id": "show_price", "label": "Show price", "default": true },
