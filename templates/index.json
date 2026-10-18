@@ -321,7 +321,7 @@
         "card_radius": 32,
         "image_radius": 24,
         "scroll_transition": true,
-        "scroll_distance": 70
+        "scroll_distance": 120
       }
     },
     "vanquish_atelier_nwPpp6": {
