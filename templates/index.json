@@ -317,11 +317,12 @@
         "button_text_color": "#dadada",
         "halo_color": "#eceaea",
         "show_halo": true,
+        "float_mode": "fabric",
         "side_padding": 0,
         "card_radius": 32,
         "image_radius": 24,
         "scroll_transition": true,
-        "scroll_distance": 120
+        "scroll_distance": 70
       }
     },
     "vanquish_atelier_nwPpp6": {
@@ -516,7 +517,7 @@
       "settings": {
         "style": "formal",
         "aria_label": "Store promises",
-        "page_bg": "#C8C8C8",
+        "page_bg": "#c8c8c8",
         "type_font": "system_ui_n4",
         "type_size": 12,
         "type_weight": "400",
@@ -528,9 +529,9 @@
         "seal_shape": "shield",
         "label_left_pad": 44,
         "seal_size": 20,
-        "formal_bg": "#FFFFFF",
-        "formal_text": "#1C1C1C",
-        "rule_color": "#2D7A8A",
+        "formal_bg": "#ffffff",
+        "formal_text": "#1c1c1c",
+        "rule_color": "#2d7a8a",
         "formal_item_icons": true,
         "show_texture": false,
         "texture_opacity": 3,
