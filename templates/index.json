@@ -588,16 +588,16 @@
     "vanquish_field_MD4XTT": {
       "type": "vanquish-field",
       "blocks": {
-        "float_6VeMJM": {
-          "type": "float",
-          "settings": {
-            "image": "shopify://shop_images/CF204A78-16E8-41A6-809E-C23841530D01.png"
-          }
-        },
         "float_Ya6NQ8": {
           "type": "float",
           "settings": {
             "image": "shopify://shop_images/9684808B-7809-4973-B826-1D9D2D037983.png"
+          }
+        },
+        "float_6VeMJM": {
+          "type": "float",
+          "settings": {
+            "image": "shopify://shop_images/CF204A78-16E8-41A6-809E-C23841530D01.png"
           }
         },
         "product_tCyArz": {
@@ -610,8 +610,8 @@
         }
       },
       "block_order": [
-        "float_6VeMJM",
         "float_Ya6NQ8",
+        "float_6VeMJM",
         "product_tCyArz"
       ],
       "name": "Vanquish Field",
@@ -646,7 +646,7 @@
         "button_text_color": "#dadada",
         "halo_color": "#eceaea",
         "show_halo": true,
-        "float_mode": "custom",
+        "float_mode": "paper",
         "side_padding": 0,
         "card_radius": 32,
         "image_radius": 24,
