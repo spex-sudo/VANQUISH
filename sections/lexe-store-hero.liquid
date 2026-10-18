@@ -60,6 +60,24 @@
     endif
   endif
 
+  assign focal = s.focal | default: 'auto'
+  if focal == 'auto'
+    if hero_img.presentation.focal_point != blank
+      assign focal = hero_img.presentation.focal_point
+    else
+      assign focal = '50% 35%'
+    endif
+  endif
+  assign focal_m = s.focal_mobile | default: 'auto'
+  if focal_m == 'auto'
+    assign focal_m = focal
+  endif
+  assign op_a = s.overlay_start | divided_by: 100.0
+  assign op_b = s.overlay_end | divided_by: 100.0
+  assign op_m = op_a | plus: op_b | divided_by: 2.0
+  assign ov_a = s.overlay_color | color_modify: 'alpha', op_a
+  assign ov_m = s.overlay_color | color_modify: 'alpha', op_m
+  assign ov_b = s.overlay_color | color_modify: 'alpha', op_b
   assign sort = collection.sort_by
   assign exact = false
   if sort == 'best-selling'
@@ -100,9 +118,12 @@
 #lsh-{{ sid }} .lsh-mark{margin:0;font-family:var(--df);font-weight:{{ s.display_weight }};font-size:{{ s.wordmark_size }}px;letter-spacing:{{ s.wordmark_spacing | divided_by: 100.0 }}em;text-transform:uppercase;color:{{ s.wordmark_color }};text-align:center;line-height:1}
 #lsh-{{ sid }} .lsh-tr{justify-self:end;font-size:12px;opacity:.6}
 #lsh-{{ sid }} .lsh-stage{position:relative;height:{{ s.stage_h }}px;display:flex;align-items:center;justify-content:center}
-#lsh-{{ sid }} .lsh-big{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;white-space:nowrap;font-family:var(--df);font-weight:{{ s.display_weight }};font-size:{{ s.headline_vw }}vw;line-height:.8;letter-spacing:{{ s.headline_spacing | divided_by: 100.0 }}em;color:var(--fg);{% if s.headline_case == 'upper' %}text-transform:uppercase;{% elsif s.headline_case == 'lower' %}text-transform:lowercase;{% endif %}z-index:1;pointer-events:none;user-select:none}
-#lsh-{{ sid }} .lsh-hero{position:relative;z-index:2;height:100%;width:min(36%,460px);margin:0}
-#lsh-{{ sid }} .lsh-hero img{width:100%;height:100%;object-fit:{% if s.image_look == 'card' %}cover;border-radius:{{ s.card_radius }}px{% else %}contain{% endif %};{% if s.image_look == 'cutout' %}mix-blend-mode:multiply;{% endif %}display:block}
+#lsh-{{ sid }} .lsh-big{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;white-space:nowrap;font-family:var(--df);font-weight:{{ s.display_weight }};font-size:{{ s.headline_vw }}vw;line-height:.8;letter-spacing:{{ s.headline_spacing | divided_by: 100.0 }}em;color:var(--fg);{% if s.headline_case == 'upper' %}text-transform:uppercase;{% elsif s.headline_case == 'lower' %}text-transform:lowercase;{% endif %}z-index:2;pointer-events:none;user-select:none}
+#lsh-{{ sid }} .lsh-area{position:relative;isolation:isolate;overflow:hidden}
+#lsh-{{ sid }} .lsh-hero{position:absolute;inset:0;z-index:0;margin:0}
+#lsh-{{ sid }} .lsh-hero img{width:100%;height:100%;object-fit:cover;object-position:{{ focal }};display:block}
+#lsh-{{ sid }} .lsh-shade{position:absolute;inset:0;z-index:1;pointer-events:none;background:{% if s.overlay_dir == 'radial' %}radial-gradient(120% 90% at 50% 45%,{{ ov_a }} 0%,{{ ov_b }} 100%){% else %}linear-gradient({{ s.overlay_dir }},{{ ov_a }} 0%,{{ ov_m }} 55%,{{ ov_b }} 100%){% endif %}}
+#lsh-{{ sid }} .lsh-wrap{position:relative;z-index:2}
 #lsh-{{ sid }} .lsh-about{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;padding:40px 0 56px;align-items:start}
 #lsh-{{ sid }} .lsh-eyebrow{grid-column:1/5;font-size:13px;line-height:1.4;margin:0}
 #lsh-{{ sid }} .lsh-eyebrow span{display:block;opacity:.55}
@@ -113,9 +134,9 @@
 #lsh-{{ sid }} .lsh-pill{display:inline-flex;align-items:center;height:40px;padding:0 20px;border-radius:999px;background:var(--btn);color:var(--btnfg);font-size:13px;text-decoration:none;letter-spacing:.01em;white-space:nowrap}
 #lsh-{{ sid }} .lsh-circ{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;border:1px solid currentColor;color:var(--fg);background:transparent;text-decoration:none;cursor:pointer;padding:0}
 #lsh-{{ sid }} .lsh-circ svg{width:18px;height:18px}
-#lsh-{{ sid }} .lsh-lv{position:absolute;z-index:3;right:0;bottom:16px;width:250px;display:flex;gap:10px;align-items:center;padding:8px 12px 8px 8px;border-radius:18px;background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.7);box-shadow:0 8px 30px -12px rgba(0,0,0,.25);-webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%);color:#0a0a0a;text-decoration:none;font-size:12px;line-height:1.3}
+#lsh-{{ sid }} .lsh-lv{position:absolute;z-index:3;right:0;bottom:16px;width:250px;display:flex;gap:10px;align-items:center;padding:8px 12px 8px 8px;border-radius:18px;background:rgba(10,10,12,.38);border:1px solid rgba(255,255,255,.18);box-shadow:0 8px 30px -12px rgba(0,0,0,.5);-webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%);color:#fff;text-decoration:none;font-size:12px;line-height:1.3}
 #lsh-{{ sid }} .lsh-lv[hidden]{display:none}
-#lsh-{{ sid }} .lsh-lv img{width:48px;height:48px;border-radius:12px;object-fit:cover;flex:0 0 auto;background:#eee}
+#lsh-{{ sid }} .lsh-lv img{width:48px;height:48px;border-radius:12px;object-fit:cover;flex:0 0 auto;background:rgba(255,255,255,.1)}
 #lsh-{{ sid }} .lsh-lv small{display:block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;opacity:.55}
 #lsh-{{ sid }} .lsh-lv b{display:block;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:170px}
 #lsh-{{ sid }} .lsh-band{background:var(--band);color:var(--bfg);padding:48px 0 56px}
@@ -147,7 +168,7 @@
   #lsh-{{ sid }} .lsh-mark{font-size:{{ s.wordmark_size | times: 0.8 | round }}px}
   #lsh-{{ sid }} .lsh-stage{height:{{ s.stage_h_mobile }}px}
   #lsh-{{ sid }} .lsh-big{font-size:{{ s.headline_vw | times: 1.25 }}vw}
-  #lsh-{{ sid }} .lsh-hero{width:54%}
+  #lsh-{{ sid }} .lsh-hero img{object-position:{{ focal_m }}}
   #lsh-{{ sid }} .lsh-about{grid-template-columns:1fr;gap:12px;padding:20px 0 36px}
   #lsh-{{ sid }} .lsh-eyebrow,#lsh-{{ sid }} .lsh-say{grid-column:1/-1}
   #lsh-{{ sid }} .lsh-say p{font-size:{{ s.statement_size | minus: 3 }}px}
@@ -170,6 +191,13 @@
 {%- capture arrow_l -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>{%- endcapture -%}
 
 <section id="lsh-{{ sid }}" class="lsh" data-lsh data-url="{{ collection.url }}" data-sid="{{ sid }}" data-hero="{{ hero_handle }}" data-exact="{{ exact }}" aria-label="{{ collection.title | escape }}">
+  <div class="lsh-area">
+    {%- if hero_img != blank -%}
+      <figure class="lsh-hero">
+          {{ hero_img | image_url: width: 2400 | image_tag: loading: 'eager', fetchpriority: 'high', sizes: '100vw', widths: '750,1100,1500,1920,2400', alt: collection.title }}
+      </figure>
+    {%- endif -%}
+    <div class="lsh-shade" aria-hidden="true"></div>
   <div class="lsh-wrap">
     <div class="lsh-top">
       <ul class="lsh-nav">
@@ -188,11 +216,6 @@
 
     <div class="lsh-stage">
       <p class="lsh-big" aria-hidden="true">{{ headline | escape }}</p>
-      {%- if hero_img != blank -%}
-        <figure class="lsh-hero">
-          {{ hero_img | image_url: width: 1200 | image_tag: loading: 'eager', fetchpriority: 'high', sizes: '(max-width: 749px) 54vw, 460px', widths: '400,600,800,1000,1200', alt: collection.title }}
-        </figure>
-      {%- endif -%}
       {%- if s.show_last_viewed -%}
         <a class="lsh-lv" href="#" hidden data-lsh-lv>
           <img alt="" width="48" height="48" loading="lazy" decoding="async">
@@ -211,6 +234,7 @@
         </div>
       </div>
     </div>
+  </div>
   </div>
 
   {%- if s.show_band -%}
@@ -344,7 +368,7 @@
       "type": "color",
       "id": "wordmark_color",
       "label": "Wordmark colour",
-      "default": "#9966CC"
+      "default": "#FFFFFF"
     },
     {
       "type": "checkbox",
@@ -410,7 +434,7 @@
       "type": "image_picker",
       "id": "hero_image",
       "label": "Hero image",
-      "info": "A cut-out PNG on transparent background looks best. Blank = product below, or the collection's first product."
+      "info": "Sits in the background under the shading. Set a focal point on the image, or pick one below. Blank = product below, or the collection's first product."
     },
     {
       "type": "product",
@@ -425,21 +449,139 @@
     },
     {
       "type": "select",
-      "id": "image_look",
-      "label": "Image look",
-      "default": "cutout",
+      "id": "focal",
+      "label": "Image focal point (desktop)",
+      "default": "auto",
       "options": [
         {
-          "value": "cutout",
-          "label": "Cut-out (blends white backgrounds)"
+          "value": "auto",
+          "label": "Auto (focal point set on the image)"
         },
         {
-          "value": "contain",
-          "label": "Plain"
+          "value": "50% 0%",
+          "label": "Top"
         },
         {
-          "value": "card",
-          "label": "Rounded card"
+          "value": "50% 25%",
+          "label": "Upper"
+        },
+        {
+          "value": "50% 35%",
+          "label": "Upper middle"
+        },
+        {
+          "value": "50% 50%",
+          "label": "Centre"
+        },
+        {
+          "value": "50% 75%",
+          "label": "Lower"
+        },
+        {
+          "value": "50% 100%",
+          "label": "Bottom"
+        },
+        {
+          "value": "25% 50%",
+          "label": "Left"
+        },
+        {
+          "value": "75% 50%",
+          "label": "Right"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "focal_mobile",
+      "label": "Image focal point (phone)",
+      "default": "auto",
+      "options": [
+        {
+          "value": "auto",
+          "label": "Same as desktop"
+        },
+        {
+          "value": "50% 0%",
+          "label": "Top"
+        },
+        {
+          "value": "50% 25%",
+          "label": "Upper"
+        },
+        {
+          "value": "50% 50%",
+          "label": "Centre"
+        },
+        {
+          "value": "50% 75%",
+          "label": "Lower"
+        },
+        {
+          "value": "30% 50%",
+          "label": "Left of centre"
+        },
+        {
+          "value": "70% 50%",
+          "label": "Right of centre"
+        }
+      ]
+    },
+    {
+      "type": "header",
+      "content": "Shading over the image"
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "Overlay colour",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "overlay_start",
+      "label": "Overlay opacity at start",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 45
+    },
+    {
+      "type": "range",
+      "id": "overlay_end",
+      "label": "Overlay opacity at end",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 85
+    },
+    {
+      "type": "select",
+      "id": "overlay_dir",
+      "label": "Gradient direction",
+      "default": "to bottom",
+      "options": [
+        {
+          "value": "to bottom",
+          "label": "Top to bottom"
+        },
+        {
+          "value": "to top",
+          "label": "Bottom to top"
+        },
+        {
+          "value": "to right",
+          "label": "Left to right"
+        },
+        {
+          "value": "to left",
+          "label": "Right to left"
+        },
+        {
+          "value": "radial",
+          "label": "From centre (vignette)"
         }
       ]
     },
@@ -671,13 +813,13 @@
       "type": "color",
       "id": "hero_bg",
       "label": "Hero background",
-      "default": "#FFFFFF"
+      "default": "#0A0A0A"
     },
     {
       "type": "color",
       "id": "hero_fg",
       "label": "Hero text",
-      "default": "#0A0A0A"
+      "default": "#FFFFFF"
     },
     {
       "type": "color",
@@ -689,13 +831,13 @@
       "type": "color",
       "id": "btn_bg",
       "label": "Pill button",
-      "default": "#0A0A0A"
+      "default": "#FFFFFF"
     },
     {
       "type": "color",
       "id": "btn_fg",
       "label": "Pill button text",
-      "default": "#FFFFFF"
+      "default": "#0A0A0A"
     },
     {
       "type": "color",
