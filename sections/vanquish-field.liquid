@@ -92,16 +92,30 @@
           {%- endfor -%}
         {%- endif -%}
         {%- if shown == 0 -%}
-          {%- assign fallbacks = 'Midnight Mint Cocoa|vf-hour-mint.webp|320 kcal|Cloud Cream|vf-hour-cloud.webp|290 kcal|Cocoa Whip|vf-hour-cocoa.webp|260 kcal|Berry Drift|vf-hour-berry.webp|340 kcal' | split: '|' -%}
-          {%- for i in (0..3) -%}
-            {%- assign n = i | times: 3 -%}
-            <article class="vf-card" data-i="{{ i }}" data-fallback="1">
-              <img class="vf-drink" src="{{ fallbacks[n | plus: 1] | asset_url }}" alt="" width="392" height="580" draggable="false">
-              <h3>{{ fallbacks[n] }}</h3>
-              <ul class="vf-facts"><li><span>Calories</span><b>{{ fallbacks[n | plus: 2] }}</b></li></ul>
-              <button class="vf-add" type="button" data-local>{{ cta }}</button>
-            </article>
-          {%- endfor -%}
+          <article class="vf-card" data-i="0" data-fallback="1">
+            <img class="vf-drink" src="{{ 'vf-hour-mint.webp' | asset_url }}" alt="" width="392" height="580" draggable="false">
+            <h3>Midnight Mint Cocoa</h3>
+            <ul class="vf-facts"><li><span>Calories</span><b>320 kcal</b></li></ul>
+            <button class="vf-add" type="button" data-local>{{ cta }}</button>
+          </article>
+          <article class="vf-card" data-i="1" data-fallback="1">
+            <img class="vf-drink" src="{{ 'vf-hour-cloud.webp' | asset_url }}" alt="" width="392" height="580" draggable="false">
+            <h3>Cloud Cream</h3>
+            <ul class="vf-facts"><li><span>Calories</span><b>290 kcal</b></li></ul>
+            <button class="vf-add" type="button" data-local>{{ cta }}</button>
+          </article>
+          <article class="vf-card" data-i="2" data-fallback="1">
+            <img class="vf-drink" src="{{ 'vf-hour-cocoa.webp' | asset_url }}" alt="" width="392" height="580" draggable="false">
+            <h3>Cocoa Whip</h3>
+            <ul class="vf-facts"><li><span>Calories</span><b>260 kcal</b></li></ul>
+            <button class="vf-add" type="button" data-local>{{ cta }}</button>
+          </article>
+          <article class="vf-card" data-i="3" data-fallback="1">
+            <img class="vf-drink" src="{{ 'vf-hour-berry.webp' | asset_url }}" alt="" width="392" height="580" draggable="false">
+            <h3>Berry Drift</h3>
+            <ul class="vf-facts"><li><span>Calories</span><b>340 kcal</b></li></ul>
+            <button class="vf-add" type="button" data-local>{{ cta }}</button>
+          </article>
         {%- endif -%}
       </div>
       <p class="vf-toast" data-toast hidden></p>
