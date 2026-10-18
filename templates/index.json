@@ -616,7 +616,7 @@
       ],
       "name": "Vanquish Field",
       "settings": {
-        "heading": "For Brand Owners",
+        "heading": "Brand Owner?",
         "heading_font": "syne_n8",
         "body_font": "space_grotesk_n7",
         "heading_size": 28,
@@ -625,7 +625,7 @@
         "price_size": 10,
         "button_size": 12,
         "image_size": 130,
-        "note": "If you need a better website this is for you.",
+        "note": "This is for you. Fully built shopify theme, drop-in with 2 steps. fully customizable.",
         "quick_label": "Quick Add",
         "sold_out": "Sold out",
         "price_label": "Price",
