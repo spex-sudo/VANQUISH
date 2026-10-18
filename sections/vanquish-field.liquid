@@ -16,35 +16,14 @@
       <span class="vf-bit vf-bit-a" aria-hidden="true"></span>
       <span class="vf-bit vf-bit-b" aria-hidden="true"></span>
 
-      <header class="vf-top">
-        <span class="vf-mark" aria-hidden="true">
-          <svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="#1b6b45"/><path d="M32 14c2 8 8 12 14 14-8 2-12 8-14 16-2-8-8-14-14-16 6-2 12-6 14-14z" fill="#fff"/><circle cx="32" cy="32" r="3" fill="#1b6b45"/></svg>
-        </span>
-        <nav class="vf-nav" aria-label="Shop">
-          {%- if section.settings.menu != blank -%}
-            {%- for link in section.settings.menu.links limit: 3 -%}
-              <a href="{{ link.url }}">{{ link.title }}</a>
-            {%- endfor -%}
-          {%- else -%}
-            <a href="{{ routes.collections_url }}">Shop</a>
-            <a href="{{ routes.all_products_collection_url }}">Themes</a>
-            <a href="{{ routes.search_url }}">Menu</a>
-          {%- endif -%}
-        </nav>
-        <form class="vf-search" action="{{ routes.search_url }}" method="get" role="search">
-          <input type="search" name="q" placeholder="Search" aria-label="Search">
-          <button type="submit" aria-label="Search">
-            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10.5 10.5 14 14" stroke="currentColor" stroke-width="1.4"/></svg>
-          </button>
-        </form>
-        <a class="vf-basket" href="{{ routes.cart_url }}"><i></i> <span data-basket>My basket</span></a>
-      </header>
-
       <div class="vf-mid">
-        <p class="vf-rewards"><b>{{ brand }}</b> <span>Rewards</span><small>Get more info</small></p>
         <div class="vf-copy">
           <h2>{{ heading }}</h2>
           <p>{{ note }}</p>
+        </div>
+        <div class="vf-arrows">
+          <button type="button" data-prev aria-label="Previous">‹</button>
+          <button type="button" data-next aria-label="Next">›</button>
         </div>
       </div>
 
@@ -53,7 +32,7 @@
         {%- if section.settings.collection != blank -%}
           {%- for product in section.settings.collection.products limit: cap -%}
             {%- assign shown = shown | plus: 1 -%}
-            <article class="vf-card" data-i="{{ forloop.index0 }}">
+            <article class="vf-card{% if forloop.first %} is-feature{% endif %}" data-i="{{ forloop.index0 }}">
               <img class="vf-drink" src="{{ product.featured_image | image_url: width: 800 }}" alt="" width="800" height="800" draggable="false">
               <h3>{{ product.title }}</h3>
               <ul class="vf-facts">
@@ -72,7 +51,10 @@
                 {%- endunless -%}
               </div>
               <script type="application/json" data-variants>[{%- for variant in product.variants -%}{"id":{{ variant.id }},"ok":{{ variant.available | json }},"opt":{{ variant.options | json }}}{%- unless forloop.last -%},{%- endunless -%}{%- endfor -%}]</script>
-              <button class="vf-add" type="button" data-add {% unless product.available %}disabled{% endunless %}>{{ cta }}</button>
+              {%- form 'product', product, class: 'vf-cart' -%}
+                <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+                <button class="vf-add" type="submit" name="add" {% unless product.available %}disabled{% endunless %}>{{ cta }}</button>
+              {%- endform -%}
             </article>
           {%- endfor -%}
         {%- endif -%}
@@ -81,12 +63,15 @@
             {%- if block.settings.product != blank -%}
               {%- assign product = block.settings.product -%}
               {%- assign shown = shown | plus: 1 -%}
-              <article class="vf-card" data-i="{{ shown | minus: 1 }}" {{ block.shopify_attributes }}>
+              <article class="vf-card{% if shown == 1 %} is-feature{% endif %}" data-i="{{ shown | minus: 1 }}" {{ block.shopify_attributes }}>
                 <img class="vf-drink" src="{{ product.featured_image | image_url: width: 800 }}" alt="" width="800" height="800" draggable="false">
                 <h3>{{ product.title }}</h3>
                 <ul class="vf-facts"><li><span>Price</span><b>{{ product.price | money }}</b></li></ul>
                 <script type="application/json" data-variants>[{%- for variant in product.variants -%}{"id":{{ variant.id }},"ok":{{ variant.available | json }},"opt":{{ variant.options | json }}}{%- unless forloop.last -%},{%- endunless -%}{%- endfor -%}]</script>
-                <button class="vf-add" type="button" data-add>{{ cta }}</button>
+                {%- form 'product', product, class: 'vf-cart' -%}
+                  <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+                  <button class="vf-add" type="submit" name="add">{{ cta }}</button>
+                {%- endform -%}
               </article>
             {%- endif -%}
           {%- endfor -%}
@@ -141,7 +126,21 @@
   font-family: Outfit, "Avenir Next", "Segoe UI", sans-serif;
   color: var(--ink);
 }
-#vf-{{ sid }} .vf-scale { width: 100%; margin: 0; position: relative; }
+#vf-{{ sid }} .vf-scale {
+  width: 100%;
+  margin: 0;
+  position: relative;
+  overflow: hidden;
+  max-height: 1400px;
+  opacity: 1;
+  transform-origin: top center;
+  transition: max-height 0.7s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.55s ease, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+#vf-{{ sid }}.is-closed .vf-scale {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-12px);
+}
 #vf-{{ sid }} .vf-board {
   position: relative; left: auto; top: auto; width: 100%; height: auto; margin: 0;
   transform: none; background: #fff; border-radius: 0; box-shadow: none; overflow: visible;
@@ -160,7 +159,12 @@
 #vf-{{ sid }} .vf-search button { border: 0; background: none; color: #b0b0b0; padding: 6px; }
 #vf-{{ sid }} .vf-basket { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); text-decoration: none; font: 700 12px/1 Outfit, sans-serif; letter-spacing: 0.14em; text-transform: uppercase; }
 #vf-{{ sid }} .vf-basket i { width: 8px; height: 8px; border-radius: 50%; background: #e23b3b; }
-#vf-{{ sid }} .vf-mid { position: relative; z-index: 2; display: flex; justify-content: space-between; gap: 24px; padding: 12px 20px 0; }
+#vf-{{ sid }} .vf-mid { position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; padding: 28px 20px 0; }
+#vf-{{ sid }} .vf-arrows { display: flex; gap: 8px; }
+#vf-{{ sid }} .vf-arrows button {
+  width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--green); color: #fff;
+  font-size: 26px; line-height: 1; cursor: pointer; touch-action: manipulation;
+}
 #vf-{{ sid }} .vf-rewards { margin: 0; font: 800 13px/1.2 Outfit, sans-serif; letter-spacing: 0.08em; text-transform: uppercase; }
 #vf-{{ sid }} .vf-rewards span { font-weight: 500; letter-spacing: 0.18em; }
 #vf-{{ sid }} .vf-rewards small { display: block; margin-top: 8px; font-size: 10px; letter-spacing: 0.16em; color: #9a9a9a; }
@@ -170,7 +174,7 @@
 #vf-{{ sid }} .vf-row {
   position: relative; left: auto; right: auto; bottom: auto; height: auto; z-index: 3;
   display: grid; grid-template-columns: 1fr 1.08fr 1fr 1fr; gap: 12px; align-items: end;
-  padding: 130px 12px 16px; touch-action: none; cursor: grab;
+  padding: 130px 12px 16px; touch-action: pan-y; cursor: grab;
 }
 #vf-{{ sid }} .vf-row.is-dragging { cursor: grabbing; }
 #vf-{{ sid }} .vf-card {
@@ -200,11 +204,13 @@
 #vf-{{ sid }} .vf-opt { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 #vf-{{ sid }} .vf-opt span { font: 600 18px/1 Outfit, sans-serif; }
 #vf-{{ sid }} .vf-opt select { appearance: none; background: transparent; border: 0; border-bottom: 1px solid rgb(255 255 255 / 55%); color: #fff; font: 500 12px/1 Outfit, sans-serif; padding: 6px 0; min-width: 120px; }
+#vf-{{ sid }} .vf-cart { margin: 0; }
+#vf-{{ sid }} .vf-add, #vf-{{ sid }} .vf-opt, #vf-{{ sid }} select { position: relative; z-index: 5; touch-action: manipulation; pointer-events: auto; }
 #vf-{{ sid }} .vf-add { display: none; margin-top: 18px; width: 100%; height: 44px; border: 0; border-radius: 999px; background: #fff; color: #155838; font: 800 12px/1 Outfit, sans-serif; letter-spacing: 0.14em; cursor: pointer; }
 #vf-{{ sid }} .vf-card.is-feature .vf-add { display: block; }
 #vf-{{ sid }} .vf-toast { position: absolute; left: 36px; bottom: 12px; z-index: 6; margin: 0; color: var(--green); font-size: 12px; letter-spacing: 0.08em; }
 @media (prefers-reduced-motion: reduce) {
-  #vf-{{ sid }} .vf-drink, #vf-{{ sid }} .vf-bit { animation: none; }
+  #vf-{{ sid }} .vf-drink, #vf-{{ sid }} .vf-bit, #vf-{{ sid }} .vf-scale { animation: none; transition: none; }
 }
 </style>
 
@@ -213,137 +219,148 @@
   var root = document.getElementById('vf-{{ sid }}');
   if (!root || root.dataset.bound) return;
   root.dataset.bound = '1';
-  var frame = root.querySelector('.vf-scale');
-  var board = root.querySelector('.vf-board');
   var row = root.querySelector('[data-row]');
+  if (!row) return;
   var cards = Array.prototype.slice.call(row.querySelectorAll('.vf-card'));
   var index = 0;
-  var scale = 1;
   var toast = root.querySelector('[data-toast]');
-  var basket = root.querySelector('[data-basket]');
+  var open = true;
+  var busy = false;
 
   function place() {
     var n = cards.length;
+    if (!n) return;
     cards.forEach(function (card) {
       var i = Number(card.dataset.i);
-      var pos = (i - index + 1 + n * 4) % n;
+      var pos = (i - index + 1 + n * 8) % n;
       var on = pos < Math.min(4, n);
       card.hidden = !on;
       card.style.order = on ? String(pos) : '9';
-      card.classList.toggle('is-feature', pos === 1 || (n === 1 && pos === 0));
+      card.classList.toggle('is-feature', n === 1 ? pos === 0 : pos === 1);
     });
   }
   place();
 
   function step(dir) {
-    if (!cards.length) return;
+    if (cards.length < 2) return;
     index = (index + dir + cards.length) % cards.length;
     place();
   }
 
+  var prev = root.querySelector('[data-prev]');
+  var next = root.querySelector('[data-next]');
+  if (prev) prev.addEventListener('click', function (event) { event.preventDefault(); step(-1); });
+  if (next) next.addEventListener('click', function (event) { event.preventDefault(); step(1); });
+
+  function say(text) {
+    if (!toast) return;
+    toast.hidden = false;
+    toast.textContent = text;
+  }
+
+  cards.forEach(function (card) {
+    var box = card.querySelector('[data-variants]');
+    if (!box) return;
+    var variants = [];
+    try { variants = JSON.parse(box.textContent); } catch (e) { return; }
+    card.querySelectorAll('[data-option]').forEach(function (sel) {
+      sel.addEventListener('change', function () {
+        var picks = Array.prototype.map.call(card.querySelectorAll('[data-option]'), function (node) { return node.value; });
+        var match = variants.filter(function (variant) {
+          return picks.every(function (value, i) { return !variant.opt[i] || variant.opt[i] === value; });
+        })[0] || variants[0];
+        var input = card.querySelector('input[name="id"]');
+        if (match && input) input.value = String(match.id);
+      });
+    });
+  });
+
   var x = 0, y = 0, pid = -1, armed = false, dragging = false, swiped = false;
+  function interactive(target) {
+    return target.closest('button, a, select, input, textarea, label, form');
+  }
   row.addEventListener('pointerdown', function (event) {
-    if (event.target.closest('select, input, textarea')) return;
-    armed = true; dragging = false; swiped = false;
-    x = event.clientX; y = event.clientY; pid = event.pointerId;
-    if (event.target.closest('img')) event.preventDefault();
-    try { row.setPointerCapture(event.pointerId); } catch (e) {}
+    if (interactive(event.target)) return;
+    armed = true;
+    dragging = false;
+    swiped = false;
+    x = event.clientX;
+    y = event.clientY;
+    pid = event.pointerId;
   });
   row.addEventListener('pointermove', function (event) {
     if (!armed || event.pointerId !== pid) return;
-    var dx = event.clientX - x, dy = event.clientY - y;
+    var dx = event.clientX - x;
+    var dy = event.clientY - y;
     if (!dragging) {
-      if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
+      if (Math.abs(dx) < 12 && Math.abs(dy) < 12) return;
       if (Math.abs(dy) > Math.abs(dx)) { armed = false; return; }
       dragging = true;
       row.classList.add('is-dragging');
     }
-    if (event.cancelable) event.preventDefault();
-    row.style.transform = 'translate3d(' + Math.max(-220, Math.min(220, dx / Math.max(scale, 0.2))) + 'px,0,0)';
-  }, { passive: false });
+    row.style.transform = 'translate3d(' + Math.max(-180, Math.min(180, dx)) + 'px,0,0)';
+  });
   function end(event) {
     if (event.pointerId !== pid) return;
     var dx = event.clientX - x;
     var moved = dragging;
-    armed = false; dragging = false; pid = -1;
+    armed = false;
+    dragging = false;
+    pid = -1;
     row.classList.remove('is-dragging');
     row.style.transform = '';
-    if (!moved || Math.abs(dx) < 28) return;
+    if (!moved || Math.abs(dx) < 36) return;
     swiped = true;
     step(dx < 0 ? 1 : -1);
-    setTimeout(function () { swiped = false; }, 450);
+    setTimeout(function () { swiped = false; }, 350);
   }
   row.addEventListener('pointerup', end);
   row.addEventListener('pointercancel', end);
   row.addEventListener('click', function (event) {
     if (!swiped) return;
+    if (interactive(event.target)) return;
     event.preventDefault();
     event.stopPropagation();
     swiped = false;
   }, true);
 
-  root.addEventListener('click', function (event) {
+  row.addEventListener('click', function (event) {
+    if (swiped || interactive(event.target)) return;
     var side = event.target.closest('.vf-card');
-    if (!side || event.target.closest('.vf-add, select, .vf-opt')) return;
-    if (side.classList.contains('is-feature')) return;
+    if (!side || side.classList.contains('is-feature')) return;
     var i = Number(side.dataset.i);
     var n = cards.length;
-    var pos = (i - index + 1 + n * 4) % n;
+    var pos = (i - index + 1 + n * 8) % n;
     step(pos === 0 ? -1 : 1);
   });
-
-  function say(text) {
-    toast.hidden = false;
-    toast.textContent = text;
-  }
-
-  function refreshCount() {
-    fetch('/cart.js', { headers: { Accept: 'application/json' } })
-      .then(function (r) { return r.json(); })
-      .then(function (cart) {
-        basket.textContent = cart.item_count ? 'My basket ' + cart.item_count : 'My basket';
-      })
-      .catch(function () {});
-  }
-  refreshCount();
 
   root.addEventListener('click', function (event) {
     var button = event.target.closest('[data-local]');
     if (!button) return;
     event.preventDefault();
-    var count = Number(root.dataset.local || 0) + 1;
-    root.dataset.local = String(count);
-    basket.textContent = 'My basket ' + count;
     say('Added');
   });
 
-  root.addEventListener('click', function (event) {
-    var button = event.target.closest('[data-add]');
-    if (!button || button.disabled) return;
-    event.preventDefault();
-    var card = button.closest('.vf-card');
-    var variants = [];
-    try { variants = JSON.parse(card.querySelector('[data-variants]').textContent); } catch (e) { return; }
-    var picks = Array.prototype.map.call(card.querySelectorAll('[data-option]'), function (sel) { return sel.value; });
-    var match = variants.filter(function (v) {
-      return picks.every(function (value, i) { return !v.opt[i] || v.opt[i] === value; });
-    })[0] || variants[0];
-    if (!match) return;
-    button.disabled = true;
-    fetch('/cart/add.js', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ id: match.id, quantity: 1 })
-    }).then(function (res) {
-      if (!res.ok) throw new Error('cart');
-      return refreshCount();
-    }).then(function () {
-      say('Added to basket');
-      document.dispatchEvent(new CustomEvent('cart:refresh'));
-    }).catch(function () {
-      say('Could not add that');
-    }).then(function () { button.disabled = false; });
-  });
+  function setOpen(next) {
+    if (next === open || busy) return;
+    open = next;
+    busy = true;
+    root.classList.toggle('is-closed', !open);
+    setTimeout(function () { busy = false; }, 720);
+  }
+
+  var lastY = window.scrollY;
+  window.addEventListener('scroll', function () {
+    var y = window.scrollY;
+    var up = y < lastY - 2;
+    var down = y > lastY + 2;
+    lastY = y;
+    var rect = root.getBoundingClientRect();
+    var onSection = rect.top < window.innerHeight * 0.72 && rect.bottom > window.innerHeight * 0.28;
+    if (!onSection) return;
+    if (up) setOpen(false);
+    else if (down) setOpen(true);
+  }, { passive: true });
 })();
 </script>
 
