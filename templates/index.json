@@ -453,6 +453,45 @@
         "layout": "media_first"
       }
     },
+    "vanquish_atelier_RXjYm6": {
+      "type": "vanquish-atelier",
+      "name": "Product Atelier",
+      "settings": {
+        "display_mode": "products",
+        "products": [
+          "jade-roller",
+          "cerave-hydrating-foaming-oil-cleanser",
+          "cerave-hydrating-cream-to-foam-cleanser",
+          "cerave-sa-smoothing-cleanserrandom-packaging"
+        ],
+        "collection": "",
+        "card_count": 8,
+        "show_header": true,
+        "title": "CERA>e",
+        "show_arrows": true,
+        "card_shape": "squircle",
+        "landscape_ratio": "4 / 3",
+        "card_width": 260,
+        "squircle_radius": 0,
+        "landscape_radius": 18,
+        "card_gap": 20,
+        "show_names": true,
+        "name_font": "space_grotesk_n6",
+        "heading_font": "syne_n8",
+        "name_size": 14,
+        "title_size": 28,
+        "name_tracking": 4,
+        "name_transform": "uppercase",
+        "autoplay": true,
+        "autoplay_speed": 8,
+        "edge_fade": false,
+        "bg_color": "#ffffff",
+        "text_color": "#212121",
+        "section_padding": 32,
+        "pad_top": 40,
+        "pad_bottom": 16
+      }
+    },
     "lexe_trust_glass": {
       "type": "lexe-trust-glass",
       "blocks": {
@@ -541,45 +580,6 @@
         "mobile_mode": "swipe",
         "speed": 3,
         "breakpoint": 1100
-      }
-    },
-    "vanquish_atelier_RXjYm6": {
-      "type": "vanquish-atelier",
-      "name": "Product Atelier",
-      "settings": {
-        "display_mode": "products",
-        "products": [
-          "jade-roller",
-          "cerave-hydrating-foaming-oil-cleanser",
-          "cerave-hydrating-cream-to-foam-cleanser",
-          "cerave-sa-smoothing-cleanserrandom-packaging"
-        ],
-        "collection": "",
-        "card_count": 8,
-        "show_header": true,
-        "title": "CERA>e",
-        "show_arrows": true,
-        "card_shape": "squircle",
-        "landscape_ratio": "4 / 3",
-        "card_width": 260,
-        "squircle_radius": 0,
-        "landscape_radius": 18,
-        "card_gap": 20,
-        "show_names": true,
-        "name_font": "space_grotesk_n6",
-        "heading_font": "syne_n8",
-        "name_size": 14,
-        "title_size": 28,
-        "name_tracking": 4,
-        "name_transform": "uppercase",
-        "autoplay": true,
-        "autoplay_speed": 8,
-        "edge_fade": false,
-        "bg_color": "#ffffff",
-        "text_color": "#212121",
-        "section_padding": 32,
-        "pad_top": 40,
-        "pad_bottom": 16
       }
     },
     "vanquish_atelier_XfxTnG": {
@@ -847,8 +847,8 @@
     "luxury_collectiongrid_jpK7Cz",
     "vanquish_field_JN6xGk",
     "luxury_featureproduct_bQ4Apx",
-    "lexe_trust_glass",
     "vanquish_atelier_RXjYm6",
+    "lexe_trust_glass",
     "vanquish_atelier_XfxTnG",
     "vanquish_field_MD4XTT",
     "luxury_featureproduct_BNr6Rf",
