@@ -344,7 +344,7 @@
         "show_cart": true,
         "show_turn": true,
         "environment": "paper",
-        "vary": false,
+        "vary": true,
         "ground": "#f2e8d5",
         "ink": "#1b130c",
         "accent": "#e2462a",
