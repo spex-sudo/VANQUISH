@@ -251,7 +251,7 @@
         "tagline": "",
         "header_gap": 0,
         "bg_color": "#000000",
-        "accent_color": "#ffffff",
+        "accent_color": "#E1E1E1",
         "aspect_ratio": "3/4",
         "padding_v": 0,
         "bottom_fade": true,
