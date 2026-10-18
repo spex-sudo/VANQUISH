@@ -409,7 +409,9 @@
         "display_mode": "grid",
         "source_mode": "collection",
         "source_collection": "lexe",
-        "grid_collections": [],
+        "grid_collections": [
+          "lexe"
+        ],
         "grid_max_products": 20,
         "grid_min_soldout": 2,
         "grid_soldout_collection": "",
