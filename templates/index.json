@@ -283,16 +283,16 @@
         "enable_schema": true
       }
     },
-    "vanquish_field_RjH63n": {
+    "vanquish_field_wHm9er": {
       "type": "vanquish-field",
       "blocks": {
-        "product_zMxgdJ": {
+        "product_ngiJDY": {
           "type": "product",
           "settings": {
             "product": ""
           }
         },
-        "product_qja37e": {
+        "product_WKFcj7": {
           "type": "product",
           "settings": {
             "product": ""
@@ -300,8 +300,8 @@
         }
       },
       "block_order": [
-        "product_zMxgdJ",
-        "product_qja37e"
+        "product_ngiJDY",
+        "product_WKFcj7"
       ],
       "name": "Vanquish Field",
       "settings": {
@@ -792,7 +792,7 @@
     "luxury_transition_m6cr6x",
     "lexe_bento_hero",
     "luxury_collectiongrid_jpK7Cz",
-    "vanquish_field_RjH63n",
+    "vanquish_field_wHm9er",
     "vanquish_atelier_nwPpp6",
     "luxury_featureproduct_DDiGAR",
     "vanquish_atelier_XfxTnG",
