@@ -584,6 +584,7 @@
     },
     "vanquish_atelier_XfxTnG": {
       "type": "vanquish-atelier",
+      "disabled": true,
       "name": "Product Atelier",
       "settings": {
         "display_mode": "products",
