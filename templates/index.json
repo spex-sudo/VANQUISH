@@ -286,6 +286,15 @@
     "vanquish_field_JN6xGk": {
       "type": "vanquish-field",
       "blocks": {
+        "product_J4gjBq": {
+          "type": "product",
+          "settings": {
+            "product": "shoulder-bag-soft-leather-womens-fashionable-backpack-student-minimalist-backpack",
+            "image": "shopify://shop_images/D843E09F670D84D9ED8B9C976A40BCF2.jpg",
+            "title": "",
+            "fact": ""
+          }
+        },
         "product_M3KDfT": {
           "type": "product",
           "settings": {
@@ -293,10 +302,20 @@
             "title": "",
             "fact": ""
           }
+        },
+        "product_y7ePLw": {
+          "type": "product",
+          "settings": {
+            "product": "shoulder-bag-polo-vertical-leather-bag-crossbody-bag",
+            "title": "",
+            "fact": ""
+          }
         }
       },
       "block_order": [
-        "product_M3KDfT"
+        "product_J4gjBq",
+        "product_M3KDfT",
+        "product_y7ePLw"
       ],
       "name": "Vanquish Field",
       "settings": {
