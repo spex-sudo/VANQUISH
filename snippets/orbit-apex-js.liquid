@@ -372,10 +372,14 @@
 
     settleStart();
     requestAnimationFrame(function () {
-      requestAnimationFrame(settleStart);
+      requestAnimationFrame(function () {
+        settleStart();
+        root.classList.add('is-ready');
+      });
     });
     window.addEventListener('load', function () {
       settleStart();
+      root.classList.add('is-ready');
     }, { once: true });
 
     var resizeTimer = null;
@@ -389,4 +393,3 @@
   });
 })();
 </script>
-
