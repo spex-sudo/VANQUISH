@@ -8,8 +8,6 @@
   assign travel = section.settings.scroll_distance | default: 70
 -%}
 
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&display=swap">
-
 <section
   class="vf-room"
   id="vf-{{ sid }}"
@@ -125,6 +123,8 @@
 </section>
 
 <style>
+{{ section.settings.heading_font | font_face: font_display: 'swap' }}
+{{ section.settings.body_font | font_face: font_display: 'swap' }}
 #shopify-section-{{ sid }} {
   width: 100vw;
   max-width: 100vw;
@@ -150,10 +150,23 @@
   --img-radius: {{ section.settings.image_radius }}px;
   --pad: {{ section.settings.side_padding }}px;
   --title: {{ section.settings.heading_size }}px;
+  --note-size: {{ section.settings.note_size }}px;
+  --card-title: {{ section.settings.product_title_size }}px;
+  --price-size: {{ section.settings.price_size }}px;
+  --btn-size: {{ section.settings.button_size }}px;
+  --img-size: {{ section.settings.image_size }}px;
+  --font-heading: {{ section.settings.heading_font.family }}, {{ section.settings.heading_font.fallback_families }};
+  --font-heading-weight: {{ section.settings.heading_font.weight }};
+  --font-heading-style: {{ section.settings.heading_font.style }};
+  --font-body: {{ section.settings.body_font.family }}, {{ section.settings.body_font.fallback_families }};
+  --font-body-weight: {{ section.settings.body_font.weight }};
+  --font-body-style: {{ section.settings.body_font.style }};
   width: 100%;
   background: transparent;
   padding: 0;
-  font-family: Outfit, "Avenir Next", "Segoe UI", sans-serif;
+  font-family: var(--font-body);
+  font-weight: var(--font-body-weight);
+  font-style: var(--font-body-style);
   color: var(--ink);
 }
 #vf-{{ sid }} .vf-run { position: relative; }
@@ -177,8 +190,8 @@
   font-size: 26px; line-height: 1; cursor: pointer; touch-action: manipulation;
 }
 #vf-{{ sid }} .vf-copy { width: min(520px, 62%); }
-#vf-{{ sid }} .vf-copy h2 { margin: 0; color: var(--heading); font: 800 clamp(28px, 4vw, var(--title))/0.95 Outfit, sans-serif; letter-spacing: -0.03em; }
-#vf-{{ sid }} .vf-copy p { margin: 14px 0 0; max-width: 420px; color: var(--note); font-size: 13px; line-height: 1.45; }
+#vf-{{ sid }} .vf-copy h2 { margin: 0; color: var(--heading); font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-style: var(--font-heading-style); font-size: clamp(28px, 4vw, var(--title)); line-height: 0.95; letter-spacing: -0.03em; }
+#vf-{{ sid }} .vf-copy p { margin: 14px 0 0; max-width: 420px; color: var(--note); font-size: var(--note-size); line-height: 1.45; }
 #vf-{{ sid }} .vf-row {
   position: relative; z-index: 3;
   display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; align-items: end;
@@ -196,22 +209,22 @@
   box-shadow: 0 24px 50px rgb(20 60 40 / 28%); z-index: 4;
 }
 #vf-{{ sid }} .vf-drink {
-  position: absolute; left: 50%; bottom: calc(100% - 108px); z-index: 2; width: min(46%, 160px); height: auto;
+  position: absolute; left: 50%; bottom: calc(100% - 108px); z-index: 2; width: min(70%, var(--img-size)); height: auto;
   transform: translate3d(-50%, 0, 0); pointer-events: none; touch-action: pan-y;
   border-radius: var(--img-radius); filter: drop-shadow(0 16px 16px rgb(20 30 24 / 18%)); object-fit: contain;
 }
-#vf-{{ sid }} .vf-card.is-feature .vf-drink { width: min(58%, 210px); bottom: calc(100% - 140px); }
+#vf-{{ sid }} .vf-card.is-feature .vf-drink { width: min(82%, calc(var(--img-size) * 1.3)); bottom: calc(100% - 140px); }
 @keyframes vf-bob-{{ sid }} { from { translate: 0 0; } to { translate: 0 -10px; } }
-#vf-{{ sid }} .vf-card h3 { margin: 0; font: 700 20px/1.05 Outfit, sans-serif; }
-#vf-{{ sid }} .vf-card.is-feature h3 { font-size: 28px; }
+#vf-{{ sid }} .vf-card h3 { margin: 0; font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-style: var(--font-heading-style); font-size: var(--card-title); line-height: 1.05; }
+#vf-{{ sid }} .vf-card.is-feature h3 { font-size: calc(var(--card-title) * 1.35); }
 #vf-{{ sid }} .vf-facts { margin: 16px 0 0; padding: 0; list-style: none; }
-#vf-{{ sid }} .vf-facts li { display: flex; justify-content: space-between; gap: 12px; color: #8d8d8d; font-size: 11px; padding: 3px 0; }
+#vf-{{ sid }} .vf-facts li { display: flex; justify-content: space-between; gap: 12px; color: #8d8d8d; font-size: var(--price-size); padding: 3px 0; }
 #vf-{{ sid }} .vf-card.is-feature .vf-facts { display: none; }
 #vf-{{ sid }} .vf-opts { display: none; margin-top: 16px; }
 #vf-{{ sid }} .vf-card.is-feature .vf-opts { display: grid; gap: 10px; }
 #vf-{{ sid }} .vf-opt { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-#vf-{{ sid }} .vf-opt span { font: 600 18px/1 Outfit, sans-serif; }
-#vf-{{ sid }} .vf-opt select { appearance: none; background: transparent; border: 0; border-bottom: 1px solid rgb(255 255 255 / 55%); color: #fff; font: 500 12px/1 Outfit, sans-serif; padding: 6px 0; min-width: 0; max-width: 58%; }
+#vf-{{ sid }} .vf-opt span { font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: calc(var(--card-title) * 0.8); line-height: 1; }
+#vf-{{ sid }} .vf-opt select { appearance: none; background: transparent; border: 0; border-bottom: 1px solid rgb(255 255 255 / 55%); color: #fff; font-family: var(--font-body); font-size: var(--price-size); font-weight: var(--font-body-weight); padding: 6px 0; min-width: 0; max-width: 58%; }
 #vf-{{ sid }} .vf-cart {
   position: absolute; left: 14px; right: 14px; bottom: 14px; z-index: 8; margin: 0;
 }
@@ -221,14 +234,14 @@
   width: 100%; min-height: 44px; padding: 0 14px;
   border: 0; border-radius: 999px; background: #111; color: #fff;
   box-shadow: 0 10px 22px rgb(0 0 0 / 22%);
-  font: 800 12px/1 Outfit, sans-serif; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer;
+  font-family: var(--font-body); font-weight: 800; font-size: var(--btn-size); line-height: 1; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer;
 }
 #vf-{{ sid }} .vf-add::before { content: "+"; font-size: 16px; line-height: 1; }
 #vf-{{ sid }} .vf-toast { position: absolute; left: var(--pad); bottom: 8px; z-index: 6; margin: 0; color: var(--heading); font-size: 12px; }
 @media (max-width: 749px) {
   #vf-{{ sid }} .vf-mid { flex-wrap: wrap; align-items: flex-start; padding: 16px 16px 0; }
   #vf-{{ sid }} .vf-copy { width: 100%; }
-  #vf-{{ sid }} .vf-copy h2 { font-size: 34px; }
+  #vf-{{ sid }} .vf-copy h2 { font-size: clamp(28px, 9vw, var(--title)); }
   #vf-{{ sid }} .vf-copy p { max-width: none; }
   #vf-{{ sid }} .vf-halo { width: 220px; height: 220px; right: -40px; }
   #vf-{{ sid }} .vf-row { grid-template-columns: 1fr; padding: 96px 16px 24px; }
@@ -240,8 +253,8 @@
     min-height: 220px;
     padding: 108px 16px 74px;
   }
-  #vf-{{ sid }} .vf-card.is-feature .vf-drink { width: 160px; bottom: calc(100% - 96px); }
-  #vf-{{ sid }} .vf-card.is-feature h3 { font-size: 26px; }
+  #vf-{{ sid }} .vf-card.is-feature .vf-drink { width: min(46vw, calc(var(--img-size) * 1.15)); bottom: calc(100% - 96px); }
+  #vf-{{ sid }} .vf-card.is-feature h3 { font-size: var(--card-title); }
 }
 </style>
 
@@ -461,7 +474,15 @@
   "settings": [
     { "type": "header", "content": "Content" },
     { "type": "text", "id": "heading", "label": "Heading", "default": "The happiest hour of the year" },
+    { "type": "header", "content": "Typography" },
+    { "type": "font_picker", "id": "heading_font", "label": "Heading font", "default": "assistant_n7" },
+    { "type": "font_picker", "id": "body_font", "label": "Body font", "default": "assistant_n4" },
     { "type": "range", "id": "heading_size", "label": "Heading size", "min": 28, "max": 72, "step": 2, "unit": "px", "default": 54 },
+    { "type": "range", "id": "note_size", "label": "Note size", "min": 11, "max": 22, "step": 1, "unit": "px", "default": 13 },
+    { "type": "range", "id": "product_title_size", "label": "Product title size", "min": 14, "max": 40, "step": 1, "unit": "px", "default": 20 },
+    { "type": "range", "id": "price_size", "label": "Price size", "min": 10, "max": 20, "step": 1, "unit": "px", "default": 12 },
+    { "type": "range", "id": "button_size", "label": "Button text size", "min": 10, "max": 18, "step": 1, "unit": "px", "default": 12 },
+    { "type": "range", "id": "image_size", "label": "Image size", "min": 90, "max": 280, "step": 10, "unit": "px", "default": 160 },
     { "type": "textarea", "id": "note", "label": "Note", "default": "Sign up to get exclusive access to deals on drinks this holiday season." },
     { "type": "text", "id": "quick_label", "label": "Quick add label", "default": "Quick add" },
     { "type": "text", "id": "sold_out", "label": "Sold out label", "default": "Sold out" },
