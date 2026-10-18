@@ -233,7 +233,7 @@
         "overlay_color": "#000000",
         "overlay_start": 45,
         "overlay_end": 85,
-        "overlay_dir": "to left",
+        "overlay_dir": "to top",
         "stage_h": 520,
         "stage_h_mobile": 220,
         "eyebrow_1": "About us",
