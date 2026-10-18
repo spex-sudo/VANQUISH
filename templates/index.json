@@ -579,7 +579,7 @@
         "pad_bottom": 10,
         "icon_size": 18,
         "show_dots": true,
-        "mobile_mode": "marquee",
+        "mobile_mode": "swipe",
         "speed": 3,
         "breakpoint": 1100
       }
