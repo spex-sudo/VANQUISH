@@ -21,17 +21,46 @@
         <div class="vf-board">
           {%- if section.settings.show_halo -%}
             <div class="vf-halo" aria-hidden="true"></div>
+          {%- endif -%}
+          {%- assign float_mode = section.settings.float_mode | default: 'paper' -%}
+          {%- if float_mode != 'off' -%}
             <div class="vf-floats" aria-hidden="true">
-              <img class="vf-float" src="{{ 'vf-matter-cloth-ivory.webp' | asset_url }}" alt="" width="120" height="90" style="--x:8%;--y:22%;--s:118px;--r:-18deg;--dx:10px;--dy:-16px;--dur:7.5s;--delay:0s">
-              <img class="vf-float" src="{{ 'vf-matter-cloth-denim.webp' | asset_url }}" alt="" width="110" height="80" style="--x:78%;--y:16%;--s:104px;--r:14deg;--dx:-12px;--dy:14px;--dur:8.2s;--delay:-2s">
-              <img class="vf-float" src="{{ 'vf-matter-cloth-rust.webp' | asset_url }}" alt="" width="96" height="72" style="--x:92%;--y:62%;--s:86px;--r:28deg;--dx:-8px;--dy:-12px;--dur:6.8s;--delay:-1s">
-              <img class="vf-float" src="{{ 'vf-matter-paper-sheet.webp' | asset_url }}" alt="" width="100" height="120" style="--x:6%;--y:68%;--s:92px;--r:-8deg;--dx:8px;--dy:-10px;--dur:9s;--delay:-3s">
-              <img class="vf-float" src="{{ 'vf-matter-paper-corner.webp' | asset_url }}" alt="" width="80" height="80" style="--x:88%;--y:34%;--s:72px;--r:12deg;--dx:6px;--dy:12px;--dur:7s;--delay:-4s">
-              <img class="vf-float" src="{{ 'vf-matter-pin-safety.webp' | asset_url }}" alt="" width="48" height="48" style="--x:18%;--y:42%;--s:42px;--r:-24deg;--dx:6px;--dy:-8px;--dur:6s;--delay:-1.5s">
-              <img class="vf-float" src="{{ 'vf-matter-pin-round.webp' | asset_url }}" alt="" width="40" height="40" style="--x:70%;--y:28%;--s:34px;--r:8deg;--dx:-6px;--dy:8px;--dur:5.6s;--delay:-2.4s">
-              <img class="vf-float" src="{{ 'vf-matter-pin-bar.webp' | asset_url }}" alt="" width="56" height="28" style="--x:84%;--y:78%;--s:54px;--r:-16deg;--dx:8px;--dy:-6px;--dur:7.4s;--delay:-.6s">
-              <img class="vf-float vf-mark" src="{{ 'vf-matter-mark.png' | asset_url }}" alt="" width="72" height="72" style="--x:24%;--y:12%;--s:64px;--r:0deg;--dx:4px;--dy:-10px;--dur:8.6s;--delay:-3.2s">
-              <span class="vf-float vf-code" style="--x:62%;--y:72%;--s:auto;--r:-6deg;--dx:10px;--dy:-8px;--dur:8s;--delay:-2.2s">await field()</span>
+              {%- case float_mode -%}
+                {%- when 'paper' -%}
+                  <img class="vf-float" src="{{ 'vf-matter-paper-sheet.webp' | asset_url }}" alt="" width="100" height="120" style="--x:8%;--y:24%;--s:108px;--r:-12deg;--dx:8px;--dy:-14px;--dur:8s;--delay:0s">
+                  <img class="vf-float" src="{{ 'vf-matter-paper-corner.webp' | asset_url }}" alt="" width="80" height="80" style="--x:84%;--y:18%;--s:78px;--r:16deg;--dx:-8px;--dy:12px;--dur:7.2s;--delay:-2s">
+                  <img class="vf-float" src="{{ 'vf-matter-paper-sheet.webp' | asset_url }}" alt="" width="90" height="110" style="--x:90%;--y:66%;--s:84px;--r:8deg;--dx:-6px;--dy:-10px;--dur:9s;--delay:-3s">
+                  <img class="vf-float" src="{{ 'vf-matter-paper-corner.webp' | asset_url }}" alt="" width="70" height="70" style="--x:14%;--y:72%;--s:64px;--r:-20deg;--dx:6px;--dy:-8px;--dur:6.6s;--delay:-1s">
+                  <span class="vf-float vf-code" style="--x:70%;--y:48%;--s:auto;--r:-6deg;--dx:8px;--dy:-8px;--dur:8s;--delay:-2.2s">await field()</span>
+                {%- when 'pins' -%}
+                  <img class="vf-float" src="{{ 'vf-matter-pin-safety.webp' | asset_url }}" alt="" width="56" height="56" style="--x:12%;--y:22%;--s:52px;--r:-18deg;--dx:6px;--dy:-10px;--dur:6.4s;--delay:0s">
+                  <img class="vf-float" src="{{ 'vf-matter-pin-round.webp' | asset_url }}" alt="" width="44" height="44" style="--x:80%;--y:16%;--s:40px;--r:10deg;--dx:-6px;--dy:8px;--dur:5.8s;--delay:-1.4s">
+                  <img class="vf-float" src="{{ 'vf-matter-pin-bar.webp' | asset_url }}" alt="" width="64" height="32" style="--x:88%;--y:58%;--s:62px;--r:-14deg;--dx:8px;--dy:-6px;--dur:7s;--delay:-2.5s">
+                  <img class="vf-float" src="{{ 'vf-matter-pin-safety.webp' | asset_url }}" alt="" width="48" height="48" style="--x:16%;--y:68%;--s:46px;--r:22deg;--dx:-4px;--dy:-8px;--dur:6.8s;--delay:-.8s">
+                  <img class="vf-float" src="{{ 'vf-matter-pin-round.webp' | asset_url }}" alt="" width="36" height="36" style="--x:68%;--y:74%;--s:32px;--r:-8deg;--dx:6px;--dy:6px;--dur:5.4s;--delay:-3s">
+                {%- when 'fabric' -%}
+                  <img class="vf-float" src="{{ 'vf-matter-cloth-ivory.webp' | asset_url }}" alt="" width="120" height="90" style="--x:8%;--y:22%;--s:118px;--r:-18deg;--dx:10px;--dy:-16px;--dur:7.5s;--delay:0s">
+                  <img class="vf-float" src="{{ 'vf-matter-cloth-denim.webp' | asset_url }}" alt="" width="110" height="80" style="--x:82%;--y:16%;--s:104px;--r:14deg;--dx:-12px;--dy:14px;--dur:8.2s;--delay:-2s">
+                  <img class="vf-float" src="{{ 'vf-matter-cloth-rust.webp' | asset_url }}" alt="" width="96" height="72" style="--x:90%;--y:64%;--s:86px;--r:28deg;--dx:-8px;--dy:-12px;--dur:6.8s;--delay:-1s">
+                  <img class="vf-float" src="{{ 'vf-matter-cloth-ivory.webp' | asset_url }}" alt="" width="80" height="60" style="--x:12%;--y:70%;--s:72px;--r:12deg;--dx:6px;--dy:-8px;--dur:8s;--delay:-3s">
+                {%- when 'logo' -%}
+                  <img class="vf-float vf-mark" src="{{ 'vf-matter-mark.png' | asset_url }}" alt="" width="88" height="88" style="--x:14%;--y:20%;--s:84px;--r:-8deg;--dx:6px;--dy:-12px;--dur:8s;--delay:0s">
+                  <img class="vf-float vf-mark" src="{{ 'vf-matter-mark.png' | asset_url }}" alt="" width="64" height="64" style="--x:84%;--y:18%;--s:58px;--r:12deg;--dx:-6px;--dy:10px;--dur:7.4s;--delay:-2s">
+                  <img class="vf-float vf-mark" src="{{ 'vf-matter-mark.png' | asset_url }}" alt="" width="72" height="72" style="--x:88%;--y:68%;--s:70px;--r:-16deg;--dx:8px;--dy:-8px;--dur:8.6s;--delay:-1s">
+                  <img class="vf-float vf-mark" src="{{ 'vf-matter-mark.png' | asset_url }}" alt="" width="48" height="48" style="--x:18%;--y:74%;--s:46px;--r:6deg;--dx:-4px;--dy:-8px;--dur:6.5s;--delay:-3s">
+                {%- when 'custom' -%}
+                  {%- assign float_i = 0 -%}
+                  {%- for block in section.blocks -%}
+                    {%- if block.type == 'float' and block.settings.image != blank and float_i < 8 -%}
+                      {%- assign fx = '12,82,88,16,70,24,78,8' | split: ',' -%}
+                      {%- assign fy = '20,16,64,72,46,78,34,58' | split: ',' -%}
+                      {%- assign fs = '96,84,110,72,64,80,58,90' | split: ',' -%}
+                      {%- assign fr = '-14,12,22,-8,-16,8,18,-6' | split: ',' -%}
+                      <img class="vf-float" src="{{ block.settings.image | image_url: width: 480 }}" alt="" width="160" height="160" style="--x:{{ fx[float_i] }}%;--y:{{ fy[float_i] }}%;--s:{{ fs[float_i] }}px;--r:{{ fr[float_i] }}deg;--dx:8px;--dy:-10px;--dur:7.5s;--delay:-{{ float_i }}s" {{ block.shopify_attributes }}>
+                      {%- assign float_i = float_i | plus: 1 -%}
+                    {%- endif -%}
+                  {%- endfor -%}
+              {%- endcase -%}
             </div>
           {%- endif -%}
 
@@ -582,6 +611,14 @@ html:has(#shopify-section-{{ sid }}) { overflow-x: clip; }
     { "type": "color", "id": "button_text_color", "label": "Button text", "default": "#155838" },
     { "type": "color", "id": "halo_color", "label": "Halo", "default": "#e7f4ec" },
     { "type": "checkbox", "id": "show_halo", "label": "Show halo", "default": true },
+    { "type": "select", "id": "float_mode", "label": "Floating elements", "default": "paper", "options": [
+      { "value": "off", "label": "Off" },
+      { "value": "paper", "label": "Paper" },
+      { "value": "pins", "label": "Pins" },
+      { "value": "fabric", "label": "Fabric" },
+      { "value": "logo", "label": "Logo" },
+      { "value": "custom", "label": "Custom images" }
+    ], "info": "One set at a time. For Custom images, add Custom float blocks." },
 
     { "type": "header", "content": "Layout" },
     { "type": "range", "id": "side_padding", "label": "Side padding", "min": 0, "max": 80, "step": 2, "unit": "px", "default": 20 },
@@ -592,7 +629,7 @@ html:has(#shopify-section-{{ sid }}) { overflow-x: clip; }
     { "type": "checkbox", "id": "scroll_transition", "label": "Close into the next section on scroll", "default": true },
     { "type": "range", "id": "scroll_distance", "label": "Close distance", "min": 30, "max": 120, "step": 5, "unit": "vh", "default": 70 }
   ],
-  "max_blocks": 8,
+  "max_blocks": 16,
   "blocks": [
     {
       "type": "product",
@@ -602,6 +639,13 @@ html:has(#shopify-section-{{ sid }}) { overflow-x: clip; }
         { "type": "image_picker", "id": "image", "label": "Image override" },
         { "type": "text", "id": "title", "label": "Title override" },
         { "type": "text", "id": "fact", "label": "Extra fact" }
+      ]
+    },
+    {
+      "type": "float",
+      "name": "Custom float",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Image" }
       ]
     }
   ],
