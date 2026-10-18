@@ -3,107 +3,113 @@
   assign cap = section.settings.limit | default: 4 | at_most: 8 | at_least: 1
   assign heading = section.settings.heading | default: 'The happiest hour of the year'
   assign note = section.settings.note | default: 'Sign up to get exclusive access to deals on drinks this holiday season.'
-  assign brand = section.settings.brand | default: shop.name
   assign cta = section.settings.button_label | default: 'Add to cart'
+  assign price_label = section.settings.price_label | default: 'Price'
+  assign travel = section.settings.scroll_distance | default: 70
 -%}
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&display=swap">
 
-<section class="vf-room" id="vf-{{ sid }}" data-section="{{ sid }}">
-  <div class="vf-scale">
-    <div class="vf-board">
-      <div class="vf-halo" aria-hidden="true"></div>
-      <span class="vf-bit vf-bit-a" aria-hidden="true"></span>
-      <span class="vf-bit vf-bit-b" aria-hidden="true"></span>
+<section
+  class="vf-room"
+  id="vf-{{ sid }}"
+  data-scroll="{% if section.settings.scroll_transition %}on{% else %}off{% endif %}"
+  data-travel="{{ travel }}"
+>
+  <div class="vf-track" data-track>
+    <div class="vf-sticky">
+      <div class="vf-scale">
+        <div class="vf-board">
+          {%- if section.settings.show_halo -%}
+            <div class="vf-halo" aria-hidden="true"></div>
+            <span class="vf-bit vf-bit-a" aria-hidden="true"></span>
+            <span class="vf-bit vf-bit-b" aria-hidden="true"></span>
+          {%- endif -%}
 
-      <div class="vf-mid">
-        <div class="vf-copy">
-          <h2>{{ heading }}</h2>
-          <p>{{ note }}</p>
-        </div>
-        <div class="vf-arrows">
-          <button type="button" data-prev aria-label="Previous">‹</button>
-          <button type="button" data-next aria-label="Next">›</button>
-        </div>
-      </div>
-
-      <div class="vf-row" data-row>
-        {%- assign shown = 0 -%}
-        {%- if section.settings.collection != blank -%}
-          {%- for product in section.settings.collection.products limit: cap -%}
-            {%- assign shown = shown | plus: 1 -%}
-            <article class="vf-card{% if forloop.first %} is-feature{% endif %}" data-i="{{ forloop.index0 }}">
-              <img class="vf-drink" src="{{ product.featured_image | image_url: width: 800 }}" alt="" width="800" height="800" draggable="false">
-              <h3>{{ product.title }}</h3>
-              <ul class="vf-facts">
-                <li><span>Price</span><b>{{ product.price | money }}</b></li>
-                {%- if product.type != blank -%}<li><span>{{ product.type }}</span></li>{%- endif -%}
-              </ul>
-              <div class="vf-opts">
-                {%- unless product.has_only_default_variant -%}
-                  {%- for option in product.options_with_values -%}
-                    <label class="vf-opt"><span>{{ option.name }}</span>
-                      <select data-option="{{ forloop.index0 }}" aria-label="{{ option.name }}">
-                        {%- for value in option.values -%}<option value="{{ value | escape }}">{{ value }}</option>{%- endfor -%}
-                      </select>
-                    </label>
-                  {%- endfor -%}
-                {%- endunless -%}
+          <div class="vf-mid">
+            <div class="vf-copy">
+              <h2>{{ heading }}</h2>
+              {%- if note != blank -%}<p>{{ note }}</p>{%- endif -%}
+            </div>
+            {%- if section.settings.show_arrows -%}
+              <div class="vf-arrows">
+                <button type="button" data-prev aria-label="{{ section.settings.prev_label | default: 'Previous' }}">‹</button>
+                <button type="button" data-next aria-label="{{ section.settings.next_label | default: 'Next' }}">›</button>
               </div>
-              <script type="application/json" data-variants>[{%- for variant in product.variants -%}{"id":{{ variant.id }},"ok":{{ variant.available | json }},"opt":{{ variant.options | json }}}{%- unless forloop.last -%},{%- endunless -%}{%- endfor -%}]</script>
-              {%- form 'product', product, class: 'vf-cart' -%}
-                <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
-                <button class="vf-add" type="submit" name="add" {% unless product.available %}disabled{% endunless %}>{{ cta }}</button>
-              {%- endform -%}
-            </article>
-          {%- endfor -%}
-        {%- endif -%}
-        {%- if shown == 0 -%}
-          {%- for block in section.blocks -%}
-            {%- if block.settings.product != blank -%}
-              {%- assign product = block.settings.product -%}
-              {%- assign shown = shown | plus: 1 -%}
-              <article class="vf-card{% if shown == 1 %} is-feature{% endif %}" data-i="{{ shown | minus: 1 }}" {{ block.shopify_attributes }}>
-                <img class="vf-drink" src="{{ product.featured_image | image_url: width: 800 }}" alt="" width="800" height="800" draggable="false">
-                <h3>{{ product.title }}</h3>
-                <ul class="vf-facts"><li><span>Price</span><b>{{ product.price | money }}</b></li></ul>
-                <script type="application/json" data-variants>[{%- for variant in product.variants -%}{"id":{{ variant.id }},"ok":{{ variant.available | json }},"opt":{{ variant.options | json }}}{%- unless forloop.last -%},{%- endunless -%}{%- endfor -%}]</script>
-                {%- form 'product', product, class: 'vf-cart' -%}
-                  <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
-                  <button class="vf-add" type="submit" name="add">{{ cta }}</button>
-                {%- endform -%}
-              </article>
             {%- endif -%}
-          {%- endfor -%}
-        {%- endif -%}
-        {%- if shown == 0 -%}
-          <article class="vf-card" data-i="0" data-fallback="1">
-            <img class="vf-drink" src="{{ 'vf-hour-mint.webp' | asset_url }}" alt="" width="392" height="580" draggable="false">
-            <h3>Midnight Mint Cocoa</h3>
-            <ul class="vf-facts"><li><span>Calories</span><b>320 kcal</b></li></ul>
-            <button class="vf-add" type="button" data-local>{{ cta }}</button>
-          </article>
-          <article class="vf-card" data-i="1" data-fallback="1">
-            <img class="vf-drink" src="{{ 'vf-hour-cloud.webp' | asset_url }}" alt="" width="392" height="580" draggable="false">
-            <h3>Cloud Cream</h3>
-            <ul class="vf-facts"><li><span>Calories</span><b>290 kcal</b></li></ul>
-            <button class="vf-add" type="button" data-local>{{ cta }}</button>
-          </article>
-          <article class="vf-card" data-i="2" data-fallback="1">
-            <img class="vf-drink" src="{{ 'vf-hour-cocoa.webp' | asset_url }}" alt="" width="392" height="580" draggable="false">
-            <h3>Cocoa Whip</h3>
-            <ul class="vf-facts"><li><span>Calories</span><b>260 kcal</b></li></ul>
-            <button class="vf-add" type="button" data-local>{{ cta }}</button>
-          </article>
-          <article class="vf-card" data-i="3" data-fallback="1">
-            <img class="vf-drink" src="{{ 'vf-hour-berry.webp' | asset_url }}" alt="" width="392" height="580" draggable="false">
-            <h3>Berry Drift</h3>
-            <ul class="vf-facts"><li><span>Calories</span><b>340 kcal</b></li></ul>
-            <button class="vf-add" type="button" data-local>{{ cta }}</button>
-          </article>
-        {%- endif -%}
+          </div>
+
+          <div class="vf-row" data-row>
+            {%- assign shown = 0 -%}
+            {%- if section.settings.collection != blank -%}
+              {%- for product in section.settings.collection.products limit: cap -%}
+                {%- assign shown = shown | plus: 1 -%}
+                <article class="vf-card{% if forloop.first %} is-feature{% endif %}" data-i="{{ forloop.index0 }}">
+                  <img class="vf-drink" src="{{ product.featured_image | image_url: width: 800 }}" alt="" width="800" height="800" draggable="false">
+                  <h3>{{ product.title }}</h3>
+                  <ul class="vf-facts">
+                    {%- if section.settings.show_price -%}
+                      <li><span>{{ price_label }}</span><b>{{ product.price | money }}</b></li>
+                    {%- endif -%}
+                    {%- if section.settings.show_type and product.type != blank -%}
+                      <li><span>{{ product.type }}</span></li>
+                    {%- endif -%}
+                  </ul>
+                  <div class="vf-opts">
+                    {%- unless product.has_only_default_variant -%}
+                      {%- for option in product.options_with_values -%}
+                        <label class="vf-opt"><span>{{ option.name }}</span>
+                          <select data-option="{{ forloop.index0 }}" aria-label="{{ option.name }}">
+                            {%- for value in option.values -%}<option value="{{ value | escape }}">{{ value }}</option>{%- endfor -%}
+                          </select>
+                        </label>
+                      {%- endfor -%}
+                    {%- endunless -%}
+                  </div>
+                  <script type="application/json" data-variants>[{%- for variant in product.variants -%}{"id":{{ variant.id }},"ok":{{ variant.available | json }},"opt":{{ variant.options | json }}}{%- unless forloop.last -%},{%- endunless -%}{%- endfor -%}]</script>
+                  {%- form 'product', product, class: 'vf-cart' -%}
+                    <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+                    <button class="vf-add" type="submit" name="add" {% unless product.available %}disabled{% endunless %}>
+                      {%- if product.available -%}{{ cta }}{%- else -%}{{ section.settings.sold_out | default: 'Sold out' }}{%- endif -%}
+                    </button>
+                  {%- endform -%}
+                </article>
+              {%- endfor -%}
+            {%- endif -%}
+
+            {%- if shown == 0 -%}
+              {%- for block in section.blocks -%}
+                {%- if block.settings.product != blank -%}
+                  {%- assign product = block.settings.product -%}
+                  {%- assign shown = shown | plus: 1 -%}
+                  {%- assign card_title = product.title -%}
+                  {%- if block.settings.title != blank -%}{%- assign card_title = block.settings.title -%}{%- endif -%}
+                  {%- assign card_image = product.featured_image -%}
+                  {%- if block.settings.image != blank -%}{%- assign card_image = block.settings.image -%}{%- endif -%}
+                  <article class="vf-card{% if shown == 1 %} is-feature{% endif %}" data-i="{{ shown | minus: 1 }}" {{ block.shopify_attributes }}>
+                    <img class="vf-drink" src="{{ card_image | image_url: width: 800 }}" alt="" width="800" height="800" draggable="false">
+                    <h3>{{ card_title }}</h3>
+                    <ul class="vf-facts">
+                      {%- if section.settings.show_price -%}
+                        <li><span>{{ price_label }}</span><b>{{ product.price | money }}</b></li>
+                      {%- endif -%}
+                      {%- if block.settings.fact != blank -%}
+                        <li><span>{{ block.settings.fact }}</span></li>
+                      {%- endif -%}
+                    </ul>
+                    <script type="application/json" data-variants>[{%- for variant in product.variants -%}{"id":{{ variant.id }},"ok":{{ variant.available | json }},"opt":{{ variant.options | json }}}{%- unless forloop.last -%},{%- endunless -%}{%- endfor -%}]</script>
+                    {%- form 'product', product, class: 'vf-cart' -%}
+                      <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+                      <button class="vf-add" type="submit" name="add">{{ cta }}</button>
+                    {%- endform -%}
+                  </article>
+                {%- endif -%}
+              {%- endfor -%}
+            {%- endif -%}
+          </div>
+          <p class="vf-toast" data-toast hidden></p>
+        </div>
       </div>
-      <p class="vf-toast" data-toast hidden></p>
     </div>
   </div>
 </section>
@@ -115,97 +121,94 @@
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
   padding: 0;
-  background: #fff;
+  background: transparent;
+  position: relative;
+  z-index: 1;
   overflow-anchor: none;
 }
 #vf-{{ sid }} {
-  --green: #1b6b45;
-  --ink: #173024;
+  --green: {{ section.settings.feature_color }};
+  --ink: {{ section.settings.text_color }};
+  --card: {{ section.settings.card_color }};
+  --heading: {{ section.settings.heading_color }};
+  --note: {{ section.settings.note_color }};
+  --bg: {{ section.settings.background }};
+  --btn: {{ section.settings.button_color }};
+  --btn-text: {{ section.settings.button_text_color }};
+  --halo: {{ section.settings.halo_color }};
+  --radius: {{ section.settings.card_radius }}px;
+  --pad: {{ section.settings.side_padding }}px;
+  --title: {{ section.settings.heading_size }}px;
   width: 100%;
-  background: #fff;
+  background: transparent;
   padding: 0;
   font-family: Outfit, "Avenir Next", "Segoe UI", sans-serif;
   color: var(--ink);
 }
-#vf-{{ sid }} .vf-scale {
-  width: 100%;
-  margin: 0;
-  position: relative;
-  overflow: hidden;
-  opacity: 0;
-  transform: translateY(36px);
-}
+#vf-{{ sid }} .vf-track { position: relative; }
+#vf-{{ sid }} .vf-sticky { position: sticky; top: 0; z-index: 1; }
+#vf-{{ sid }} .vf-scale { width: 100%; margin: 0; position: relative; }
 #vf-{{ sid }} .vf-board {
-  position: relative; left: auto; top: auto; width: 100%; height: auto; margin: 0;
-  transform: none; background: #fff; border-radius: 0; box-shadow: none; overflow: visible;
+  position: relative;
+  width: 100%;
+  background: var(--bg);
+  transform-origin: center top;
+  will-change: opacity, transform, clip-path;
 }
-#vf-{{ sid }} .vf-halo { position: absolute; width: 560px; height: 560px; border-radius: 50%; background: #e7f4ec; right: 90px; top: 36px; }
-#vf-{{ sid }} .vf-bit { position: absolute; width: 14px; height: 14px; background: #1b6b45; clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); animation: vf-drift-{{ sid }} 7s ease-in-out infinite alternate; }
-#vf-{{ sid }} .vf-bit-a { left: 250px; top: 250px; }
-#vf-{{ sid }} .vf-bit-b { right: 90px; top: 210px; animation-delay: -2s; }
+#vf-{{ sid }} .vf-halo { position: absolute; width: min(46vw, 560px); height: min(46vw, 560px); border-radius: 50%; background: var(--halo); right: 4vw; top: 12px; pointer-events: none; }
+#vf-{{ sid }} .vf-bit { position: absolute; width: 14px; height: 14px; background: var(--green); clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); animation: vf-drift-{{ sid }} 7s ease-in-out infinite alternate; pointer-events: none; }
+#vf-{{ sid }} .vf-bit-a { left: 18vw; top: 180px; }
+#vf-{{ sid }} .vf-bit-b { right: 6vw; top: 140px; animation-delay: -2s; }
 @keyframes vf-drift-{{ sid }} { from { translate: 0 0; } to { translate: 8px -14px; } }
-#vf-{{ sid }} .vf-top { position: relative; z-index: 2; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 22px; padding: 20px 20px 0; }
-#vf-{{ sid }} .vf-mark svg { width: 64px; height: 64px; display: block; }
-#vf-{{ sid }} .vf-nav { display: flex; gap: 22px; }
-#vf-{{ sid }} .vf-nav a { color: var(--green); font: 600 12px/1 Outfit, sans-serif; letter-spacing: 0.16em; text-transform: uppercase; text-decoration: none; }
-#vf-{{ sid }} .vf-search { position: absolute; left: 50%; top: 34px; width: 260px; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #ddd; }
-#vf-{{ sid }} .vf-search input { width: 100%; border: 0; background: transparent; font: 500 11px/1 Outfit, sans-serif; letter-spacing: 0.18em; text-transform: uppercase; outline: none; }
-#vf-{{ sid }} .vf-search button { border: 0; background: none; color: #b0b0b0; padding: 6px; }
-#vf-{{ sid }} .vf-basket { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); text-decoration: none; font: 700 12px/1 Outfit, sans-serif; letter-spacing: 0.14em; text-transform: uppercase; }
-#vf-{{ sid }} .vf-basket i { width: 8px; height: 8px; border-radius: 50%; background: #e23b3b; }
-#vf-{{ sid }} .vf-mid { position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; padding: 28px 20px 0; }
+#vf-{{ sid }} .vf-mid { position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; padding: 28px var(--pad) 0; }
 #vf-{{ sid }} .vf-arrows { display: flex; gap: 8px; }
 #vf-{{ sid }} .vf-arrows button {
-  width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--green); color: #fff;
+  width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--green); color: var(--btn-text);
   font-size: 26px; line-height: 1; cursor: pointer; touch-action: manipulation;
 }
-#vf-{{ sid }} .vf-rewards { margin: 0; font: 800 13px/1.2 Outfit, sans-serif; letter-spacing: 0.08em; text-transform: uppercase; }
-#vf-{{ sid }} .vf-rewards span { font-weight: 500; letter-spacing: 0.18em; }
-#vf-{{ sid }} .vf-rewards small { display: block; margin-top: 8px; font-size: 10px; letter-spacing: 0.16em; color: #9a9a9a; }
-#vf-{{ sid }} .vf-copy { width: min(460px, 48%); }
-#vf-{{ sid }} .vf-copy h2 { margin: 0; color: var(--green); font: 800 clamp(32px, 4vw, 54px)/0.95 Outfit, sans-serif; letter-spacing: -0.03em; }
-#vf-{{ sid }} .vf-copy p { margin: 14px 0 0; max-width: 340px; color: #b0b0b0; font-size: 12px; line-height: 1.45; }
+#vf-{{ sid }} .vf-copy { width: min(520px, 62%); }
+#vf-{{ sid }} .vf-copy h2 { margin: 0; color: var(--heading); font: 800 clamp(28px, 4vw, var(--title))/0.95 Outfit, sans-serif; letter-spacing: -0.03em; }
+#vf-{{ sid }} .vf-copy p { margin: 14px 0 0; max-width: 420px; color: var(--note); font-size: 13px; line-height: 1.45; }
 #vf-{{ sid }} .vf-row {
-  position: relative; left: auto; right: auto; bottom: auto; height: auto; z-index: 3;
-  display: grid; grid-template-columns: 1fr 1.08fr 1fr 1fr; gap: 12px; align-items: end;
-  padding: 130px 12px 16px; touch-action: pan-y; cursor: grab;
+  position: relative; z-index: 3;
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; align-items: end;
+  padding: 130px var(--pad) 16px; touch-action: pan-y; cursor: grab;
 }
 #vf-{{ sid }} .vf-row.is-dragging { cursor: grabbing; }
 #vf-{{ sid }} .vf-card {
-  position: relative; height: 300px; border-radius: 28px; background: #f3f1ec; padding: 118px 22px 18px;
+  position: relative; height: 300px; border-radius: var(--radius); background: var(--card); color: var(--ink); padding: 118px 18px 16px;
   box-shadow: 0 10px 24px rgb(30 40 34 / 6%); order: 9;
 }
 #vf-{{ sid }} .vf-card[hidden] { display: none; }
 #vf-{{ sid }} .vf-card.is-feature {
-  height: 400px; margin-bottom: 0; background: var(--green); color: #fff; padding: 150px 18px 16px;
+  height: 400px; background: var(--green); color: #fff; padding: 150px 18px 16px;
   box-shadow: 0 24px 50px rgb(20 60 40 / 28%); z-index: 4;
 }
 #vf-{{ sid }} .vf-drink {
-  position: absolute; left: 50%; bottom: calc(100% - 108px); width: 148px; height: auto;
+  position: absolute; left: 50%; bottom: calc(100% - 108px); width: min(46%, 160px); height: auto;
   transform: translate3d(-50%, 0, 0); pointer-events: auto; touch-action: pan-y;
   filter: drop-shadow(0 16px 16px rgb(20 30 24 / 18%)); object-fit: contain;
   animation: vf-bob-{{ sid }} 4.8s ease-in-out infinite alternate;
 }
-#vf-{{ sid }} .vf-card.is-feature .vf-drink { width: 196px; bottom: calc(100% - 150px); }
+#vf-{{ sid }} .vf-card.is-feature .vf-drink { width: min(58%, 210px); bottom: calc(100% - 140px); }
 @keyframes vf-bob-{{ sid }} { from { translate: 0 0; } to { translate: 0 -10px; } }
 #vf-{{ sid }} .vf-card h3 { margin: 0; font: 700 20px/1.05 Outfit, sans-serif; }
 #vf-{{ sid }} .vf-card.is-feature h3 { font-size: 28px; }
 #vf-{{ sid }} .vf-facts { margin: 16px 0 0; padding: 0; list-style: none; }
-#vf-{{ sid }} .vf-facts li { display: flex; justify-content: space-between; gap: 12px; color: #9a9a9a; font-size: 11px; padding: 3px 0; }
+#vf-{{ sid }} .vf-facts li { display: flex; justify-content: space-between; gap: 12px; color: #8d8d8d; font-size: 11px; padding: 3px 0; }
 #vf-{{ sid }} .vf-card.is-feature .vf-facts { display: none; }
 #vf-{{ sid }} .vf-opts { display: none; margin-top: 16px; }
 #vf-{{ sid }} .vf-card.is-feature .vf-opts { display: grid; gap: 10px; }
 #vf-{{ sid }} .vf-opt { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 #vf-{{ sid }} .vf-opt span { font: 600 18px/1 Outfit, sans-serif; }
-#vf-{{ sid }} .vf-opt select { appearance: none; background: transparent; border: 0; border-bottom: 1px solid rgb(255 255 255 / 55%); color: #fff; font: 500 12px/1 Outfit, sans-serif; padding: 6px 0; min-width: 120px; }
+#vf-{{ sid }} .vf-opt select { appearance: none; background: transparent; border: 0; border-bottom: 1px solid rgb(255 255 255 / 55%); color: #fff; font: 500 12px/1 Outfit, sans-serif; padding: 6px 0; min-width: 0; max-width: 58%; }
 #vf-{{ sid }} .vf-cart { margin: 0; }
 #vf-{{ sid }} .vf-add, #vf-{{ sid }} .vf-opt, #vf-{{ sid }} select { position: relative; z-index: 5; touch-action: manipulation; pointer-events: auto; }
-#vf-{{ sid }} .vf-add { display: none; margin-top: 18px; width: 100%; height: 44px; border: 0; border-radius: 999px; background: #fff; color: #155838; font: 800 12px/1 Outfit, sans-serif; letter-spacing: 0.14em; cursor: pointer; }
+#vf-{{ sid }} .vf-add { display: none; margin-top: 18px; width: 100%; height: 44px; border: 0; border-radius: 999px; background: var(--btn); color: var(--btn-text); font: 800 12px/1 Outfit, sans-serif; letter-spacing: 0.14em; cursor: pointer; }
 #vf-{{ sid }} .vf-card.is-feature .vf-add { display: block; }
-#vf-{{ sid }} .vf-toast { position: absolute; left: 36px; bottom: 12px; z-index: 6; margin: 0; color: var(--green); font-size: 12px; letter-spacing: 0.08em; }
+#vf-{{ sid }} .vf-toast { position: absolute; left: var(--pad); bottom: 8px; z-index: 6; margin: 0; color: var(--heading); font-size: 12px; }
 @media (prefers-reduced-motion: reduce) {
   #vf-{{ sid }} .vf-drink, #vf-{{ sid }} .vf-bit { animation: none; }
-  #vf-{{ sid }} .vf-scale { opacity: 1; transform: none; }
 }
 </style>
 
@@ -219,6 +222,12 @@
   var cards = Array.prototype.slice.call(row.querySelectorAll('.vf-card'));
   var index = 0;
   var toast = root.querySelector('[data-toast]');
+  var track = root.querySelector('[data-track]');
+  var sticky = root.querySelector('.vf-sticky');
+  var board = root.querySelector('.vf-board');
+  var shell = document.getElementById('shopify-section-{{ sid }}') || root;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var enabled = root.dataset.scroll === 'on' && !reduce;
 
   function place() {
     var n = cards.length;
@@ -238,6 +247,7 @@
     if (cards.length < 2) return;
     index = (index + dir + cards.length) % cards.length;
     place();
+    layout();
   }
 
   var prev = root.querySelector('[data-prev]');
@@ -274,17 +284,12 @@
   }
   row.addEventListener('pointerdown', function (event) {
     if (interactive(event.target)) return;
-    armed = true;
-    dragging = false;
-    swiped = false;
-    x = event.clientX;
-    y = event.clientY;
-    pid = event.pointerId;
+    armed = true; dragging = false; swiped = false;
+    x = event.clientX; y = event.clientY; pid = event.pointerId;
   });
   row.addEventListener('pointermove', function (event) {
     if (!armed || event.pointerId !== pid) return;
-    var dx = event.clientX - x;
-    var dy = event.clientY - y;
+    var dx = event.clientX - x, dy = event.clientY - y;
     if (!dragging) {
       if (Math.abs(dx) < 12 && Math.abs(dy) < 12) return;
       if (Math.abs(dy) > Math.abs(dx)) { armed = false; return; }
@@ -297,9 +302,7 @@
     if (event.pointerId !== pid) return;
     var dx = event.clientX - x;
     var moved = dragging;
-    armed = false;
-    dragging = false;
-    pid = -1;
+    armed = false; dragging = false; pid = -1;
     row.classList.remove('is-dragging');
     row.style.transform = '';
     if (!moved || Math.abs(dx) < 36) return;
@@ -310,13 +313,11 @@
   row.addEventListener('pointerup', end);
   row.addEventListener('pointercancel', end);
   row.addEventListener('click', function (event) {
-    if (!swiped) return;
-    if (interactive(event.target)) return;
+    if (!swiped || interactive(event.target)) return;
     event.preventDefault();
     event.stopPropagation();
     swiped = false;
   }, true);
-
   row.addEventListener('click', function (event) {
     if (swiped || interactive(event.target)) return;
     var side = event.target.closest('.vf-card');
@@ -326,7 +327,6 @@
     var pos = (i - index + 1 + n * 8) % n;
     step(pos === 0 ? -1 : 1);
   });
-
   root.addEventListener('click', function (event) {
     var button = event.target.closest('[data-local]');
     if (!button) return;
@@ -334,28 +334,42 @@
     say('Added');
   });
 
-  var clip = root.querySelector('.vf-scale');
-  var shell = document.getElementById('shopify-section-{{ sid }}') || root;
-  function fade() {
-    if (!clip) return;
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      clip.style.opacity = '1';
-      clip.style.transform = 'none';
+  function layout() {
+    if (!track || !sticky || !board) return;
+    var h = board.offsetHeight;
+    if (!enabled) {
+      track.style.height = 'auto';
+      sticky.style.position = 'relative';
+      sticky.style.height = 'auto';
+      shell.style.marginBottom = '0px';
+      board.style.opacity = '1';
+      board.style.transform = 'none';
+      board.style.clipPath = 'none';
       return;
     }
-    var rect = shell.getBoundingClientRect();
-    var vh = window.innerHeight || 1;
-    var start = vh * 0.92;
-    var end = vh * 0.45;
-    var p = (start - rect.top) / (start - end);
+    var hold = (window.innerHeight || 800) * (Number(root.dataset.travel || 70) / 100);
+    sticky.style.position = 'sticky';
+    sticky.style.top = '0px';
+    sticky.style.height = h + 'px';
+    track.style.height = (h + hold) + 'px';
+    shell.style.marginBottom = (-hold) + 'px';
+  }
+
+  function scrub() {
+    if (!enabled || !track || !sticky) return;
+    var hold = track.offsetHeight - sticky.offsetHeight;
+    var p = hold > 1 ? (-track.getBoundingClientRect().top / hold) : 0;
     if (p < 0) p = 0;
     if (p > 1) p = 1;
-    clip.style.opacity = String(p);
-    clip.style.transform = 'translateY(' + ((1 - p) * 36) + 'px)';
+    board.style.opacity = String(1 - p);
+    board.style.transform = 'translate3d(0,' + (p * -36) + 'px,0)';
+    board.style.clipPath = 'inset(0 0 ' + (p * 100) + '% 0)';
   }
-  fade();
-  window.addEventListener('scroll', fade, { passive: true });
-  window.addEventListener('resize', fade);
+
+  layout();
+  scrub();
+  window.addEventListener('scroll', scrub, { passive: true });
+  window.addEventListener('resize', function () { layout(); scrub(); });
 })();
 </script>
 
@@ -365,20 +379,52 @@
   "tag": "section",
   "class": "vf-hour",
   "settings": [
+    { "type": "header", "content": "Content" },
     { "type": "text", "id": "heading", "label": "Heading", "default": "The happiest hour of the year" },
+    { "type": "range", "id": "heading_size", "label": "Heading size", "min": 28, "max": 72, "step": 2, "unit": "px", "default": 54 },
     { "type": "textarea", "id": "note", "label": "Note", "default": "Sign up to get exclusive access to deals on drinks this holiday season." },
-    { "type": "text", "id": "brand", "label": "Rewards name" },
-    { "type": "text", "id": "button_label", "label": "Button", "default": "Add to cart" },
-    { "type": "collection", "id": "collection", "label": "Collection" },
-    { "type": "range", "id": "limit", "label": "Products", "min": 1, "max": 8, "step": 1, "default": 4 },
-    { "type": "link_list", "id": "menu", "label": "Menu" }
+    { "type": "text", "id": "button_label", "label": "Add to cart label", "default": "Add to cart" },
+    { "type": "text", "id": "sold_out", "label": "Sold out label", "default": "Sold out" },
+    { "type": "text", "id": "price_label", "label": "Price label", "default": "Price" },
+    { "type": "checkbox", "id": "show_price", "label": "Show price", "default": true },
+    { "type": "checkbox", "id": "show_type", "label": "Show product type", "default": true },
+    { "type": "checkbox", "id": "show_arrows", "label": "Show previous and next", "default": true },
+    { "type": "text", "id": "prev_label", "label": "Previous label", "default": "Previous" },
+    { "type": "text", "id": "next_label", "label": "Next label", "default": "Next" },
+
+    { "type": "header", "content": "Products" },
+    { "type": "collection", "id": "collection", "label": "Collection", "info": "When a collection is chosen, it fills the row. Leave it empty to use the product blocks instead." },
+    { "type": "range", "id": "limit", "label": "Products to show", "min": 1, "max": 8, "step": 1, "default": 4 },
+
+    { "type": "header", "content": "Colors" },
+    { "type": "color", "id": "background", "label": "Background", "default": "#ffffff" },
+    { "type": "color", "id": "heading_color", "label": "Heading", "default": "#1b6b45" },
+    { "type": "color", "id": "note_color", "label": "Note", "default": "#b0b0b0" },
+    { "type": "color", "id": "text_color", "label": "Text", "default": "#173024" },
+    { "type": "color", "id": "feature_color", "label": "Feature card", "default": "#1b6b45" },
+    { "type": "color", "id": "card_color", "label": "Side cards", "default": "#f3f1ec" },
+    { "type": "color", "id": "button_color", "label": "Button", "default": "#ffffff" },
+    { "type": "color", "id": "button_text_color", "label": "Button text", "default": "#155838" },
+    { "type": "color", "id": "halo_color", "label": "Halo", "default": "#e7f4ec" },
+    { "type": "checkbox", "id": "show_halo", "label": "Show halo", "default": true },
+
+    { "type": "header", "content": "Layout" },
+    { "type": "range", "id": "side_padding", "label": "Side padding", "min": 0, "max": 80, "step": 2, "unit": "px", "default": 20 },
+    { "type": "range", "id": "card_radius", "label": "Card radius", "min": 0, "max": 48, "step": 2, "unit": "px", "default": 28 },
+
+    { "type": "header", "content": "Scroll" },
+    { "type": "checkbox", "id": "scroll_transition", "label": "Close into the next section on scroll", "default": true },
+    { "type": "range", "id": "scroll_distance", "label": "Close distance", "min": 30, "max": 120, "step": 5, "unit": "vh", "default": 70 }
   ],
   "blocks": [
     {
       "type": "product",
       "name": "Product",
       "settings": [
-        { "type": "product", "id": "product", "label": "Product" }
+        { "type": "product", "id": "product", "label": "Product" },
+        { "type": "image_picker", "id": "image", "label": "Image override" },
+        { "type": "text", "id": "title", "label": "Title override" },
+        { "type": "text", "id": "fact", "label": "Extra fact" }
       ]
     }
   ],
