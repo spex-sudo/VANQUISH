@@ -301,19 +301,19 @@
         "collection": "lexespecs",
         "limit": 4,
         "background": "#ffffff",
-        "heading_color": "#1b6b45",
+        "heading_color": "#000000",
         "note_color": "#b0b0b0",
-        "text_color": "#173024",
-        "feature_color": "#1b6b45",
+        "text_color": "#000000",
+        "feature_color": "#000000",
         "card_color": "#f3f1ec",
         "button_color": "#ffffff",
-        "button_text_color": "#155838",
-        "halo_color": "#e7f4ec",
+        "button_text_color": "#BEBFFF",
+        "halo_color": "#000000",
         "show_halo": true,
         "side_padding": 20,
-        "card_radius": 28,
+        "card_radius": 20,
         "scroll_transition": true,
-        "scroll_distance": 70
+        "scroll_distance": 50
       }
     },
     "vanquish_atelier_nwPpp6": {
