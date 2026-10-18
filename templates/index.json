@@ -289,13 +289,17 @@
         "product_ngiJDY": {
           "type": "product",
           "settings": {
-            "product": ""
+            "product": "",
+            "title": "",
+            "fact": ""
           }
         },
         "product_WKFcj7": {
           "type": "product",
           "settings": {
-            "product": ""
+            "product": "",
+            "title": "",
+            "fact": ""
           }
         }
       },
@@ -305,9 +309,33 @@
       ],
       "name": "Vanquish Field",
       "settings": {
+        "heading": "The happiest hour of the year",
+        "heading_size": 54,
+        "note": "Sign up to get exclusive access to deals on drinks this holiday season.",
         "button_label": "Add to cart",
+        "sold_out": "Sold out",
+        "price_label": "Price",
+        "show_price": true,
+        "show_type": true,
+        "show_arrows": true,
+        "prev_label": "Previous",
+        "next_label": "Next",
         "collection": "lexespecs",
-        "limit": 4
+        "limit": 4,
+        "background": "#ffffff",
+        "heading_color": "#000000",
+        "note_color": "#b0b0b0",
+        "text_color": "#BEBFFF",
+        "feature_color": "#000000",
+        "card_color": "#f3f1ec",
+        "button_color": "#ffffff",
+        "button_text_color": "#000000",
+        "halo_color": "#BEBFFF",
+        "show_halo": true,
+        "side_padding": 4,
+        "card_radius": 32,
+        "scroll_transition": true,
+        "scroll_distance": 70
       }
     },
     "vanquish_atelier_nwPpp6": {
