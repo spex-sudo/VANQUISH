@@ -14,6 +14,14 @@
     "vanquish_atelier_H7GEMT": {
       "type": "vanquish-atelier",
       "blocks": {
+        "magazine_ab9b7m": {
+          "type": "magazine",
+          "settings": {
+            "image": "shopify://shop_images/Fast_be0f393c-2c9d-4be1-aff2-d2cb60929637.jpg",
+            "caption": "",
+            "link": ""
+          }
+        },
         "magazine_jPkpFG": {
           "type": "magazine",
           "settings": {
@@ -88,6 +96,7 @@
         }
       },
       "block_order": [
+        "magazine_ab9b7m",
         "magazine_jPkpFG",
         "magazine_H67mxD",
         "magazine_Th7KGM",
