@@ -533,7 +533,7 @@
         "bg": "#ffffff",
         "fg": "#0a0a0a",
         "card_bg": "#0a0a0a",
-        "accent_color": "#9B6BD1",
+        "accent_color": "#A7A7A7",
         "overlay": 30,
         "mono": true
       }
