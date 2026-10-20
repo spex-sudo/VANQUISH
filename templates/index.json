@@ -361,7 +361,7 @@
         "source_mode": "collection",
         "source_collection": "elitegear",
         "grid_collections": [],
-        "grid_max_products": 10,
+        "grid_max_products": 20,
         "grid_min_soldout": 2,
         "grid_soldout_collection": "",
         "grid_cols_desktop": "4",
