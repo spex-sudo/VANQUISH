@@ -343,11 +343,23 @@
     },
     "luxury_featureproduct_bQ4Apx": {
       "type": "luxury-featureproduct",
+      "blocks": {
+        "product_card_HpdqhW": {
+          "type": "product_card",
+          "settings": {
+            "product": "y2k-oversized-cotton-hoodie-with-embroidered-patch-for-women",
+            "badge": ""
+          }
+        }
+      },
+      "block_order": [
+        "product_card_HpdqhW"
+      ],
       "name": "Apex Featured — Grid",
       "settings": {
         "display_mode": "grid",
         "source_mode": "collection",
-        "source_collection": "lexe",
+        "source_collection": "elitegear",
         "grid_collections": [],
         "grid_max_products": 10,
         "grid_min_soldout": 3,
