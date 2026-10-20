@@ -254,7 +254,7 @@
         "enable_nudge": true,
         "card_radius": 6,
         "card_width_desktop": 59,
-        "card_width_mobile": 79,
+        "card_width_mobile": 82,
         "card_gap": 30,
         "inactive_scale": "0.8",
         "enable_autoscroll": false,
