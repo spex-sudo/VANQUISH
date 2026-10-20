@@ -349,7 +349,7 @@
         "source_mode": "collection",
         "source_collection": "lexe",
         "grid_collections": [],
-        "grid_max_products": 20,
+        "grid_max_products": 10,
         "grid_min_soldout": 3,
         "grid_soldout_collection": "",
         "grid_cols_desktop": "4",
@@ -435,6 +435,107 @@
         "claim_button_label": "Claim now",
         "free_discount_code": "LEXESPECS",
         "layout": "media_first"
+      }
+    },
+    "lexe_collection_strip_qp9g6E": {
+      "type": "lexe-collection-strip",
+      "blocks": {
+        "collection_X7WJR9": {
+          "type": "collection",
+          "settings": {
+            "collection": "lexe",
+            "product": "",
+            "solid": false,
+            "title": "",
+            "link": "",
+            "icon": "jacket"
+          }
+        },
+        "collection_VTtPRa": {
+          "type": "collection",
+          "settings": {
+            "collection": "lexespecs",
+            "product": "",
+            "solid": false,
+            "title": "",
+            "link": "",
+            "icon": "glasses"
+          }
+        },
+        "collection_Aj3VEk": {
+          "type": "collection",
+          "settings": {
+            "collection": "exodus",
+            "product": "",
+            "solid": false,
+            "title": "",
+            "link": "",
+            "icon": "bolt"
+          }
+        },
+        "collection_kHMC7a": {
+          "type": "collection",
+          "settings": {
+            "collection": "women",
+            "product": "",
+            "solid": false,
+            "title": "",
+            "link": "",
+            "icon": "woman"
+          }
+        },
+        "collection_wjQz63": {
+          "type": "collection",
+          "settings": {
+            "collection": "men",
+            "product": "",
+            "solid": false,
+            "title": "",
+            "link": "",
+            "icon": "man"
+          }
+        },
+        "collection_DkqHW7": {
+          "type": "collection",
+          "settings": {
+            "collection": "shoes",
+            "product": "",
+            "solid": false,
+            "title": "",
+            "link": "",
+            "icon": "shoe"
+          }
+        }
+      },
+      "block_order": [
+        "collection_X7WJR9",
+        "collection_VTtPRa",
+        "collection_Aj3VEk",
+        "collection_kHMC7a",
+        "collection_wjQz63",
+        "collection_DkqHW7"
+      ],
+      "name": "Shop by collection",
+      "settings": {
+        "eyebrow": "",
+        "heading": "Shop by collection",
+        "heading_align": "center",
+        "title_font": "oswald_n7",
+        "cta_label": "Shop now",
+        "columns_desktop": 6,
+        "mobile_layout": "grid",
+        "ratio": 100,
+        "gap": 13,
+        "radius": 2,
+        "max_width": 960,
+        "pad_top": 0,
+        "pad_bottom": 0,
+        "bg": "#ffffff",
+        "fg": "#0a0a0a",
+        "card_bg": "#0a0a0a",
+        "accent_color": "#9B6BD1",
+        "overlay": 30,
+        "mono": true
       }
     },
     "vanquish_atelier_RXjYm6": {
@@ -831,6 +932,7 @@
     "luxury_collectiongrid_jpK7Cz",
     "vanquish_field_JN6xGk",
     "luxury_featureproduct_bQ4Apx",
+    "lexe_collection_strip_qp9g6E",
     "vanquish_atelier_RXjYm6",
     "lexe_trust_glass",
     "vanquish_atelier_XfxTnG",
