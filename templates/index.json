@@ -535,7 +535,7 @@
         "card_bg": "#0a0a0a",
         "accent_color": "#A7A7A7",
         "overlay": 30,
-        "mono": true
+        "mono": false
       }
     },
     "vanquish_atelier_RXjYm6": {
