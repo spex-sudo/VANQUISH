@@ -775,103 +775,44 @@
             "padding-inline-end": 0
           },
           "blocks": {
-            "group_AhmaGC": {
-              "type": "group",
-              "name": "t:names.text",
+            "comparison_slider_TdKY49": {
+              "type": "comparison-slider",
+              "name": "t:names.comparison_slider",
               "settings": {
-                "content_direction": "column",
-                "vertical_on_mobile": true,
-                "horizontal_alignment": "flex-start",
-                "vertical_alignment": "center",
-                "align_baseline": false,
-                "horizontal_alignment_flex_direction_column": "center",
-                "vertical_alignment_flex_direction_column": "center",
-                "gap": 12,
+                "before_image": "shopify://shop_images/e6ea2e59c5b248d3996a19d0d4fd9c67-Max-Origin.webp",
+                "after_image": "shopify://shop_images/06bdf970-4401-4a8a-b1d6-105611b6c8fc-Max-Origin.webp",
+                "slider_style": "horizontal",
+                "start_position": 50,
+                "show_hint": true,
+                "show_text": false,
+                "before_text": "Before",
+                "after_text": "After",
+                "text_preset": "",
+                "text_position_horizontal": "start",
+                "text_position_vertical": "start",
+                "text_background": true,
+                "text_background_color": "#111111",
+                "text_corner_radius": 50,
+                "image_ratio": "adapt",
                 "width": "fill",
                 "custom_width": 100,
                 "width_mobile": "fill",
                 "custom_width_mobile": 100,
                 "height": "fit",
-                "custom_height": 100,
+                "accent_color": "#9966CC",
+                "handle_style": "ring",
                 "inherit_color_scheme": true,
                 "color_scheme": "",
-                "background_media": "none",
-                "video_position": "cover",
-                "background_image_position": "cover",
                 "border": "none",
                 "border_width": 1,
                 "border_opacity": 100,
-                "border_radius": 0,
-                "toggle_overlay": false,
-                "overlay_color": "#00000026",
-                "overlay_style": "solid",
-                "gradient_direction": "to top",
-                "link": "",
-                "open_in_new_tab": false,
-                "placeholder": "",
+                "border_radius": 10,
                 "padding-block-start": 0,
                 "padding-block-end": 0,
                 "padding-inline-start": 0,
                 "padding-inline-end": 0
               },
-              "blocks": {
-                "text_EgYLmX": {
-                  "type": "text",
-                  "name": "t:names.heading",
-                  "settings": {
-                    "text": "<h2>Find your perfect fit</h2>",
-                    "width": "fit-content",
-                    "max_width": "normal",
-                    "alignment": "left",
-                    "type_preset": "rte",
-                    "font": "var(--font-body--family)",
-                    "font_size": "1rem",
-                    "line_height": "normal",
-                    "letter_spacing": "normal",
-                    "case": "none",
-                    "wrap": "pretty",
-                    "color": "var(--color-foreground)",
-                    "background": false,
-                    "background_color": "#00000026",
-                    "corner_radius": 0,
-                    "padding-block-start": 0,
-                    "padding-block-end": 0,
-                    "padding-inline-start": 0,
-                    "padding-inline-end": 0
-                  },
-                  "blocks": {}
-                },
-                "text_JKnWYi": {
-                  "type": "text",
-                  "name": "t:names.subheading",
-                  "settings": {
-                    "text": "<p>Discover the best of both worlds</p>",
-                    "width": "fit-content",
-                    "max_width": "normal",
-                    "alignment": "left",
-                    "type_preset": "rte",
-                    "font": "var(--font-body--family)",
-                    "font_size": "1rem",
-                    "line_height": "normal",
-                    "letter_spacing": "normal",
-                    "case": "none",
-                    "wrap": "pretty",
-                    "color": "var(--color-foreground)",
-                    "background": false,
-                    "background_color": "#00000026",
-                    "corner_radius": 0,
-                    "padding-block-start": 0,
-                    "padding-block-end": 0,
-                    "padding-inline-start": 0,
-                    "padding-inline-end": 0
-                  },
-                  "blocks": {}
-                }
-              },
-              "block_order": [
-                "text_EgYLmX",
-                "text_JKnWYi"
-              ]
+              "blocks": {}
             },
             "group_jXC8VM": {
               "type": "group",
@@ -951,7 +892,7 @@
             }
           },
           "block_order": [
-            "group_AhmaGC",
+            "comparison_slider_TdKY49",
             "group_jXC8VM"
           ]
         },
