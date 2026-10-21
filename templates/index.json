@@ -165,6 +165,20 @@
     "luxury_collectiongrid_jpK7Cz": {
       "type": "luxury-collectiongrid",
       "blocks": {
+        "collection_yqmqmM": {
+          "type": "collection",
+          "settings": {
+            "collection": "vivgea",
+            "status_text": "SYSTEM_READY",
+            "status_color": "#d4af37",
+            "cta_label": "Enter",
+            "price_from": "",
+            "badge_text": "",
+            "badge_bg": "#000000",
+            "badge_text_color": "#ff4d4d",
+            "lock_collection": false
+          }
+        },
         "collection_4jbHhB": {
           "type": "collection",
           "settings": {
@@ -223,6 +237,7 @@
         }
       },
       "block_order": [
+        "collection_yqmqmM",
         "collection_4jbHhB",
         "collection_DiKhV7",
         "collection_bi6Lmy",
