@@ -775,6 +775,32 @@
             "padding-inline-end": 0
           },
           "blocks": {
+            "text_GRNNKL": {
+              "type": "text",
+              "name": "t:names.text",
+              "settings": {
+                "text": "<p>Leather creases, ours doesn’t. We make faux apparel that work better and last longer. Our products solve real problems with clean design and honest materials.</p>",
+                "width": "fit-content",
+                "max_width": "normal",
+                "alignment": "left",
+                "type_preset": "rte",
+                "font": "var(--font-body--family)",
+                "font_size": "1rem",
+                "line_height": "normal",
+                "letter_spacing": "normal",
+                "case": "none",
+                "wrap": "pretty",
+                "color": "var(--color-foreground)",
+                "background": true,
+                "background_color": "#FFFFFF",
+                "corner_radius": 0,
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            },
             "comparison_slider_TdKY49": {
               "type": "comparison-slider",
               "name": "t:names.comparison_slider",
@@ -813,130 +839,16 @@
                 "padding-inline-end": 0
               },
               "blocks": {}
-            },
-            "group_jXC8VM": {
-              "type": "group",
-              "name": "t:names.buttons",
-              "settings": {
-                "content_direction": "row",
-                "vertical_on_mobile": false,
-                "horizontal_alignment": "center",
-                "vertical_alignment": "center",
-                "align_baseline": false,
-                "horizontal_alignment_flex_direction_column": "flex-start",
-                "vertical_alignment_flex_direction_column": "center",
-                "gap": 12,
-                "width": "fill",
-                "custom_width": 100,
-                "width_mobile": "fill",
-                "custom_width_mobile": 100,
-                "height": "fit",
-                "custom_height": 100,
-                "inherit_color_scheme": true,
-                "color_scheme": "",
-                "background_media": "none",
-                "video_position": "cover",
-                "background_image_position": "cover",
-                "border": "none",
-                "border_width": 1,
-                "border_opacity": 100,
-                "border_radius": 0,
-                "toggle_overlay": false,
-                "overlay_color": "#00000026",
-                "overlay_style": "solid",
-                "gradient_direction": "to top",
-                "link": "",
-                "open_in_new_tab": false,
-                "placeholder": "",
-                "padding-block-start": 0,
-                "padding-block-end": 0,
-                "padding-inline-start": 0,
-                "padding-inline-end": 0
-              },
-              "blocks": {
-                "button_kbBC4m": {
-                  "type": "button",
-                  "name": "t:names.button",
-                  "settings": {
-                    "label": "View all",
-                    "link": "shopify://collections/all",
-                    "open_in_new_tab": false,
-                    "style_class": "button-secondary",
-                    "width": "fit-content",
-                    "custom_width": 34,
-                    "width_mobile": "fit-content",
-                    "custom_width_mobile": 34
-                  },
-                  "blocks": {}
-                },
-                "button_zka8MP": {
-                  "type": "button",
-                  "name": "t:names.button",
-                  "settings": {
-                    "label": "Shop now",
-                    "link": "shopify://collections/all",
-                    "open_in_new_tab": false,
-                    "style_class": "button-secondary",
-                    "width": "fit-content",
-                    "custom_width": 34,
-                    "width_mobile": "fit-content",
-                    "custom_width_mobile": 34
-                  },
-                  "blocks": {}
-                }
-              },
-              "block_order": [
-                "button_kbBC4m",
-                "button_zka8MP"
-              ]
             }
           },
           "block_order": [
-            "comparison_slider_TdKY49",
-            "group_jXC8VM"
+            "text_GRNNKL",
+            "comparison_slider_TdKY49"
           ]
-        },
-        "comparison_slider_eqA9BA": {
-          "type": "comparison-slider",
-          "name": "t:names.comparison_slider",
-          "settings": {
-            "slider_style": "horizontal",
-            "start_position": 50,
-            "show_hint": true,
-            "show_text": false,
-            "before_text": "Before",
-            "after_text": "After",
-            "text_preset": "",
-            "text_position_horizontal": "start",
-            "text_position_vertical": "start",
-            "text_background": true,
-            "text_background_color": "#111111",
-            "text_corner_radius": 50,
-            "image_ratio": "landscape",
-            "width": "custom",
-            "custom_width": 65,
-            "width_mobile": "fill",
-            "custom_width_mobile": 100,
-            "height": "fit",
-            "accent_color": "#9966CC",
-            "handle_style": "ring",
-            "inherit_color_scheme": true,
-            "color_scheme": "",
-            "border": "none",
-            "border_width": 1,
-            "border_opacity": 100,
-            "border_radius": 10,
-            "padding-block-start": 0,
-            "padding-block-end": 0,
-            "padding-inline-start": 0,
-            "padding-inline-end": 0
-          },
-          "blocks": {}
         }
       },
       "block_order": [
-        "group_xDN68K",
-        "comparison_slider_eqA9BA"
+        "group_xDN68K"
       ],
       "name": "t:names.image_compare",
       "settings": {
