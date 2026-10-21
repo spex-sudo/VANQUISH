@@ -754,7 +754,7 @@
         "grid_price_font": "system_ui_n4",
         "grid_vendor_font": "system_ui_n4",
         "grid_hero_first": false,
-        "grid_hero_product": "backless-lexeavita-dress",
+        "grid_hero_product": "",
         "grid_hero_aspect": "3 / 4",
         "grid_aspect": "4 / 5",
         "grid_second_image": false,
