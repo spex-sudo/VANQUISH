@@ -141,69 +141,25 @@
     },
     "lexe_specs_offer_yxf6P8": {
       "type": "lexe-specs-offer",
-      "name": "LEXE Specs offer signup",
-      "settings": {
-        "gift_product": "",
-        "gift_product_2": "",
-        "eligible_url": "",
-        "code": "LEXESPECS",
-        "threshold": "$45",
-        "heading": "BE THE FIRST TO KNOW",
-        "text": "Join the LEXE waitlist and claim your spot as a loyal member of our studio.",
-        "button_label": "JOIN",
-        "consent": "You're joining LEXE emails about new pieces and drops. No spam. Unsubscribe anytime.",
-        "success_heading": "You're on the list",
-        "terms": "One use per customer.",
-        "bg_color": "#ffffff",
-        "text_color": "#2e2e2e",
-        "accent_color": "#000000",
-        "padding_top": 24,
-        "padding_bottom": 32,
-        "presentation": "stack"
-      },
       "blocks": {
-        "funnel_products": {
-          "type": "funnel",
-          "settings": {
-            "purpose": "product",
-            "kicker": "LEXE",
-            "heading": "Shop the drop",
-            "nav_label": "Products",
-            "collection": "lexe",
-            "button_label": "Shop",
-            "tone": "paper",
-            "object": "photo",
-            "side": "start",
-            "inline_form": false
-          }
-        },
-        "funnel_services": {
-          "type": "funnel",
-          "settings": {
-            "purpose": "service",
-            "heading": "Studio\nsupport",
-            "nav_label": "Services",
-            "text": "Text the studio",
-            "link": "https://wa.me/18765759791",
-            "button_label": "Ask",
-            "tone": "ink",
-            "object": "disc",
-            "side": "end",
-            "inline_form": false
-          }
-        },
-        "funnel_waitlist": {
+        "funnel_RjanA9": {
           "type": "funnel",
           "settings": {
             "purpose": "waitlist",
-            "kicker": "Waitlist",
+            "nav_label": "",
+            "kicker": "Giveaways, discounts, events.",
             "heading": "BE THE FIRST TO KNOW",
-            "nav_label": "Waitlist",
-            "mark": "♥",
-            "button_label": "JOIN",
+            "text": "",
+            "mark": "SUBSCRIBE",
+            "image": "shopify://shop_images/e8707408b2ba4574b6de54df162860b4-Max-Origin.webp",
+            "product": "",
+            "collection": "",
+            "link": "",
+            "button_label": "",
+            "tags": "",
             "tone": "paper",
-            "object": "mark",
-            "side": "start",
+            "object": "photo",
+            "side": "auto",
             "inline_form": true
           }
         },
@@ -211,12 +167,16 @@
           "type": "funnel",
           "settings": {
             "purpose": "contact",
-            "heading": "Talk\nto us",
             "nav_label": "Contact",
+            "kicker": "",
+            "heading": "Talk\nto us",
             "text": "Orders, fits, anything.",
             "mark": "HI",
+            "product": "",
+            "collection": "",
             "link": "shopify://pages/contact-us",
             "button_label": "Write",
+            "tags": "",
             "tone": "ink",
             "object": "mark",
             "side": "start",
@@ -225,11 +185,36 @@
         }
       },
       "block_order": [
-        "funnel_products",
-        "funnel_services",
-        "funnel_waitlist",
+        "funnel_RjanA9",
         "funnel_contact"
-      ]
+      ],
+      "name": "LEXE Specs offer signup",
+      "settings": {
+        "presentation": "stack",
+        "heading": "BE THE FIRST TO KNOW",
+        "text": "Join the LEXE waitlist and claim your spot as a loyal member of our studio.",
+        "button_label": "JOIN",
+        "consent": "You're joining LEXE emails about new pieces and drops. No spam. Unsubscribe anytime.",
+        "success_heading": "You're on the list",
+        "customer_tags": "newsletter,specs-offer",
+        "gift_product": "",
+        "gift_product_2": "",
+        "eligible_url": "",
+        "code": "LEXESPECS",
+        "threshold": "$45",
+        "terms": "One use per customer.",
+        "product_collection": "",
+        "service_link": "",
+        "contact_link": "",
+        "bg_color": "#ffffff",
+        "text_color": "#2e2e2e",
+        "paper_color": "#f1f1ef",
+        "ink_color": "#111111",
+        "accent_color": "#000000",
+        "accent_text": "#ffffff",
+        "padding_top": 24,
+        "padding_bottom": 32
+      }
     },
     "luxury_footer_gbxGDK": {
       "type": "luxury-footer",
