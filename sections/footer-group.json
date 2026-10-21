@@ -142,6 +142,26 @@
     "lexe_specs_offer_yxf6P8": {
       "type": "lexe-specs-offer",
       "blocks": {
+        "funnel_CkEVLy": {
+          "type": "funnel",
+          "settings": {
+            "purpose": "link",
+            "nav_label": "",
+            "kicker": "IF YOURE HERE FOR BUISNESS",
+            "heading": "SERVICES",
+            "text": "",
+            "mark": "VIEW",
+            "product": "",
+            "collection": "",
+            "link": "",
+            "button_label": "",
+            "tags": "",
+            "tone": "paper",
+            "object": "auto",
+            "side": "auto",
+            "inline_form": true
+          }
+        },
         "funnel_RjanA9": {
           "type": "funnel",
           "settings": {
@@ -185,6 +205,7 @@
         }
       },
       "block_order": [
+        "funnel_CkEVLy",
         "funnel_RjanA9",
         "funnel_contact"
       ],
