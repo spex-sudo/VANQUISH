@@ -158,8 +158,78 @@
         "text_color": "#2e2e2e",
         "accent_color": "#000000",
         "padding_top": 24,
-        "padding_bottom": 32
-      }
+        "padding_bottom": 32,
+        "presentation": "stack"
+      },
+      "blocks": {
+        "funnel_products": {
+          "type": "funnel",
+          "settings": {
+            "purpose": "product",
+            "kicker": "LEXE",
+            "heading": "Shop the drop",
+            "nav_label": "Products",
+            "collection": "lexe",
+            "button_label": "Shop",
+            "tone": "paper",
+            "object": "photo",
+            "side": "start",
+            "inline_form": false
+          }
+        },
+        "funnel_services": {
+          "type": "funnel",
+          "settings": {
+            "purpose": "service",
+            "heading": "Studio\nsupport",
+            "nav_label": "Services",
+            "text": "Text the studio",
+            "link": "https://wa.me/18765759791",
+            "button_label": "Ask",
+            "tone": "ink",
+            "object": "disc",
+            "side": "end",
+            "inline_form": false
+          }
+        },
+        "funnel_waitlist": {
+          "type": "funnel",
+          "settings": {
+            "purpose": "waitlist",
+            "kicker": "Waitlist",
+            "heading": "BE THE FIRST TO KNOW",
+            "nav_label": "Waitlist",
+            "mark": "♥",
+            "button_label": "JOIN",
+            "tone": "paper",
+            "object": "mark",
+            "side": "start",
+            "inline_form": true
+          }
+        },
+        "funnel_contact": {
+          "type": "funnel",
+          "settings": {
+            "purpose": "contact",
+            "heading": "Talk\nto us",
+            "nav_label": "Contact",
+            "text": "Orders, fits, anything.",
+            "mark": "HI",
+            "link": "shopify://pages/contact-us",
+            "button_label": "Write",
+            "tone": "ink",
+            "object": "mark",
+            "side": "start",
+            "inline_form": false
+          }
+        }
+      },
+      "block_order": [
+        "funnel_products",
+        "funnel_services",
+        "funnel_waitlist",
+        "funnel_contact"
+      ]
     },
     "luxury_footer_gbxGDK": {
       "type": "luxury-footer",
