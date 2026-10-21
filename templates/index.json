@@ -467,6 +467,28 @@
     "lexe_collection_strip_qp9g6E": {
       "type": "lexe-collection-strip",
       "blocks": {
+        "collection_ERp7fE": {
+          "type": "collection",
+          "settings": {
+            "collection": "cera-e",
+            "product": "",
+            "solid": false,
+            "title": "",
+            "link": "",
+            "icon": "none"
+          }
+        },
+        "collection_qc6Mr3": {
+          "type": "collection",
+          "settings": {
+            "collection": "vivgea",
+            "product": "",
+            "solid": false,
+            "title": "",
+            "link": "",
+            "icon": "man"
+          }
+        },
         "collection_GpG4Cn": {
           "type": "collection",
           "settings": {
@@ -513,6 +535,8 @@
         }
       },
       "block_order": [
+        "collection_ERp7fE",
+        "collection_qc6Mr3",
         "collection_GpG4Cn",
         "collection_eY6Dc9",
         "collection_VTtPRa",
