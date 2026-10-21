@@ -570,16 +570,11 @@
       "name": "Product Atelier",
       "settings": {
         "display_mode": "products",
-        "products": [
-          "jade-roller",
-          "cerave-hydrating-foaming-oil-cleanser",
-          "cerave-hydrating-cream-to-foam-cleanser",
-          "cerave-sa-smoothing-cleanserrandom-packaging"
-        ],
-        "collection": "",
+        "products": [],
+        "collection": "vivgea",
         "card_count": 8,
-        "show_header": true,
-        "title": "CERA>e",
+        "show_header": false,
+        "title": "",
         "show_arrows": true,
         "card_shape": "squircle",
         "landscape_ratio": "4 / 3",
