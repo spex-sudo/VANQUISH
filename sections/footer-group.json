@@ -213,9 +213,9 @@
       "settings": {
         "presentation": "stack",
         "heading": "BE THE FIRST TO KNOW",
-        "text": "Join the LEXE waitlist and claim your spot as a loyal member of our studio.",
+        "text": "",
         "button_label": "JOIN",
-        "consent": "You're joining LEXE emails about new pieces and drops. No spam. Unsubscribe anytime.",
+        "consent": "No spam. Unsubscribe anytime.",
         "success_heading": "You're on the list",
         "customer_tags": "newsletter,specs-offer",
         "gift_product": "",
