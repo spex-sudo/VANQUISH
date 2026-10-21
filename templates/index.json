@@ -773,7 +773,7 @@
         "options_text": "Choose Options",
         "added_text": "Added",
         "show_vendor": false,
-        "autoscroll_enabled": false,
+        "autoscroll_enabled": true,
         "show_second_row": false,
         "row1_direction": "left",
         "row2_direction": "right",
