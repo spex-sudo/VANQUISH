@@ -153,13 +153,13 @@
             "mark": "VIEW",
             "product": "",
             "collection": "",
-            "link": "",
+            "link": "shopify://pages/web-design",
             "button_label": "",
             "tags": "",
             "tone": "paper",
             "object": "auto",
             "side": "auto",
-            "inline_form": true
+            "inline_form": false
           }
         },
         "funnel_RjanA9": {
