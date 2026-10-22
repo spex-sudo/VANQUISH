@@ -9,18 +9,103 @@
  */
 {
   "sections": {
-    "divider_4V93Fq": {
-      "type": "divider",
-      "name": "t:names.divider_section",
+    "luxury_hero_yzmJ8b": {
+      "type": "luxury-hero",
+      "blocks": {
+        "heading_9cc9Tr": {
+          "type": "heading",
+          "settings": {
+            "title": "CONTENT CREATORS"
+          }
+        },
+        "text_ieTpyz": {
+          "type": "text",
+          "settings": {
+            "subtext": "<p>Luxury design for high-performance brands.</p>"
+          }
+        },
+        "button_yd3nFP": {
+          "type": "button",
+          "settings": {
+            "label": "Explore Now",
+            "link": ""
+          }
+        }
+      },
+      "block_order": [
+        "heading_9cc9Tr",
+        "text_ieTpyz",
+        "button_yd3nFP"
+      ],
+      "name": "Ultimate Hero V11 + Signature Wall",
       "settings": {
-        "color_scheme": "",
-        "section_width": "full-width",
-        "thickness": 2.5,
-        "corner_radius": "square",
-        "width_percent": 100,
-        "alignment_horizontal": "center",
-        "padding-block-start": 83,
-        "padding-block-end": 44
+        "video_link": "",
+        "image_fit": "cover",
+        "height": 90,
+        "height_mobile": 80,
+        "content_width": 800,
+        "horizontal_alignment": "center",
+        "vertical_alignment": "center",
+        "text_align": "center",
+        "btn_style": "ghost",
+        "btn_radius": 0,
+        "bg_color": "#000000",
+        "text_color": "#ffffff",
+        "overlay_color": "#000000",
+        "overlay_opacity": 40,
+        "title_size": 6,
+        "show_scroll": true,
+        "social_color": "#ffffff",
+        "social_pos_x": 90,
+        "social_pos_y": 50,
+        "social_anchor_x": 50,
+        "social_anchor_y": 50,
+        "social_direction": "column",
+        "about_card_bg": "#0d0d0d",
+        "about_text_color": "#ffffff",
+        "about_accent_color": "#fcfafdff",
+        "about_card_radius": 12,
+        "about_card_width": 500,
+        "about_title_size": 3,
+        "about_title_weight": "300",
+        "about_font": "",
+        "wall_names": "Alex,Sam,Jordan,Riley,Morgan,Casey,Taylor,Jamie,Drew,Quinn,Avery,Blake,Cameron,Dakota,Emery,Finley,Harper,Indigo,Jesse,Kennedy,Logan,Marlowe,Nico,Oakley,Parker,Reese,Sage,Sloane,Stevie,Tatum,Uma,Val,Winter,Xander,Yael,Zuri,Ash,Bay,Cedar,Delta,Echo,Fern,Grey,Harbor,Iris,Juniper,Knox,Linden,Moss,North",
+        "wall_font": "",
+        "wall_color_1": "#ffffff",
+        "wall_color_2": "#BEBFFF",
+        "wall_color_3": "#aaaaaa",
+        "wall_color_4": "#e8e8e8",
+        "wall_color_5": "#cccccc",
+        "wall_scrim_color": "#000000",
+        "wall_scrim_opacity": 30,
+        "wall_btn_style": "glass",
+        "wall_btn_label_show": "Supporters",
+        "wall_btn_label_hide": "Hide wall",
+        "wall_btn_size": 11,
+        "wall_btn_pad_x": 18,
+        "wall_btn_pad_y": 11,
+        "wall_btn_radius": 50,
+        "wall_btn_x": 50,
+        "wall_btn_y": 88,
+        "wall_btn_anchor_x": 50,
+        "wall_btn_anchor_y": 50,
+        "addname_pos_x": 50,
+        "addname_pos_y": 93,
+        "addname_anchor_x": 50,
+        "addname_anchor_y": 50,
+        "addname_btn_label": "Add my name",
+        "addname_eyebrow": "Join the community",
+        "addname_heading": "Add Your Name",
+        "addname_subtext": "Be part of something. Your nickname will appear on the wall once approved.",
+        "addname_nick_placeholder": "Your nickname",
+        "addname_email_placeholder": "your@email.com",
+        "addname_consent_text": "I agree to appear on the supporter wall and accept the",
+        "addname_privacy_label": "Privacy Policy",
+        "addname_privacy_url": "",
+        "addname_submit_label": "Add Me to the Wall",
+        "addname_submit_loading": "Sending…",
+        "addname_success_title": "You're on the list!",
+        "addname_success_body": "Thanks for joining. Your name will appear on the wall after a quick review — usually within 24 hours."
       }
     },
     "vanquish_field_TYX9FK": {
@@ -634,105 +719,6 @@
         "padding-block-end": 40
       }
     },
-    "luxury_hero_yzmJ8b": {
-      "type": "luxury-hero",
-      "blocks": {
-        "heading_9cc9Tr": {
-          "type": "heading",
-          "settings": {
-            "title": "CONTENT CREATORS"
-          }
-        },
-        "text_ieTpyz": {
-          "type": "text",
-          "settings": {
-            "subtext": "<p>Luxury design for high-performance brands.</p>"
-          }
-        },
-        "button_yd3nFP": {
-          "type": "button",
-          "settings": {
-            "label": "Explore Now",
-            "link": ""
-          }
-        }
-      },
-      "block_order": [
-        "heading_9cc9Tr",
-        "text_ieTpyz",
-        "button_yd3nFP"
-      ],
-      "name": "Ultimate Hero V11 + Signature Wall",
-      "settings": {
-        "video_link": "",
-        "image_fit": "cover",
-        "height": 90,
-        "height_mobile": 80,
-        "content_width": 800,
-        "horizontal_alignment": "center",
-        "vertical_alignment": "center",
-        "text_align": "center",
-        "btn_style": "ghost",
-        "btn_radius": 0,
-        "bg_color": "#000000",
-        "text_color": "#ffffff",
-        "overlay_color": "#000000",
-        "overlay_opacity": 40,
-        "title_size": 6,
-        "show_scroll": true,
-        "social_color": "#ffffff",
-        "social_pos_x": 90,
-        "social_pos_y": 50,
-        "social_anchor_x": 50,
-        "social_anchor_y": 50,
-        "social_direction": "column",
-        "about_card_bg": "#0d0d0d",
-        "about_text_color": "#ffffff",
-        "about_accent_color": "#fcfafdff",
-        "about_card_radius": 12,
-        "about_card_width": 500,
-        "about_title_size": 3,
-        "about_title_weight": "300",
-        "about_font": "",
-        "wall_names": "Alex,Sam,Jordan,Riley,Morgan,Casey,Taylor,Jamie,Drew,Quinn,Avery,Blake,Cameron,Dakota,Emery,Finley,Harper,Indigo,Jesse,Kennedy,Logan,Marlowe,Nico,Oakley,Parker,Reese,Sage,Sloane,Stevie,Tatum,Uma,Val,Winter,Xander,Yael,Zuri,Ash,Bay,Cedar,Delta,Echo,Fern,Grey,Harbor,Iris,Juniper,Knox,Linden,Moss,North",
-        "wall_font": "",
-        "wall_color_1": "#ffffff",
-        "wall_color_2": "#BEBFFF",
-        "wall_color_3": "#aaaaaa",
-        "wall_color_4": "#e8e8e8",
-        "wall_color_5": "#cccccc",
-        "wall_scrim_color": "#000000",
-        "wall_scrim_opacity": 30,
-        "wall_btn_style": "glass",
-        "wall_btn_label_show": "Supporters",
-        "wall_btn_label_hide": "Hide wall",
-        "wall_btn_size": 11,
-        "wall_btn_pad_x": 18,
-        "wall_btn_pad_y": 11,
-        "wall_btn_radius": 50,
-        "wall_btn_x": 50,
-        "wall_btn_y": 88,
-        "wall_btn_anchor_x": 50,
-        "wall_btn_anchor_y": 50,
-        "addname_pos_x": 50,
-        "addname_pos_y": 93,
-        "addname_anchor_x": 50,
-        "addname_anchor_y": 50,
-        "addname_btn_label": "Add my name",
-        "addname_eyebrow": "Join the community",
-        "addname_heading": "Add Your Name",
-        "addname_subtext": "Be part of something. Your nickname will appear on the wall once approved.",
-        "addname_nick_placeholder": "Your nickname",
-        "addname_email_placeholder": "your@email.com",
-        "addname_consent_text": "I agree to appear on the supporter wall and accept the",
-        "addname_privacy_label": "Privacy Policy",
-        "addname_privacy_url": "",
-        "addname_submit_label": "Add Me to the Wall",
-        "addname_submit_loading": "Sending…",
-        "addname_success_title": "You're on the list!",
-        "addname_success_body": "Thanks for joining. Your name will appear on the wall after a quick review — usually within 24 hours."
-      }
-    },
     "section_rC4NMc": {
       "type": "section",
       "blocks": {
@@ -828,7 +814,6 @@
     }
   },
   "order": [
-    "divider_4V93Fq",
     "luxury_hero_yzmJ8b",
     "vanquish_field_TYX9FK",
     "main",
