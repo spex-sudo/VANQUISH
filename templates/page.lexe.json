@@ -9,6 +9,62 @@
  */
 {
   "sections": {
+    "divider_4V93Fq": {
+      "type": "divider",
+      "name": "t:names.divider_section",
+      "settings": {
+        "color_scheme": "",
+        "section_width": "full-width",
+        "thickness": 2.5,
+        "corner_radius": "square",
+        "width_percent": 100,
+        "alignment_horizontal": "center",
+        "padding-block-start": 83,
+        "padding-block-end": 44
+      }
+    },
+    "vanquish_field_TYX9FK": {
+      "type": "vanquish-field",
+      "name": "Vanquish Field",
+      "settings": {
+        "heading": "WEB DESIGN",
+        "heading_font": "syne_n8",
+        "body_font": "space_grotesk_n4",
+        "heading_size": 28,
+        "note_size": 13,
+        "product_title_size": 20,
+        "price_size": 12,
+        "button_size": 12,
+        "image_size": 160,
+        "note": "There’s nothing we can’t build.",
+        "quick_label": "Quick Add",
+        "sold_out": "Sold out",
+        "price_label": "Price",
+        "show_price": true,
+        "show_type": true,
+        "show_arrows": true,
+        "prev_label": "Previous",
+        "next_label": "Next",
+        "collection": "",
+        "limit": 4,
+        "background": "#ffffff",
+        "heading_color": "#000000",
+        "note_color": "#424242",
+        "text_color": "#173024",
+        "feature_color": "#000000",
+        "card_color": "#f3f1ec",
+        "button_color": "#ffffff",
+        "button_text_color": "#FFFFFF",
+        "halo_color": "#CBCBCB",
+        "show_halo": true,
+        "float_mode": "paper",
+        "side_padding": 20,
+        "card_radius": 28,
+        "image_radius": 24,
+        "scroll_transition": true,
+        "scroll_distance": 70
+      }
+    },
     "main": {
       "type": "main-page",
       "blocks": {
@@ -58,6 +114,8 @@
     }
   },
   "order": [
+    "divider_4V93Fq",
+    "vanquish_field_TYX9FK",
     "main"
   ]
 }
