@@ -117,7 +117,7 @@
         "card_color": "#f3f1ec",
         "button_color": "#ffffff",
         "button_text_color": "#FFFFFF",
-        "halo_color": "#E4E4FF",
+        "halo_color": "#D5FFDB",
         "show_halo": true,
         "float_mode": "pins",
         "side_padding": 20,
