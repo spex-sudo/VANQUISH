@@ -825,7 +825,7 @@
                 "after_image": "shopify://shop_images/d11e9cf7400a437f80777543cb38bfe6-Max-Origin.webp",
                 "slider_style": "horizontal",
                 "start_position": 50,
-                "show_hint": false,
+                "show_hint": true,
                 "show_text": false,
                 "before_text": "Y2k",
                 "after_text": "Classy",
