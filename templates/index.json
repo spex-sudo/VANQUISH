@@ -165,6 +165,20 @@
     "luxury_collectiongrid_jpK7Cz": {
       "type": "luxury-collectiongrid",
       "blocks": {
+        "collection_TjwXba": {
+          "type": "collection",
+          "settings": {
+            "collection": "",
+            "status_text": "SYSTEM_READY",
+            "status_color": "#d4af37",
+            "cta_label": "Enter",
+            "price_from": "",
+            "badge_text": "",
+            "badge_bg": "#000000",
+            "badge_text_color": "#ff4d4d",
+            "lock_collection": false
+          }
+        },
         "collection_yqmqmM": {
           "type": "collection",
           "settings": {
@@ -237,6 +251,7 @@
         }
       },
       "block_order": [
+        "collection_TjwXba",
         "collection_yqmqmM",
         "collection_zcXzR6",
         "collection_DiKhV7",
@@ -810,7 +825,7 @@
                 "slider_style": "horizontal",
                 "start_position": 50,
                 "show_hint": false,
-                "show_text": true,
+                "show_text": false,
                 "before_text": "Y2k",
                 "after_text": "Classy",
                 "text_preset": "h6",
@@ -826,7 +841,7 @@
                 "custom_width_mobile": 100,
                 "height": "fit",
                 "accent_color": "#000000",
-                "handle_style": "ring",
+                "handle_style": "accent",
                 "inherit_color_scheme": true,
                 "color_scheme": "",
                 "border": "none",
