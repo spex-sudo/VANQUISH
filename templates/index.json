@@ -891,7 +891,7 @@
                   "name": "t:names.button",
                   "settings": {
                     "label": "View all",
-                    "link": "shopify://collections/all",
+                    "link": "shopify://collections/shewild",
                     "open_in_new_tab": false,
                     "style_class": "button-secondary",
                     "width": "fit-content",
@@ -905,9 +905,9 @@
                   "type": "button",
                   "name": "t:names.button",
                   "settings": {
-                    "label": "Shop now",
-                    "link": "shopify://collections/all",
-                    "open_in_new_tab": false,
+                    "label": "Buy now",
+                    "link": "shopify://products/plaid-long-sleeve-slim-fit-t-shirt",
+                    "open_in_new_tab": true,
                     "style_class": "button-secondary",
                     "width": "fit-content",
                     "custom_width": 34,
