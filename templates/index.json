@@ -133,7 +133,7 @@
         "image_b_video_controls": false,
         "product": "digital-product",
         "product_image_position": 0,
-        "product_image_crop": "50% 70%",
+        "product_image_crop": "40% 60%",
         "product_kicker": "",
         "product_cta": "Explore",
         "product_video_url": "",
