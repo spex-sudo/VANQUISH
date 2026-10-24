@@ -79,7 +79,7 @@
     "variant_button_border_width": 1,
     "variant_button_radius": 2,
     "variant_button_width": "equal-width-buttons",
-    "login_required_collections": "",
+    "login_required_collections": "MAZE",
     "lexe_lock_notify": true,
     "lexe_credit_show": true,
     "lexe_cart_terms": true,
