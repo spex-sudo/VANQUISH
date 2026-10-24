@@ -561,7 +561,7 @@
       "name": "Shop by collection",
       "settings": {
         "eyebrow": "",
-        "heading": "Shop by category",
+        "heading": "Browse Creators",
         "heading_align": "center",
         "title_font": "syne_n8",
         "cta_label": "Shop now",
@@ -569,7 +569,7 @@
         "mobile_layout": "grid",
         "ratio": 100,
         "gap": 6,
-        "radius": 2,
+        "radius": 10,
         "max_width": 960,
         "pad_top": 0,
         "pad_bottom": 0,
