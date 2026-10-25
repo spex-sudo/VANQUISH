@@ -211,7 +211,7 @@
       ],
       "name": "LEXE Specs offer signup",
       "settings": {
-        "presentation": "stack",
+        "presentation": "fuse",
         "heading": "BE THE FIRST TO KNOW",
         "text": "",
         "button_label": "Subscribe",
