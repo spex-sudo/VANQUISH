@@ -63,7 +63,7 @@
         "social_direction": "column",
         "about_card_bg": "#0d0d0d",
         "about_text_color": "#ffffff",
-        "about_accent_color": "#fcfafdff",
+        "about_accent_color": "#fcfafd",
         "about_card_radius": 12,
         "about_card_width": 500,
         "about_title_size": 3,
@@ -72,7 +72,7 @@
         "wall_names": "Alex,Sam,Jordan,Riley,Morgan,Casey,Taylor,Jamie,Drew,Quinn,Avery,Blake,Cameron,Dakota,Emery,Finley,Harper,Indigo,Jesse,Kennedy,Logan,Marlowe,Nico,Oakley,Parker,Reese,Sage,Sloane,Stevie,Tatum,Uma,Val,Winter,Xander,Yael,Zuri,Ash,Bay,Cedar,Delta,Echo,Fern,Grey,Harbor,Iris,Juniper,Knox,Linden,Moss,North",
         "wall_font": "",
         "wall_color_1": "#ffffff",
-        "wall_color_2": "#BEBFFF",
+        "wall_color_2": "#bebfff",
         "wall_color_3": "#aaaaaa",
         "wall_color_4": "#e8e8e8",
         "wall_color_5": "#cccccc",
@@ -642,7 +642,7 @@
             "text_wbXCxn": {
               "type": "text",
               "settings": {
-                "text": "<p>Made with care and unconditionally loved by our customers, this signature bestseller exceeds all expectations.</p>",
+                "text": "<p>Experienced collaborator who is prepared to exceed our expectations.</p>",
                 "width": "fit-content",
                 "max_width": "narrow",
                 "alignment": "left",
