@@ -704,97 +704,26 @@
         "padding-block-end": 40
       }
     },
-    "section_rC4NMc": {
-      "type": "section",
-      "blocks": {
-        "text_Bp7Bmr": {
-          "type": "text",
-          "settings": {
-            "text": "<h2>APPLY</h2>",
-            "width": "100%",
-            "max_width": "normal",
-            "alignment": "left",
-            "type_preset": "h6",
-            "font": "var(--font-body--family)",
-            "font_size": "",
-            "line_height": "normal",
-            "letter_spacing": "normal",
-            "case": "none",
-            "wrap": "pretty",
-            "color": "var(--color-foreground)",
-            "background": false,
-            "background_color": "#00000026",
-            "corner_radius": 0,
-            "padding-block-start": 0,
-            "padding-block-end": 0,
-            "padding-inline-start": 0,
-            "padding-inline-end": 0
-          },
-          "blocks": {}
-        },
-        "contact_form_yKMdaQ": {
-          "type": "contact-form",
-          "settings": {
-            "width": "custom",
-            "custom_width": 50,
-            "width_mobile": "custom",
-            "custom_width_mobile": 100,
-            "inherit_color_scheme": true,
-            "color_scheme": "",
-            "padding-block-start": 0,
-            "padding-block-end": 0,
-            "padding-inline-start": 0,
-            "padding-inline-end": 0
-          },
-          "blocks": {
-            "submit-button": {
-              "type": "contact-form-submit-button",
-              "static": true,
-              "settings": {
-                "label": "Submit",
-                "style_class": "button",
-                "width": "fit-content",
-                "custom_width": 100,
-                "width_mobile": "fit-content",
-                "custom_width_mobile": 100
-              },
-              "blocks": {}
-            }
-          },
-          "block_order": []
-        }
-      },
-      "block_order": [
-        "text_Bp7Bmr",
-        "contact_form_yKMdaQ"
-      ],
-      "name": "t:names.contact_form",
+    "contactformlexe_dYDLdH": {
+      "type": "contactformlexe",
+      "name": "LEXE Contact Form",
       "settings": {
-        "content_direction": "column",
-        "vertical_on_mobile": true,
-        "horizontal_alignment": "flex-start",
-        "vertical_alignment": "center",
-        "align_baseline": false,
-        "horizontal_alignment_flex_direction_column": "center",
-        "vertical_alignment_flex_direction_column": "center",
-        "gap": 32,
-        "section_width": "page-width",
-        "section_height": "small",
-        "section_height_custom": 50,
-        "color_scheme": "scheme-1",
-        "background_media": "none",
-        "video_position": "cover",
-        "background_image_position": "cover",
-        "border": "none",
-        "border_width": 1,
-        "border_opacity": 100,
-        "border_radius": 0,
-        "toggle_overlay": false,
-        "overlay_color": "#00000026",
-        "overlay_style": "solid",
-        "gradient_direction": "to top",
-        "padding-block-start": 0,
-        "padding-block-end": 0
+        "heading": "Apply",
+        "subheading": "We reply within 24 hours. No spam, ever.",
+        "cta_label": "Send message",
+        "success_message": "Message received. We’ll get back to you within 24 hours.",
+        "trust_text": "We reply by email · Usually within 24 hours",
+        "show_phone": false,
+        "show_topic": true,
+        "show_order": true,
+        "bg_color": "#050505",
+        "card_color": "#0c0c0c",
+        "text_color": "#f4f4f4",
+        "muted_color": "#9a9a9a",
+        "accent_color": "#ffffff",
+        "border_color": "#222222",
+        "radius": 16,
+        "padding": 80
       }
     }
   },
@@ -806,6 +735,6 @@
     "section_y8Chrh",
     "section_6acanW",
     "section_6XGhfH",
-    "section_rC4NMc"
+    "contactformlexe_dYDLdH"
   ]
 }
