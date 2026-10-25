@@ -196,7 +196,7 @@
           "type": "text",
           "name": "t:names.text",
           "settings": {
-            "text": "<p>Our systems were temporarily down on OCT-24, if you attempted to contact us on this date kindly re-submit your inquiry</p>",
+            "text": "<p>Our systems were temporarily down on OCT-24, if you attempted to contact us on this date kindly re-submit your inquiry<br/>- Creative director</p>",
             "width": "fit-content",
             "max_width": "normal",
             "alignment": "left",
