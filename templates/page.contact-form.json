@@ -172,9 +172,32 @@
         "padding-block-start": 48,
         "padding-block-end": 48
       }
+    },
+    "contactformlexe_PbHq9z": {
+      "type": "contactformlexe",
+      "name": "LEXE Contact Form",
+      "settings": {
+        "heading": "Get in touch",
+        "subheading": "We reply within 24 hours. No spam, ever.",
+        "cta_label": "Send message",
+        "success_message": "Message received. We’ll get back to you within 24 hours.",
+        "trust_text": "We reply by email · Usually within 24 hours",
+        "show_phone": false,
+        "show_topic": true,
+        "show_order": true,
+        "bg_color": "#050505",
+        "card_color": "#0c0c0c",
+        "text_color": "#f4f4f4",
+        "muted_color": "#9a9a9a",
+        "accent_color": "#ffffff",
+        "border_color": "#222222",
+        "radius": 16,
+        "padding": 80
+      }
     }
   },
   "order": [
-    "section"
+    "section",
+    "contactformlexe_PbHq9z"
   ]
 }
