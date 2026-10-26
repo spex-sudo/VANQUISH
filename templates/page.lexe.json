@@ -97,6 +97,16 @@
     "luxury_scrollbar_Hkqhyf": {
       "type": "luxury-scrollbar",
       "blocks": {
+        "waypoint_cdEzMK": {
+          "type": "waypoint",
+          "settings": {
+            "position": 25,
+            "range": 6,
+            "eyebrow": "",
+            "headline": "We do it better",
+            "body": "Stop paying thousands for cheap design"
+          }
+        },
         "waypoint_GWD83z": {
           "type": "waypoint",
           "settings": {
@@ -129,6 +139,7 @@
         }
       },
       "block_order": [
+        "waypoint_cdEzMK",
         "waypoint_GWD83z",
         "waypoint_JpMdjg",
         "waypoint_3mrjkN"
