@@ -100,7 +100,7 @@
         "waypoint_GWD83z": {
           "type": "waypoint",
           "settings": {
-            "position": 25,
+            "position": 49,
             "range": 6,
             "eyebrow": "",
             "headline": "Become A Model",
@@ -110,7 +110,7 @@
         "waypoint_JpMdjg": {
           "type": "waypoint",
           "settings": {
-            "position": 50,
+            "position": 75,
             "range": 6,
             "eyebrow": "",
             "headline": "CREATE CONTENT",
