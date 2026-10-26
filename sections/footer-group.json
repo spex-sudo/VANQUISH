@@ -33,6 +33,7 @@
         "magazine_XN7LcU": {
           "type": "magazine",
           "settings": {
+            "image": "shopify://shop_images/pexels-orangevisuals-39993218.jpg",
             "caption": "",
             "link": ""
           }
@@ -101,14 +102,6 @@
             "link": ""
           }
         },
-        "magazine_DjC8b9": {
-          "type": "magazine",
-          "settings": {
-            "image": "shopify://shop_images/IMG-0590.jpg",
-            "caption": "",
-            "link": ""
-          }
-        },
         "magazine_w4aPEe": {
           "type": "magazine",
           "settings": {
@@ -130,7 +123,6 @@
         "magazine_aDFJcM",
         "magazine_dcaEW8",
         "magazine_bt9Jr9",
-        "magazine_DjC8b9",
         "magazine_w4aPEe"
       ],
       "name": "Product Atelier",
