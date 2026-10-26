@@ -120,10 +120,10 @@
         "waypoint_3mrjkN": {
           "type": "waypoint",
           "settings": {
-            "position": 85,
+            "position": 71,
             "range": 6,
-            "eyebrow": "§ 03",
-            "headline": "Closing",
+            "eyebrow": "IM READY",
+            "headline": "Apply now",
             "body": ""
           }
         }
