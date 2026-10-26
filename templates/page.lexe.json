@@ -9,6 +9,121 @@
  */
 {
   "sections": {
+    "luxury_scrollbar_Hkqhyf": {
+      "type": "luxury-scrollbar",
+      "blocks": {
+        "waypoint_GWD83z": {
+          "type": "waypoint",
+          "settings": {
+            "position": 25,
+            "range": 6,
+            "eyebrow": "§ 01",
+            "headline": "New Arrivals",
+            "body": ""
+          }
+        },
+        "waypoint_JpMdjg": {
+          "type": "waypoint",
+          "settings": {
+            "position": 55,
+            "range": 6,
+            "eyebrow": "§ 02",
+            "headline": "The Edit",
+            "body": ""
+          }
+        },
+        "waypoint_3mrjkN": {
+          "type": "waypoint",
+          "settings": {
+            "position": 85,
+            "range": 6,
+            "eyebrow": "§ 03",
+            "headline": "Closing",
+            "body": ""
+          }
+        }
+      },
+      "block_order": [
+        "waypoint_GWD83z",
+        "waypoint_JpMdjg",
+        "waypoint_3mrjkN"
+      ],
+      "name": "Sovereign Scroll",
+      "settings": {
+        "accent_color": "#000000",
+        "track_color": "#999999",
+        "bar_side": "right",
+        "track_width": 1,
+        "track_style": "gradient",
+        "fill_style": "solid",
+        "edge_offset": 16,
+        "thumb_style": "minimal",
+        "thumb_width": 4,
+        "thumb_height": 40,
+        "thumb_radius": 2,
+        "glow_intensity": 25,
+        "hover_expand": true,
+        "cap_style": "dash",
+        "cap_pulse_ms": 4000,
+        "show_counter": false,
+        "counter_size": 9,
+        "counter_weight": "700",
+        "counter_tracking": 20,
+        "counter_opacity": 80,
+        "counter_gap": 8,
+        "tick_selectors": "h2, section",
+        "tick_prox": 25,
+        "show_tick_labels": false,
+        "show_aura": false,
+        "aura_intensity": 15,
+        "show_label": false,
+        "label": "SV-01",
+        "label_size": 7,
+        "label_tracking": 35,
+        "label_opacity": 40,
+        "label_gap": 8,
+        "wp_anim": "slide",
+        "wp_duration": 300,
+        "wp_offset": 20,
+        "wp_max_width": 200,
+        "wp_pad_v": 6,
+        "wp_pad_h": 8,
+        "wp_radius": 11,
+        "wp_bg": "#ffffff",
+        "wp_bg_opacity": 85,
+        "wp_blur": 20,
+        "wp_saturation": 120,
+        "wp_border_opacity": 0,
+        "wp_shadow_y": 12,
+        "wp_shadow_blur": 28,
+        "wp_shadow_opacity": 10,
+        "wp_connector": false,
+        "wp_show_pct": false,
+        "wp_font": "space_grotesk_n7",
+        "wp_eye_size": 8,
+        "wp_eye_tracking": 30,
+        "wp_eye_gap": 7,
+        "wp_rule_width": 20,
+        "wp_hl_size": 14,
+        "wp_hl_weight": "400",
+        "wp_hl_tracking": 5,
+        "wp_hl_case": "uppercase",
+        "wp_hl_leading": 120,
+        "wp_hl_color": "#0a0a0a",
+        "wp_body_size": 11,
+        "wp_body_color": "#333333",
+        "wp_body_gap": 6,
+        "ui_font": "syne",
+        "idle_opacity": 45,
+        "anim_speed": 450,
+        "auto_hide": false,
+        "idle_ms": 3000,
+        "entry_anim": "fade",
+        "entry_delay": 700,
+        "z_index": 9000,
+        "hide_native": true
+      }
+    },
     "vanquish_field_TYX9FK": {
       "type": "vanquish-field",
       "name": "Vanquish Field",
@@ -706,6 +821,7 @@
     }
   },
   "order": [
+    "luxury_scrollbar_Hkqhyf",
     "vanquish_field_TYX9FK",
     "main",
     "vanquish_field_AXXifA",
