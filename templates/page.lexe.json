@@ -387,6 +387,7 @@
         "image_wpwWJi": {
           "type": "image",
           "settings": {
+            "image": "shopify://shop_images/pexels-gije-3262420.jpg",
             "link": "",
             "image_ratio": "square",
             "width": "fill",
@@ -556,6 +557,7 @@
         "image_eeAkFM": {
           "type": "image",
           "settings": {
+            "image": "shopify://shop_images/pexels-thisismcfollis-38574764.jpg",
             "link": "",
             "image_ratio": "square",
             "width": "fill",
@@ -617,7 +619,7 @@
               "type": "text",
               "name": "t:names.heading",
               "settings": {
-                "text": "<h2>Pro</h2>",
+                "text": "<h2>MODEL</h2>",
                 "width": "fit-content",
                 "max_width": "normal",
                 "alignment": "left",
@@ -642,7 +644,7 @@
             "text_wbXCxn": {
               "type": "text",
               "settings": {
-                "text": "<p>Experienced collaborator who is prepared to exceed our expectations.</p>",
+                "text": "<p>You start at entry level, become a model in 3 simple steps, Then work your way up.<br/>(Each trainee gets assigned to their own personal agent) conditions apply.</p>",
                 "width": "fit-content",
                 "max_width": "narrow",
                 "alignment": "left",
@@ -653,7 +655,7 @@
                 "letter_spacing": "normal",
                 "case": "none",
                 "wrap": "pretty",
-                "color": "var(--color-foreground-heading)",
+                "color": "var(--color-foreground)",
                 "background": false,
                 "background_color": "#00000026",
                 "corner_radius": 0,
