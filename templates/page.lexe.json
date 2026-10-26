@@ -17,19 +17,19 @@
           "settings": {
             "position": 25,
             "range": 6,
-            "eyebrow": "§ 01",
-            "headline": "New Arrivals",
-            "body": ""
+            "eyebrow": "",
+            "headline": "Become A Model",
+            "body": "Apply now"
           }
         },
         "waypoint_JpMdjg": {
           "type": "waypoint",
           "settings": {
-            "position": 55,
+            "position": 50,
             "range": 6,
-            "eyebrow": "§ 02",
-            "headline": "The Edit",
-            "body": ""
+            "eyebrow": "",
+            "headline": "CREATE CONTENT",
+            "body": "Small or  large creators"
           }
         },
         "waypoint_3mrjkN": {
@@ -77,7 +77,7 @@
         "show_aura": false,
         "aura_intensity": 15,
         "show_label": false,
-        "label": "SV-01",
+        "label": "",
         "label_size": 7,
         "label_tracking": 35,
         "label_opacity": 40,
@@ -99,7 +99,7 @@
         "wp_shadow_opacity": 10,
         "wp_connector": false,
         "wp_show_pct": false,
-        "wp_font": "space_grotesk_n7",
+        "wp_font": "bagel_fat_one_n4",
         "wp_eye_size": 8,
         "wp_eye_tracking": 30,
         "wp_eye_gap": 7,
