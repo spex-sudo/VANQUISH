@@ -110,7 +110,7 @@
         "waypoint_JpMdjg": {
           "type": "waypoint",
           "settings": {
-            "position": 75,
+            "position": 56,
             "range": 6,
             "eyebrow": "",
             "headline": "CREATE CONTENT",
@@ -120,11 +120,11 @@
         "waypoint_3mrjkN": {
           "type": "waypoint",
           "settings": {
-            "position": 71,
+            "position": 76,
             "range": 6,
-            "eyebrow": "IM READY",
-            "headline": "Apply now",
-            "body": ""
+            "eyebrow": "",
+            "headline": "IM READY",
+            "body": "Apply now"
           }
         }
       },
