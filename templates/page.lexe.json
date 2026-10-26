@@ -363,6 +363,7 @@
         "image_qQMaC6": {
           "type": "image",
           "settings": {
+            "image": "shopify://shop_images/pexels-abubakar-mamman-2148132108-39877039.jpg",
             "link": "",
             "image_ratio": "square",
             "width": "fill",
