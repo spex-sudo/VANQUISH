@@ -14,6 +14,37 @@
     "vanquish_atelier_H7GEMT": {
       "type": "vanquish-atelier",
       "blocks": {
+        "magazine_EmA6gH": {
+          "type": "magazine",
+          "settings": {
+            "image": "shopify://shop_images/pexels-thisismcfollis-38574767.jpg",
+            "caption": "",
+            "link": ""
+          }
+        },
+        "magazine_XneB9c": {
+          "type": "magazine",
+          "settings": {
+            "image": "shopify://shop_images/pexels-vurzie-kim-325095862-29767782.jpg",
+            "caption": "",
+            "link": ""
+          }
+        },
+        "magazine_XN7LcU": {
+          "type": "magazine",
+          "settings": {
+            "caption": "",
+            "link": ""
+          }
+        },
+        "magazine_Amcek7": {
+          "type": "magazine",
+          "settings": {
+            "image": "shopify://shop_images/pexels-photizo-shots-1522472310-34051827.jpg",
+            "caption": "",
+            "link": ""
+          }
+        },
         "magazine_ab9b7m": {
           "type": "magazine",
           "settings": {
@@ -78,14 +109,6 @@
             "link": ""
           }
         },
-        "magazine_3FqcTr": {
-          "type": "magazine",
-          "settings": {
-            "image": "shopify://shop_images/IMG_0907.jpg",
-            "caption": "",
-            "link": "https://chat.whatsapp.com/DyInMcPb59kDdMXDcC0gP9?mode=gi_t"
-          }
-        },
         "magazine_w4aPEe": {
           "type": "magazine",
           "settings": {
@@ -96,6 +119,10 @@
         }
       },
       "block_order": [
+        "magazine_EmA6gH",
+        "magazine_XneB9c",
+        "magazine_XN7LcU",
+        "magazine_Amcek7",
         "magazine_ab9b7m",
         "magazine_jPkpFG",
         "magazine_H67mxD",
@@ -104,7 +131,6 @@
         "magazine_dcaEW8",
         "magazine_bt9Jr9",
         "magazine_DjC8b9",
-        "magazine_3FqcTr",
         "magazine_w4aPEe"
       ],
       "name": "Product Atelier",
@@ -112,13 +138,13 @@
         "display_mode": "magazine",
         "products": [],
         "collection": "",
-        "card_count": 8,
+        "card_count": 10,
         "show_header": false,
         "title": "",
         "show_arrows": false,
         "card_shape": "landscape",
         "landscape_ratio": "16 / 9",
-        "card_width": 400,
+        "card_width": 420,
         "squircle_radius": 0,
         "landscape_radius": 0,
         "card_gap": 20,
