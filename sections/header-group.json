@@ -111,17 +111,17 @@
             "product": "wool-collar-cotton-jacket-with-plush-leather-jacket"
           }
         },
-        "collection_JXPMLw": {
-          "type": "collection",
-          "settings": {
-            "collection": "exodus",
-            "product": ""
-          }
-        },
         "collection_4XRPEG": {
           "type": "collection",
           "settings": {
             "collection": "lexespecs",
+            "product": ""
+          }
+        },
+        "collection_JXPMLw": {
+          "type": "collection",
+          "settings": {
+            "collection": "exodus",
             "product": ""
           }
         },
@@ -145,8 +145,8 @@
         "flash_notif_Lx4fTk",
         "flash_notif_Lx9rWp",
         "collection_ienDgX",
-        "collection_JXPMLw",
         "collection_4XRPEG",
+        "collection_JXPMLw",
         "collection_kTm6jJ"
       ],
       "name": "Apex Header V19",

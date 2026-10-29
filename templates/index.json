@@ -180,6 +180,34 @@
             "lock_collection": false
           }
         },
+        "collection_bi6Lmy": {
+          "type": "collection",
+          "settings": {
+            "collection": "elitegear",
+            "status_text": "SYSTEM_READY",
+            "status_color": "#d4af37",
+            "cta_label": "Enter",
+            "price_from": "",
+            "badge_text": "",
+            "badge_bg": "#000000",
+            "badge_text_color": "#ff4d4d",
+            "lock_collection": false
+          }
+        },
+        "collection_DiKhV7": {
+          "type": "collection",
+          "settings": {
+            "collection": "shewild",
+            "status_text": "SYSTEM_READY",
+            "status_color": "#d4af37",
+            "cta_label": "Enter",
+            "price_from": "",
+            "badge_text": "",
+            "badge_bg": "#000000",
+            "badge_text_color": "#ff4d4d",
+            "lock_collection": false
+          }
+        },
         "collection_yqmqmM": {
           "type": "collection",
           "settings": {
@@ -208,20 +236,6 @@
             "lock_collection": false
           }
         },
-        "collection_DiKhV7": {
-          "type": "collection",
-          "settings": {
-            "collection": "shewild",
-            "status_text": "SYSTEM_READY",
-            "status_color": "#d4af37",
-            "cta_label": "Enter",
-            "price_from": "",
-            "badge_text": "",
-            "badge_bg": "#000000",
-            "badge_text_color": "#ff4d4d",
-            "lock_collection": false
-          }
-        },
         "collection_4jbHhB": {
           "type": "collection",
           "settings": {
@@ -235,29 +249,15 @@
             "badge_text_color": "#ffffff",
             "lock_collection": false
           }
-        },
-        "collection_bi6Lmy": {
-          "type": "collection",
-          "settings": {
-            "collection": "elitegear",
-            "status_text": "SYSTEM_READY",
-            "status_color": "#d4af37",
-            "cta_label": "Enter",
-            "price_from": "",
-            "badge_text": "",
-            "badge_bg": "#000000",
-            "badge_text_color": "#ff4d4d",
-            "lock_collection": false
-          }
         }
       },
       "block_order": [
         "collection_TjwXba",
+        "collection_bi6Lmy",
+        "collection_DiKhV7",
         "collection_yqmqmM",
         "collection_zcXzR6",
-        "collection_DiKhV7",
-        "collection_4jbHhB",
-        "collection_bi6Lmy"
+        "collection_4jbHhB"
       ],
       "name": "Sovereign Orbit Apex",
       "settings": {
