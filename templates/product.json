@@ -84,7 +84,7 @@
           "settings": {
             "column": "right",
             "title": "Shipping & Returns",
-            "content": "<p>Shipping from $10.75. Rates shown at checkout.</p><p>30-day returns on apparel. Items must be unworn, unwashed, with original tags.</p>",
+            "content": "<p></p><p>30-day returns on apparel. Items must be unworn, unwashed, with original tags.</p>",
             "image": "shopify://shop_images/66DF17D4-1451-49D4-81A7-8EA0B47D6FB5.jpg",
             "redirect_url": ""
           }
@@ -142,7 +142,7 @@
         "trust_2": "30-day returns",
         "trust_3": "Authentic",
         "show_pill": true,
-        "pill_outline": "#E6DFFF",
+        "pill_outline": "#e6dfff",
         "pill_outline_idle": "",
         "main_show_price": false,
         "main_hide_options": false,
