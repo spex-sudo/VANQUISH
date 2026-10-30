@@ -9,20 +9,15 @@
   endif
 -%}
 {%- if product -%}
+{%- unless lexe_checkout_live -%}
 <div id="lexe-notify-drop" class="lexe-nd">
-  <div class="lexe-nd__info" id="lexe-ship-info">
-    <p class="lexe-nd__line">Prices in USD.</p>
-    <p class="lexe-nd__line">Shipping from $10.75. Rates shown at checkout.</p>
-    <p class="lexe-nd__line">Delivery: 5–10 business days after dispatch.</p>
-  </div>
-  {%- unless lexe_checkout_live -%}
   {%- form 'customer', id: 'LexeNotifyForm', class: 'lexe-nd__form' -%}
     <input type="hidden" name="contact[tags]" value="notify,notify-{{ product.handle }},request-access">
     {%- if form.posted_successfully? -%}
-      <p class="lexe-nd__ok" role="status">Request received. We’ll email you if access is granted.</p>
+      <p class="lexe-nd__ok" role="status">Request received. We'll email you if access is granted.</p>
     {%- else -%}
       <p class="lexe-nd__title">Request Access</p>
-      <p class="lexe-nd__sub">Invitation-only. Limited access — we’ll review and notify you if approved.</p>
+      <p class="lexe-nd__sub">Invitation-only. Limited access — we'll review and notify you if approved.</p>
       {%- if form.errors -%}<p class="lexe-nd__err" role="alert">{{ form.errors | default_errors }}</p>{%- endif -%}
       <label class="lexe-nd__label" for="LexeNotifyEmail">Email</label>
       <input id="LexeNotifyEmail" class="lexe-nd__input" type="email" name="contact[email]" required autocomplete="email" placeholder="you@email.com">
@@ -33,12 +28,9 @@
       <button type="submit" class="lexe-nd__btn">Request Access</button>
     {%- endif -%}
   {%- endform -%}
-  {%- endunless -%}
 </div>
 <style>
   .lexe-nd{display:grid;gap:14px;margin:16px 0 0;padding:16px 0 0;border-top:1px solid rgba(0,0,0,.08);font:inherit}
-  .lexe-nd__info{display:grid;gap:2px;font-size:13px;opacity:.85}
-  .lexe-nd__line{margin:0}
   .lexe-nd__form{display:grid;gap:10px}
   .lexe-nd__title{margin:0;font-weight:700;font-size:1.05rem;letter-spacing:.04em;text-transform:uppercase}
   .lexe-nd__sub{margin:0;font-size:12px;line-height:1.45;opacity:.75}
@@ -60,4 +52,5 @@
   else { var t=main.querySelector('h1'); if(t&&t.parentNode) t.parentNode.insertBefore(nd,t.nextSibling); }
 })();
 </script>
+{%- endunless -%}
 {%- endif -%}
