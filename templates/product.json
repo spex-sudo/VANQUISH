@@ -84,7 +84,7 @@
           "settings": {
             "column": "right",
             "title": "Shipping & Returns",
-            "content": "<p></p><p>30-day returns on apparel. Items must be unworn, unwashed, with original tags.</p>",
+            "content": "<p>30-day returns on apparel. Items must be unworn, unwashed, with original tags.</p>",
             "image": "shopify://shop_images/66DF17D4-1451-49D4-81A7-8EA0B47D6FB5.jpg",
             "redirect_url": ""
           }
