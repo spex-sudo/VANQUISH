@@ -1,4 +1,4 @@
-{%- comment -%} LEXE preview 2026-10-15: "Notify me when it drops" replaces add-to-cart while checkout is not live. Preview theme only. {%- endcomment -%}
+{%- comment -%} LEXE: Request Access replaces add-to-cart while checkout is locked (Theme settings > LEXE checkout > Lock purchasing). Exclusive framing over restock notify. {%- endcomment -%}
 {%- liquid
   comment
     LEXE 2026-10-16: purchasing lock is the Theme settings > LEXE checkout > 'Lock purchasing to Notify me' checkbox (default ON). Metafield no longer used.
@@ -17,33 +17,38 @@
   </div>
   {%- unless lexe_checkout_live -%}
   {%- form 'customer', id: 'LexeNotifyForm', class: 'lexe-nd__form' -%}
-    <input type="hidden" name="contact[tags]" value="notify,notify-{{ product.handle }}">
+    <input type="hidden" name="contact[tags]" value="notify,notify-{{ product.handle }},request-access">
     {%- if form.posted_successfully? -%}
-      <p class="lexe-nd__ok" role="status">You're on the list. We'll email you when it lands.</p>
+      <p class="lexe-nd__ok" role="status">Request received. We’ll email you if access is granted.</p>
     {%- else -%}
-      <p class="lexe-nd__title">Notify me when it drops</p>
+      <p class="lexe-nd__title">Request Access</p>
+      <p class="lexe-nd__sub">Invitation-only. Limited access — we’ll review and notify you if approved.</p>
       {%- if form.errors -%}<p class="lexe-nd__err" role="alert">{{ form.errors | default_errors }}</p>{%- endif -%}
       <label class="lexe-nd__label" for="LexeNotifyEmail">Email</label>
       <input id="LexeNotifyEmail" class="lexe-nd__input" type="email" name="contact[email]" required autocomplete="email" placeholder="you@email.com">
       <label class="lexe-nd__consent">
         <input type="checkbox" required name="contact[note][consent]" value="yes-email-marketing">
-        <span>Email me about this drop and new LEXE pieces. Unsubscribe anytime. <a href="/policies/privacy-policy">Privacy</a></span>
+        <span>Request access to this release and new LEXE drops. Unsubscribe anytime. <a href="/policies/privacy-policy">Privacy</a></span>
       </label>
-      <button type="submit" class="lexe-nd__btn">Notify me</button>
+      <button type="submit" class="lexe-nd__btn">Request Access</button>
     {%- endif -%}
   {%- endform -%}
   {%- endunless -%}
 </div>
 <style>
-  .lexe-nd{display:grid;gap:12px;margin:12px 0;font:inherit}
+  .lexe-nd{display:grid;gap:14px;margin:16px 0 0;padding:16px 0 0;border-top:1px solid rgba(0,0,0,.08);font:inherit}
   .lexe-nd__info{display:grid;gap:2px;font-size:13px;opacity:.85}
   .lexe-nd__line{margin:0}
-  .lexe-nd__form{display:grid;gap:8px}
-  .lexe-nd__title{margin:0;font-weight:700}
+  .lexe-nd__form{display:grid;gap:10px}
+  .lexe-nd__title{margin:0;font-weight:700;font-size:1.05rem;letter-spacing:.04em;text-transform:uppercase}
+  .lexe-nd__sub{margin:0;font-size:12px;line-height:1.45;opacity:.75}
   .lexe-nd__label{font-size:12px}
-  .lexe-nd__input{padding:12px;border:1px solid #cfcfcf;border-radius:10px;font:inherit;width:100%}
-  .lexe-nd__consent{display:flex;gap:8px;font-size:12px;align-items:flex-start}
-  .lexe-nd__btn{padding:14px;border:0;border-radius:10px;background:#111;color:#fff;font:inherit;font-weight:700;cursor:pointer}
+  .lexe-nd__input{padding:12px 14px;border:1px solid #111;border-radius:0;font:inherit;width:100%;background:#fff}
+  .lexe-nd__input:focus{outline:2px solid #111;outline-offset:1px}
+  .lexe-nd__consent{display:flex;gap:8px;font-size:12px;align-items:flex-start;line-height:1.4;opacity:.8}
+  .lexe-nd__btn{padding:14px 16px;border:0;border-radius:0;background:#111;color:#fff;font:inherit;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;width:100%}
+  .lexe-nd__btn:hover{opacity:.9}
+  .lexe-nd__ok{margin:0;font-weight:600;font-size:14px;line-height:1.4}
   .lexe-nd__err{color:#b00020;margin:0}
 </style>
 <script>
