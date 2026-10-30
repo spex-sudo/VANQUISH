@@ -27,13 +27,6 @@
             "eyebrow": ""
           }
         },
-        "note_ship": {
-          "type": "note",
-          "settings": {
-            "column": "right",
-            "text": "<p><a href=\"/policies/shipping-policy\">Shipping</a> calculated at checkout.</p>"
-          }
-        },
         "stock_main": {
           "type": "stock",
           "settings": {
@@ -93,7 +86,6 @@
       "block_order": [
         "back_main",
         "title_main",
-        "note_ship",
         "stock_main",
         "variant_main",
         "buy_main",
