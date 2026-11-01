@@ -41,6 +41,10 @@
 
     {{ content_for_header }}
     {% # theme-check-enable RemoteAsset %}
+
+    {%- comment -%} Google Preferred Sources one-click button library {%- endcomment -%}
+    <script async src="https://news.google.com/swg/js/v1/publisher.js"></script>
+
     {%- unless template.name == 'index' -%}
       <style id="inbox-home-only">/* Shopify Inbox: home page only */ shopify-chat { display: none !important; }</style>
     {%- endunless -%}
