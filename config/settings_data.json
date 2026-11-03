@@ -125,11 +125,6 @@
         "disabled": false,
         "settings": {}
       },
-      "2200952712151285029": {
-        "type": "shopify://apps/microsoft-clarity/blocks/brandAgents_js/31c3d126-8116-4b4a-8ba1-baeda7c4aeea",
-        "disabled": false,
-        "settings": {}
-      },
       "2567389343055140935": {
         "type": "shopify://apps/microsoft-clarity/blocks/clarity_js/31c3d126-8116-4b4a-8ba1-baeda7c4aeea",
         "disabled": false,
@@ -160,6 +155,29 @@
       "17198465164502963513": {
         "type": "shopify://apps/cwill-parcel-panel/blocks/app.embed/fc785c3f-90e0-4c98-a20c-7cde9ba5e4b5",
         "disabled": false,
+        "settings": {}
+      },
+      "15070133259380891593": {
+        "type": "shopify://apps/anywear-live-try-on/blocks/anywear-embed/019eba4a-78d5-7c04-b0bc-295492684e93",
+        "disabled": false,
+        "settings": {}
+      },
+      "10653092989201779468": {
+        "type": "shopify://apps/managed-markets/blocks/adaptive_pricing_banner/01a04a8f-9b00-7a7d-a048-ecae6789cdfc",
+        "disabled": false,
+        "settings": {
+          "flat_rate_shipping_text": "<p><strong>[standard_flat_rate] shipping to [country]</strong> · Import duties included · No fees on delivery</p>",
+          "duties_included_text": "<p>Import duties included for [country] · No fees on delivery</p>",
+          "background_color": "#ffffff",
+          "text_color": "#000000",
+          "show_divider": true,
+          "font_weight": "inherit",
+          "text_case": "none"
+        }
+      },
+      "2200952712151285029": {
+        "type": "shopify://apps/microsoft-clarity/blocks/brandAgents_js/31c3d126-8116-4b4a-8ba1-baeda7c4aeea",
+        "disabled": true,
         "settings": {}
       }
     },
