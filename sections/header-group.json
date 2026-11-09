@@ -14,15 +14,6 @@
     "signature_header_8dQTVX": {
       "type": "signature-header",
       "blocks": {
-        "flash_notif_3qEzrh": {
-          "type": "flash_notif",
-          "settings": {
-            "text": "Your group chat isn't ready for this.",
-            "url": "",
-            "bg_color": "#111111",
-            "text_color": "#ffffff"
-          }
-        },
         "flash_notif_CRL8Pq": {
           "type": "flash_notif",
           "settings": {
@@ -134,7 +125,6 @@
         }
       },
       "block_order": [
-        "flash_notif_3qEzrh",
         "flash_notif_CRL8Pq",
         "flash_notif_GP4nBT",
         "flash_notif_7gJABh",
