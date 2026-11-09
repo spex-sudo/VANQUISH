@@ -193,7 +193,7 @@
         "text_logo_spacing": 3,
         "search_placeholder": "Search products…",
         "icon_size": 20,
-        "badge_bg_color": "#beb2ff",
+        "badge_bg_color": "#851E1E",
         "badge_text_color": "#ffffff",
         "custom_cart_url": "shopify://pages/links",
         "footer_link_1_text": "Contact",
