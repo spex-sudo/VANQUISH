@@ -195,7 +195,7 @@
         "icon_size": 20,
         "badge_bg_color": "#beb2ff",
         "badge_text_color": "#ffffff",
-        "custom_cart_url": "",
+        "custom_cart_url": "shopify://pages/links",
         "footer_link_1_text": "Contact",
         "footer_link_1_url": "shopify://pages/contact",
         "footer_link_2_text": "About",
