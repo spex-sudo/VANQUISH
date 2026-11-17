@@ -1,9 +1,9 @@
 {%- liquid
   assign mode = section.settings.position_mode | default: 'bottom'
-  assign bg_color = section.settings.background_color | default: '#2c2c2c'
-  assign tab_bg = section.settings.tab_background | default: '#ffffff'
-  assign text_color = section.settings.text_color | default: '#ffffff'
-  assign active_text = section.settings.active_text_color | default: '#000000'
+  assign bg_color = section.settings.background_color | default: '#ffffff'
+  assign tab_bg = section.settings.tab_background | default: '#e60023'
+  assign text_color = section.settings.text_color | default: '#111111'
+  assign active_text = section.settings.active_text_color | default: '#ffffff'
   assign max_tabs = 7
 -%}
 
@@ -16,8 +16,8 @@
     }
   {%- else -%}
     :root {
-      --apex-font: inherit;
-      --apex-weight: 600;
+      --apex-font: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --apex-weight: 500;
     }
   {%- endif -%}
 
@@ -29,59 +29,71 @@
     font-family: var(--apex-font);
     font-weight: var(--apex-weight);
     z-index: 999;
+    pointer-events: none;
   }
 
-  /* Positioning modes — overflow visible so active tab can stick out */
+  .apex-notch-nav * {
+    pointer-events: auto;
+  }
+
+  /* Floating pill bar */
   .apex-notch-nav[data-mode="bottom"] {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 64px;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: auto;
+    max-width: calc(100vw - 32px);
+    height: 72px;
     background: var(--apex-bg);
+    border-radius: 40px;
     display: flex;
     align-items: center;
-    justify-content: space-around;
-    padding: 0 8px;
-    box-shadow: 0 -2px 16px rgba(0,0,0,0.12);
+    padding: 8px 12px 8px 8px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
     overflow: visible;
   }
 
   .apex-notch-nav[data-mode="left"] {
     position: fixed;
-    left: 0;
-    top: 0;
-    bottom: 0;
+    left: 24px;
+    top: 50%;
+    transform: translateY(-50%);
     width: 80px;
+    height: auto;
     background: var(--apex-bg);
+    border-radius: 40px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px 0;
-    box-shadow: 2px 0 16px rgba(0,0,0,0.12);
+    padding: 8px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
     overflow: visible;
   }
 
   .apex-notch-nav[data-mode="right"] {
     position: fixed;
-    right: 0;
-    top: 0;
-    bottom: 0;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%);
     width: 80px;
+    height: auto;
     background: var(--apex-bg);
+    border-radius: 40px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px 0;
-    box-shadow: -2px 0 16px rgba(0,0,0,0.12);
+    padding: 8px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
     overflow: visible;
   }
 
   .apex-tabs {
     display: flex;
+    align-items: center;
+    gap: 4px;
     width: 100%;
     height: 100%;
-    align-items: center;
     overflow: visible;
   }
 
@@ -91,80 +103,72 @@
     gap: 6px;
   }
 
-  .apex-notch-nav[data-mode="bottom"] .apex-tabs {
-    flex-direction: row;
-    justify-content: space-around;
-  }
-
-  /* Inactive tabs — completely transparent, no background */
+  /* Inactive tabs */
   .apex-tab {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 3px;
+    gap: 4px;
     text-decoration: none;
     color: var(--apex-text);
-    padding: 8px 14px;
-    border-radius: 0;
-    transition: all 0.2s ease;
+    padding: 10px 16px;
+    border-radius: 28px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
-    min-width: 60px;
-    font-size: 11px;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    background: transparent !important;
-    box-shadow: none;
+    min-width: 64px;
+    font-size: 12px;
+    letter-spacing: 0.2px;
+    background: transparent;
+    flex-shrink: 0;
   }
 
   .apex-notch-nav[data-mode="left"] .apex-tab,
   .apex-notch-nav[data-mode="right"] .apex-tab {
-    width: 68px;
+    width: 64px;
     min-height: 64px;
     padding: 10px 6px;
   }
 
-  /* ACTIVE TAB — solid bubble that sticks out of the bar */
+  /* ACTIVE — large protruding circle bubble that overlaps the pill */
   .apex-tab.active {
-    background: var(--apex-tab) !important;
+    background: var(--apex-tab);
     color: var(--apex-active);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.22), 0 2px 6px rgba(0,0,0,0.1);
-    z-index: 10;
-    border-radius: 32px;
+    width: 72px;
+    height: 72px;
+    min-width: 72px;
+    border-radius: 50%;
+    padding: 0;
+    margin: -8px -4px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+    z-index: 5;
+    transform: scale(1.05);
   }
 
-  /* Bottom: active tab pops UP out of the bar */
   .apex-notch-nav[data-mode="bottom"] .apex-tab.active {
-    border-radius: 36px 36px 20px 20px;
-    padding: 18px 26px 14px;
-    transform: translateY(-18px);
-    min-width: 92px;
-    height: auto;
+    margin-left: -12px;
+    margin-right: 4px;
   }
 
-  /* Left: active tab pops RIGHT out of the rail */
-  .apex-notch-nav[data-mode="left"] .apex-tab.active {
-    border-radius: 0 36px 36px 0;
-    transform: translateX(14px);
-    width: 92px;
-    padding: 16px 12px;
-  }
-
-  /* Right: active tab pops LEFT out of the rail */
+  .apex-notch-nav[data-mode="left"] .apex-tab.active,
   .apex-notch-nav[data-mode="right"] .apex-tab.active {
-    border-radius: 36px 0 0 36px;
-    transform: translateX(-14px);
-    width: 92px;
-    padding: 16px 12px;
+    width: 72px;
+    height: 72px;
+    margin: -6px 0;
   }
 
   .apex-tab-icon {
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
+  }
+
+  .apex-tab.active .apex-tab-icon {
+    width: 32px;
+    height: 32px;
   }
 
   .apex-tab-icon svg,
@@ -177,51 +181,53 @@
   }
 
   .apex-tab-label {
-    font-size: 10px;
-    line-height: 1.15;
+    font-size: 11px;
+    line-height: 1.1;
     text-align: center;
     white-space: nowrap;
-    font-weight: 600;
+    font-weight: 500;
   }
 
   .apex-tab.active .apex-tab-label {
-    font-weight: 700;
+    display: none;
   }
 
   .apex-cart-count {
     position: absolute;
-    top: -5px;
-    right: -7px;
-    background: #e53935;
+    top: -6px;
+    right: -6px;
+    background: #e60023;
     color: #fff;
     border-radius: 50%;
-    min-width: 16px;
-    height: 16px;
-    font-size: 9px;
+    min-width: 18px;
+    height: 18px;
+    font-size: 10px;
     font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 0 4px;
     line-height: 1;
+    border: 2px solid var(--apex-bg);
   }
 
   .apex-search-bar {
     position: fixed;
-    background: #f8f8f8;
-    border-radius: 24px;
-    padding: 14px 18px;
+    background: #ffffff;
+    border-radius: 28px;
+    padding: 14px 20px;
     display: flex;
     align-items: center;
-    gap: 10px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    gap: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
     z-index: 998;
   }
 
   .apex-notch-nav[data-mode="bottom"] ~ .apex-search-bar {
-    bottom: 92px;
-    left: 16px;
-    right: 16px;
+    bottom: 112px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(420px, calc(100vw - 48px));
   }
 
   .apex-search-input {
@@ -235,16 +241,22 @@
   }
 
   @media (max-width: 749px) {
-    .apex-notch-nav[data-mode="left"],
-    .apex-notch-nav[data-mode="right"] {
-      width: 68px;
-    }
     .apex-notch-nav[data-mode="bottom"] {
-      height: 60px;
+      bottom: 16px;
+      height: 64px;
+      padding: 6px 10px 6px 6px;
     }
-    .apex-notch-nav[data-mode="bottom"] .apex-tab.active {
-      transform: translateY(-14px);
-      padding: 14px 18px 10px;
+    .apex-tab {
+      min-width: 52px;
+      padding: 8px 10px;
+    }
+    .apex-tab.active {
+      width: 64px;
+      height: 64px;
+      min-width: 64px;
+    }
+    .apex-tab-label {
+      font-size: 10px;
     }
   }
 </style>
@@ -280,6 +292,8 @@
                 <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
               {%- when 'menu' -%}
                 <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+              {%- when 'home' -%}
+                <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
               {%- else -%}
                 <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg>
             {%- endcase -%}
@@ -327,25 +341,25 @@
       "type": "color",
       "id": "background_color",
       "label": "Bar Background",
-      "default": "#2c2c2c"
+      "default": "#ffffff"
     },
     {
       "type": "color",
       "id": "tab_background",
       "label": "Active Tab Background",
-      "default": "#ffffff"
+      "default": "#e60023"
     },
     {
       "type": "color",
       "id": "text_color",
       "label": "Inactive Text / Icon",
-      "default": "#ffffff"
+      "default": "#111111"
     },
     {
       "type": "color",
       "id": "active_text_color",
       "label": "Active Tab Text",
-      "default": "#000000"
+      "default": "#ffffff"
     },
     {
       "type": "font_picker",
@@ -357,7 +371,7 @@
       "type": "checkbox",
       "id": "show_search",
       "label": "Show Search Bar",
-      "default": true
+      "default": false
     }
   ],
   "blocks": [
@@ -389,7 +403,7 @@
             { "value": "menu", "label": "Menu" },
             { "value": "home", "label": "Home" }
           ],
-          "default": "none"
+          "default": "home"
         },
         {
           "type": "image_picker",
@@ -418,9 +432,18 @@
         {
           "type": "tab",
           "settings": {
-            "label": "COACH",
+            "label": "Home",
             "url": "/",
+            "icon_default": "home",
             "is_logo": true
+          }
+        },
+        {
+          "type": "tab",
+          "settings": {
+            "label": "Search",
+            "url": "/search",
+            "icon_default": "search"
           }
         },
         {
