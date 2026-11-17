@@ -76,7 +76,7 @@
     pointer-events: auto;
   }
 
-  /* Clean clay — soft dual shadows only, no glow */
+  /* Clean three-shadow clay: outer lift + soft inset depth (no glow) */
   .apex-notch-nav[data-mode="bottom"] {
     position: fixed;
     bottom: var(--offset);
@@ -91,8 +91,9 @@
     align-items: center;
     padding: var(--pad) calc(var(--pad) + 4px) var(--pad) var(--pad);
     box-shadow:
-      5px 5px 14px rgba(0,0,0,0.07),
-      -4px -4px 10px rgba(255,255,255,0.55);
+      6px 6px 16px rgba(0,0,0,0.08),
+      inset -3px -3px 6px rgba(0,0,0,0.06),
+      inset 3px 3px 6px rgba(255,255,255,0.35);
     overflow: visible;
   }
 
@@ -110,8 +111,9 @@
     align-items: center;
     padding: var(--pad);
     box-shadow:
-      4px 4px 12px rgba(0,0,0,0.07),
-      -3px -3px 8px rgba(255,255,255,0.5);
+      5px 5px 14px rgba(0,0,0,0.08),
+      inset -3px -3px 6px rgba(0,0,0,0.05),
+      inset 3px 3px 6px rgba(255,255,255,0.3);
     overflow: visible;
   }
 
@@ -129,8 +131,9 @@
     align-items: center;
     padding: var(--pad);
     box-shadow:
-      -4px 4px 12px rgba(0,0,0,0.07),
-      3px -3px 8px rgba(255,255,255,0.5);
+      -5px 5px 14px rgba(0,0,0,0.08),
+      inset 3px -3px 6px rgba(0,0,0,0.05),
+      inset -3px 3px 6px rgba(255,255,255,0.3);
     overflow: visible;
   }
 
@@ -175,7 +178,7 @@
     padding: 8px 4px;
   }
 
-  /* Clean clay active bubble — no glow */
+  /* Active bubble — same clean clay recipe */
   .apex-tab.active {
     background: var(--apex-tab);
     color: var(--apex-active);
@@ -186,8 +189,9 @@
     padding: 0;
     margin: calc(var(--pad) * -1) -4px;
     box-shadow:
-      4px 4px 12px rgba(0,0,0,0.1),
-      -2px -2px 8px rgba(255,255,255,0.25);
+      5px 5px 14px rgba(0,0,0,0.1),
+      inset -2px -2px 5px rgba(0,0,0,0.12),
+      inset 2px 2px 5px rgba(255,255,255,0.25);
     z-index: 5;
     transform: scale(1.03);
   }
@@ -270,8 +274,9 @@
     align-items: center;
     gap: 12px;
     box-shadow:
-      4px 4px 12px rgba(0,0,0,0.07),
-      -3px -3px 8px rgba(255,255,255,0.5);
+      5px 5px 14px rgba(0,0,0,0.08),
+      inset -2px -2px 5px rgba(0,0,0,0.05),
+      inset 2px 2px 5px rgba(255,255,255,0.3);
     z-index: 998;
   }
 
