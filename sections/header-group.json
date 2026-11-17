@@ -207,6 +207,17 @@
             "url": "shopify://pages/links",
             "icon_default": "cart",
             "is_logo": false,
+            "hide_label": true
+          }
+        },
+        "tab_M7rEXK": {
+          "type": "tab",
+          "settings": {
+            "label": "Home",
+            "url": "",
+            "icon_default": "home",
+            "icon_custom": "shopify://shop_images/Fast_4058ae6e-fc91-4708-ad65-75f7c80881ce.png",
+            "is_logo": false,
             "hide_label": false
           }
         },
@@ -233,14 +244,15 @@
       },
       "block_order": [
         "tab_KtGqBd",
+        "tab_M7rEXK",
         "tab_tnxVVJ",
         "tab_PHQ864"
       ],
       "name": "Apex Notch Tab Nav",
       "settings": {
         "position_mode": "bottom",
-        "background_color": "#2c2c2c",
-        "tab_background": "#ffffff",
+        "background_color": "#000000",
+        "tab_background": "#000000",
         "text_color": "#ffffff",
         "active_text_color": "#000000",
         "custom_font": "assistant_n4",
