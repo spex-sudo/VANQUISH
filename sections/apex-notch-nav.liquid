@@ -1,10 +1,32 @@
 {%- liquid
   assign mode = section.settings.position_mode | default: 'bottom'
-  assign bg_color = section.settings.background_color | default: '#ffffff'
+  assign bg_color = section.settings.background_color | default: '#f5f5f7'
   assign tab_bg = section.settings.tab_background | default: '#e60023'
-  assign text_color = section.settings.text_color | default: '#111111'
+  assign text_color = section.settings.text_color | default: '#1d1d1f'
+  assign icon_color = section.settings.icon_color | default: text_color
   assign active_text = section.settings.active_text_color | default: '#ffffff'
+  assign size = section.settings.section_size | default: 'medium'
+  assign bottom_offset = section.settings.bottom_offset | default: 24
+  assign hide_on_footer = section.settings.hide_on_footer
   assign max_tabs = 7
+
+  case size
+    when 'small'
+      assign bar_h = 60
+      assign bubble = 60
+      assign icon_s = 22
+      assign pad = 6
+    when 'large'
+      assign bar_h = 88
+      assign bubble = 88
+      assign icon_s = 32
+      assign pad = 10
+    else
+      assign bar_h = 72
+      assign bubble = 72
+      assign icon_s = 26
+      assign pad = 8
+  endcase
 -%}
 
 <style>
@@ -25,73 +47,101 @@
     --apex-bg: {{ bg_color }};
     --apex-tab: {{ tab_bg }};
     --apex-text: {{ text_color }};
+    --apex-icon: {{ icon_color }};
     --apex-active: {{ active_text }};
+    --bar-h: {{ bar_h }}px;
+    --bubble: {{ bubble }}px;
+    --icon: {{ icon_s }}px;
+    --pad: {{ pad }}px;
+    --offset: {{ bottom_offset }}px;
     font-family: var(--apex-font);
     font-weight: var(--apex-weight);
     z-index: 999;
     pointer-events: none;
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+
+  .apex-notch-nav.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-50%) translateY(20px);
+  }
+
+  .apex-notch-nav[data-mode="left"].is-hidden,
+  .apex-notch-nav[data-mode="right"].is-hidden {
+    transform: translateY(-50%) translateX(-20px);
   }
 
   .apex-notch-nav * {
     pointer-events: auto;
   }
 
-  /* Floating pill bar */
+  /* Claymorphism base */
   .apex-notch-nav[data-mode="bottom"] {
     position: fixed;
-    bottom: 24px;
+    bottom: var(--offset);
     left: 50%;
     transform: translateX(-50%);
     width: auto;
     max-width: calc(100vw - 32px);
-    height: 72px;
+    height: var(--bar-h);
     background: var(--apex-bg);
-    border-radius: 40px;
+    border-radius: 48px;
     display: flex;
     align-items: center;
-    padding: 8px 12px 8px 8px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+    padding: var(--pad) calc(var(--pad) + 4px) var(--pad) var(--pad);
+    box-shadow:
+      8px 8px 20px rgba(0,0,0,0.08),
+      -6px -6px 16px rgba(255,255,255,0.7),
+      inset 2px 2px 4px rgba(255,255,255,0.6),
+      inset -2px -2px 4px rgba(0,0,0,0.04);
     overflow: visible;
   }
 
   .apex-notch-nav[data-mode="left"] {
     position: fixed;
-    left: 24px;
+    left: var(--offset);
     top: 50%;
     transform: translateY(-50%);
-    width: 80px;
+    width: calc(var(--bar-h) + 8px);
     height: auto;
     background: var(--apex-bg);
-    border-radius: 40px;
+    border-radius: 48px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 8px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    padding: var(--pad);
+    box-shadow:
+      6px 6px 16px rgba(0,0,0,0.08),
+      -4px -4px 12px rgba(255,255,255,0.7),
+      inset 2px 2px 4px rgba(255,255,255,0.5);
     overflow: visible;
   }
 
   .apex-notch-nav[data-mode="right"] {
     position: fixed;
-    right: 24px;
+    right: var(--offset);
     top: 50%;
     transform: translateY(-50%);
-    width: 80px;
+    width: calc(var(--bar-h) + 8px);
     height: auto;
     background: var(--apex-bg);
-    border-radius: 40px;
+    border-radius: 48px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 8px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    padding: var(--pad);
+    box-shadow:
+      -6px 6px 16px rgba(0,0,0,0.08),
+      4px -4px 12px rgba(255,255,255,0.7),
+      inset 2px 2px 4px rgba(255,255,255,0.5);
     overflow: visible;
   }
 
   .apex-tabs {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
     width: 100%;
     height: 100%;
     overflow: visible;
@@ -100,10 +150,9 @@
   .apex-notch-nav[data-mode="left"] .apex-tabs,
   .apex-notch-nav[data-mode="right"] .apex-tabs {
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
   }
 
-  /* Inactive tabs */
   .apex-tab {
     display: flex;
     flex-direction: column;
@@ -112,63 +161,69 @@
     gap: 4px;
     text-decoration: none;
     color: var(--apex-text);
-    padding: 10px 16px;
-    border-radius: 28px;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 8px 14px;
+    border-radius: 32px;
+    transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
-    min-width: 64px;
+    min-width: 56px;
     font-size: 12px;
-    letter-spacing: 0.2px;
+    letter-spacing: 0.1px;
     background: transparent;
     flex-shrink: 0;
   }
 
   .apex-notch-nav[data-mode="left"] .apex-tab,
   .apex-notch-nav[data-mode="right"] .apex-tab {
-    width: 64px;
-    min-height: 64px;
-    padding: 10px 6px;
+    width: calc(var(--bar-h) - 8px);
+    min-height: calc(var(--bar-h) - 8px);
+    padding: 8px 4px;
   }
 
-  /* ACTIVE — large protruding circle bubble that overlaps the pill */
+  /* Clay active bubble */
   .apex-tab.active {
     background: var(--apex-tab);
     color: var(--apex-active);
-    width: 72px;
-    height: 72px;
-    min-width: 72px;
+    width: var(--bubble);
+    height: var(--bubble);
+    min-width: var(--bubble);
     border-radius: 50%;
     padding: 0;
-    margin: -8px -4px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+    margin: calc(var(--pad) * -1) -4px;
+    box-shadow:
+      6px 6px 16px rgba(0,0,0,0.15),
+      -3px -3px 10px rgba(255,255,255,0.4),
+      inset 3px 3px 6px rgba(255,255,255,0.35),
+      inset -2px -2px 4px rgba(0,0,0,0.08);
     z-index: 5;
-    transform: scale(1.05);
+    transform: scale(1.04);
   }
 
   .apex-notch-nav[data-mode="bottom"] .apex-tab.active {
-    margin-left: -12px;
-    margin-right: 4px;
+    margin-left: -14px;
+    margin-right: 2px;
   }
 
   .apex-notch-nav[data-mode="left"] .apex-tab.active,
   .apex-notch-nav[data-mode="right"] .apex-tab.active {
-    width: 72px;
-    height: 72px;
+    width: var(--bubble);
+    height: var(--bubble);
     margin: -6px 0;
   }
 
   .apex-tab-icon {
-    width: 26px;
-    height: 26px;
+    width: var(--icon);
+    height: var(--icon);
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
+    color: var(--apex-icon);
   }
 
   .apex-tab.active .apex-tab-icon {
-    width: 32px;
-    height: 32px;
+    width: calc(var(--icon) + 6px);
+    height: calc(var(--icon) + 6px);
+    color: var(--apex-active);
   }
 
   .apex-tab-icon svg,
@@ -186,6 +241,7 @@
     text-align: center;
     white-space: nowrap;
     font-weight: 500;
+    color: var(--apex-text);
   }
 
   .apex-tab.active .apex-tab-label {
@@ -209,22 +265,25 @@
     padding: 0 4px;
     line-height: 1;
     border: 2px solid var(--apex-bg);
+    box-shadow: 2px 2px 6px rgba(0,0,0,0.12);
   }
 
   .apex-search-bar {
     position: fixed;
-    background: #ffffff;
-    border-radius: 28px;
+    background: var(--apex-bg);
+    border-radius: 32px;
     padding: 14px 20px;
     display: flex;
     align-items: center;
     gap: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    box-shadow:
+      6px 6px 16px rgba(0,0,0,0.08),
+      -4px -4px 12px rgba(255,255,255,0.6);
     z-index: 998;
   }
 
   .apex-notch-nav[data-mode="bottom"] ~ .apex-search-bar {
-    bottom: 112px;
+    bottom: calc(var(--offset) + var(--bar-h) + 16px);
     left: 50%;
     transform: translateX(-50%);
     width: min(420px, calc(100vw - 48px));
@@ -236,24 +295,17 @@
     outline: none;
     flex: 1;
     font-size: 16px;
-    color: #333;
+    color: var(--apex-text);
     font-family: inherit;
   }
 
   @media (max-width: 749px) {
     .apex-notch-nav[data-mode="bottom"] {
-      bottom: 16px;
-      height: 64px;
-      padding: 6px 10px 6px 6px;
+      bottom: calc(var(--offset) - 8px);
     }
     .apex-tab {
-      min-width: 52px;
-      padding: 8px 10px;
-    }
-    .apex-tab.active {
-      width: 64px;
-      height: 64px;
-      min-width: 64px;
+      min-width: 48px;
+      padding: 6px 10px;
     }
     .apex-tab-label {
       font-size: 10px;
@@ -261,7 +313,7 @@
   }
 </style>
 
-<nav class="apex-notch-nav" data-mode="{{ mode }}" role="navigation" aria-label="Primary">
+<nav class="apex-notch-nav" data-mode="{{ mode }}" data-hide-footer="{{ hide_on_footer }}" role="navigation" aria-label="Primary">
   <div class="apex-tabs">
     {%- for block in section.blocks limit: max_tabs -%}
       {%- liquid
@@ -314,10 +366,42 @@
 
 {%- if section.settings.show_search -%}
   <div class="apex-search-bar">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="#666"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
     <input type="search" class="apex-search-input" placeholder="Search" aria-label="Search">
   </div>
 {%- endif -%}
+
+<script>
+  (function() {
+    const nav = document.querySelector('.apex-notch-nav[data-hide-footer="true"]');
+    if (!nav) return;
+
+    const footer = document.querySelector('footer, .footer, #footer, [role="contentinfo"]');
+    const threshold = 120;
+
+    function check() {
+      const scrolled = window.scrollY + window.innerHeight;
+      const total = document.documentElement.scrollHeight;
+      const atBottom = total - scrolled < threshold;
+
+      let footerVisible = false;
+      if (footer) {
+        const rect = footer.getBoundingClientRect();
+        footerVisible = rect.top < window.innerHeight - 40;
+      }
+
+      if (atBottom || footerVisible) {
+        nav.classList.add('is-hidden');
+      } else {
+        nav.classList.remove('is-hidden');
+      }
+    }
+
+    window.addEventListener('scroll', check, { passive: true });
+    window.addEventListener('resize', check);
+    check();
+  })();
+</script>
 
 {% schema %}
 {
@@ -338,27 +422,53 @@
       "default": "bottom"
     },
     {
+      "type": "select",
+      "id": "section_size",
+      "label": "Overall Size",
+      "options": [
+        { "value": "small", "label": "Small" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "large", "label": "Large" }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "range",
+      "id": "bottom_offset",
+      "label": "Distance from edge (px)",
+      "min": 8,
+      "max": 80,
+      "step": 4,
+      "default": 24
+    },
+    {
       "type": "color",
       "id": "background_color",
       "label": "Bar Background",
-      "default": "#ffffff"
+      "default": "#f5f5f7"
     },
     {
       "type": "color",
       "id": "tab_background",
-      "label": "Active Tab Background",
+      "label": "Active Bubble Background",
       "default": "#e60023"
     },
     {
       "type": "color",
       "id": "text_color",
-      "label": "Inactive Text / Icon",
-      "default": "#111111"
+      "label": "Label Color",
+      "default": "#1d1d1f"
+    },
+    {
+      "type": "color",
+      "id": "icon_color",
+      "label": "Icon Color",
+      "default": "#1d1d1f"
     },
     {
       "type": "color",
       "id": "active_text_color",
-      "label": "Active Tab Text",
+      "label": "Active Bubble Icon Color",
       "default": "#ffffff"
     },
     {
@@ -366,6 +476,12 @@
       "id": "custom_font",
       "label": "Tab Font",
       "default": "assistant_n4"
+    },
+    {
+      "type": "checkbox",
+      "id": "hide_on_footer",
+      "label": "Hide when footer is visible or at bottom of page",
+      "default": true
     },
     {
       "type": "checkbox",
