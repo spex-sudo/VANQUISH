@@ -78,6 +78,7 @@
         "carousel_card_x76JMB": {
           "type": "carousel_card",
           "settings": {
+            "product": "",
             "collection": "industrial-assets",
             "label": "",
             "link": ""
@@ -86,6 +87,7 @@
         "carousel_card_xbU89z": {
           "type": "carousel_card",
           "settings": {
+            "product": "",
             "collection": "lexespecs",
             "label": "",
             "link": ""
@@ -94,6 +96,7 @@
         "carousel_card_f9Y6Vy": {
           "type": "carousel_card",
           "settings": {
+            "product": "",
             "collection": "maze",
             "label": "",
             "link": ""
@@ -102,10 +105,10 @@
         "carousel_card_mxUadY": {
           "type": "carousel_card",
           "settings": {
+            "product": "womens-embroidered-flame-patchwork-biker-jacket-leather-coat-with-lining",
             "collection": "lexe",
             "label": "",
-            "link": "",
-            "product": "womens-embroidered-flame-patchwork-biker-jacket-leather-coat-with-lining"
+            "link": ""
           }
         }
       },
@@ -115,12 +118,54 @@
         "carousel_card_f9Y6Vy",
         "carousel_card_mxUadY"
       ],
+      "disabled": true,
       "settings": {
         "font": "system_ui_n4",
         "hero_style": "editorial",
+        "hero_look": "photo",
+        "photo_clean_handles": "faux-leather-jackets",
+        "photo_mesh_handles": "exodus",
+        "photo_product_fallback": true,
+        "photo_focal": "50% 35%",
+        "photo_layout_desktop": "right",
+        "photo_width_desktop": 48,
+        "photo_height": 440,
+        "photo_height_mobile": 316,
+        "photo_pad_top": 8,
+        "photo_pad_top_mobile": 8,
+        "photo_shade_top": 15,
+        "photo_shade_bottom": 75,
+        "photo_glass_opacity": 35,
+        "photo_resume": true,
+        "photo_resume_label": "Continue",
+        "photo_remember_sort": true,
+        "photo_members_chip": false,
+        "photo_members_label": "Members get first look",
+        "photo_members_url": "/pages/links?src=site",
+        "glass_backdrop": "products",
+        "glass_bd_blur": 48,
+        "glass_opacity": 55,
+        "glass_blur": 20,
+        "glass_radius": 28,
+        "glass_title_size": 52,
+        "glass_title_size_mobile": 30,
+        "glass_show_subline": true,
+        "glass_show_count": true,
+        "glass_cta": "none",
+        "glass_cta_label": "Filter",
+        "glass_pad_top": 108,
+        "glass_pad_top_mobile": 100,
+        "glass_max_w": 1300,
         "ed_height": 680,
         "pad_top": 150,
         "pad_top_mobile": 140,
+        "compact_mode": true,
+        "compact_hide_carousel": true,
+        "compact_pad_top": 96,
+        "compact_pad_left": 180,
+        "compact_pad_top_mobile": 140,
+        "compact_headline_size": 46,
+        "compact_headline_size_mobile": 32,
         "headline_font": "oswald_n7",
         "ed_headline_size": 120,
         "headline_source": "title",
@@ -138,11 +183,14 @@
         "meta_center": "LEXE by Devici Studios",
         "side_copy": "Jackets, eyewear, footwear and more.\nNew drops land here first.",
         "count_label": "pieces",
+        "count_label_one": "piece",
         "view_all_label": "View all",
-        "accent_color": "#9B6BD1",
-        "accent_color_2": "#6E3FA3",
+        "accent_color": "#9b6bd1",
+        "accent_color_2": "#6e3fa3",
         "accent_text_color": "#0a0a0a",
         "backdrop_source": "collection",
+        "backdrop_product": "pu-leather-diamond-fishbone-corset-mesh-top",
+        "backdrop_product_handles": "lexe",
         "duotone_strength": 70,
         "shade_strength": 85,
         "wordmark_text": "LEXE",
@@ -193,22 +241,173 @@
         "autoplay_delay": 4,
         "show_dots": true,
         "dot_color": "#d4b6ff",
-        "show_card_label": false,
-        "backdrop_product": "pu-leather-diamond-fishbone-corset-mesh-top",
-        "backdrop_product_handles": "lexe",
-        "compact_mode": true,
-        "compact_hide_carousel": true,
-        "compact_pad_top": 96,
-        "compact_pad_left": 180,
-        "compact_pad_top_mobile": 140,
-        "compact_headline_size": 46,
-        "compact_headline_size_mobile": 32
-      },
-      "disabled": true
+        "show_card_label": false
+      }
     },
     "store_hero": {
       "type": "lexe-store-hero",
-      "settings": {}
+      "settings": {
+        "nav_menu": "",
+        "nav_1": "Explore",
+        "nav_4": "All collections",
+        "wordmark": "",
+        "wordmark_size": 18,
+        "wordmark_spacing": 18,
+        "wordmark_color": "#ffffff",
+        "show_count": false,
+        "count_label": "pieces",
+        "headline": "",
+        "headline_vw": 22,
+        "headline_spacing": -4,
+        "headline_case": "lower",
+        "hero_product": "",
+        "auto_image": true,
+        "focal": "auto",
+        "focal_mobile": "auto",
+        "overlay_color": "#000000",
+        "overlay_start": 45,
+        "overlay_end": 85,
+        "overlay_dir": "to bottom",
+        "stage_h": 520,
+        "stage_h_mobile": 300,
+        "eyebrow_1": "About us",
+        "eyebrow_2": "What we do",
+        "statement": "",
+        "statement_from_description": true,
+        "statement_size": 17,
+        "btn_label": "Learn more",
+        "btn_link": "",
+        "arrow_link": "",
+        "arrow_aria": "See the pieces",
+        "show_last_viewed": true,
+        "lv_label": "Last viewed",
+        "show_band": true,
+        "tab_new_label": "New arrivals",
+        "show_best": true,
+        "tab_best_label": "Bestsellers",
+        "card_count": 8,
+        "cards_desktop": 4,
+        "badge_prefix": "badge:",
+        "card_btn": "Learn more",
+        "from_label": "From",
+        "prev_aria": "Previous",
+        "next_aria": "Next",
+        "display_font": "sans_serif_n4",
+        "display_weight": "500",
+        "text_font": "sans_serif_n4",
+        "hero_bg": "#0a0a0a",
+        "hero_fg": "#ffffff",
+        "accent": "#9966cc",
+        "btn_bg": "#ffffff",
+        "btn_fg": "#0a0a0a",
+        "band_bg": "#000000",
+        "band_fg": "#ffffff",
+        "card_radius": 28,
+        "max_w": 1320,
+        "pad_top": 124,
+        "pad_top_mobile": 120
+      }
+    },
+    "lexe_strip": {
+      "type": "lexe-collection-strip",
+      "blocks": {
+        "col_lexe": {
+          "type": "collection",
+          "settings": {
+            "collection": "lexe",
+            "product": "womens-embroidered-flame-patchwork-biker-jacket-leather-coat-with-lining",
+            "solid": false,
+            "title": "",
+            "link": "",
+            "icon": "jacket"
+          }
+        },
+        "col_lexespecs": {
+          "type": "collection",
+          "settings": {
+            "collection": "lexespecs",
+            "product": "",
+            "solid": false,
+            "title": "",
+            "link": "",
+            "icon": "glasses"
+          }
+        },
+        "col_exodus": {
+          "type": "collection",
+          "settings": {
+            "collection": "exodus",
+            "product": "",
+            "solid": true,
+            "title": "",
+            "link": "",
+            "icon": "bolt"
+          }
+        },
+        "col_women": {
+          "type": "collection",
+          "settings": {
+            "collection": "women",
+            "product": "black-strap-blue-diamond-inlaid-mid-size-dress",
+            "solid": false,
+            "title": "",
+            "link": "",
+            "icon": "woman"
+          }
+        },
+        "col_men": {
+          "type": "collection",
+          "settings": {
+            "collection": "men",
+            "product": "black-double-breasted-blazer-mens-simple-and-versatile-oversized-suit-jacket",
+            "solid": false,
+            "title": "",
+            "link": "",
+            "icon": "man"
+          }
+        },
+        "col_shoes": {
+          "type": "collection",
+          "settings": {
+            "collection": "shoes",
+            "product": "multi-buckle-platform-knee-high-boots",
+            "solid": false,
+            "title": "",
+            "link": "",
+            "icon": "shoe"
+          }
+        }
+      },
+      "block_order": [
+        "col_lexe",
+        "col_lexespecs",
+        "col_exodus",
+        "col_women",
+        "col_men",
+        "col_shoes"
+      ],
+      "disabled": true,
+      "settings": {
+        "eyebrow": "LEXE by Devici Studios",
+        "heading": "Shop by collection",
+        "heading_align": "center",
+        "title_font": "oswald_n7",
+        "cta_label": "Shop now",
+        "columns_desktop": 6,
+        "mobile_layout": "swipe",
+        "ratio": 130,
+        "gap": 12,
+        "radius": 4,
+        "max_width": 1440,
+        "pad_top": 48,
+        "pad_bottom": 48,
+        "bg": "#ffffff",
+        "fg": "#0a0a0a",
+        "card_bg": "#0a0a0a",
+        "accent_color": "#9b6bd1",
+        "overlay": 85,
+        "mono": true
+      }
     },
     "luxury_collection_dpMLw3": {
       "type": "luxury-collection",
@@ -282,9 +481,9 @@
             "focal": "top",
             "eyebrow": "LEXE · Outerwear",
             "headline": "The double-breasted line.",
+            "sub": "An oversized black double-breasted blazer that goes over anything.",
             "cta_label": "See the look",
-            "cta_link": "",
-            "sub": "An oversized black double-breasted blazer that goes over anything."
+            "cta_link": ""
           }
         },
         "editorial_2": {
@@ -295,9 +494,9 @@
             "focal": "top",
             "eyebrow": "LEXE · Dresses",
             "headline": "All black. All shape.",
+            "sub": "A fitted black dress with pleats.",
             "cta_label": "Explore the drop",
-            "cta_link": "",
-            "sub": "A fitted black dress with pleats."
+            "cta_link": ""
           }
         },
         "editorial_3": {
@@ -308,9 +507,9 @@
             "focal": "center",
             "eyebrow": "Specs",
             "headline": "Shade, at full width.",
+            "sub": "One sweep of lens, edge to edge.",
             "cta_label": "See the frames",
-            "cta_link": "",
-            "sub": "One sweep of lens, edge to edge."
+            "cta_link": ""
           }
         },
         "editorial_4": {
@@ -321,9 +520,9 @@
             "focal": "center",
             "eyebrow": "Specs · Y2K",
             "headline": "Say it with a visor.",
+            "sub": "A Y2K visor frame with letter detailing.",
             "cta_label": "See the frames",
-            "cta_link": "",
-            "sub": "A Y2K visor frame with letter detailing."
+            "cta_link": ""
           }
         },
         "editorial_w1": {
@@ -334,9 +533,9 @@
             "focal": "top",
             "eyebrow": "Women · Dresses",
             "headline": "Cut close. Kept dark.",
+            "sub": "A short, fitted black dress with chain straps.",
             "cta_label": "Explore the drop",
-            "cta_link": "",
-            "sub": "A short, fitted black dress with chain straps."
+            "cta_link": ""
           }
         },
         "editorial_w2": {
@@ -347,9 +546,9 @@
             "focal": "top",
             "eyebrow": "Women · Outerwear",
             "headline": "Tailoring, cinched.",
+            "sub": "A short black blazer with lapels and a belted, cinched waist.",
             "cta_label": "See the look",
-            "cta_link": "",
-            "sub": "A short black blazer with lapels and a belted, cinched waist."
+            "cta_link": ""
           }
         },
         "editorial_m1": {
@@ -360,9 +559,9 @@
             "focal": "top",
             "eyebrow": "Men · Jackets",
             "headline": "Zip up. Go dark.",
+            "sub": "A zip-up jacket with seam detail and pockets. In Black or Lake Blue.",
             "cta_label": "See the look",
-            "cta_link": "",
-            "sub": "A zip-up jacket with seam detail and pockets. In Black or Lake Blue."
+            "cta_link": ""
           }
         }
       },
@@ -410,6 +609,32 @@
         "rail_tile_h_mobile": 48,
         "rail_radius": 4,
         "rail_gap": 12,
+        "rail_style": "story",
+        "glass_opacity": 55,
+        "glass_blur": 20,
+        "glass_tint": true,
+        "tray_radius": 28,
+        "clay_depth": "subtle",
+        "story_size": 76,
+        "story_size_mobile": 64,
+        "story_spacing": 14,
+        "story_ring_width": 2,
+        "story_gap_width": 2,
+        "story_ring_c1": "#9966cc",
+        "story_ring_c2": "#c7aeeb",
+        "story_ring_c3": "#e8ddf7",
+        "story_ring_angle": 210,
+        "story_gap_color": "#ffffff",
+        "story_label_color": "#86868b",
+        "story_label_active_color": "#0a0a0a",
+        "story_active_style": "solid",
+        "story_active_color": "#9966cc",
+        "story_seen": true,
+        "story_seen_color": "#d2d2d7",
+        "story_new_badge": false,
+        "story_new_days": 7,
+        "story_new_label": "New",
+        "story_intro": false,
         "show_chips": true,
         "chip_filters": "availability, product type, color, colour, size, price",
         "chip_values_per_filter": 6,
@@ -425,15 +650,15 @@
         "ed_every_rows_desktop": 4,
         "ed_every_rows_mobile": 8,
         "ed_ratio_mobile": "4/5",
-        "lx_accent": "#9B6BD1",
-        "lx_accent_2": "#6E3FA3",
+        "lx_accent": "#9b6bd1",
+        "lx_accent_2": "#6e3fa3",
         "fc_video_enable": true,
         "fc_video_url": "",
         "fc_use_product_video": false,
         "hide_floaters": true,
         "sink_tagged": true,
         "sort_low_label": "Sort: low to high",
-        "ed_mark_color": "#9966CC"
+        "ed_mark_color": "#9966cc"
       }
     },
     "lexe_intro": {
@@ -441,106 +666,117 @@
       "settings": {
         "custom_liquid": "{% if collection.description != blank %}<div class=\"lexe-coll-intro\" style=\"max-width:760px;margin:0 auto;padding:28px 20px 40px;font-size:15px;line-height:1.65;\">{{ collection.description }}</div><style>.lexe-coll-intro a{text-decoration:underline;text-underline-offset:2px;color:inherit}.lexe-coll-intro p{margin:0 0 12px}</style>{% endif %}",
         "color_scheme": "",
-        "section_width": "page-width"
+        "section_width": "page-width",
+        "padding-block-start": 0,
+        "padding-block-end": 0
       }
     },
-    "lexe_strip": {
-      "type": "lexe-collection-strip",
+    "vanquish_notch_QreFfM": {
+      "type": "vanquish-notch",
+      "name": "Apex Notch v6",
+      "settings": {
+        "side": "right",
+        "vertical_position": 50,
+        "edge_offset": 16,
+        "master_scale": 100,
+        "lobe_size": 48,
+        "primary_boost": 130,
+        "icon_size": 18,
+        "lobe_overlap": 14,
+        "bg_color": "#1d1d1f",
+        "fg_color": "#ffffff",
+        "muted_color": "#86868b",
+        "accent_color": "#0071e3",
+        "drawer_bg": "#ffffff",
+        "drawer_fg": "#1d1d1f",
+        "drawer_radius": 0,
+        "show_cart": true,
+        "cart_label": "Cart",
+        "cart_mode": "drawer",
+        "cart_drawer_title": "Your bag",
+        "subtotal_label": "Subtotal",
+        "view_cart_label": "View cart",
+        "checkout_label": "Checkout",
+        "cart_empty_text": "Your bag is empty.",
+        "cart_empty_cta": "Continue shopping",
+        "cart_empty_href": "/collections/all",
+        "show_shipping_bar": false,
+        "shipping_threshold": 10000,
+        "shipping_before_text": "Shipping from $10.75",
+        "shipping_reached_text": "Shipping from $10.75",
+        "show_favorites": true,
+        "favorites_label": "Saved",
+        "favs_mode": "drawer",
+        "favorites_drawer_title": "Saved for later",
+        "favorites_empty_text": "No favorites yet — tap any heart on a product to save it here.",
+        "bulk_label": "Add all to cart",
+        "favorites_url": "/pages/favorites",
+        "show_audio": false,
+        "audio_url": "https://www.youtube.com/watch?v=5qap5aO4i9A",
+        "audio_label": "Music",
+        "audio_loop": true,
+        "audio_volume": 80,
+        "show_share": true,
+        "share_label": "Share",
+        "share_title": "Share LEXE",
+        "share_text": "Take a look at LEXE by Devici Studios.",
+        "cart_share_text": "Here is my LEXE bag.",
+        "share_mail_subject": "LEXE by Devici Studios",
+        "qr_url": "https://vanquish7.studio",
+        "primary_button": "cart",
+        "expand_behavior": "click"
+      }
+    },
+    "apex_notch_nav_iFk3Pq": {
+      "type": "apex-notch-nav",
       "blocks": {
-        "col_lexe": {
-          "type": "collection",
+        "tab_NhfWff": {
+          "type": "tab",
           "settings": {
-            "collection": "lexe",
-            "title": "",
-            "link": "",
-            "icon": "jacket",
-            "product": "womens-embroidered-flame-patchwork-biker-jacket-leather-coat-with-lining",
-            "solid": false
+            "label": "Cart",
+            "url": "/cart",
+            "icon_default": "cart",
+            "is_logo": false,
+            "hide_label": false
           }
         },
-        "col_lexespecs": {
-          "type": "collection",
+        "tab_n7pAn8": {
+          "type": "tab",
           "settings": {
-            "collection": "lexespecs",
-            "title": "",
-            "link": "",
-            "icon": "glasses"
+            "label": "Profile",
+            "url": "/account",
+            "icon_default": "profile",
+            "is_logo": false,
+            "hide_label": false
           }
         },
-        "col_exodus": {
-          "type": "collection",
+        "tab_HibaUr": {
+          "type": "tab",
           "settings": {
-            "collection": "exodus",
-            "title": "",
-            "link": "",
-            "icon": "bolt",
-            "product": "",
-            "solid": true
-          }
-        },
-        "col_women": {
-          "type": "collection",
-          "settings": {
-            "collection": "women",
-            "title": "",
-            "link": "",
-            "icon": "woman",
-            "product": "black-strap-blue-diamond-inlaid-mid-size-dress",
-            "solid": false
-          }
-        },
-        "col_men": {
-          "type": "collection",
-          "settings": {
-            "collection": "men",
-            "title": "",
-            "link": "",
-            "icon": "man",
-            "product": "black-double-breasted-blazer-mens-simple-and-versatile-oversized-suit-jacket",
-            "solid": false
-          }
-        },
-        "col_shoes": {
-          "type": "collection",
-          "settings": {
-            "collection": "shoes",
-            "title": "",
-            "link": "",
-            "icon": "shoe",
-            "product": "multi-buckle-platform-knee-high-boots"
+            "label": "Orders",
+            "url": "/account/orders",
+            "icon_default": "orders",
+            "is_logo": false,
+            "hide_label": false
           }
         }
       },
       "block_order": [
-        "col_lexe",
-        "col_lexespecs",
-        "col_exodus",
-        "col_women",
-        "col_men",
-        "col_shoes"
+        "tab_NhfWff",
+        "tab_n7pAn8",
+        "tab_HibaUr"
       ],
+      "name": "Apex Notch Tab Nav",
       "settings": {
-        "eyebrow": "LEXE by Devici Studios",
-        "heading": "Shop by collection",
-        "heading_align": "center",
-        "title_font": "oswald_n7",
-        "cta_label": "Shop now",
-        "columns_desktop": 6,
-        "mobile_layout": "swipe",
-        "ratio": 130,
-        "gap": 12,
-        "radius": 4,
-        "max_width": 1440,
-        "pad_top": 48,
-        "pad_bottom": 48,
-        "bg": "#ffffff",
-        "fg": "#0a0a0a",
-        "card_bg": "#0a0a0a",
-        "accent_color": "#9B6BD1",
-        "overlay": 85,
-        "mono": true
-      },
-      "disabled": true
+        "position_mode": "bottom",
+        "background_color": "#2c2c2c",
+        "tab_background": "#ffffff",
+        "text_color": "#ffffff",
+        "active_text_color": "#000000",
+        "icon_color": "#ffffff",
+        "custom_font": "assistant_n4",
+        "show_search": true
+      }
     }
   },
   "order": [
@@ -549,6 +785,8 @@
     "store_hero",
     "lexe_strip",
     "luxury_collection_dpMLw3",
-    "lexe_intro"
+    "lexe_intro",
+    "vanquish_notch_QreFfM",
+    "apex_notch_nav_iFk3Pq"
   ]
 }
