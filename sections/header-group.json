@@ -196,86 +196,9 @@
         "vault_label": "SNACKS",
         "vault_radius": 2
       }
-    },
-    "apex_notch_nav_GwkCqc": {
-      "type": "apex-notch-nav",
-      "blocks": {
-        "tab_jMABRL": {
-          "type": "tab",
-          "settings": {
-            "label": "Home",
-            "url": "/",
-            "icon_default": "home",
-            "is_logo": true,
-            "hide_label": false
-          }
-        },
-        "tab_AWgt7R": {
-          "type": "tab",
-          "settings": {
-            "label": "Search",
-            "url": "/search",
-            "icon_default": "search",
-            "is_logo": false,
-            "hide_label": false
-          }
-        },
-        "tab_HAVnQN": {
-          "type": "tab",
-          "settings": {
-            "label": "Cart",
-            "url": "shopify://pages/links",
-            "icon_default": "cart",
-            "is_logo": false,
-            "hide_label": false
-          }
-        },
-        "tab_xjFjwx": {
-          "type": "tab",
-          "settings": {
-            "label": "Profile",
-            "url": "/account",
-            "icon_default": "profile",
-            "is_logo": false,
-            "hide_label": false
-          }
-        },
-        "tab_dWy7NR": {
-          "type": "tab",
-          "settings": {
-            "label": "Orders",
-            "url": "/account/orders",
-            "icon_default": "orders",
-            "is_logo": false,
-            "hide_label": false
-          }
-        }
-      },
-      "block_order": [
-        "tab_jMABRL",
-        "tab_AWgt7R",
-        "tab_HAVnQN",
-        "tab_xjFjwx",
-        "tab_dWy7NR"
-      ],
-      "name": "Apex Notch Tab Nav",
-      "settings": {
-        "position_mode": "bottom",
-        "section_size": "small",
-        "bottom_offset": 24,
-        "background_color": "#000000",
-        "tab_background": "#E9E9E9",
-        "text_color": "#FFFFFF",
-        "icon_color": "#FFFFFF",
-        "active_text_color": "#000000",
-        "custom_font": "syne_n8",
-        "hide_on_footer": true,
-        "show_search": false
-      }
     }
   },
   "order": [
-    "signature_header_8dQTVX",
-    "apex_notch_nav_GwkCqc"
+    "signature_header_8dQTVX"
   ]
 }
