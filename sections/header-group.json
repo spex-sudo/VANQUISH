@@ -261,7 +261,7 @@
       "name": "Apex Notch Tab Nav",
       "settings": {
         "position_mode": "bottom",
-        "section_size": "medium",
+        "section_size": "small",
         "bottom_offset": 24,
         "background_color": "#000000",
         "tab_background": "#E9E9E9",
