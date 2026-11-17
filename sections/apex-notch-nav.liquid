@@ -31,7 +31,6 @@
     z-index: 999;
   }
 
-  /* Positioning modes */
   .apex-notch-nav[data-mode="bottom"] {
     position: fixed;
     bottom: 0;
@@ -92,7 +91,6 @@
     justify-content: space-around;
   }
 
-  /* Base tab — transparent on the dark bar */
   .apex-tab {
     display: flex;
     flex-direction: column;
@@ -119,7 +117,6 @@
     padding: 12px 8px;
   }
 
-  /* Active tab — white/selected protruding bubble like the COACH reference */
   .apex-tab.active {
     background: var(--apex-tab);
     color: var(--apex-active);
@@ -127,7 +124,6 @@
     z-index: 2;
   }
 
-  /* Bottom mode: active tab sticks up */
   .apex-notch-nav[data-mode="bottom"] .apex-tab.active {
     border-radius: 28px 28px 18px 18px;
     padding: 14px 22px 12px;
@@ -135,14 +131,12 @@
     min-width: 80px;
   }
 
-  /* Left mode: active sticks right */
   .apex-notch-nav[data-mode="left"] .apex-tab.active {
     border-radius: 0 28px 28px 0;
     transform: translateX(6px);
     width: 84px;
   }
 
-  /* Right mode: active sticks left */
   .apex-notch-nav[data-mode="right"] .apex-tab.active {
     border-radius: 28px 0 0 28px;
     transform: translateX(-6px);
@@ -179,7 +173,6 @@
     font-weight: 700;
   }
 
-  /* Cart count badge */
   .apex-cart-count {
     position: absolute;
     top: -4px;
@@ -198,7 +191,6 @@
     line-height: 1;
   }
 
-  /* Optional search bar (reference style) */
   .apex-search-bar {
     position: fixed;
     background: #f8f8f8;
