@@ -2,13 +2,29 @@
   assign mode = section.settings.position_mode | default: 'bottom'
   assign side_mode = section.settings.side_mode | default: 'left'
   assign side_pages = section.settings.side_pages | default: '' | downcase
-  assign current_handle = page.handle | default: template.name | default: '' | downcase
+  assign hide_pages = section.settings.hide_pages | default: '' | downcase
 
-  if side_pages != blank and current_handle != blank
+  assign current_handle = page.handle | default: product.handle | default: collection.handle | default: '' | downcase
+  assign current_template = template.name | default: '' | downcase
+  assign page_type = request.page_type | default: '' | downcase
+
+  assign should_hide = false
+  if hide_pages != blank
+    assign hide_list = hide_pages | split: ','
+    for p in hide_list
+      assign clean = p | strip
+      if clean == current_handle or clean == current_template or clean == page_type
+        assign should_hide = true
+        break
+      endif
+    endfor
+  endif
+
+  if side_pages != blank and should_hide == false
     assign pages_list = side_pages | split: ','
     for p in pages_list
       assign clean = p | strip
-      if clean == current_handle or clean == template.name
+      if clean == current_handle or clean == current_template or clean == page_type
         assign mode = side_mode
         break
       endif
@@ -43,6 +59,8 @@
       assign pad = 8
   endcase
 -%}
+
+{%- unless should_hide -%}
 
 <style>
   {%- if section.settings.custom_font != blank -%}
@@ -91,7 +109,6 @@
     pointer-events: auto;
   }
 
-  /* Clean three-shadow clay */
   .apex-notch-nav[data-mode="bottom"] {
     position: fixed;
     bottom: var(--offset);
@@ -424,6 +441,8 @@
   })();
 </script>
 
+{%- endunless -%}
+
 {% schema %}
 {
   "name": "Apex Notch Tab Nav",
@@ -458,7 +477,13 @@
       "type": "textarea",
       "id": "side_pages",
       "label": "Pages that use Side Mode",
-      "info": "Comma-separated page handles or template names (e.g. about, contact, product). Leave blank to disable page override."
+      "info": "Comma-separated page handles, product handles, or template names (e.g. about, contact, product). Leave blank to disable."
+    },
+    {
+      "type": "textarea",
+      "id": "hide_pages",
+      "label": "Hide completely on these pages",
+      "info": "Comma-separated page handles, product handles, or template names (e.g. cart, search, password). Leave blank to show everywhere the section is placed. Product pages are shown by default."
     },
     {
       "type": "select",
