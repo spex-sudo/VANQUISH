@@ -183,7 +183,7 @@
         "text_logo_spacing": 3,
         "search_placeholder": "Search products…",
         "icon_size": 20,
-        "badge_bg_color": "#851E1E",
+        "badge_bg_color": "#851e1e",
         "badge_text_color": "#ffffff",
         "custom_cart_url": "shopify://pages/links",
         "footer_link_1_text": "Contact",
@@ -196,9 +196,60 @@
         "vault_label": "SNACKS",
         "vault_radius": 2
       }
+    },
+    "apex_notch_nav_RkffYk": {
+      "type": "apex-notch-nav",
+      "blocks": {
+        "tab_GcqeN3": {
+          "type": "tab",
+          "settings": {
+            "label": "Cart",
+            "url": "/cart",
+            "icon_default": "cart",
+            "is_logo": false,
+            "hide_label": false
+          }
+        },
+        "tab_WRxy9f": {
+          "type": "tab",
+          "settings": {
+            "label": "Profile",
+            "url": "/account",
+            "icon_default": "profile",
+            "is_logo": false,
+            "hide_label": false
+          }
+        },
+        "tab_CK9DQF": {
+          "type": "tab",
+          "settings": {
+            "label": "Orders",
+            "url": "/account/orders",
+            "icon_default": "orders",
+            "is_logo": false,
+            "hide_label": false
+          }
+        }
+      },
+      "block_order": [
+        "tab_GcqeN3",
+        "tab_WRxy9f",
+        "tab_CK9DQF"
+      ],
+      "name": "Apex Notch Tab Nav",
+      "settings": {
+        "position_mode": "bottom",
+        "background_color": "#2c2c2c",
+        "tab_background": "#ffffff",
+        "text_color": "#ffffff",
+        "active_text_color": "#000000",
+        "custom_font": "syne_n8",
+        "show_search": true
+      }
     }
   },
   "order": [
-    "signature_header_8dQTVX"
+    "signature_header_8dQTVX",
+    "apex_notch_nav_RkffYk"
   ]
 }
