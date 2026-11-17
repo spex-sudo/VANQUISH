@@ -1,0 +1,440 @@
+{%- liquid
+  assign mode = section.settings.position_mode | default: 'bottom'
+  assign bg_color = section.settings.background_color | default: '#2c2c2c'
+  assign tab_bg = section.settings.tab_background | default: '#ffffff'
+  assign text_color = section.settings.text_color | default: '#ffffff'
+  assign active_text = section.settings.active_text_color | default: '#000000'
+  assign icon_color = section.settings.icon_color | default: '#ffffff'
+  assign max_tabs = 7
+  assign tab_count = section.blocks.size | at_most: max_tabs
+-%}
+
+<style>
+  {%- if section.settings.custom_font != blank -%}
+    {{ section.settings.custom_font | font_face }}
+    :root {
+      --apex-font-family: {{ section.settings.custom_font.family }}, {{ section.settings.custom_font.fallback_families }};
+      --apex-font-weight: {{ section.settings.custom_font.weight }};
+      --apex-font-style: {{ section.settings.custom_font.style }};
+    }
+  {%- else -%}
+    :root {
+      --apex-font-family: inherit;
+      --apex-font-weight: 500;
+      --apex-font-style: normal;
+    }
+  {%- endif -%}
+
+  .apex-notch-nav {
+    --apex-bg: {{ bg_color }};
+    --apex-tab-bg: {{ tab_bg }};
+    --apex-text: {{ text_color }};
+    --apex-active-text: {{ active_text }};
+    --apex-icon: {{ icon_color }};
+    font-family: var(--apex-font-family);
+    font-weight: var(--apex-font-weight);
+    font-style: var(--apex-font-style);
+    z-index: 1000;
+  }
+
+  /* Mode-specific positioning */
+  .apex-notch-nav[data-mode="left"] {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 80px;
+    display: flex;
+    flex-direction: column;
+    background: var(--apex-bg);
+    padding: 20px 0;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+  }
+
+  .apex-notch-nav[data-mode="right"] {
+    position: fixed;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 80px;
+    display: flex;
+    flex-direction: column;
+    background: var(--apex-bg);
+    padding: 20px 0;
+    box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+  }
+
+  .apex-notch-nav[data-mode="bottom"] {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    display: flex;
+    flex-direction: row;
+    background: var(--apex-bg);
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 10px;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+  }
+
+  .apex-tabs {
+    display: flex;
+    width: 100%;
+    height: 100%;
+  }
+
+  .apex-notch-nav[data-mode="left"] .apex-tabs,
+  .apex-notch-nav[data-mode="right"] .apex-tabs {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .apex-notch-nav[data-mode="bottom"] .apex-tabs {
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+  }
+
+  .apex-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: var(--apex-text);
+    padding: 8px 12px;
+    border-radius: 20px 20px 0 0;
+    transition: all 0.2s ease;
+    position: relative;
+    min-width: 60px;
+    gap: 4px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .apex-notch-nav[data-mode="left"] .apex-tab,
+  .apex-notch-nav[data-mode="right"] .apex-tab {
+    border-radius: 0 20px 20px 0;
+    width: 100%;
+    min-height: 60px;
+  }
+
+  .apex-notch-nav[data-mode="right"] .apex-tab {
+    border-radius: 20px 0 0 20px;
+  }
+
+  .apex-tab.active,
+  .apex-tab:hover {
+    background: var(--apex-tab-bg);
+    color: var(--apex-active-text);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+
+  /* Notch / protruding effect inspired by Coach reference */
+  .apex-tab.active::before {
+    content: '';
+    position: absolute;
+    background: var(--apex-tab-bg);
+    z-index: -1;
+  }
+
+  .apex-notch-nav[data-mode="bottom"] .apex-tab.active::before {
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 8px;
+    border-radius: 0 0 10px 10px;
+  }
+
+  .apex-tab-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .apex-tab-icon img,
+  .apex-tab-icon svg {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    fill: currentColor;
+  }
+
+  .apex-tab-label {
+    font-size: 10px;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  /* Search bar (optional, matching reference) */
+  .apex-search-bar {
+    position: fixed;
+    background: #f5f5f5;
+    border-radius: 20px;
+    margin: 10px 20px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+
+  .apex-notch-nav[data-mode="bottom"] ~ .apex-search-bar,
+  body:has(.apex-notch-nav[data-mode="bottom"]) .apex-search-bar {
+    bottom: 80px;
+    left: 20px;
+    right: 20px;
+  }
+
+  .apex-search-input {
+    border: none;
+    background: transparent;
+    outline: none;
+    flex: 1;
+    font-size: 16px;
+    color: #333;
+  }
+
+  /* Cart badge */
+  .apex-cart-count {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: #e00;
+    color: white;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+  }
+
+  @media (max-width: 768px) {
+    .apex-notch-nav[data-mode="left"],
+    .apex-notch-nav[data-mode="right"] {
+      width: 60px;
+    }
+  }
+</style>
+
+<nav class="apex-notch-nav" data-mode="{{ mode }}" role="navigation" aria-label="Primary navigation">
+  <div class="apex-tabs">
+    {%- for block in section.blocks limit: max_tabs -%}
+      {%- liquid
+        assign is_active = false
+        if block.settings.url != blank and request.path == block.settings.url
+          assign is_active = true
+        endif
+        assign tab_label = block.settings.label | default: 'Tab'
+        assign icon_html = ''
+      -%}
+
+      {%- if block.settings.icon_custom != blank -%}
+        {%- assign icon_html = '<img src="' | append: block.settings.icon_custom | img_url: '48x48' | append: '" alt="">' -%}
+      {%- else -%}
+        {%- case block.settings.icon_default -%}
+          {%- when 'cart' -%}
+            {%- assign icon_html = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>' -%}
+          {%- when 'profile' -%}
+            {%- assign icon_html = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>' -%}
+          {%- when 'orders' -%}
+            {%- assign icon_html = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>' -%}
+          {%- when 'search' -%}
+            {%- assign icon_html = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>' -%}
+          {%- when 'menu' -%}
+            {%- assign icon_html = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>' -%}
+          {%- else -%}
+            {%- assign icon_html = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="8"/></svg>' -%}
+        {%- endcase -%}
+      {%- endif -%}
+
+      <a href="{{ block.settings.url | default: '#' }}"
+         class="apex-tab {% if is_active %}active{% endif %}"
+         {{ block.shopify_attributes }}
+         {% if block.settings.is_logo %}data-logo="true"{% endif %}>
+        <span class="apex-tab-icon">
+          {{ icon_html }}
+          {%- if block.settings.icon_default == 'cart' and cart.item_count > 0 -%}
+            <span class="apex-cart-count">{{ cart.item_count }}</span>
+          {%- endif -%}
+        </span>
+        {%- unless block.settings.hide_label -%}
+          <span class="apex-tab-label">{{ tab_label }}</span>
+        {%- endunless -%}
+      </a>
+    {%- endfor -%}
+  </div>
+</nav>
+
+{%- if section.settings.show_search -%}
+  <div class="apex-search-bar">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="#666"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+    <input type="search" class="apex-search-input" placeholder="Search" aria-label="Search">
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Apex Notch Tab Nav",
+  "tag": "div",
+  "class": "apex-notch-section",
+  "max_blocks": 7,
+  "settings": [
+    {
+      "type": "select",
+      "id": "position_mode",
+      "label": "Navigation Position Mode",
+      "options": [
+        { "value": "left", "label": "Left Side" },
+        { "value": "right", "label": "Right Side" },
+        { "value": "bottom", "label": "Bottom" }
+      ],
+      "default": "bottom"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background Color",
+      "default": "#2c2c2c"
+    },
+    {
+      "type": "color",
+      "id": "tab_background",
+      "label": "Active Tab Background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text / Icon Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "active_text_color",
+      "label": "Active Tab Text Color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "icon_color",
+      "label": "Icon Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "font_picker",
+      "id": "custom_font",
+      "label": "Custom Font for Tabs",
+      "default": "assistant_n4"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_search",
+      "label": "Show Search Bar",
+      "default": true
+    }
+  ],
+  "blocks": [
+    {
+      "type": "tab",
+      "name": "Tab",
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Tab Label",
+          "default": "Home"
+        },
+        {
+          "type": "url",
+          "id": "url",
+          "label": "Link URL"
+        },
+        {
+          "type": "select",
+          "id": "icon_default",
+          "label": "Default Icon",
+          "options": [
+            { "value": "none", "label": "None" },
+            { "value": "cart", "label": "Cart" },
+            { "value": "profile", "label": "Profile / Account" },
+            { "value": "orders", "label": "Orders" },
+            { "value": "search", "label": "Search" },
+            { "value": "menu", "label": "Menu" },
+            { "value": "home", "label": "Home" }
+          ],
+          "default": "none"
+        },
+        {
+          "type": "image_picker",
+          "id": "icon_custom",
+          "label": "Custom Icon (overrides default)"
+        },
+        {
+          "type": "checkbox",
+          "id": "is_logo",
+          "label": "Treat as Logo Tab",
+          "default": false
+        },
+        {
+          "type": "checkbox",
+          "id": "hide_label",
+          "label": "Hide Label (icon only)",
+          "default": false
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Apex Notch Tab Nav",
+      "blocks": [
+        {
+          "type": "tab",
+          "settings": {
+            "label": "COACH",
+            "url": "/",
+            "is_logo": true,
+            "icon_default": "none"
+          }
+        },
+        {
+          "type": "tab",
+          "settings": {
+            "label": "Cart",
+            "url": "/cart",
+            "icon_default": "cart"
+          }
+        },
+        {
+          "type": "tab",
+          "settings": {
+            "label": "Profile",
+            "url": "/account",
+            "icon_default": "profile"
+          }
+        },
+        {
+          "type": "tab",
+          "settings": {
+            "label": "Orders",
+            "url": "/account/orders",
+            "icon_default": "orders"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
