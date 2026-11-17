@@ -268,7 +268,7 @@
         "background_color": "#000000",
         "tab_background": "#FFFFFF",
         "text_color": "#FFFFFF",
-        "icon_color": "#1d1d1f",
+        "icon_color": "#C6C6C6",
         "active_text_color": "#000000",
         "custom_font": "mono",
         "hide_on_footer": true,
