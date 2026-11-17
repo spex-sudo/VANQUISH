@@ -204,7 +204,7 @@
           "type": "tab",
           "settings": {
             "label": "Home",
-            "url": "/",
+            "url": "shopify://pages/links",
             "icon_default": "home",
             "is_logo": true,
             "hide_label": false
