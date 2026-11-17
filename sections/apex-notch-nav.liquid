@@ -284,7 +284,8 @@
     display: none;
   }
 
-  .apex-cart-count {
+  .apex-cart-count,
+  .apex-fav-count {
     position: absolute;
     top: -6px;
     right: -6px;
@@ -303,36 +304,146 @@
     border: 2px solid var(--apex-bg);
   }
 
-  .apex-search-bar {
+  /* Clay favorites pop-out */
+  .apex-favs-overlay {
     position: fixed;
-    background: var(--apex-bg);
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.28s ease;
+  }
+  .apex-favs-overlay.is-open {
+    pointer-events: auto;
+    opacity: 1;
+  }
+  .apex-favs-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.28);
+    backdrop-filter: blur(2px);
+  }
+  .apex-favs-panel {
+    position: relative;
+    width: min(420px, calc(100vw - 32px));
+    max-height: 72vh;
+    background: var(--apex-bg, #f5f5f7);
     border-radius: 32px;
-    padding: 14px 20px;
+    margin-bottom: calc(var(--offset, 24px) + var(--bar-h, 72px) + 12px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow:
+      8px 8px 24px rgba(0,0,0,0.12),
+      inset -3px -3px 6px rgba(0,0,0,0.05),
+      inset 3px 3px 6px rgba(255,255,255,0.4);
+    transform: translateY(20px) scale(0.96);
+    transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .apex-favs-overlay.is-open .apex-favs-panel {
+    transform: translateY(0) scale(1);
+  }
+  .apex-favs-head {
     display: flex;
     align-items: center;
-    gap: 12px;
-    box-shadow:
-      5px 5px 14px rgba(0,0,0,0.08),
-      inset -2px -2px 5px rgba(0,0,0,0.05),
-      inset 2px 2px 5px rgba(255,255,255,0.3);
-    z-index: 998;
+    justify-content: space-between;
+    padding: 18px 20px 12px;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
   }
-
-  .apex-notch-nav[data-mode="bottom"] ~ .apex-search-bar {
-    bottom: calc(var(--offset) + var(--bar-h) + 16px);
-    left: 50%;
-    transform: translateX(-50%);
-    width: min(420px, calc(100vw - 48px));
-  }
-
-  .apex-search-input {
-    border: none;
-    background: transparent;
-    outline: none;
-    flex: 1;
+  .apex-favs-title {
     font-size: 16px;
+    font-weight: 600;
+    margin: 0;
     color: var(--apex-text);
-    font-family: inherit;
+  }
+  .apex-favs-close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.06);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--apex-text);
+  }
+  .apex-favs-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 12px 16px;
+  }
+  .apex-fav-item {
+    display: flex;
+    gap: 12px;
+    padding: 10px;
+    border-radius: 20px;
+    margin-bottom: 6px;
+    background: rgba(255,255,255,0.5);
+    box-shadow:
+      inset 2px 2px 4px rgba(255,255,255,0.6),
+      inset -1px -1px 3px rgba(0,0,0,0.04);
+  }
+  .apex-fav-thumb {
+    width: 64px;
+    height: 64px;
+    border-radius: 14px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: #eee;
+  }
+  .apex-fav-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+  }
+  .apex-fav-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--apex-text);
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .apex-fav-price {
+    font-size: 12px;
+    color: var(--apex-text);
+    opacity: 0.7;
+  }
+  .apex-fav-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    justify-content: center;
+  }
+  .apex-fav-btn {
+    border: none;
+    border-radius: 12px;
+    padding: 6px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    background: var(--apex-tab, #e60023);
+    color: #fff;
+  }
+  .apex-fav-btn.remove {
+    background: transparent;
+    color: var(--apex-text);
+    opacity: 0.6;
+  }
+  .apex-favs-empty {
+    text-align: center;
+    padding: 32px 16px;
+    color: var(--apex-text);
+    opacity: 0.6;
+    font-size: 13px;
   }
 
   @media (max-width: 749px) {
@@ -350,6 +461,9 @@
     .apex-tab-label {
       font-size: 10px;
     }
+    .apex-favs-panel {
+      margin-bottom: calc(var(--offset, 24px) + var(--bar-h, 72px) - 4px);
+    }
   }
 </style>
 
@@ -364,11 +478,16 @@
           endif
         endif
         assign tab_label = block.settings.label | default: 'Tab'
+        assign is_fav = false
+        if block.settings.icon_default == 'favorites'
+          assign is_fav = true
+        endif
       -%}
 
       <a href="{{ block.settings.url | default: '#' }}"
          class="apex-tab{% if is_active %} active{% endif %}"
          {{ block.shopify_attributes }}
+         {% if is_fav %}data-apex-favorites{% endif %}
          {% if block.settings.is_logo %}data-logo="true"{% endif %}>
 
         <span class="apex-tab-icon">
@@ -388,15 +507,18 @@
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
               {%- when 'home' -%}
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+              {%- when 'favorites' -%}
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
               {%- else -%}
                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/></svg>
             {%- endcase -%}
           {%- endif -%}
 
-          {%- if block.settings.icon_default == 'cart' and cart.item_count > 0 -%}
-            <span class="apex-cart-count" data-apex-cart-count>{{ cart.item_count }}</span>
-          {%- elsif block.settings.icon_default == 'cart' -%}
-            <span class="apex-cart-count" data-apex-cart-count hidden>0</span>
+          {%- if block.settings.icon_default == 'cart' -%}
+            <span class="apex-cart-count" data-apex-cart-count{% if cart.item_count == 0 %} hidden{% endif %}>{{ cart.item_count }}</span>
+          {%- endif -%}
+          {%- if is_fav -%}
+            <span class="apex-fav-count" data-apex-fav-count hidden>0</span>
           {%- endif -%}
         </span>
 
@@ -407,6 +529,21 @@
     {%- endfor -%}
   </div>
 </nav>
+
+<div class="apex-favs-overlay" id="apex-favs-overlay" aria-hidden="true">
+  <div class="apex-favs-backdrop" data-favs-backdrop></div>
+  <div class="apex-favs-panel" role="dialog" aria-modal="true" aria-label="Favorites">
+    <div class="apex-favs-head">
+      <h2 class="apex-favs-title">Saved</h2>
+      <button type="button" class="apex-favs-close" data-favs-close aria-label="Close">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="apex-favs-body" data-favs-body>
+      <div class="apex-favs-empty">No favorites yet.</div>
+    </div>
+  </div>
+</div>
 
 {%- if section.settings.show_search -%}
   <div class="apex-search-bar">
@@ -421,19 +558,164 @@
     const nav = document.querySelector('.apex-notch-nav');
     if (!nav) return;
 
-    /* Footer / bottom hide via IntersectionObserver (no scroll thrashing) */
+    const FAV_KEY = 'apex_favs_v1';
+    const overlay = document.getElementById('apex-favs-overlay');
+    const body = overlay && overlay.querySelector('[data-favs-body]');
+    const favCountEls = document.querySelectorAll('[data-apex-fav-count]');
+
+    function readFavs() {
+      try {
+        const raw = localStorage.getItem(FAV_KEY);
+        if (!raw) return [];
+        const arr = JSON.parse(raw);
+        return Array.isArray(arr) ? arr : [];
+      } catch (e) { return []; }
+    }
+    function writeFavs(arr) {
+      try { localStorage.setItem(FAV_KEY, JSON.stringify(arr)); } catch (e) {}
+    }
+
+    window.ApexFavorites = window.ApexFavorites || {
+      list: readFavs,
+      has: function(h) { return readFavs().indexOf(h) !== -1; },
+      add: function(h) {
+        if (!h) return;
+        const f = readFavs();
+        if (f.indexOf(h) === -1) f.push(h);
+        writeFavs(f);
+        document.dispatchEvent(new CustomEvent('apex:favorites-changed', { detail: { handle: h, action: 'add' } }));
+      },
+      remove: function(h) {
+        writeFavs(readFavs().filter(x => x !== h));
+        document.dispatchEvent(new CustomEvent('apex:favorites-changed', { detail: { handle: h, action: 'remove' } }));
+      },
+      toggle: function(h) { this.has(h) ? this.remove(h) : this.add(h); },
+      count: function() { return readFavs().length; }
+    };
+
+    function updateFavCount() {
+      const n = readFavs().length;
+      favCountEls.forEach(el => {
+        el.textContent = n;
+        el.hidden = n < 1;
+      });
+    }
+    updateFavCount();
+
+    const productCache = {};
+    function fetchProduct(handle) {
+      if (productCache[handle]) return Promise.resolve(productCache[handle]);
+      return fetch('/products/' + encodeURIComponent(handle) + '.js', { headers: { 'Accept': 'application/json' } })
+        .then(r => r.ok ? r.json() : null)
+        .then(p => { if (p) productCache[handle] = p; return p; })
+        .catch(() => null);
+    }
+
+    function formatMoney(cents) {
+      return (cents / 100).toFixed(2);
+    }
+
+    function renderFavs() {
+      if (!body) return;
+      const handles = readFavs();
+      if (!handles.length) {
+        body.innerHTML = '<div class="apex-favs-empty">No favorites yet.</div>';
+        return;
+      }
+      body.innerHTML = '<div class="apex-favs-empty">Loading…</div>';
+      Promise.all(handles.map(fetchProduct)).then(products => {
+        const html = products.map((p, i) => {
+          if (!p) return '';
+          const handle = handles[i];
+          const img = p.featured_image || (p.images && p.images[0]) || '';
+          const price = p.price || (p.variants && p.variants[0] && p.variants[0].price) || 0;
+          const vid = p.variants && p.variants[0] && p.variants[0].id;
+          return `
+            <div class="apex-fav-item">
+              <img class="apex-fav-thumb" src="${img}" alt="" loading="lazy">
+              <div class="apex-fav-info">
+                <a class="apex-fav-title" href="/products/${handle}">${p.title || handle}</a>
+                <div class="apex-fav-price">${formatMoney(price)}</div>
+              </div>
+              <div class="apex-fav-actions">
+                ${vid ? `<button type="button" class="apex-fav-btn" data-fav-add="${vid}">Add</button>` : ''}
+                <button type="button" class="apex-fav-btn remove" data-fav-remove="${handle}">Remove</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+        body.innerHTML = html || '<div class="apex-favs-empty">No favorites yet.</div>';
+      });
+    }
+
+    function openFavs(e) {
+      if (e) e.preventDefault();
+      if (!overlay) return;
+      overlay.classList.add('is-open');
+      overlay.setAttribute('aria-hidden', 'false');
+      renderFavs();
+    }
+    function closeFavs() {
+      if (!overlay) return;
+      overlay.classList.remove('is-open');
+      overlay.setAttribute('aria-hidden', 'true');
+    }
+
+    document.querySelectorAll('[data-apex-favorites]').forEach(el => {
+      el.addEventListener('click', openFavs);
+    });
+    if (overlay) {
+      overlay.querySelector('[data-favs-backdrop]').addEventListener('click', closeFavs);
+      overlay.querySelector('[data-favs-close]').addEventListener('click', closeFavs);
+      body && body.addEventListener('click', e => {
+        const rm = e.target.closest('[data-fav-remove]');
+        if (rm) {
+          e.preventDefault();
+          window.ApexFavorites.remove(rm.getAttribute('data-fav-remove'));
+          return;
+        }
+        const add = e.target.closest('[data-fav-add]');
+        if (add) {
+          e.preventDefault();
+          const vid = add.getAttribute('data-fav-add');
+          const fd = new FormData();
+          fd.append('id', vid);
+          fd.append('quantity', 1);
+          fetch('/cart/add.js', { method: 'POST', body: fd, headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(r => r.ok ? r.json() : Promise.reject())
+            .then(() => {
+              document.dispatchEvent(new CustomEvent('cart:refresh'));
+              add.textContent = 'Added';
+              setTimeout(() => { add.textContent = 'Add'; }, 1400);
+            })
+            .catch(() => {});
+        }
+      });
+    }
+
+    document.addEventListener('apex:favorites-changed', () => {
+      updateFavCount();
+      if (overlay && overlay.classList.contains('is-open')) renderFavs();
+    });
+    window.addEventListener('storage', e => {
+      if (e.key === FAV_KEY) {
+        updateFavCount();
+        if (overlay && overlay.classList.contains('is-open')) renderFavs();
+      }
+    });
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && overlay && overlay.classList.contains('is-open')) closeFavs();
+    });
+
+    /* Footer hide */
     if (nav.dataset.hideFooter === 'true') {
       const footer = document.querySelector('footer, .footer, #footer, [role="contentinfo"]');
       let ticking = false;
-
-      const update = (hidden) => {
-        nav.classList.toggle('is-hidden', hidden);
-      };
+      const update = (hidden) => nav.classList.toggle('is-hidden', hidden);
 
       if (footer && 'IntersectionObserver' in window) {
-        const io = new IntersectionObserver((entries) => {
-          update(entries[0].isIntersecting);
-        }, { rootMargin: '0px 0px -40px 0px', threshold: 0 });
+        const io = new IntersectionObserver(entries => update(entries[0].isIntersecting), { rootMargin: '0px 0px -40px 0px', threshold: 0 });
         io.observe(footer);
       } else {
         const check = () => {
@@ -452,7 +734,7 @@
       }
     }
 
-    /* Live cart count on AJAX updates (Dawn / common themes) */
+    /* Cart count */
     const countEls = document.querySelectorAll('[data-apex-cart-count]');
     if (countEls.length) {
       const setCount = (n) => {
@@ -462,16 +744,11 @@
           el.hidden = num < 1;
         });
       };
-
-      document.addEventListener('cart:updated', (e) => {
+      document.addEventListener('cart:updated', e => {
         if (e.detail && typeof e.detail.item_count !== 'undefined') setCount(e.detail.item_count);
       });
-
       document.addEventListener('cart:refresh', () => {
-        fetch('/cart.js', { credentials: 'same-origin' })
-          .then(r => r.json())
-          .then(d => setCount(d.item_count))
-          .catch(() => {});
+        fetch('/cart.js', { credentials: 'same-origin' }).then(r => r.json()).then(d => setCount(d.item_count)).catch(() => {});
       });
     }
   })();
@@ -617,7 +894,8 @@
             { "value": "orders", "label": "Orders" },
             { "value": "search", "label": "Search" },
             { "value": "menu", "label": "Menu" },
-            { "value": "home", "label": "Home" }
+            { "value": "home", "label": "Home" },
+            { "value": "favorites", "label": "Favorites" }
           ],
           "default": "home"
         },
@@ -665,6 +943,13 @@
         {
           "type": "tab",
           "settings": {
+            "label": "Favorites",
+            "icon_default": "favorites"
+          }
+        },
+        {
+          "type": "tab",
+          "settings": {
             "label": "Cart",
             "url": "/cart",
             "icon_default": "cart"
@@ -676,14 +961,6 @@
             "label": "Profile",
             "url": "/account",
             "icon_default": "profile"
-          }
-        },
-        {
-          "type": "tab",
-          "settings": {
-            "label": "Orders",
-            "url": "/account/orders",
-            "icon_default": "orders"
           }
         }
       ]
