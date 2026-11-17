@@ -197,20 +197,20 @@
         "vault_radius": 2
       }
     },
-    "apex_notch_nav_RkffYk": {
+    "apex_notch_nav_WwLjbT": {
       "type": "apex-notch-nav",
       "blocks": {
-        "tab_GcqeN3": {
+        "tab_KtGqBd": {
           "type": "tab",
           "settings": {
             "label": "Cart",
-            "url": "/cart",
+            "url": "shopify://pages/links",
             "icon_default": "cart",
             "is_logo": false,
             "hide_label": false
           }
         },
-        "tab_WRxy9f": {
+        "tab_tnxVVJ": {
           "type": "tab",
           "settings": {
             "label": "Profile",
@@ -220,7 +220,7 @@
             "hide_label": false
           }
         },
-        "tab_CK9DQF": {
+        "tab_PHQ864": {
           "type": "tab",
           "settings": {
             "label": "Orders",
@@ -232,9 +232,9 @@
         }
       },
       "block_order": [
-        "tab_GcqeN3",
-        "tab_WRxy9f",
-        "tab_CK9DQF"
+        "tab_KtGqBd",
+        "tab_tnxVVJ",
+        "tab_PHQ864"
       ],
       "name": "Apex Notch Tab Nav",
       "settings": {
@@ -243,13 +243,13 @@
         "tab_background": "#ffffff",
         "text_color": "#ffffff",
         "active_text_color": "#000000",
-        "custom_font": "syne_n8",
-        "show_search": true
+        "custom_font": "assistant_n4",
+        "show_search": false
       }
     }
   },
   "order": [
     "signature_header_8dQTVX",
-    "apex_notch_nav_RkffYk"
+    "apex_notch_nav_WwLjbT"
   ]
 }
