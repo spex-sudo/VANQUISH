@@ -224,7 +224,7 @@
           "type": "tab",
           "settings": {
             "label": "Cart",
-            "url": "/cart",
+            "url": "shopify://pages/links",
             "icon_default": "cart",
             "is_logo": false,
             "hide_label": false
