@@ -262,7 +262,7 @@
       "settings": {
         "position_mode": "bottom",
         "side_mode": "left",
-        "side_pages": "Productdescription,contact,articles",
+        "side_pages": "Collection, contact, articles",
         "section_size": "small",
         "bottom_offset": 16,
         "background_color": "#000000",
