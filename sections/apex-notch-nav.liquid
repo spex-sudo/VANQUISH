@@ -1,5 +1,20 @@
 {%- liquid
   assign mode = section.settings.position_mode | default: 'bottom'
+  assign side_mode = section.settings.side_mode | default: 'left'
+  assign side_pages = section.settings.side_pages | default: '' | downcase
+  assign current_handle = page.handle | default: template.name | default: '' | downcase
+
+  if side_pages != blank and current_handle != blank
+    assign pages_list = side_pages | split: ','
+    for p in pages_list
+      assign clean = p | strip
+      if clean == current_handle or clean == template.name
+        assign mode = side_mode
+        break
+      endif
+    endfor
+  endif
+
   assign bg_color = section.settings.background_color | default: '#f5f5f7'
   assign tab_bg = section.settings.tab_background | default: '#e60023'
   assign text_color = section.settings.text_color | default: '#1d1d1f'
@@ -76,7 +91,7 @@
     pointer-events: auto;
   }
 
-  /* Clean three-shadow clay: outer lift + soft inset depth (no glow) */
+  /* Clean three-shadow clay */
   .apex-notch-nav[data-mode="bottom"] {
     position: fixed;
     bottom: var(--offset);
@@ -104,11 +119,13 @@
     transform: translateY(-50%);
     width: calc(var(--bar-h) + 8px);
     height: auto;
+    min-height: 200px;
     background: var(--apex-bg);
     border-radius: 48px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     padding: var(--pad);
     box-shadow:
       5px 5px 14px rgba(0,0,0,0.08),
@@ -124,11 +141,13 @@
     transform: translateY(-50%);
     width: calc(var(--bar-h) + 8px);
     height: auto;
+    min-height: 200px;
     background: var(--apex-bg);
     border-radius: 48px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     padding: var(--pad);
     box-shadow:
       -5px 5px 14px rgba(0,0,0,0.08),
@@ -150,6 +169,7 @@
   .apex-notch-nav[data-mode="right"] .apex-tabs {
     flex-direction: column;
     gap: 4px;
+    justify-content: center;
   }
 
   .apex-tab {
@@ -178,7 +198,6 @@
     padding: 8px 4px;
   }
 
-  /* Active bubble — same clean clay recipe */
   .apex-tab.active {
     background: var(--apex-tab);
     color: var(--apex-active);
@@ -301,6 +320,10 @@
     .apex-notch-nav[data-mode="bottom"] {
       bottom: calc(var(--offset) - 8px);
     }
+    .apex-notch-nav[data-mode="left"],
+    .apex-notch-nav[data-mode="right"] {
+      width: calc(var(--bar-h) + 4px);
+    }
     .apex-tab {
       min-width: 48px;
       padding: 6px 10px;
@@ -411,13 +434,31 @@
     {
       "type": "select",
       "id": "position_mode",
-      "label": "Position Mode",
+      "label": "Default Position",
       "options": [
         { "value": "left", "label": "Left Side" },
         { "value": "right", "label": "Right Side" },
         { "value": "bottom", "label": "Bottom" }
       ],
-      "default": "bottom"
+      "default": "bottom",
+      "info": "Used on all pages unless overridden below"
+    },
+    {
+      "type": "select",
+      "id": "side_mode",
+      "label": "Side Mode (for specific pages)",
+      "options": [
+        { "value": "left", "label": "Left Side" },
+        { "value": "right", "label": "Right Side" }
+      ],
+      "default": "left",
+      "info": "Applied only on the pages listed below"
+    },
+    {
+      "type": "textarea",
+      "id": "side_pages",
+      "label": "Pages that use Side Mode",
+      "info": "Comma-separated page handles or template names (e.g. about, contact, product). Leave blank to disable page override."
     },
     {
       "type": "select",
