@@ -197,10 +197,10 @@
         "vault_radius": 2
       }
     },
-    "apex_notch_nav_Uht4qY": {
+    "apex_notch_nav_bT4VUt": {
       "type": "apex-notch-nav",
       "blocks": {
-        "tab_KT9Xfy": {
+        "tab_Bkih7a": {
           "type": "tab",
           "settings": {
             "label": "Home",
@@ -210,7 +210,7 @@
             "hide_label": false
           }
         },
-        "tab_LAwhPj": {
+        "tab_Azndmf": {
           "type": "tab",
           "settings": {
             "label": "Search",
@@ -220,7 +220,17 @@
             "hide_label": false
           }
         },
-        "tab_PhXY7X": {
+        "tab_hekRcm": {
+          "type": "tab",
+          "settings": {
+            "label": "Favorites",
+            "url": "",
+            "icon_default": "favorites",
+            "is_logo": false,
+            "hide_label": false
+          }
+        },
+        "tab_kACXbN": {
           "type": "tab",
           "settings": {
             "label": "Cart",
@@ -230,7 +240,7 @@
             "hide_label": false
           }
         },
-        "tab_MnaPam": {
+        "tab_BMD9JY": {
           "type": "tab",
           "settings": {
             "label": "Profile",
@@ -239,38 +249,31 @@
             "is_logo": false,
             "hide_label": false
           }
-        },
-        "tab_KA7Ntb": {
-          "type": "tab",
-          "settings": {
-            "label": "Orders",
-            "url": "/account/orders",
-            "icon_default": "orders",
-            "is_logo": false,
-            "hide_label": false
-          }
         }
       },
       "block_order": [
-        "tab_KT9Xfy",
-        "tab_LAwhPj",
-        "tab_PhXY7X",
-        "tab_MnaPam",
-        "tab_KA7Ntb"
+        "tab_Bkih7a",
+        "tab_Azndmf",
+        "tab_hekRcm",
+        "tab_kACXbN",
+        "tab_BMD9JY"
       ],
       "name": "Apex Notch Tab Nav",
       "settings": {
         "position_mode": "bottom",
         "side_mode": "left",
-        "side_pages": "Collection, contact, articles",
+        "side_pages": "",
+        "hide_pages": "",
         "section_size": "small",
         "bottom_offset": 16,
-        "background_color": "#000000",
+        "background_color": "#f5f5f7",
         "tab_background": "#FFFFFF",
-        "text_color": "#FFFFFF",
-        "icon_color": "#C6C6C6",
-        "active_text_color": "#000000",
-        "custom_font": "mono",
+        "text_color": "#1d1d1f",
+        "icon_color": "#787878",
+        "active_text_color": "#ffffff",
+        "custom_font": "assistant_n4",
+        "minimize_default": false,
+        "minimize_pages": "",
         "hide_on_footer": true,
         "show_search": false
       }
@@ -278,6 +281,6 @@
   },
   "order": [
     "signature_header_8dQTVX",
-    "apex_notch_nav_Uht4qY"
+    "apex_notch_nav_bT4VUt"
   ]
 }
