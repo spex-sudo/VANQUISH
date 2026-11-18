@@ -209,6 +209,10 @@
     overflow: visible;
   }
 
+  
+  .apex-notch-shape { display: none; }
+  .apex-tabs { list-style: none; margin: 0; padding: 0; }
+  .apex-tab-item { list-style: none; margin: 0; padding: 0; }
   .apex-tabs {
     display: flex;
     align-items: center;
@@ -517,7 +521,8 @@
 </style>
 
 <nav class="apex-notch-nav" data-mode="{{ mode }}" data-hide-footer="{{ hide_on_footer }}" role="navigation" aria-label="Primary">
-  <div class="apex-tabs">
+  <div class="apex-notch-shape" aria-hidden="true"></div>
+  <ul class="apex-tabs" role="list">
     {%- for block in section.blocks limit: max_tabs -%}
       {%- liquid
         assign is_active = false
@@ -533,13 +538,15 @@
         endif
       -%}
 
+      <li class="apex-tab-item" {{ block.shopify_attributes }}>
       <a href="{{ block.settings.url | default: '#' }}"
          class="apex-tab{% if is_active %} active{% endif %}"
-         {{ block.shopify_attributes }}
-         {% if is_fav %}data-apex-favorites{% endif %}
+         aria-label="{{ tab_label | escape }}"
+         {% if is_active %}aria-current="page"{% endif %}
+         {% if is_fav %}data-apex-favorites aria-haspopup="dialog"{% endif %}
          {% if block.settings.is_logo %}data-logo="true"{% endif %}>
 
-        <span class="apex-tab-icon">
+        <span class="apex-tab-icon" aria-hidden="true">
           {%- if block.settings.icon_custom != blank -%}
             <img src="{{ block.settings.icon_custom | image_url: width: 64 }}" alt="" loading="lazy" width="32" height="32">
           {%- else -%}
@@ -575,8 +582,9 @@
           <span class="apex-tab-label">{{ tab_label }}</span>
         {%- endunless -%}
       </a>
+      </li>
     {%- endfor -%}
-  </div>
+  </ul>
 </nav>
 
 <div class="apex-favs-overlay" id="apex-favs-overlay" aria-hidden="true">
