@@ -209,7 +209,40 @@
     overflow: visible;
   }
 
-  
+  /* Minimized mode */
+  .apex-notch-nav.is-minimized[data-mode="left"],
+  .apex-notch-nav.is-minimized[data-mode="right"] {
+    width: 12px !important;
+    min-height: 80px !important;
+    padding: 16px 0 !important;
+    transition: width 0.32s cubic-bezier(0.22,1,0.36,1), padding 0.32s ease;
+  }
+  .apex-notch-nav.is-minimized[data-mode="left"] {
+    border-radius: 0 16px 16px 0 !important;
+  }
+  .apex-notch-nav.is-minimized[data-mode="right"] {
+    border-radius: 16px 0 0 16px !important;
+  }
+  .apex-notch-nav.is-minimized .apex-tabs,
+  .apex-notch-nav.is-minimized .apex-tab,
+  .apex-notch-nav.is-minimized .apex-tab-icon {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.5);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+  }
+  .apex-notch-nav:not(.is-minimized)[data-mode="left"] .apex-tabs,
+  .apex-notch-nav:not(.is-minimized)[data-mode="right"] .apex-tabs {
+    opacity: 1;
+    transform: none;
+    transition: opacity 0.25s ease 0.1s, transform 0.25s ease 0.1s;
+  }
+  .apex-notch-nav.is-minimized[data-mode="bottom"] {
+    height: 10px !important;
+    padding: 0 !important;
+    border-radius: 20px !important;
+  }
+
   .apex-notch-shape { display: none; }
   .apex-tabs { list-style: none; margin: 0; padding: 0; }
   .apex-tab-item { list-style: none; margin: 0; padding: 0; }
@@ -520,7 +553,7 @@
   }
 </style>
 
-<nav class="apex-notch-nav" data-mode="{{ mode }}" data-hide-footer="{{ hide_on_footer }}" role="navigation" aria-label="Primary">
+<nav class="apex-notch-nav{% if section.settings.minimize_default %} is-minimized{% endif %}" data-mode="{{ mode }}" data-hide-footer="{{ hide_on_footer }}" data-minimize="{{ section.settings.minimize_default }}" role="navigation" aria-label="Primary">
   <div class="apex-notch-shape" aria-hidden="true"></div>
   <ul class="apex-tabs" role="list">
     {%- for block in section.blocks limit: max_tabs -%}
@@ -611,6 +644,19 @@
 
 <script>
   (function() {
+    const nav = document.querySelector('.apex-notch-nav');
+    if (nav) {
+      let timer;
+      const collapse = () => nav.classList.add('is-minimized');
+      const expand = () => { nav.classList.remove('is-minimized'); clearTimeout(timer); timer = setTimeout(collapse, 4000); };
+      nav.addEventListener('click', (e) => {
+        if (nav.classList.contains('is-minimized')) { e.preventDefault(); expand(); }
+      });
+      nav.addEventListener('mouseenter', expand);
+      nav.addEventListener('mouseleave', () => { clearTimeout(timer); timer = setTimeout(collapse, 1500); });
+      if (nav.dataset.minimize === 'true') collapse();
+    }
+
     'use strict';
     const nav = document.querySelector('.apex-notch-nav');
     if (!nav) return;
@@ -910,6 +956,13 @@
       "id": "custom_font",
       "label": "Tab Font",
       "default": "assistant_n4"
+    },
+    {
+      "type": "checkbox",
+      "id": "minimize_default",
+      "label": "Start minimized",
+      "info": "Collapses the bar to a thin edge strip. Tap to expand.",
+      "default": false
     },
     {
       "type": "checkbox",
