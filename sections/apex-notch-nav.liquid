@@ -192,18 +192,27 @@
     left: 0 !important;
     top: 50% !important;
     transform: translateY(-50%) !important;
-    width: 64px !important;
+    width: 68px !important;
     height: auto;
-    min-height: 320px;
-    background: #0a0a0a !important;
-    border-radius: 0 100px 100px 0 !important;
+    min-height: 340px;
+    background: transparent !important;
+    border-radius: 0 !important;
     display: flex !important;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 40px 8px 40px 4px;
-    box-shadow: 6px 0 24px rgba(0,0,0,0.35);
+    padding: 48px 10px 48px 6px;
+    box-shadow: none;
     overflow: visible;
+  }
+  .apex-notch-nav[data-mode="left"]::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #0a0a0a;
+    border-radius: 0 90px 90px 0;
+    clip-path: path("M0,20 C0,8 12,0 28,0 L28,0 C52,0 68,24 68,60 L68,280 C68,316 52,340 28,340 L28,340 C12,340 0,332 0,320 Z");
+    z-index: -1;
   }
 
   .apex-notch-nav[data-mode="right"] {
@@ -211,18 +220,27 @@
     right: 0 !important;
     top: 50% !important;
     transform: translateY(-50%) !important;
-    width: 64px !important;
+    width: 68px !important;
     height: auto;
-    min-height: 320px;
-    background: #0a0a0a !important;
-    border-radius: 100px 0 0 100px !important;
+    min-height: 340px;
+    background: transparent !important;
+    border-radius: 0 !important;
     display: flex !important;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 40px 4px 40px 8px;
-    box-shadow: -6px 0 24px rgba(0,0,0,0.35);
+    padding: 48px 6px 48px 10px;
+    box-shadow: none;
     overflow: visible;
+  }
+  .apex-notch-nav[data-mode="right"]::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #0a0a0a;
+    border-radius: 90px 0 0 90px;
+    transform: scaleX(-1);
+    z-index: -1;
   }
 
   /* Minimized mode */
@@ -299,12 +317,13 @@
 
   .apex-notch-nav[data-mode="left"] .apex-tab,
   .apex-notch-nav[data-mode="right"] .apex-tab {
-    width: 48px;
-    min-height: 48px;
-    padding: 8px;
+    width: 44px;
+    min-height: 52px;
+    padding: 10px 6px;
     color: #fff;
     background: transparent;
-    border-radius: 14px;
+    border-radius: 12px;
+    gap: 0;
   }
   .apex-notch-nav[data-mode="left"] .apex-tab-label,
   .apex-notch-nav[data-mode="right"] .apex-tab-label {
